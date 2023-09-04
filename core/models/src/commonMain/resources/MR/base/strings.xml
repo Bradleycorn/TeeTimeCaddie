@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="error_default_title">Fore!</string>
+    <string name="error_default_message">We seemed to have shanked one into the woods.</string>
+    <string name="error_default_recovery">Take a drop and try again.</string>
+</resources>

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "446403753740",
+    "project_id": "tee-time-caddie",
+    "storage_bucket": "tee-time-caddie.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:446403753740:android:cc686db772db368dc37b29",
+        "android_client_info": {
+          "package_name": "net.bradball.teetimecaddie.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "446403753740-rdh3llmn4teur4uobm9q0lga6g6tkveo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk_odly5x6cPrj4jkBGZdy9fNukhJcz0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "446403753740-rdh3llmn4teur4uobm9q0lga6g6tkveo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

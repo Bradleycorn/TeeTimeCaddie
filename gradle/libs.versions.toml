@@ -1,0 +1,198 @@
+# THIS FILE CONTAINS LIBRARIES AND VERSION FOR THE
+# ADW LIBRARY MODULE ONLY.
+#
+# DO NOT ADD LIBRARIES OR VERSIONS FOR THE DEMO APPS HERE.
+
+[versions]
+accompanist = "0.30.1"
+
+agp = "8.0.1"
+
+
+androidx-activity = "1.7.1"
+androidx-compose-bom = "2023.05.01" #1.4.3
+androidx-compose-compiler = "1.4.7"
+androidx-core = "1.8.0"
+androidx-lifecycle = "2.6.1"
+androidx-navigation-compose = "2.5.3"
+androidx-navigation-hilt = "1.0.0"
+androidx-splashscreen = "1.0.1"
+androidx-test-espresso = "3.5.1"
+androidx-test-junit = "1.1.5"
+
+crashkios = "0.8.2"
+
+firebase-bom = "31.4.0"
+firebase-crashlytics-plugin = "2.9.5"
+firebase-performance-plugin = "1.4.2"
+firebase-mpp-sdk = "1.8.1"
+firebase-ui = "8.0.2"
+
+google-services = "4.3.15"
+
+hilt = "2.44"
+
+junit = "4.13.2"
+
+kermit = "2.0.0-RC4"
+# The KMP Native Coroutines (native-coroutines) project (https://github.com/rickclephas/KMP-NativeCoroutines#compatibility)
+# Uses a specific version of Kotlin & Kotlin Coroutines (kotlinx-coroutines).
+# Make sure to match up versions of other libraries (like Compose) that depend on
+# Kotlin and/or coroutines so that everything matches up.
+kotlin="1.8.21"
+
+kotlinx-coroutines="1.7.0"
+kotlinx-serialization="1.5.0-RC"
+
+ksp="1.8.21-1.0.11"
+
+ktor="2.2.3"
+
+moko-resources="0.23.0"
+
+multiplatform-settings="1.0.0"
+
+native-coroutines="1.0.0-ALPHA-9" #iOS
+
+sqldelight="2.0.0-alpha05"
+
+[libraries]
+accompanist-systemui = {module = "com.google.accompanist:accompanist-systemuicontroller", version.ref="accompanist" }
+
+
+androidx-activity = { module="androidx.activity:activity-compose", version.ref="androidx-activity" }
+androidx-compose-bom = { module="androidx.compose:compose-bom", version.ref="androidx-compose-bom" }
+androidx-compose-ui-ui = { module="androidx.compose.ui:ui" }
+androidx-compose-ui-graphics = { module="androidx.compose.ui:ui-graphics" }
+androidx-compose-ui-test = { module="androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-tooling-preview = { module="androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-ui-tooling-debug = { module="androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-manifest = { module="androidx.compose.ui:ui-test-manifest" }
+androidx-compose-material3 = { module="androidx.compose.material3:material3" }
+androidx-compose-icons = { module="androidx.compose.material:material-icons-extended" }
+androidx-core = { module="androidx.core:core-ktx", version.ref="androidx-core" }
+androidx-lifecycle-runtimeCompose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewModelCompose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-runtime = { module="androidx.lifecycle:lifecycle-runtime-ktx", version.ref="androidx-lifecycle" }
+androidx-navigation-compose = { module="androidx.navigation:navigation-compose", version.ref="androidx-navigation-compose"}
+androidx-navigation-hilt = { module="androidx.hilt:hilt-navigation-compose", version.ref="androidx-navigation-hilt"}
+androidx-splashscreen = { module="androidx.core:core-splashscreen", version.ref="androidx-splashscreen" }
+androidx-test-espresso = { module="androidx.test.espresso:espresso-core", version.ref="androidx-test-espresso" }
+androidx-test-junit = { module="androidx.test.ext:junit", version.ref="androidx-test-junit" }
+
+crashkios = { module="co.touchlab.crashkios:crashlytics", version.ref="crashkios"}
+
+firebase-bom = { module="com.google.firebase:firebase-bom", version.ref="firebase-bom"}
+firebase-analytics = { module="com.google.firebase:firebase-analytics-ktx" }
+firebase-auth = { module="com.google.firebase:firebase-auth-ktx" }
+firebase-config = { module="com.google.firebase:firebase-config-ktx" }
+firebase-crashlytics = { module="com.google.firebase:firebase-crashlytics-ktx" }
+firebase-performance = { module="com.google.firebase:firebase-perf-ktx" }
+firebase-ui = { module="com.firebaseui:firebase-ui-auth", version.ref="firebase-ui"}
+
+firebase-mpp-config = { module="dev.gitlive:firebase-config", version.ref="firebase-mpp-sdk"}
+firebase-mpp-auth = { module="dev.gitlive:firebase-auth", version.ref="firebase-mpp-sdk"}
+firebase-mpp-crashlytics = { module="dev.gitlive:firebase-crashlytics", version.ref="firebase-mpp-sdk"}
+firebase-mpp-performance = { module="dev.gitlive:firebase-perf", version.ref="firebase-mpp-sdk"}
+
+firebase-plugins-crashlytics = { module="com.google.firebase:firebase-crashlytics-gradle", version.ref="firebase-crashlytics-plugin" }
+firebase-plugins-performance = { module="com.google.firebase:perf-plugin", version.ref="firebase-performance-plugin"}
+
+google-gms-services = { module="com.google.gms:google-services", version.ref="google-services"}
+
+hilt-android = { module="com.google.dagger:hilt-android", version.ref="hilt" }
+hilt-kapt = { module="com.google.dagger:hilt-android-compiler", version.ref="hilt" }
+
+junit = { module="junit:junit", version.ref="junit" }
+
+kermit-core = { module = "co.touchlab:kermit", version.ref="kermit" }
+
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
+kotlinx-serialization-core = { module="org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref="kotlinx-serialization" }
+kotlinx-datetime = { module="org.jetbrains.kotlinx:kotlinx-datetime", version="0.4.0" }
+
+ktor-core = { module="io.ktor:ktor-client-core", version.ref="ktor" }
+ktor-serialization = { module="io.ktor:ktor-serialization-kotlinx-json", version.ref="ktor" }
+ktor-contentNegotiation = { module="io.ktor:ktor-client-content-negotiation", version.ref="ktor" }
+ktor-cio = { module="io.ktor:ktor-client-cio", version.ref="ktor" }
+ktor-darwin = { module="io.ktor:ktor-client-darwin", version.ref="ktor" }
+ktor-android = { module="io.ktor:ktor-client-android", version.ref="ktor" }
+ktor-ios = { module="io.ktor:ktor-client-ios", version.ref="ktor" }
+
+mokoresources-classpath = { module="dev.icerock.moko:resources-generator", version.ref="moko-resources"}
+mokoresources-api = { module="dev.icerock.moko:resources", version.ref="moko-resources"}
+mokoresources-test = { module="dev.icerock.moko:resources-test", version.ref="moko-resources"}
+
+multiplatform-settings = { module="com.russhwolf:multiplatform-settings", version.ref="multiplatform-settings"}
+
+nativecoroutines-gradle = { module="com.rickclephas.kmp:kmp-nativecoroutines-gradle-plugin", version.ref="native-coroutines"}
+
+sqldelight-android = { module="app.cash.sqldelight:android-driver", version.ref="sqldelight"}
+sqldelight-ios = { module="app.cash.sqldelight:native-driver", version.ref="sqldelight"}
+sqldelight-adapters = { module="app.cash.sqldelight:primitive-adapters", version.ref="sqldelight"}
+sqldelight-coroutines = { module="app.cash.sqldelight:coroutines-extensions", version.ref="sqldelight"}
+
+[bundles]
+accompanist = [
+    "accompanist-systemui"
+]
+
+android-test = [
+    "androidx-test-espresso",
+    "androidx-test-junit",
+    "androidx-compose-ui-test"
+]
+
+android-debug = [
+    "androidx-compose-ui-tooling-debug",
+    "androidx-compose-ui-manifest"
+]
+
+compose = [
+    "androidx-compose-ui-ui",
+    "androidx-compose-ui-graphics",
+    "androidx-compose-ui-tooling-preview",
+    "androidx-compose-material3",
+    "androidx-compose-icons",
+    "androidx-navigation-compose",
+    "androidx-navigation-hilt"
+]
+
+firebase = [
+    "firebase-analytics",
+    "firebase-auth",
+    "firebase-config",
+    "firebase-crashlytics",
+    "firebase-performance"
+]
+
+ktor-common = [
+    "ktor-core",
+    "ktor-serialization",
+    "ktor-contentNegotiation",
+]
+
+ktor-android = [
+    "ktor-android",
+    "ktor-cio"
+]
+
+ktor-ios = [
+    "ktor-ios",
+    "ktor-darwin"
+]
+
+sqldelight = [
+    "sqldelight-adapters",
+    "sqldelight-coroutines"
+]
+
+[plugins]
+hilt = { id="com.google.dagger.hilt.android", version.ref="hilt" }
+mokoresources = { id="dev.icerock.mobile.multiplatform-resources", version.ref="moko-resources" }
+ksp = { id="com.google.devtools.ksp", version.ref="ksp" }
+nativecoroutines = { id="com.rickclephas.kmp.nativecoroutines", version.ref="native-coroutines" }
+gradleDependencyUpdates = { id = "com.github.ben-manes.versions", version = "0.42.0" }
+sqldelight = { id="app.cash.sqldelight", version.ref = "sqldelight" }
+
+#dokka = { id="org.jetbrains.dokka", version="1.6.10" }

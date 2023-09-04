@@ -1,0 +1,916 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0228D9752A63219500E82209 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9742A63219500E82209 /* Factory */; };
+		0228D9782A63265F00E82209 /* AppModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D9772A63265F00E82209 /* AppModule.swift */; };
+		0228D97B2A63293200E82209 /* ScopeFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97A2A63293200E82209 /* ScopeFunctions.swift */; };
+		0228D97E2A632A9200E82209 /* AuthModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97D2A632A9200E82209 /* AuthModule.swift */; };
+		0228D9802A64073100E82209 /* TeeTimeCaddieAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97F2A64073100E82209 /* TeeTimeCaddieAppState.swift */; };
+		0228D9832A640CDB00E82209 /* KMPNativeCoroutinesAsync in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9822A640CDB00E82209 /* KMPNativeCoroutinesAsync */; };
+		0228D9852A640CDB00E82209 /* KMPNativeCoroutinesCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9842A640CDB00E82209 /* KMPNativeCoroutinesCombine */; };
+		0228D9872A640CDB00E82209 /* KMPNativeCoroutinesCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9862A640CDB00E82209 /* KMPNativeCoroutinesCore */; };
+		0230E4B02A68BCD1009AAD8D /* TtcTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0230E4AF2A68BCD1009AAD8D /* TtcTextField.swift */; };
+		0230E4B32A68D3C6009AAD8D /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0230E4B22A68D3C6009AAD8D /* Color.swift */; };
+		024616AB2A807FC70067CC0B /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */; };
+		0289F6102A9979D600E25084 /* LoginScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0289F60F2A9979D600E25084 /* LoginScreen.swift */; };
+		0289F6122A9A7E5D00E25084 /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0289F6112A9A7E5D00E25084 /* Debug.swift */; };
+		02A6CD192A826F4700EBEF09 /* ErrorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A6CD182A826F4700EBEF09 /* ErrorExtensions.swift */; };
+		02BA11652A195E0000BF0416 /* TeeTimeCaddieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BA11642A195E0000BF0416 /* TeeTimeCaddieApp.swift */; };
+		02BA11692A195E0300BF0416 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02BA11682A195E0300BF0416 /* Assets.xcassets */; };
+		02BA116C2A195E0300BF0416 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02BA116B2A195E0300BF0416 /* Preview Assets.xcassets */; };
+		02BA11762A195E0300BF0416 /* TeeTimeCaddieTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BA11752A195E0300BF0416 /* TeeTimeCaddieTests.swift */; };
+		02BA11802A195E0300BF0416 /* TeeTimeCaddieUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BA117F2A195E0300BF0416 /* TeeTimeCaddieUITests.swift */; };
+		02BA11822A195E0300BF0416 /* TeeTimeCaddieUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BA11812A195E0300BF0416 /* TeeTimeCaddieUITestsLaunchTests.swift */; };
+		02BA11912A19764F00BF0416 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 02BA11902A19764F00BF0416 /* FirebaseAnalytics */; };
+		02BA11932A19764F00BF0416 /* FirebaseAnalyticsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 02BA11922A19764F00BF0416 /* FirebaseAnalyticsSwift */; };
+		02BA11952A19764F00BF0416 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 02BA11942A19764F00BF0416 /* FirebaseAuth */; };
+		02BA11972A19764F00BF0416 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 02BA11962A19764F00BF0416 /* FirebaseCrashlytics */; };
+		02BA11992A19764F00BF0416 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 02BA11982A19764F00BF0416 /* FirebasePerformance */; };
+		02BA119B2A19764F00BF0416 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 02BA119A2A19764F00BF0416 /* FirebaseRemoteConfig */; };
+		02BA119D2A19764F00BF0416 /* FirebaseRemoteConfigSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 02BA119C2A19764F00BF0416 /* FirebaseRemoteConfigSwift */; };
+		02BA11A12A1980DA00BF0416 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 02BA11A02A1980DA00BF0416 /* GoogleService-Info.plist */; };
+		02BA11A42A1AF58200BF0416 /* FirebaseEventPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BA11A32A1AF58200BF0416 /* FirebaseEventPlugin.swift */; };
+		02F531302A67829400278F17 /* RegistrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F5312F2A67829400278F17 /* RegistrationScreen.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		02BA11722A195E0300BF0416 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 02BA11592A195E0000BF0416 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 02BA11602A195E0000BF0416;
+			remoteInfo = TeeTimeCaddie;
+		};
+		02BA117C2A195E0300BF0416 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 02BA11592A195E0000BF0416 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 02BA11602A195E0000BF0416;
+			remoteInfo = TeeTimeCaddie;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0228D9772A63265F00E82209 /* AppModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModule.swift; sourceTree = "<group>"; };
+		0228D97A2A63293200E82209 /* ScopeFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeFunctions.swift; sourceTree = "<group>"; };
+		0228D97D2A632A9200E82209 /* AuthModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModule.swift; sourceTree = "<group>"; };
+		0228D97F2A64073100E82209 /* TeeTimeCaddieAppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieAppState.swift; sourceTree = "<group>"; };
+		0230E4AF2A68BCD1009AAD8D /* TtcTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TtcTextField.swift; sourceTree = "<group>"; };
+		0230E4B22A68D3C6009AAD8D /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewModel.swift; sourceTree = "<group>"; };
+		0289F60F2A9979D600E25084 /* LoginScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginScreen.swift; sourceTree = "<group>"; };
+		0289F6112A9A7E5D00E25084 /* Debug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
+		02A6CD182A826F4700EBEF09 /* ErrorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorExtensions.swift; sourceTree = "<group>"; };
+		02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeeTimeCaddie.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		02BA11642A195E0000BF0416 /* TeeTimeCaddieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieApp.swift; sourceTree = "<group>"; };
+		02BA11682A195E0300BF0416 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		02BA116B2A195E0300BF0416 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		02BA11712A195E0300BF0416 /* TeeTimeCaddieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeeTimeCaddieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		02BA11752A195E0300BF0416 /* TeeTimeCaddieTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieTests.swift; sourceTree = "<group>"; };
+		02BA117B2A195E0300BF0416 /* TeeTimeCaddieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeeTimeCaddieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		02BA117F2A195E0300BF0416 /* TeeTimeCaddieUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieUITests.swift; sourceTree = "<group>"; };
+		02BA11812A195E0300BF0416 /* TeeTimeCaddieUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		02BA11A02A1980DA00BF0416 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		02BA11A32A1AF58200BF0416 /* FirebaseEventPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseEventPlugin.swift; sourceTree = "<group>"; };
+		02BA11A52A1AFAA400BF0416 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		02F5312F2A67829400278F17 /* RegistrationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationScreen.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		02BA115E2A195E0000BF0416 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02BA11932A19764F00BF0416 /* FirebaseAnalyticsSwift in Frameworks */,
+				0228D9852A640CDB00E82209 /* KMPNativeCoroutinesCombine in Frameworks */,
+				02BA11972A19764F00BF0416 /* FirebaseCrashlytics in Frameworks */,
+				02BA11992A19764F00BF0416 /* FirebasePerformance in Frameworks */,
+				02BA119D2A19764F00BF0416 /* FirebaseRemoteConfigSwift in Frameworks */,
+				02BA119B2A19764F00BF0416 /* FirebaseRemoteConfig in Frameworks */,
+				02BA11952A19764F00BF0416 /* FirebaseAuth in Frameworks */,
+				02BA11912A19764F00BF0416 /* FirebaseAnalytics in Frameworks */,
+				0228D9752A63219500E82209 /* Factory in Frameworks */,
+				0228D9832A640CDB00E82209 /* KMPNativeCoroutinesAsync in Frameworks */,
+				0228D9872A640CDB00E82209 /* KMPNativeCoroutinesCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		02BA116E2A195E0300BF0416 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		02BA11782A195E0300BF0416 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0228D9762A63264B00E82209 /* inject */ = {
+			isa = PBXGroup;
+			children = (
+				0228D9772A63265F00E82209 /* AppModule.swift */,
+			);
+			path = inject;
+			sourceTree = "<group>";
+		};
+		0228D9792A63292000E82209 /* util */ = {
+			isa = PBXGroup;
+			children = (
+				0228D97A2A63293200E82209 /* ScopeFunctions.swift */,
+				02A6CD182A826F4700EBEF09 /* ErrorExtensions.swift */,
+				0289F6112A9A7E5D00E25084 /* Debug.swift */,
+			);
+			path = util;
+			sourceTree = "<group>";
+		};
+		0228D97C2A632A7400E82209 /* auth */ = {
+			isa = PBXGroup;
+			children = (
+				0289F60E2A9979B800E25084 /* login */,
+				02F5312E2A67826D00278F17 /* register */,
+				0228D97D2A632A9200E82209 /* AuthModule.swift */,
+			);
+			path = auth;
+			sourceTree = "<group>";
+		};
+		0230E4AD2A68BC9D009AAD8D /* common */ = {
+			isa = PBXGroup;
+			children = (
+				0230E4AE2A68BCA6009AAD8D /* forms */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		0230E4AE2A68BCA6009AAD8D /* forms */ = {
+			isa = PBXGroup;
+			children = (
+				0230E4AF2A68BCD1009AAD8D /* TtcTextField.swift */,
+			);
+			path = forms;
+			sourceTree = "<group>";
+		};
+		0230E4B12A68D3B3009AAD8D /* theme */ = {
+			isa = PBXGroup;
+			children = (
+				0230E4B22A68D3C6009AAD8D /* Color.swift */,
+			);
+			path = theme;
+			sourceTree = "<group>";
+		};
+		0289F60E2A9979B800E25084 /* login */ = {
+			isa = PBXGroup;
+			children = (
+				0289F60F2A9979D600E25084 /* LoginScreen.swift */,
+			);
+			path = login;
+			sourceTree = "<group>";
+		};
+		02BA11582A195E0000BF0416 = {
+			isa = PBXGroup;
+			children = (
+				02BA11632A195E0000BF0416 /* TeeTimeCaddie */,
+				02BA11742A195E0300BF0416 /* TeeTimeCaddieTests */,
+				02BA117E2A195E0300BF0416 /* TeeTimeCaddieUITests */,
+				02BA11622A195E0000BF0416 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		02BA11622A195E0000BF0416 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */,
+				02BA11712A195E0300BF0416 /* TeeTimeCaddieTests.xctest */,
+				02BA117B2A195E0300BF0416 /* TeeTimeCaddieUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		02BA11632A195E0000BF0416 /* TeeTimeCaddie */ = {
+			isa = PBXGroup;
+			children = (
+				02BA11A52A1AFAA400BF0416 /* Info.plist */,
+				02BA11A22A19811200BF0416 /* Source */,
+				02BA11A02A1980DA00BF0416 /* GoogleService-Info.plist */,
+				02BA11682A195E0300BF0416 /* Assets.xcassets */,
+				02BA116A2A195E0300BF0416 /* Preview Content */,
+			);
+			path = TeeTimeCaddie;
+			sourceTree = "<group>";
+		};
+		02BA116A2A195E0300BF0416 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				02BA116B2A195E0300BF0416 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		02BA11742A195E0300BF0416 /* TeeTimeCaddieTests */ = {
+			isa = PBXGroup;
+			children = (
+				02BA11752A195E0300BF0416 /* TeeTimeCaddieTests.swift */,
+			);
+			path = TeeTimeCaddieTests;
+			sourceTree = "<group>";
+		};
+		02BA117E2A195E0300BF0416 /* TeeTimeCaddieUITests */ = {
+			isa = PBXGroup;
+			children = (
+				02BA117F2A195E0300BF0416 /* TeeTimeCaddieUITests.swift */,
+				02BA11812A195E0300BF0416 /* TeeTimeCaddieUITestsLaunchTests.swift */,
+			);
+			path = TeeTimeCaddieUITests;
+			sourceTree = "<group>";
+		};
+		02BA11A22A19811200BF0416 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				0228D9792A63292000E82209 /* util */,
+				0228D9762A63264B00E82209 /* inject */,
+				02BD2C592A5B83B200B28088 /* analytics */,
+				02BD2C5B2A5B83DC00B28088 /* features */,
+				02BD2C5A2A5B83CF00B28088 /* ui */,
+				0228D97F2A64073100E82209 /* TeeTimeCaddieAppState.swift */,
+				02BA11642A195E0000BF0416 /* TeeTimeCaddieApp.swift */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
+		02BD2C592A5B83B200B28088 /* analytics */ = {
+			isa = PBXGroup;
+			children = (
+				02BA11A32A1AF58200BF0416 /* FirebaseEventPlugin.swift */,
+			);
+			path = analytics;
+			sourceTree = "<group>";
+		};
+		02BD2C5A2A5B83CF00B28088 /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				0230E4B12A68D3B3009AAD8D /* theme */,
+				0230E4AD2A68BC9D009AAD8D /* common */,
+				02BD2C5C2A5B84F700B28088 /* app */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
+		02BD2C5B2A5B83DC00B28088 /* features */ = {
+			isa = PBXGroup;
+			children = (
+				0228D97C2A632A7400E82209 /* auth */,
+			);
+			path = features;
+			sourceTree = "<group>";
+		};
+		02BD2C5C2A5B84F700B28088 /* app */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = app;
+			sourceTree = "<group>";
+		};
+		02F5312E2A67826D00278F17 /* register */ = {
+			isa = PBXGroup;
+			children = (
+				02F5312F2A67829400278F17 /* RegistrationScreen.swift */,
+				024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */,
+			);
+			path = register;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		02BA11602A195E0000BF0416 /* TeeTimeCaddie */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 02BA11852A195E0300BF0416 /* Build configuration list for PBXNativeTarget "TeeTimeCaddie" */;
+			buildPhases = (
+				02BA118E2A19607400BF0416 /* ShellScript */,
+				02BA115D2A195E0000BF0416 /* Sources */,
+				02BA115E2A195E0000BF0416 /* Frameworks */,
+				02BA115F2A195E0000BF0416 /* Resources */,
+				02F5312D2A66D7CF00278F17 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TeeTimeCaddie;
+			packageProductDependencies = (
+				02BA11902A19764F00BF0416 /* FirebaseAnalytics */,
+				02BA11922A19764F00BF0416 /* FirebaseAnalyticsSwift */,
+				02BA11942A19764F00BF0416 /* FirebaseAuth */,
+				02BA11962A19764F00BF0416 /* FirebaseCrashlytics */,
+				02BA11982A19764F00BF0416 /* FirebasePerformance */,
+				02BA119A2A19764F00BF0416 /* FirebaseRemoteConfig */,
+				02BA119C2A19764F00BF0416 /* FirebaseRemoteConfigSwift */,
+				0228D9742A63219500E82209 /* Factory */,
+				0228D9822A640CDB00E82209 /* KMPNativeCoroutinesAsync */,
+				0228D9842A640CDB00E82209 /* KMPNativeCoroutinesCombine */,
+				0228D9862A640CDB00E82209 /* KMPNativeCoroutinesCore */,
+			);
+			productName = TeeTimeCaddie;
+			productReference = 02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */;
+			productType = "com.apple.product-type.application";
+		};
+		02BA11702A195E0300BF0416 /* TeeTimeCaddieTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 02BA11882A195E0300BF0416 /* Build configuration list for PBXNativeTarget "TeeTimeCaddieTests" */;
+			buildPhases = (
+				02BA116D2A195E0300BF0416 /* Sources */,
+				02BA116E2A195E0300BF0416 /* Frameworks */,
+				02BA116F2A195E0300BF0416 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				02BA11732A195E0300BF0416 /* PBXTargetDependency */,
+			);
+			name = TeeTimeCaddieTests;
+			productName = TeeTimeCaddieTests;
+			productReference = 02BA11712A195E0300BF0416 /* TeeTimeCaddieTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		02BA117A2A195E0300BF0416 /* TeeTimeCaddieUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 02BA118B2A195E0300BF0416 /* Build configuration list for PBXNativeTarget "TeeTimeCaddieUITests" */;
+			buildPhases = (
+				02BA11772A195E0300BF0416 /* Sources */,
+				02BA11782A195E0300BF0416 /* Frameworks */,
+				02BA11792A195E0300BF0416 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				02BA117D2A195E0300BF0416 /* PBXTargetDependency */,
+			);
+			name = TeeTimeCaddieUITests;
+			productName = TeeTimeCaddieUITests;
+			productReference = 02BA117B2A195E0300BF0416 /* TeeTimeCaddieUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		02BA11592A195E0000BF0416 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1430;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					02BA11602A195E0000BF0416 = {
+						CreatedOnToolsVersion = 14.3;
+					};
+					02BA11702A195E0300BF0416 = {
+						CreatedOnToolsVersion = 14.3;
+						TestTargetID = 02BA11602A195E0000BF0416;
+					};
+					02BA117A2A195E0300BF0416 = {
+						CreatedOnToolsVersion = 14.3;
+						TestTargetID = 02BA11602A195E0000BF0416;
+					};
+				};
+			};
+			buildConfigurationList = 02BA115C2A195E0000BF0416 /* Build configuration list for PBXProject "TeeTimeCaddie" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 02BA11582A195E0000BF0416;
+			packageReferences = (
+				02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */,
+				0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */,
+			);
+			productRefGroup = 02BA11622A195E0000BF0416 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				02BA11602A195E0000BF0416 /* TeeTimeCaddie */,
+				02BA11702A195E0300BF0416 /* TeeTimeCaddieTests */,
+				02BA117A2A195E0300BF0416 /* TeeTimeCaddieUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		02BA115F2A195E0000BF0416 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02BA116C2A195E0300BF0416 /* Preview Assets.xcassets in Resources */,
+				02BA11692A195E0300BF0416 /* Assets.xcassets in Resources */,
+				02BA11A12A1980DA00BF0416 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		02BA116F2A195E0300BF0416 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		02BA11792A195E0300BF0416 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		02BA118E2A19607400BF0416 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../..\"\n./gradlew :businessLogic:embedAndSignAppleFrameworkForXcode\n";
+		};
+		02F5312D2A66D7CF00278F17 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../..\"\n./gradlew -p \"$SRCROOT/../../\" :businessLogic:copyFrameworkResourcesToApp \\\n    -Pmoko.resources.PLATFORM_NAME=\"$PLATFORM_NAME\" \\\n    -Pmoko.resources.CONFIGURATION=\"$CONFIGURATION\" \\\n    -Pmoko.resources.ARCHS=\"$ARCHS\" \\\n    -Pmoko.resources.BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    -Pmoko.resources.CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\" \n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		02BA115D2A195E0000BF0416 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02F531302A67829400278F17 /* RegistrationScreen.swift in Sources */,
+				024616AB2A807FC70067CC0B /* RegistrationViewModel.swift in Sources */,
+				0228D97E2A632A9200E82209 /* AuthModule.swift in Sources */,
+				0230E4B32A68D3C6009AAD8D /* Color.swift in Sources */,
+				0228D97B2A63293200E82209 /* ScopeFunctions.swift in Sources */,
+				0228D9782A63265F00E82209 /* AppModule.swift in Sources */,
+				0289F6122A9A7E5D00E25084 /* Debug.swift in Sources */,
+				02A6CD192A826F4700EBEF09 /* ErrorExtensions.swift in Sources */,
+				02BA11A42A1AF58200BF0416 /* FirebaseEventPlugin.swift in Sources */,
+				0230E4B02A68BCD1009AAD8D /* TtcTextField.swift in Sources */,
+				0289F6102A9979D600E25084 /* LoginScreen.swift in Sources */,
+				02BA11652A195E0000BF0416 /* TeeTimeCaddieApp.swift in Sources */,
+				0228D9802A64073100E82209 /* TeeTimeCaddieAppState.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		02BA116D2A195E0300BF0416 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02BA11762A195E0300BF0416 /* TeeTimeCaddieTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		02BA11772A195E0300BF0416 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02BA11822A195E0300BF0416 /* TeeTimeCaddieUITestsLaunchTests.swift in Sources */,
+				02BA11802A195E0300BF0416 /* TeeTimeCaddieUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		02BA11732A195E0300BF0416 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 02BA11602A195E0000BF0416 /* TeeTimeCaddie */;
+			targetProxy = 02BA11722A195E0300BF0416 /* PBXContainerItemProxy */;
+		};
+		02BA117D2A195E0300BF0416 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 02BA11602A195E0000BF0416 /* TeeTimeCaddie */;
+			targetProxy = 02BA117C2A195E0300BF0416 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		02BA11832A195E0300BF0416 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		02BA11842A195E0300BF0416 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		02BA11862A195E0300BF0416 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"TeeTimeCaddie/Preview Content\"";
+				DEVELOPMENT_TEAM = XDJPMNG2Q7;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../businessLogic/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TeeTimeCaddie/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.teetimecaddie.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		02BA11872A195E0300BF0416 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"TeeTimeCaddie/Preview Content\"";
+				DEVELOPMENT_TEAM = XDJPMNG2Q7;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../../businessLogic/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TeeTimeCaddie/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.teetimecaddie.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		02BA11892A195E0300BF0416 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XDJPMNG2Q7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.TeeTimeCaddieTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TeeTimeCaddie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TeeTimeCaddie";
+			};
+			name = Debug;
+		};
+		02BA118A2A195E0300BF0416 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XDJPMNG2Q7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.TeeTimeCaddieTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TeeTimeCaddie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TeeTimeCaddie";
+			};
+			name = Release;
+		};
+		02BA118C2A195E0300BF0416 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XDJPMNG2Q7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.TeeTimeCaddieUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TeeTimeCaddie;
+			};
+			name = Debug;
+		};
+		02BA118D2A195E0300BF0416 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XDJPMNG2Q7;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.TeeTimeCaddieUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TeeTimeCaddie;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		02BA115C2A195E0000BF0416 /* Build configuration list for PBXProject "TeeTimeCaddie" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				02BA11832A195E0300BF0416 /* Debug */,
+				02BA11842A195E0300BF0416 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		02BA11852A195E0300BF0416 /* Build configuration list for PBXNativeTarget "TeeTimeCaddie" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				02BA11862A195E0300BF0416 /* Debug */,
+				02BA11872A195E0300BF0416 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		02BA11882A195E0300BF0416 /* Build configuration list for PBXNativeTarget "TeeTimeCaddieTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				02BA11892A195E0300BF0416 /* Debug */,
+				02BA118A2A195E0300BF0416 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		02BA118B2A195E0300BF0416 /* Build configuration list for PBXNativeTarget "TeeTimeCaddieUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				02BA118C2A195E0300BF0416 /* Debug */,
+				02BA118D2A195E0300BF0416 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hmlongco/Factory";
+			requirement = {
+				kind = exactVersion;
+				version = 2.2.0;
+			};
+		};
+		0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/rickclephas/KMP-NativeCoroutines.git";
+			requirement = {
+				kind = exactVersion;
+				version = "1.0.0-ALPHA-9";
+			};
+		};
+		02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 10.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0228D9742A63219500E82209 /* Factory */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */;
+			productName = Factory;
+		};
+		0228D9822A640CDB00E82209 /* KMPNativeCoroutinesAsync */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */;
+			productName = KMPNativeCoroutinesAsync;
+		};
+		0228D9842A640CDB00E82209 /* KMPNativeCoroutinesCombine */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */;
+			productName = KMPNativeCoroutinesCombine;
+		};
+		0228D9862A640CDB00E82209 /* KMPNativeCoroutinesCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */;
+			productName = KMPNativeCoroutinesCore;
+		};
+		02BA11902A19764F00BF0416 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		02BA11922A19764F00BF0416 /* FirebaseAnalyticsSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsSwift;
+		};
+		02BA11942A19764F00BF0416 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		02BA11962A19764F00BF0416 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		02BA11982A19764F00BF0416 /* FirebasePerformance */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebasePerformance;
+		};
+		02BA119A2A19764F00BF0416 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+		02BA119C2A19764F00BF0416 /* FirebaseRemoteConfigSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02BA118F2A19764F00BF0416 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfigSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 02BA11592A195E0000BF0416 /* Project object */;
+}

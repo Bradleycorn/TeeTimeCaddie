@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="reg_screen_title">Sign Up</string>
+    <string name="reg_submit_button">Create My Account</string>
+    <string name="reg_login_button">Sign In</string>
+    <string name="reg_existing_account_prompt">Already have an account?</string>
+
+    <!-- Used for User Exists and Unknown/default errors -->
+    <string name="reg_error_default_title">Account Not Created</string>
+    <string name="reg_error_default_message">We could not create an account with the information provided.</string>
+    <string name="reg_error_default_recovery">Try again. Or if you already have an account, you can sign in.</string>
+
+    <string name="reg_error_invalid_email_message">The email address you entered is not valid.</string>
+    <string name="reg_error_invalid_email_recovery">Try again with a different email address.</string>
+
+    <string name="reg_error_no_name_message">The name field is empty.</string>
+    <string name="reg_error_no_name_recovery">Provide a name so your playing partners can recognize you.</string>
+
+    <string name="reg_error_weak_password_message">Your password must be at least 8 characters, and must contain at least one number.</string>
+    <string name="reg_error_weak_password_recovery">Try again with a stronger password.</string>
+</resources>
