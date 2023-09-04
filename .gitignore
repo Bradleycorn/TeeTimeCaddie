@@ -1,0 +1,25 @@
+*.iml
+.gradle
+.idea
+.DS_Store
+.externalNativeBuild
+.cxx
+
+
+build
+captures
+xcuserdata
+
+local.properties
+
+#SPM Stuff
+Package.pins
+Package.resolved
+
+# Idea (IntelliJ)
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
