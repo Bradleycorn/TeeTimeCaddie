@@ -30,6 +30,6 @@ class TeeTimeCaddieActivityViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
     )
 
-    val isLoggedIn = authRepo.isLoggedIn
-
+    val isLoggedIn: Boolean
+        get() = authRepo.isLoggedIn
 }

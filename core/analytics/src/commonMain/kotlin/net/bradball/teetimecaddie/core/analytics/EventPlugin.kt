@@ -52,17 +52,17 @@ interface EventPlugin {
 
     /**
      * Called by the [EventManager] when a new screen is viewed by the user.
-     * The screen could be a complete screen (Today's Races, Account History, etc),
-     * or a screen in a ViewPager (RaceFragment, Probables, etc), or a Full Screen Dialog (Race Picker, etc).
+     * The screen could be a normal screen (Login, Home, etc),
+     * or a modal, bottom sheet, etc.
      *
      * If an analytics service wants to log screen views, it can implement this method to do so.
      * A default (empty) implementation is provided in the interface, so that Plugins for services that do
      * not care about screen views can ignore this method entirely.
      *
-     * @param screenName - A display name for the screen being logged (eg "Todays Races")
-     * @param screenClass - The Kotlin KClass for the screen being logged (eg TodaysRacesFragment::class)
+     * @param screen - The [AnalyticsScreen] being logged (eg AnalyticsScreen.Login)
+     * @param displayMethod - A [ScreenType] that indicates the method by which the screen is presented (eg. ScreenType.BOTTOM_SHEET)
      *
      * @return Boolean - true if the screen view was logged, false if it was not. Default implementation returns false.
      */
-    fun logScreenView(screenName: String, extras: Map<String, String> = emptyMap()): Boolean = false
+    fun logScreenView(screen: AnalyticsScreen, displayMethod: ScreenType = ScreenType.SCREEN): Boolean = false
 }

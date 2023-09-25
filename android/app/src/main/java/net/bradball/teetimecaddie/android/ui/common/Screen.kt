@@ -1,8 +1,15 @@
 package net.bradball.teetimecaddie.android.ui.common
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import net.bradball.teetimecaddie.android.analytics.LocalEventManager
+import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 
 /**
  * Wrapper for rendering a "Screen" of content.
@@ -16,14 +23,18 @@ import net.bradball.teetimecaddie.android.analytics.LocalEventManager
  */
 @Composable
 fun Screen(
-    name: String,
-    extras: Map<String, String> = emptyMap(),
+    screen: AnalyticsScreen,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color = contentColorFor(color),
     content: @Composable ()->Unit) {
 
     val eventManager = LocalEventManager.current
-    LaunchedEffect(name, extras) {
-        eventManager.logScreenView(name, extras)
+    LaunchedEffect(screen) {
+        eventManager.logScreenView(screen)
     }
 
-    content()
+    Surface(modifier, color = color, contentColor = contentColor) {
+        content()
+    }
 }

@@ -1,84 +1,102 @@
-//
-//  RegistrationScreen.swift
-//  TeeTimeCaddie
-//
-//  Created by Brad Ball on 7/18/23.
-//
-
 import SwiftUI
 import TeeTimeCaddieKit
 
+
+
 struct RegistrationScreen: View {
+    private let onLoginClick: ()->Void
+    
+    init(onLoginClick: @escaping () -> Void = {}) {
+        self.onLoginClick = onLoginClick
+    }
+    
     @StateObject
     private var viewModel = RegistrationViewModel(
         authRepo: AuthModule.shared.authRepository(),
         eventManager: AppModule.shared.eventManager())
     
+    var body: some View {
+        Registration(
+            isProcessing: viewModel.processingRegistration,
+            error: $viewModel.registrationError,
+            onSubmitRegistration: viewModel.registerUser(email:password:name:),
+            onLoginClick: onLoginClick)
+    }
+}
+
+fileprivate struct Registration: View {
+
+    private let isProcessing: Bool
+    private let error: Binding<TeeTimeCaddieError?>
+    private let onLoginClick: ()->Void
+    private let onSubmitRegistration: (String,String,String)->Void
+    
+    init(
+        isProcessing: Bool,
+        error: Binding<TeeTimeCaddieError?>,
+        onSubmitRegistration: @escaping (String,String,String)->Void = {_,_,_ in },
+        onLoginClick: @escaping ()->Void = {}
+    ) {
+        self.isProcessing = isProcessing
+        self.error = error
+        self.onLoginClick = onLoginClick
+        self.onSubmitRegistration = onSubmitRegistration
+    }
+        
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var name: String = ""
 
-    let title = AR.strings().reg_screen_title.desc().localized()
-    let buttonTitle = AR.strings().reg_submit_button.desc().localized()
+    private let title = AR.strings().reg_screen_title.desc().localized()
+    private let buttonTitle = AR.strings().reg_submit_button.desc().localized()
+    private let footerText = AR.strings().reg_existing_account_prompt.desc().localized()
+    private let footerAction = AR.strings().reg_login_button.desc().localized()
+    private let emailLabel = AR.strings().field_label_email.desc().localized()
+    private let passwordLabel = AR.strings().field_label_password.desc().localized()
+    private let nameLabel = AR.strings().field_label_name.desc().localized()
     
     var body: some View {
-        VStack(alignment: .center,spacing: 0) {
-            Text(title)
-                .font(.title)
-                .bold()
+        AuthScreen(analyticsScreen: .Registration.shared,
+                   title: title,
+                   footerText: footerText,
+                   footerActionText: footerAction,
+                   onFooterActionClick: onLoginClick) {
 
-            Image("icon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: .infinity, maxHeight: 164)
-                .foregroundColor(.blue)
-                .padding(.vertical, 32)
+            FormStack {
+                TextField(emailLabel, text: $email)
+                    .formFieldPadding()
+                
+                FormFieldDivider()
+                
+                PasswordField(passwordLabel, text: $password)
+                    .formFieldPadding()
 
-            VStack(spacing: 0) {
-                TextField("Email Address", text: $email)
-                    .padding(12)
-                Divider()
-                    .padding(.leading, 12)
-                PasswordField("Password", text: $password)
-                    .padding(12)
-                Divider()
-                    .padding(.leading, 12)
-                TextField("Name", text: $name)
-                    .padding(12)
+                FormFieldDivider()
+                    
+                TextField(nameLabel, text: $name)
+                    .formFieldPadding()
             }
-            .background(Color.white)
-            .cornerRadius(12)
             
             Spacer()
                 .frame(height: 20)
                         
-            Button(
-                action: { viewModel.registerUser(email: email, password: password, name: name, onSuccess: {print("Success")}) },
-                label: {Text(buttonTitle).frame(maxWidth: .infinity)}
-            )
-                .buttonStyle(.borderedProminent)
-                .disabled(!viewModel.submitEnabled)
-                .errorAlert(error: $viewModel.registrationError)
-            
-            Spacer()
-
-            HStack {
-                Text("Already Have an Account?")
-                Button("Sign in", action: {})
-            }
+            LoadingButton(
+                isLoading: isProcessing,
+                action: { onSubmitRegistration(email, password, name)
+                    
+                }) {
+                    Text(buttonTitle)
+                        .frame(maxWidth: .infinity)
+                }
+            .buttonStyle(.borderedProminent)
+            .errorAlert(error: error)
         }
-        .padding(.horizontal, 24)
-        .background(Color(UIColor.systemGroupedBackground))
     }
 }
 
 
-
-
-
-
 struct RegistrationScreen_Previews: PreviewProvider {
     static var previews: some View {
-        RegistrationScreen()
+        Registration(isProcessing: false, error: .constant(nil))
     }
 }

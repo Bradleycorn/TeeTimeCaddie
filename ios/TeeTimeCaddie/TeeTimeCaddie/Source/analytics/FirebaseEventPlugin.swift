@@ -15,8 +15,16 @@ class FirebaseEventPlugin: EventPlugin {
         return true
     }
     
-    func logScreenView(screenName: String, extras: [String : String]) -> Bool {
-        // Handled by Firebase SwiftUI Extensions
+    func logScreenView(screen: AnalyticsScreen, displayMethod: ScreenType) -> Bool {
+
+        
+        var params: [String:Any] = screen.parameters
+        
+        params[AnalyticsParameterScreenName] = screen.name
+        params[AnalyticsParameterScreenClass] = displayMethod.displayName
+        
+        Analytics.logEvent(AnalyticsEventScreenView, parameters: params)
+
         return true
     }
     

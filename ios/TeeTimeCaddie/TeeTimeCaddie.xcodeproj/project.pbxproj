@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		020332E02AB9361A0080DC60 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020332DF2AB9361A0080DC60 /* LoginViewModel.swift */; };
 		0228D9752A63219500E82209 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9742A63219500E82209 /* Factory */; };
 		0228D9782A63265F00E82209 /* AppModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D9772A63265F00E82209 /* AppModule.swift */; };
 		0228D97B2A63293200E82209 /* ScopeFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97A2A63293200E82209 /* ScopeFunctions.swift */; };
@@ -15,12 +16,23 @@
 		0228D9832A640CDB00E82209 /* KMPNativeCoroutinesAsync in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9822A640CDB00E82209 /* KMPNativeCoroutinesAsync */; };
 		0228D9852A640CDB00E82209 /* KMPNativeCoroutinesCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9842A640CDB00E82209 /* KMPNativeCoroutinesCombine */; };
 		0228D9872A640CDB00E82209 /* KMPNativeCoroutinesCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9862A640CDB00E82209 /* KMPNativeCoroutinesCore */; };
-		0230E4B02A68BCD1009AAD8D /* TtcTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0230E4AF2A68BCD1009AAD8D /* TtcTextField.swift */; };
+		0230E4B02A68BCD1009AAD8D /* PasswordField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0230E4AF2A68BCD1009AAD8D /* PasswordField.swift */; };
 		0230E4B32A68D3C6009AAD8D /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0230E4B22A68D3C6009AAD8D /* Color.swift */; };
 		024616AB2A807FC70067CC0B /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */; };
+		0256DD782AAC9DBF009E2AE3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0256DD772AAC9DBF009E2AE3 /* AppDelegate.swift */; };
 		0289F6102A9979D600E25084 /* LoginScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0289F60F2A9979D600E25084 /* LoginScreen.swift */; };
 		0289F6122A9A7E5D00E25084 /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0289F6112A9A7E5D00E25084 /* Debug.swift */; };
 		02A6CD192A826F4700EBEF09 /* ErrorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A6CD182A826F4700EBEF09 /* ErrorExtensions.swift */; };
+		02B0F2EC2AB29B2D00D094BC /* AuthScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2EB2AB29B2D00D094BC /* AuthScreen.swift */; };
+		02B0F2EF2AB29D6500D094BC /* AuthHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2EE2AB29D6500D094BC /* AuthHeader.swift */; };
+		02B0F2F12AB29F3D00D094BC /* AuthFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2F02AB29F3D00D094BC /* AuthFooter.swift */; };
+		02B0F2F32AB3E16400D094BC /* FormStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2F22AB3E16400D094BC /* FormStack.swift */; };
+		02B0F2F52AB3E4B000D094BC /* FormFieldPadding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2F42AB3E4B000D094BC /* FormFieldPadding.swift */; };
+		02B0F2F72AB3E62300D094BC /* FormFieldDivider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2F62AB3E62300D094BC /* FormFieldDivider.swift */; };
+		02B0F3052AB3EF0600D094BC /* AnimatedDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F3012AB3EF0600D094BC /* AnimatedDots.swift */; };
+		02B0F3062AB3EF0600D094BC /* LoadingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F3022AB3EF0600D094BC /* LoadingOverlay.swift */; };
+		02B0F3072AB3EF0600D094BC /* LoadingButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F3032AB3EF0600D094BC /* LoadingButton.swift */; };
+		02B0F3082AB3EF0600D094BC /* LoadingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F3042AB3EF0600D094BC /* LoadingIndicator.swift */; };
 		02BA11652A195E0000BF0416 /* TeeTimeCaddieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BA11642A195E0000BF0416 /* TeeTimeCaddieApp.swift */; };
 		02BA11692A195E0300BF0416 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02BA11682A195E0300BF0416 /* Assets.xcassets */; };
 		02BA116C2A195E0300BF0416 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 02BA116B2A195E0300BF0416 /* Preview Assets.xcassets */; };
@@ -37,6 +49,7 @@
 		02BA11A12A1980DA00BF0416 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 02BA11A02A1980DA00BF0416 /* GoogleService-Info.plist */; };
 		02BA11A42A1AF58200BF0416 /* FirebaseEventPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02BA11A32A1AF58200BF0416 /* FirebaseEventPlugin.swift */; };
 		02F531302A67829400278F17 /* RegistrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F5312F2A67829400278F17 /* RegistrationScreen.swift */; };
+		02F7E2C52AAF3B0E0071C3A3 /* Screen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F7E2C42AAF3B0E0071C3A3 /* Screen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,16 +70,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		020332DF2AB9361A0080DC60 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		0228D9772A63265F00E82209 /* AppModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModule.swift; sourceTree = "<group>"; };
 		0228D97A2A63293200E82209 /* ScopeFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeFunctions.swift; sourceTree = "<group>"; };
 		0228D97D2A632A9200E82209 /* AuthModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModule.swift; sourceTree = "<group>"; };
 		0228D97F2A64073100E82209 /* TeeTimeCaddieAppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieAppState.swift; sourceTree = "<group>"; };
-		0230E4AF2A68BCD1009AAD8D /* TtcTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TtcTextField.swift; sourceTree = "<group>"; };
+		0230E4AF2A68BCD1009AAD8D /* PasswordField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordField.swift; sourceTree = "<group>"; };
 		0230E4B22A68D3C6009AAD8D /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewModel.swift; sourceTree = "<group>"; };
+		0256DD772AAC9DBF009E2AE3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0289F60F2A9979D600E25084 /* LoginScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginScreen.swift; sourceTree = "<group>"; };
 		0289F6112A9A7E5D00E25084 /* Debug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
 		02A6CD182A826F4700EBEF09 /* ErrorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorExtensions.swift; sourceTree = "<group>"; };
+		02B0F2EB2AB29B2D00D094BC /* AuthScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthScreen.swift; sourceTree = "<group>"; };
+		02B0F2EE2AB29D6500D094BC /* AuthHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthHeader.swift; sourceTree = "<group>"; };
+		02B0F2F02AB29F3D00D094BC /* AuthFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthFooter.swift; sourceTree = "<group>"; };
+		02B0F2F22AB3E16400D094BC /* FormStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormStack.swift; sourceTree = "<group>"; };
+		02B0F2F42AB3E4B000D094BC /* FormFieldPadding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormFieldPadding.swift; sourceTree = "<group>"; };
+		02B0F2F62AB3E62300D094BC /* FormFieldDivider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormFieldDivider.swift; sourceTree = "<group>"; };
+		02B0F3012AB3EF0600D094BC /* AnimatedDots.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimatedDots.swift; sourceTree = "<group>"; };
+		02B0F3022AB3EF0600D094BC /* LoadingOverlay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoadingOverlay.swift; sourceTree = "<group>"; };
+		02B0F3032AB3EF0600D094BC /* LoadingButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoadingButton.swift; sourceTree = "<group>"; };
+		02B0F3042AB3EF0600D094BC /* LoadingIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoadingIndicator.swift; sourceTree = "<group>"; };
 		02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeeTimeCaddie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		02BA11642A195E0000BF0416 /* TeeTimeCaddieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieApp.swift; sourceTree = "<group>"; };
 		02BA11682A195E0300BF0416 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -78,8 +103,9 @@
 		02BA11812A195E0300BF0416 /* TeeTimeCaddieUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeCaddieUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		02BA11A02A1980DA00BF0416 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		02BA11A32A1AF58200BF0416 /* FirebaseEventPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseEventPlugin.swift; sourceTree = "<group>"; };
-		02BA11A52A1AFAA400BF0416 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		02BA11A52A1AFAA400BF0416 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		02F5312F2A67829400278F17 /* RegistrationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationScreen.swift; sourceTree = "<group>"; };
+		02F7E2C42AAF3B0E0071C3A3 /* Screen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Screen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,6 +165,7 @@
 		0228D97C2A632A7400E82209 /* auth */ = {
 			isa = PBXGroup;
 			children = (
+				02B0F2ED2AB29D4A00D094BC /* common */,
 				0289F60E2A9979B800E25084 /* login */,
 				02F5312E2A67826D00278F17 /* register */,
 				0228D97D2A632A9200E82209 /* AuthModule.swift */,
@@ -149,7 +176,9 @@
 		0230E4AD2A68BC9D009AAD8D /* common */ = {
 			isa = PBXGroup;
 			children = (
+				02B0F3002AB3EF0600D094BC /* LoadingButtons */,
 				0230E4AE2A68BCA6009AAD8D /* forms */,
+				02F7E2C42AAF3B0E0071C3A3 /* Screen.swift */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -157,7 +186,10 @@
 		0230E4AE2A68BCA6009AAD8D /* forms */ = {
 			isa = PBXGroup;
 			children = (
-				0230E4AF2A68BCD1009AAD8D /* TtcTextField.swift */,
+				0230E4AF2A68BCD1009AAD8D /* PasswordField.swift */,
+				02B0F2F22AB3E16400D094BC /* FormStack.swift */,
+				02B0F2F42AB3E4B000D094BC /* FormFieldPadding.swift */,
+				02B0F2F62AB3E62300D094BC /* FormFieldDivider.swift */,
 			);
 			path = forms;
 			sourceTree = "<group>";
@@ -174,8 +206,41 @@
 			isa = PBXGroup;
 			children = (
 				0289F60F2A9979D600E25084 /* LoginScreen.swift */,
+				020332DF2AB9361A0080DC60 /* LoginViewModel.swift */,
 			);
 			path = login;
+			sourceTree = "<group>";
+		};
+		029E3C162AC21231006BFA08 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				02BA11A52A1AFAA400BF0416 /* Info.plist */,
+				02BA11A02A1980DA00BF0416 /* GoogleService-Info.plist */,
+				02BA11682A195E0300BF0416 /* Assets.xcassets */,
+				02BA116A2A195E0300BF0416 /* Preview Content */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		02B0F2ED2AB29D4A00D094BC /* common */ = {
+			isa = PBXGroup;
+			children = (
+				02B0F2EB2AB29B2D00D094BC /* AuthScreen.swift */,
+				02B0F2EE2AB29D6500D094BC /* AuthHeader.swift */,
+				02B0F2F02AB29F3D00D094BC /* AuthFooter.swift */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		02B0F3002AB3EF0600D094BC /* LoadingButtons */ = {
+			isa = PBXGroup;
+			children = (
+				02B0F3012AB3EF0600D094BC /* AnimatedDots.swift */,
+				02B0F3022AB3EF0600D094BC /* LoadingOverlay.swift */,
+				02B0F3032AB3EF0600D094BC /* LoadingButton.swift */,
+				02B0F3042AB3EF0600D094BC /* LoadingIndicator.swift */,
+			);
+			path = LoadingButtons;
 			sourceTree = "<group>";
 		};
 		02BA11582A195E0000BF0416 = {
@@ -201,11 +266,8 @@
 		02BA11632A195E0000BF0416 /* TeeTimeCaddie */ = {
 			isa = PBXGroup;
 			children = (
-				02BA11A52A1AFAA400BF0416 /* Info.plist */,
+				029E3C162AC21231006BFA08 /* Resources */,
 				02BA11A22A19811200BF0416 /* Source */,
-				02BA11A02A1980DA00BF0416 /* GoogleService-Info.plist */,
-				02BA11682A195E0300BF0416 /* Assets.xcassets */,
-				02BA116A2A195E0300BF0416 /* Preview Content */,
 			);
 			path = TeeTimeCaddie;
 			sourceTree = "<group>";
@@ -245,6 +307,7 @@
 				02BD2C5A2A5B83CF00B28088 /* ui */,
 				0228D97F2A64073100E82209 /* TeeTimeCaddieAppState.swift */,
 				02BA11642A195E0000BF0416 /* TeeTimeCaddieApp.swift */,
+				0256DD772AAC9DBF009E2AE3 /* AppDelegate.swift */,
 			);
 			path = Source;
 			sourceTree = "<group>";
@@ -483,15 +546,28 @@
 				024616AB2A807FC70067CC0B /* RegistrationViewModel.swift in Sources */,
 				0228D97E2A632A9200E82209 /* AuthModule.swift in Sources */,
 				0230E4B32A68D3C6009AAD8D /* Color.swift in Sources */,
+				02B0F2F12AB29F3D00D094BC /* AuthFooter.swift in Sources */,
+				0256DD782AAC9DBF009E2AE3 /* AppDelegate.swift in Sources */,
+				02B0F3072AB3EF0600D094BC /* LoadingButton.swift in Sources */,
+				02F7E2C52AAF3B0E0071C3A3 /* Screen.swift in Sources */,
+				020332E02AB9361A0080DC60 /* LoginViewModel.swift in Sources */,
 				0228D97B2A63293200E82209 /* ScopeFunctions.swift in Sources */,
+				02B0F2EF2AB29D6500D094BC /* AuthHeader.swift in Sources */,
 				0228D9782A63265F00E82209 /* AppModule.swift in Sources */,
 				0289F6122A9A7E5D00E25084 /* Debug.swift in Sources */,
 				02A6CD192A826F4700EBEF09 /* ErrorExtensions.swift in Sources */,
+				02B0F2F52AB3E4B000D094BC /* FormFieldPadding.swift in Sources */,
+				02B0F2F72AB3E62300D094BC /* FormFieldDivider.swift in Sources */,
+				02B0F3052AB3EF0600D094BC /* AnimatedDots.swift in Sources */,
 				02BA11A42A1AF58200BF0416 /* FirebaseEventPlugin.swift in Sources */,
-				0230E4B02A68BCD1009AAD8D /* TtcTextField.swift in Sources */,
+				02B0F3082AB3EF0600D094BC /* LoadingIndicator.swift in Sources */,
+				0230E4B02A68BCD1009AAD8D /* PasswordField.swift in Sources */,
 				0289F6102A9979D600E25084 /* LoginScreen.swift in Sources */,
+				02B0F2F32AB3E16400D094BC /* FormStack.swift in Sources */,
+				02B0F2EC2AB29B2D00D094BC /* AuthScreen.swift in Sources */,
 				02BA11652A195E0000BF0416 /* TeeTimeCaddieApp.swift in Sources */,
 				0228D9802A64073100E82209 /* TeeTimeCaddieAppState.swift in Sources */,
+				02B0F3062AB3EF0600D094BC /* LoadingOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -649,7 +725,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"TeeTimeCaddie/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"TeeTimeCaddie/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = XDJPMNG2Q7;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -657,7 +733,7 @@
 					"$(SRCROOT)/../../businessLogic/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TeeTimeCaddie/Info.plist;
+				INFOPLIST_FILE = TeeTimeCaddie/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -683,7 +759,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"TeeTimeCaddie/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"TeeTimeCaddie/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = XDJPMNG2Q7;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -691,7 +767,7 @@
 					"$(SRCROOT)/../../businessLogic/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = TeeTimeCaddie/Info.plist;
+				INFOPLIST_FILE = TeeTimeCaddie/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -5,13 +5,16 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.FirebaseAuthEmailException
 import dev.gitlive.firebase.auth.FirebaseAuthException
 import dev.gitlive.firebase.auth.FirebaseAuthInvalidCredentialsException
+import dev.gitlive.firebase.auth.FirebaseAuthInvalidUserException
 import dev.gitlive.firebase.auth.FirebaseAuthUserCollisionException
 import dev.gitlive.firebase.auth.FirebaseUser
 import dev.gitlive.firebase.auth.auth
 import dev.icerock.moko.resources.desc.Resource
 import dev.icerock.moko.resources.desc.StringDesc
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import kotlin.coroutines.cancellation.CancellationException
@@ -40,6 +43,17 @@ class AuthRepository(
         get() = authSettings.hasLoggedIn
 
     @NativeCoroutines
+    suspend fun login(email: String, password: String) {
+        try {
+            Firebase.auth.signInWithEmailAndPassword(email, password)
+            eventManager.logEvent(AnalyticsEvent.Login)
+        } catch (ex: Exception) {
+            eventManager.logEvent(AnalyticsEvent.FailedLogin(reason = ex.message))
+            throw AuthException(AuthErrors.INVALID_CREDENTIALS, ex)
+        }
+    }
+
+    @NativeCoroutines
     suspend fun refreshAuthentication() {
         try {
             Firebase.auth.currentUser?.getIdToken(forceRefresh = true)
@@ -52,10 +66,14 @@ class AuthRepository(
     @Throws(AuthException::class, CancellationException::class)
     suspend fun registerUser(email: String, password: String, name: String) {
         if (password.length < 8 || !password.contains("\\d".toRegex())) {
+            eventManager.logEvent(AnalyticsEvent.FailedRegistration(AuthErrors.WEAK_PASSWORD.name))
             throw AuthException(AuthErrors.WEAK_PASSWORD)
         }
 
-        if (name.isBlank()) { throw AuthException(AuthErrors.NO_NAME) }
+        if (name.isBlank()) {
+            eventManager.logEvent((AnalyticsEvent.FailedRegistration(AuthErrors.NO_NAME.name)))
+            throw AuthException(AuthErrors.NO_NAME)
+        }
 
         try {
             val user = Firebase.auth.createUserWithEmailAndPassword(email, password).user
@@ -64,6 +82,7 @@ class AuthRepository(
             user.updateProfile(displayName = name)
             authSettings.hasLoggedIn = true
             eventManager.setUserId(user.uid)
+            eventManager.logEvent(AnalyticsEvent.CreateAccount)
         } catch (ex: Exception) {
             val error = when (ex) {
                 is FirebaseAuthUserCollisionException -> AuthErrors.USER_EXISTS
@@ -75,7 +94,7 @@ class AuthRepository(
                     AuthErrors.UNKNOWN
                 }
             }
-
+            eventManager.logEvent(AnalyticsEvent.FailedRegistration(error.name))
             throw AuthException(error, ex)
         }
     }

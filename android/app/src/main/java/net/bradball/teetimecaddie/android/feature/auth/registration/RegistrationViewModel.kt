@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.features.auth.AuthException
@@ -24,19 +23,22 @@ class RegistrationViewModel @Inject constructor(
     var errorMessage: Int? by mutableStateOf(null)
         private set
 
-    var showButtonSpinner by mutableStateOf(false)
+    var isProcessingRegistration by mutableStateOf(false)
         private set
 
-    fun registerUser(email: String, password: String, name: String, onSuccess: ()->Unit) {
+    var registrationSuccess by mutableStateOf(false)
+        private set
+
+    fun registerUser(email: String, password: String, name: String) {
         viewModelScope.launch {
             try {
-                showButtonSpinner = true
+                isProcessingRegistration = true
                 authRepo.registerUser(email, password, name)
-                onSuccess()
+                registrationSuccess = true
             } catch (ex: AuthException) {
                 errorMessage = ex.displayMessage.resourceId
             } finally {
-                showButtonSpinner = false
+                isProcessingRegistration = false
             }
         }
     }
