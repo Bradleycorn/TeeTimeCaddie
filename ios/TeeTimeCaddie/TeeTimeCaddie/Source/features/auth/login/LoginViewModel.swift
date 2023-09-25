@@ -1,20 +1,18 @@
 //
-//  RegistrationViewModel.swift
+//  LoginViewModel.swift
 //  TeeTimeCaddie
 //
-//  Created by Brad Ball on 8/6/23.
+//  Created by Brad Ball on 9/18/23.
 //
 
 import Foundation
+import SwiftUI
 import TeeTimeCaddieKit
 import KMPNativeCoroutinesAsync
 
-enum AuthError: LocalizedError {
-    case RegistrationError
-}
-
 @MainActor
-class RegistrationViewModel: ObservableObject {
+class LoginViewModel: ObservableObject {
+    
     init(authRepo: AuthRepository, eventManager: EventManager) {
         self.authRepo = authRepo
         self.eventManager = eventManager
@@ -22,25 +20,25 @@ class RegistrationViewModel: ObservableObject {
     
     private let authRepo: AuthRepository
     private let eventManager: EventManager
+
+    @Published
+    private(set) var processingLogin: Bool = false
     
     @Published
-    private(set) var processingRegistration = false
+    var loginError: TeeTimeCaddieError? = nil
     
-    @Published
-    var registrationError: TeeTimeCaddieError? = nil
-    
-    func registerUser(email: String, password: String, name: String) {
+    func loginUser(email: String, password: String) {
         Task {
-            processingRegistration = true
-            defer { processingRegistration = false }
+            processingLogin = true
+            defer { processingLogin = false }
             
             do {
-                _ = try await asyncFunction(for: authRepo.registerUser(email: email, password: password, name: name))
+                _ = try await asyncFunction(for: authRepo.login(email: email, password: password))
             } catch {
                 let ex = error.asTeeTimeCaddieError(defaultTitle: AR.strings().reg_error_default_title)
                 print(ex.logMessage)
-                registrationError = ex
+                loginError = ex
             }
         }
-    }
+    }    
 }

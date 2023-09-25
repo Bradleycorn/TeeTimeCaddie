@@ -9,6 +9,7 @@ enum class AuthErrors(val title: StringResource, val message: StringResource, va
     INVALID_EMAIL(AR.strings.reg_error_default_title, AR.strings.reg_error_invalid_email_message, AR.strings.reg_error_invalid_email_recovery),
     NO_NAME(AR.strings.reg_error_default_title, AR.strings.reg_error_no_name_message, AR.strings.reg_error_no_name_recovery),
     REG_DEFAULT(AR.strings.reg_error_default_title, AR.strings.reg_error_default_message, AR.strings.reg_error_default_recovery),
+    INVALID_CREDENTIALS(AR.strings.login_error_title, AR.strings.login_error_message, null),
     UNKNOWN(MR.strings.error_default_title, MR.strings.error_default_message, MR.strings.error_default_recovery);
 
     companion object {

@@ -216,19 +216,22 @@ class EventManager internal constructor(
      * @param screenName - A display name for the screen being logged (eg "Todays Races")
      * @param screenClass - The Kotlin KClass for the screen being logged (eg TodaysRacesFragment::class)
      */
-    fun logScreenView(screenName: String, extras: Map<String, String> = emptyMap()) {
+    fun logScreenView(screen: AnalyticsScreen, type: ScreenType = ScreenType.SCREEN) {
+        // Don't log the "None" screen
+        if (screen is AnalyticsScreen.None) return
+
         var logged = false
 
         for (screenTracker in eventPlugins) {
-            logged = logged || screenTracker.logScreenView(screenName, extras)
+            logged = logged || screenTracker.logScreenView(screen, type)
         }
 
         //Log the screen view for firebase crashlytics usages
-        logMessage("Viewed Screen: $screenName")
+        logMessage("Viewed Screen: ${screen.name}")
 
         if (!logged) {
             val exception = Exception("Screen View was not logged by any plugins...")
-            logException(exception, LoggableExceptionTypes.NO_PLUGIN, hashMapOf("screenName" to screenName, "extras" to extras.toString()))
+            logException(exception, LoggableExceptionTypes.NO_PLUGIN, hashMapOf("screenName" to screen.name, "extras" to screen.parameters.toString()))
         }
     }
 

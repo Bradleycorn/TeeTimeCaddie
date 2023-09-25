@@ -25,6 +25,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.android.ui.navigation.clearBackStack
+import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 
 
 const val homeRoute = "home"
@@ -71,7 +72,7 @@ private fun HomeScreen(onLoginClick: ()->Unit = { /* navigate to login screen */
         }
     }
 
-    Screen(screenName) {
+    Screen(AnalyticsScreen.None) {
         Column {
             CenterAlignedTopAppBar(
                 title = { Text("Home") }

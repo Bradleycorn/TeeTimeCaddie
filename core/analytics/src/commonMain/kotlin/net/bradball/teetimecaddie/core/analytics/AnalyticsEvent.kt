@@ -9,7 +9,13 @@ import kotlinx.serialization.properties.encodeToMap
 sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
 
     @Serializable
-    data class MyEvent(val test: String): AnalyticsEvent("my_event", EventType.CLICK)
+    object Login: AnalyticsEvent("login", EventType.OPERATION)
+    @Serializable
+    data class FailedLogin(val reason: String? = null): AnalyticsEvent("failed_login", EventType.OPERATION)
+    @Serializable
+    object CreateAccount: AnalyticsEvent("create_account", EventType.OPERATION)
+    @Serializable
+    data class FailedRegistration(val reason: String?): AnalyticsEvent("failed_registration", EventType.OPERATION)
 
 
     @OptIn(ExperimentalSerializationApi::class)
