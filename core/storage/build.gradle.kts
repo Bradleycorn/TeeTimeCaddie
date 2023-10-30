@@ -30,6 +30,7 @@ kotlin {
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.kermit.core)
                 implementation(libs.multiplatform.settings)
+                implementation(libs.firebase.mpp.firestore)
             }
         }
         val commonTest by getting {

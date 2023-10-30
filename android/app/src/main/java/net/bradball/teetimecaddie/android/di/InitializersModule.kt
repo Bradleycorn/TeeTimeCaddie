@@ -5,12 +5,18 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import net.bradball.teetimecaddie.android.TeeTimeCaddieSdkInitializer
 import net.bradball.teetimecaddie.android.analytics.FirebaseInitializer
 import net.bradball.teetimecaddie.android.initializers.AppInitializer
 
 @InstallIn(SingletonComponent::class)
 @Module
 abstract class InitializersModule {
+    @Binds
+    @IntoSet
+    abstract fun provideTeeTimeCaddieSdkInitializer(bind: TeeTimeCaddieSdkInitializer): AppInitializer
+
+
     @Binds
     @IntoSet
     abstract fun provideFirebaseInitializer(bind: FirebaseInitializer): AppInitializer

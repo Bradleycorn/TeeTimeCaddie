@@ -9,6 +9,11 @@ plugins {
     alias(libs.plugins.mokoresources).apply(false)
 }
 
+allprojects {
+    group = "net.bradball.teetimecaddie"
+    version = System.getenv("PUBLISH_VERSION") ?: "0.0.12"
+}
+
 buildscript {
     dependencies {
         classpath(libs.google.gms.services)

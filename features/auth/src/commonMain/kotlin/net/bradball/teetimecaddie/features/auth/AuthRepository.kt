@@ -1,19 +1,20 @@
 package net.bradball.teetimecaddie.features.auth
 
+import co.touchlab.kermit.Logger
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.FirebaseAuthEmailException
 import dev.gitlive.firebase.auth.FirebaseAuthException
 import dev.gitlive.firebase.auth.FirebaseAuthInvalidCredentialsException
-import dev.gitlive.firebase.auth.FirebaseAuthInvalidUserException
 import dev.gitlive.firebase.auth.FirebaseAuthUserCollisionException
 import dev.gitlive.firebase.auth.FirebaseUser
 import dev.gitlive.firebase.auth.auth
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.StringDesc
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import net.bradbal.teetimecaddie.core.storage.PlayerStorage
+import net.bradbal.teetimecaddie.core.storage.documents.PlayerDocument
+import net.bradbal.teetimecaddie.core.storage.settings.TeeTimeCaddieSettings
+import net.bradbal.teetimecaddie.core.storage.settings.hasLoggedIn
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
@@ -21,14 +22,9 @@ import kotlin.coroutines.cancellation.CancellationException
 
 class AuthRepository(
     private val eventManager: EventManager,
-    private val authSettings: AuthSettings,
-    useEmulator: Boolean = false
+    private val appSettings: TeeTimeCaddieSettings,
+    private val playerStorage: PlayerStorage
 ) {
-    init {
-        if (useEmulator) {
-            Firebase.auth.useEmulator(authSettings.debugHost, authSettings.debugPort)
-        }
-    }
     private val currentUser: FirebaseUser?
         get() = Firebase.auth.currentUser
 
@@ -40,7 +36,7 @@ class AuthRepository(
         get() = Firebase.auth.authStateChanged.map { it != null }
 
     val hasLoggedInOnce: Boolean
-        get() = authSettings.hasLoggedIn
+        get()  = appSettings.hasLoggedIn
 
     @NativeCoroutines
     suspend fun login(email: String, password: String) {
@@ -80,7 +76,8 @@ class AuthRepository(
                 ?: throw Exception("No user available after registration.")
 
             user.updateProfile(displayName = name)
-            authSettings.hasLoggedIn = true
+            playerStorage.addPlayer(user.uid, PlayerDocument(name))
+            appSettings.hasLoggedIn = true
             eventManager.setUserId(user.uid)
             eventManager.logEvent(AnalyticsEvent.CreateAccount)
         } catch (ex: Exception) {

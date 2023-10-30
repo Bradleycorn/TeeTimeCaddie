@@ -25,7 +25,7 @@ crashkios = "0.8.2"
 firebase-bom = "31.4.0"
 firebase-crashlytics-plugin = "2.9.5"
 firebase-performance-plugin = "1.4.2"
-firebase-mpp-sdk = "1.8.1"
+firebase-mpp-sdk = "1.10.0"
 firebase-ui = "8.0.2"
 
 google-services = "4.3.15"
@@ -87,12 +87,14 @@ firebase-analytics = { module="com.google.firebase:firebase-analytics-ktx" }
 firebase-auth = { module="com.google.firebase:firebase-auth-ktx" }
 firebase-config = { module="com.google.firebase:firebase-config-ktx" }
 firebase-crashlytics = { module="com.google.firebase:firebase-crashlytics-ktx" }
+firebase-firestore = { module="com.google.firebase:firebase-firestore-ktx" }
 firebase-performance = { module="com.google.firebase:firebase-perf-ktx" }
 firebase-ui = { module="com.firebaseui:firebase-ui-auth", version.ref="firebase-ui"}
 
 firebase-mpp-config = { module="dev.gitlive:firebase-config", version.ref="firebase-mpp-sdk"}
 firebase-mpp-auth = { module="dev.gitlive:firebase-auth", version.ref="firebase-mpp-sdk"}
 firebase-mpp-crashlytics = { module="dev.gitlive:firebase-crashlytics", version.ref="firebase-mpp-sdk"}
+firebase-mpp-firestore = { module="dev.gitlive:firebase-firestore", version.ref="firebase-mpp-sdk"}
 firebase-mpp-performance = { module="dev.gitlive:firebase-perf", version.ref="firebase-mpp-sdk"}
 
 firebase-plugins-crashlytics = { module="com.google.firebase:firebase-crashlytics-gradle", version.ref="firebase-crashlytics-plugin" }

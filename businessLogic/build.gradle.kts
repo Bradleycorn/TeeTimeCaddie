@@ -22,6 +22,8 @@ kotlin {
         it.binaries.framework {
             baseName = "TeeTimeCaddieKit"
             isStatic = true
+            binaryOption("bundleId", "${project.group}.teetimecaddiekit")
+
             export(project(":core:analytics")) { transitiveExport = true }
             export(project(":core:models")) { transitiveExport = true }
             export(project(":features:auth")) { transitiveExport = true }
@@ -44,6 +46,8 @@ kotlin {
                 implementation(project(":core:storage"))
                 implementation(libs.crashkios)
                 implementation(libs.multiplatform.settings)
+                implementation(libs.firebase.mpp.auth)
+                implementation(libs.firebase.mpp.firestore)
             }
         }
         val commonTest by getting {

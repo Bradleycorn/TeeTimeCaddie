@@ -4,4 +4,4 @@ interface Platform {
     val name: String
 }
 
-expect fun getPlatform(): Platform
+fun getPlatform(): Platform = object: Platform { override val name = "common "}

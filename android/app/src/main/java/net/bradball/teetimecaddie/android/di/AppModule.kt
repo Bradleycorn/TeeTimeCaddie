@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import net.bradball.teetimecaddie.TeeTimeCaddieSdk
 import net.bradball.teetimecaddie.android.analytics.FirebaseEventPlugin
 import net.bradball.teetimecaddie.core.analytics.EventManager
 
@@ -14,7 +15,7 @@ import net.bradball.teetimecaddie.core.analytics.EventManager
 open class AppModule {
 
     @Provides
-    open fun provideEventManager(): EventManager = EventManager().apply {
+    open fun provideEventManager(): EventManager = TeeTimeCaddieSdk.getInstance().eventManager.apply {
         registerPlugin(FirebaseEventPlugin())
     }
 

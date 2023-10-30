@@ -30,6 +30,7 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.coroutines)
                 implementation(libs.firebase.mpp.auth)
+                implementation(libs.kermit.core)
                 api(libs.mokoresources.api)
                 implementation(project(":core:analytics"))
                 implementation(project(":core:models"))
