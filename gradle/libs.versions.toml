@@ -4,47 +4,43 @@
 # DO NOT ADD LIBRARIES OR VERSIONS FOR THE DEMO APPS HERE.
 
 [versions]
-accompanist = "0.30.1"
+accompanist = "0.32.0"
 
-agp = "8.0.1"
+agp = "8.2.0"
 
-
-androidx-activity = "1.7.2"
-androidx-compose-bom = "2023.09.00" #1.4.3
-androidx-compose-compiler = "1.4.7"
-androidx-core = "1.8.0"
-androidx-lifecycle = "2.6.1"
-androidx-navigation-compose = "2.7.3"
-androidx-navigation-hilt = "1.0.0"
+androidx-activity = "1.8.2"
+androidx-compose-bom = "2023.10.01" #1.4.3
+androidx-compose-compiler = "1.5.6"
+androidx-core = "1.12.0"
+androidx-lifecycle = "2.6.2"
+androidx-navigation-compose = "2.7.6"
+androidx-navigation-hilt = "1.1.0"
 androidx-splashscreen = "1.0.1"
 androidx-test-espresso = "3.5.1"
 androidx-test-junit = "1.1.5"
 
 crashkios = "0.8.2"
 
-firebase-bom = "31.4.0"
+firebase-bom = "32.3.1"
 firebase-crashlytics-plugin = "2.9.5"
 firebase-performance-plugin = "1.4.2"
-firebase-mpp-sdk = "1.10.0"
+firebase-mpp-sdk = "1.10.4"
 firebase-ui = "8.0.2"
 
-google-services = "4.3.15"
+google-services = "4.4.0"
 
-hilt = "2.44"
+hilt = "2.47"
 
 junit = "4.13.2"
 
 kermit = "2.0.0-RC4"
-# The KMP Native Coroutines (native-coroutines) project (https://github.com/rickclephas/KMP-NativeCoroutines#compatibility)
-# Uses a specific version of Kotlin & Kotlin Coroutines (kotlinx-coroutines).
-# Make sure to match up versions of other libraries (like Compose) that depend on
-# Kotlin and/or coroutines so that everything matches up.
-kotlin="1.8.21"
 
-kotlinx-coroutines="1.7.0"
-kotlinx-serialization="1.5.0-RC"
+kotlin="1.9.21"
 
-ksp="1.8.21-1.0.11"
+kotlinx-coroutines="1.7.3"
+kotlinx-serialization="1.5.1"
+
+ksp="1.9.21-1.0.15"
 
 ktor="2.2.3"
 
@@ -52,13 +48,13 @@ moko-resources="0.23.0"
 
 multiplatform-settings="1.0.0"
 
-native-coroutines="1.0.0-ALPHA-9" #iOS
-
 sqldelight="2.0.0-alpha05"
+
+skie="0.5.6"
 
 [libraries]
 accompanist-systemui = {module = "com.google.accompanist:accompanist-systemuicontroller", version.ref="accompanist" }
-
+accompanist-navigation = {module = "com.google.accompanist:accompanist-navigation-material", version.ref="accompanist" }
 
 androidx-activity = { module="androidx.activity:activity-compose", version.ref="androidx-activity" }
 androidx-compose-bom = { module="androidx.compose:compose-bom", version.ref="androidx-compose-bom" }
@@ -127,8 +123,6 @@ mokoresources-test = { module="dev.icerock.moko:resources-test", version.ref="mo
 
 multiplatform-settings = { module="com.russhwolf:multiplatform-settings", version.ref="multiplatform-settings"}
 
-nativecoroutines-gradle = { module="com.rickclephas.kmp:kmp-nativecoroutines-gradle-plugin", version.ref="native-coroutines"}
-
 sqldelight-android = { module="app.cash.sqldelight:android-driver", version.ref="sqldelight"}
 sqldelight-ios = { module="app.cash.sqldelight:native-driver", version.ref="sqldelight"}
 sqldelight-adapters = { module="app.cash.sqldelight:primitive-adapters", version.ref="sqldelight"}
@@ -137,7 +131,8 @@ material = { group = "com.google.android.material", name = "material", version =
 
 [bundles]
 accompanist = [
-    "accompanist-systemui"
+    "accompanist-systemui",
+    "accompanist-navigation"
 ]
 
 android-test = [
@@ -194,8 +189,8 @@ sqldelight = [
 hilt = { id="com.google.dagger.hilt.android", version.ref="hilt" }
 mokoresources = { id="dev.icerock.mobile.multiplatform-resources", version.ref="moko-resources" }
 ksp = { id="com.google.devtools.ksp", version.ref="ksp" }
-nativecoroutines = { id="com.rickclephas.kmp.nativecoroutines", version.ref="native-coroutines" }
 gradleDependencyUpdates = { id = "com.github.ben-manes.versions", version = "0.42.0" }
 sqldelight = { id="app.cash.sqldelight", version.ref = "sqldelight" }
+skie = { id="co.touchlab.skie", version.ref="skie" }
 
 #dokka = { id="org.jetbrains.dokka", version="1.6.10" }

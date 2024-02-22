@@ -19,9 +19,8 @@ class PlayerStorage {
     /**
      * Add a Player to the database.
      *
+     * @param id The Firebase Auth user id for the player.
      * @param document A [PlayerDocument] with information about the player to add.
-     *
-     * @return The unique id assigned to the player.
      */
     suspend fun addPlayer(id:String, document: PlayerDocument) {
         playersCollection.document(id).set(document)

@@ -21,7 +21,13 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    surface = Color(0xFFEEEEEE)
+//    surface = Color(0xFFFFFFFF),
+
+    // Background is a legacy/deprecated color.
+    // It is recommended to use surface instead.
+    // Background is set to bright pink so it'll
+    // be an obvious defect if it is used.
+//    background = Color.Magenta,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

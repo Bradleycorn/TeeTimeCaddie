@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
@@ -14,7 +14,8 @@ kotlin {
         }
     }
 
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
@@ -24,34 +25,19 @@ kotlin {
             }
         }
 
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.crashkios)
-                implementation(libs.kotlinx.serialization.core)
-                implementation(libs.kermit.core)
-                implementation(libs.multiplatform.settings)
-                implementation(libs.firebase.mpp.firestore)
-            }
+        commonMain.dependencies {
+            implementation(libs.crashkios)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.coroutines)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.kermit.core)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.firebase.mpp.firestore)
+            implementation(project(":core:models"))
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
-
-        val androidMain by getting
-        val androidUnitTest by getting
-
-        val iosMain by getting
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
-        }
-
-        val iosTest by getting
-        val iosSimulatorArm64Test by getting {
-            dependsOn(iosTest)
-        }
-
     }
 }
 

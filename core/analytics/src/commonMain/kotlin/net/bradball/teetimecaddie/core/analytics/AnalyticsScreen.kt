@@ -10,4 +10,5 @@ sealed class AnalyticsScreen(val name: String, val parameters: Map<String, Strin
     object None: AnalyticsScreen("")
     object Registration: AnalyticsScreen(name = "Registration")
     object Login: AnalyticsScreen(name = "Login")
+    object TeeTimeList: AnalyticsScreen(name = "TeeTimeList")
 }

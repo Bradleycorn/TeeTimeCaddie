@@ -1,48 +1,38 @@
 package net.bradball.teetimecaddie.android.ui.app
 
-import android.util.Log
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SportsGolf
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarVisuals
-import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.rememberNavController
-import net.bradball.teetimecaddie.android.feature.auth.login.navigation.navigateToLogin
-import net.bradball.teetimecaddie.android.feature.auth.registration.navigation.navigateToRegistration
-import net.bradball.teetimecaddie.android.feature.auth.registration.navigation.registrationRoute
-import net.bradball.teetimecaddie.android.initializers.AppInitializers
-import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.ui.homeRoute
+import androidx.navigation.NavDestination
+import kotlinx.coroutines.launch
+import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesGraphRoute
+import net.bradball.teetimecaddie.android.feature.teeTimes.teeTimeEntry.TeeTimeEntryRoute
+import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavHost
-import net.bradball.teetimecaddie.features.auth.AuthRepository
+import net.bradball.teetimecaddie.android.ui.navigation.topLevelResources
 
 @Composable
 fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
-    val navController = rememberNavController()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -50,11 +40,7 @@ fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
-            if (appState.hasRegistered) {
-                navController.navigateToLogin()
-            } else {
-                navController.navigateToRegistration()
-            }
+            appState.navigateToAuthentication()
         }
     }
 
@@ -70,27 +56,61 @@ fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
 
     Scaffold(
         contentWindowInsets = contentInsets,
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        floatingActionButton = {
+            appState.destinationResources?.fabIcon?.let { icon ->
+                FloatingActionButton(onClick = appState::onFabClicked) {
+                    Icon(icon, contentDescription = "")
+                }
+            }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = { TtcAppBar(appState.currentDestination) }
     ) { padding ->
         Column(
             Modifier
+                .fillMaxSize()
                 .padding(padding)
-                .consumeWindowInsets(padding)
+                //.consumeWindowInsets(padding)
         ) {
-
             TtcNavHost(
-                navController = navController,
+                navController = appState.navController,
+                startDestination = teeTimesGraphRoute,
                 onShowSnackbar = { message, action ->
-                  snackbarHostState.showSnackbar(
-                      message = message,
-                      actionLabel = action,
-                      duration = SnackbarDuration.Long,
-                      withDismissAction = true
-                  )
+                    snackbarHostState.showSnackbar(
+                        message = message,
+                        actionLabel = action,
+                        duration = SnackbarDuration.Long,
+                        withDismissAction = true
+                    )
                 },
-                startDestination = homeRoute)
+            )
 
+            appState.modelSheetContent?.let { sheetContent ->
+                // See Spacer below for info on insets and bottom padding
+                ModalBottomSheet(
+                    windowInsets = contentInsets,
+                    sheetState = appState.modalSheetState,
+                    onDismissRequest = { appState.onModalBottomSheetDismissed() }) {
+                    when (sheetContent) {
+                        AppModalSheetContent.ADD_TEE_TIME -> TeeTimeEntryRoute(
+                            onTeeTimeAdded = appState::closeModalBottomSheet
+                        )
+                    }
+
+                    //This is necessary due to a defect with ModalBottomSheet and padding modifiers.
+                    //Since the sheet won't apply padding, we'll add our own spacer for it.
+                    //More info: https://issuetracker.google.com/issues/274872542 & https://issuetracker.google.com/issues/275849044
+                    Spacer(modifier = Modifier.height(WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()))
+                }
+            }
         }
+    }
 
+}
+
+@Composable
+private fun TtcAppBar(destination: NavDestination?) {
+    destination?.topLevelResources?.let { resources ->
+        TtcCenteredTopAppBar(title = stringResource(id = resources.titleTextId))
     }
 }

@@ -3,10 +3,11 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     alias(libs.plugins.mokoresources)
+    alias(libs.plugins.skie)
 }
 
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
@@ -25,56 +26,35 @@ kotlin {
             binaryOption("bundleId", "${project.group}.teetimecaddiekit")
 
             export(project(":core:analytics")) { transitiveExport = true }
+            export(project(":core:extensions")) { transitiveExport = true }
             export(project(":core:models")) { transitiveExport = true }
             export(project(":features:auth")) { transitiveExport = true }
+            export(project(":features:teetimes")) { transitiveExport = true }
             export(libs.mokoresources.api) { transitiveExport = true }
         }
     }
 
     sourceSets {
-//        all {
-//            languageSettings {
-//                optIn("kotlin.experimental.ExperimentalObjCName") // required for KmpNativeCoroutines
-//            }
-//        }
 
-        val commonMain by getting {
-            dependencies {
-                api(project(":core:analytics"))
-                api(project(":core:models"))
-                api(project(":features:auth"))
-                implementation(project(":core:storage"))
-                implementation(libs.crashkios)
-                implementation(libs.multiplatform.settings)
-                implementation(libs.firebase.mpp.auth)
-                implementation(libs.firebase.mpp.firestore)
-            }
+        commonMain.dependencies {
+            api(project(":core:analytics"))
+            api(project(":core:extensions"))
+            api(project(":core:models"))
+            api(project(":features:auth"))
+            api(project(":features:teetimes"))
+            implementation(project(":core:storage"))
+            implementation(libs.crashkios)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.firebase.mpp.auth)
+            implementation(libs.firebase.mpp.firestore)
         }
-        val commonTest by getting {
-            dependencies {
+
+        commonTest.dependencies {
                 implementation(kotlin("test"))
-            }
         }
-        val androidMain by getting
-        val androidUnitTest by getting
 
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-        }
-        val iosX64Test by getting
-        val iosArm64Test by getting
-        val iosSimulatorArm64Test by getting
-        val iosTest by creating {
-            dependsOn(commonTest)
-            iosX64Test.dependsOn(this)
-            iosArm64Test.dependsOn(this)
-            iosSimulatorArm64Test.dependsOn(this)
+        androidMain {
+            kotlin.srcDir("build/generated/moko/androidMain/src")
         }
     }
 }

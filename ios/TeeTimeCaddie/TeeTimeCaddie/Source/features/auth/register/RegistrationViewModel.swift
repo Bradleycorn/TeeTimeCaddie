@@ -7,7 +7,6 @@
 
 import Foundation
 import TeeTimeCaddieKit
-import KMPNativeCoroutinesAsync
 
 enum AuthError: LocalizedError {
     case RegistrationError
@@ -27,7 +26,7 @@ class RegistrationViewModel: ObservableObject {
     private(set) var processingRegistration = false
     
     @Published
-    var registrationError: TeeTimeCaddieError? = nil
+    private(set) var registrationError: TeeTimeCaddieError? = nil
     
     func registerUser(email: String, password: String, name: String) {
         Task {
@@ -35,7 +34,7 @@ class RegistrationViewModel: ObservableObject {
             defer { processingRegistration = false }
             
             do {
-                _ = try await asyncFunction(for: authRepo.registerUser(email: email, password: password, name: name))
+                try await authRepo.registerUser(email: email, password: password, name: name)
             } catch {
                 let ex = error.asTeeTimeCaddieError(defaultTitle: AR.strings().reg_error_default_title)
                 print(ex.logMessage)

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		020332E02AB9361A0080DC60 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020332DF2AB9361A0080DC60 /* LoginViewModel.swift */; };
+		020706C02AFDBBAF000C71F7 /* TeeTimesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020706BF2AFDBBAF000C71F7 /* TeeTimesViewModel.swift */; };
+		020706C22AFDCB24000C71F7 /* TeeTimesModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020706C12AFDCB24000C71F7 /* TeeTimesModule.swift */; };
 		0219B44D2AE755550043D4B2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B44C2AE755550043D4B2 /* FirebaseAnalytics */; };
 		0219B44F2AE755550043D4B2 /* FirebaseAnalyticsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B44E2AE755550043D4B2 /* FirebaseAnalyticsSwift */; };
 		0219B4512AE755550043D4B2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B4502AE755550043D4B2 /* FirebaseAuth */; };
@@ -20,9 +22,6 @@
 		0228D97B2A63293200E82209 /* ScopeFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97A2A63293200E82209 /* ScopeFunctions.swift */; };
 		0228D97E2A632A9200E82209 /* AuthModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97D2A632A9200E82209 /* AuthModule.swift */; };
 		0228D9802A64073100E82209 /* TeeTimeCaddieAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97F2A64073100E82209 /* TeeTimeCaddieAppState.swift */; };
-		0228D9832A640CDB00E82209 /* KMPNativeCoroutinesAsync in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9822A640CDB00E82209 /* KMPNativeCoroutinesAsync */; };
-		0228D9852A640CDB00E82209 /* KMPNativeCoroutinesCombine in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9842A640CDB00E82209 /* KMPNativeCoroutinesCombine */; };
-		0228D9872A640CDB00E82209 /* KMPNativeCoroutinesCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9862A640CDB00E82209 /* KMPNativeCoroutinesCore */; };
 		0230E4B02A68BCD1009AAD8D /* PasswordField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0230E4AF2A68BCD1009AAD8D /* PasswordField.swift */; };
 		0230E4B32A68D3C6009AAD8D /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0230E4B22A68D3C6009AAD8D /* Color.swift */; };
 		024616AB2A807FC70067CC0B /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */; };
@@ -71,6 +70,8 @@
 
 /* Begin PBXFileReference section */
 		020332DF2AB9361A0080DC60 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
+		020706BF2AFDBBAF000C71F7 /* TeeTimesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimesViewModel.swift; sourceTree = "<group>"; };
+		020706C12AFDCB24000C71F7 /* TeeTimesModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimesModule.swift; sourceTree = "<group>"; };
 		0228D9772A63265F00E82209 /* AppModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModule.swift; sourceTree = "<group>"; };
 		0228D97A2A63293200E82209 /* ScopeFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeFunctions.swift; sourceTree = "<group>"; };
 		0228D97D2A632A9200E82209 /* AuthModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModule.swift; sourceTree = "<group>"; };
@@ -115,15 +116,12 @@
 			files = (
 				0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */,
 				0219B44F2AE755550043D4B2 /* FirebaseAnalyticsSwift in Frameworks */,
-				0228D9852A640CDB00E82209 /* KMPNativeCoroutinesCombine in Frameworks */,
 				0228D9752A63219500E82209 /* Factory in Frameworks */,
-				0228D9832A640CDB00E82209 /* KMPNativeCoroutinesAsync in Frameworks */,
 				0219B44D2AE755550043D4B2 /* FirebaseAnalytics in Frameworks */,
 				0219B4572AE755550043D4B2 /* FirebaseFirestoreSwift in Frameworks */,
 				0219B4552AE755550043D4B2 /* FirebaseFirestore in Frameworks */,
 				0219B4532AE755550043D4B2 /* FirebaseCrashlytics in Frameworks */,
 				0219B4512AE755550043D4B2 /* FirebaseAuth in Frameworks */,
-				0228D9872A640CDB00E82209 /* KMPNativeCoroutinesCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,6 +142,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		020706BE2AFDBB72000C71F7 /* teetimes */ = {
+			isa = PBXGroup;
+			children = (
+				020706BF2AFDBBAF000C71F7 /* TeeTimesViewModel.swift */,
+				020706C12AFDCB24000C71F7 /* TeeTimesModule.swift */,
+			);
+			path = teetimes;
+			sourceTree = "<group>";
+		};
 		0228D9762A63264B00E82209 /* inject */ = {
 			isa = PBXGroup;
 			children = (
@@ -333,6 +340,7 @@
 		02BD2C5B2A5B83DC00B28088 /* features */ = {
 			isa = PBXGroup;
 			children = (
+				020706BE2AFDBB72000C71F7 /* teetimes */,
 				0228D97C2A632A7400E82209 /* auth */,
 			);
 			path = features;
@@ -374,9 +382,6 @@
 			name = TeeTimeCaddie;
 			packageProductDependencies = (
 				0228D9742A63219500E82209 /* Factory */,
-				0228D9822A640CDB00E82209 /* KMPNativeCoroutinesAsync */,
-				0228D9842A640CDB00E82209 /* KMPNativeCoroutinesCombine */,
-				0228D9862A640CDB00E82209 /* KMPNativeCoroutinesCore */,
 				0219B44C2AE755550043D4B2 /* FirebaseAnalytics */,
 				0219B44E2AE755550043D4B2 /* FirebaseAnalyticsSwift */,
 				0219B4502AE755550043D4B2 /* FirebaseAuth */,
@@ -459,7 +464,6 @@
 			mainGroup = 02BA11582A195E0000BF0416;
 			packageReferences = (
 				0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */,
-				0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */,
 				0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 02BA11622A195E0000BF0416 /* Products */;
@@ -563,7 +567,9 @@
 				02B0F3082AB3EF0600D094BC /* LoadingIndicator.swift in Sources */,
 				0230E4B02A68BCD1009AAD8D /* PasswordField.swift in Sources */,
 				0289F6102A9979D600E25084 /* LoginScreen.swift in Sources */,
+				020706C22AFDCB24000C71F7 /* TeeTimesModule.swift in Sources */,
 				02B0F2F32AB3E16400D094BC /* FormStack.swift in Sources */,
+				020706C02AFDBBAF000C71F7 /* TeeTimesViewModel.swift in Sources */,
 				02B0F2EC2AB29B2D00D094BC /* AuthScreen.swift in Sources */,
 				02BA11652A195E0000BF0416 /* TeeTimeCaddieApp.swift in Sources */,
 				0228D9802A64073100E82209 /* TeeTimeCaddieAppState.swift in Sources */,
@@ -920,14 +926,6 @@
 				version = 2.2.0;
 			};
 		};
-		0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/rickclephas/KMP-NativeCoroutines.git";
-			requirement = {
-				kind = exactVersion;
-				version = "1.0.0-ALPHA-9";
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -970,21 +968,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */;
 			productName = Factory;
-		};
-		0228D9822A640CDB00E82209 /* KMPNativeCoroutinesAsync */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */;
-			productName = KMPNativeCoroutinesAsync;
-		};
-		0228D9842A640CDB00E82209 /* KMPNativeCoroutinesCombine */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */;
-			productName = KMPNativeCoroutinesCombine;
-		};
-		0228D9862A640CDB00E82209 /* KMPNativeCoroutinesCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 0228D9812A640CDB00E82209 /* XCRemoteSwiftPackageReference "KMP-NativeCoroutines" */;
-			productName = KMPNativeCoroutinesCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
@@ -14,22 +14,24 @@ kotlin {
         }
     }
 
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.crashkios)
-                api(libs.mokoresources.api)
-                implementation(project(":core:analytics"))
-            }
+        commonMain.dependencies {
+            implementation(libs.crashkios)
+            implementation(libs.kotlinx.datetime)
+            api(libs.mokoresources.api)
+            implementation(project(":core:analytics"))
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation(libs.mokoresources.test)
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.mokoresources.test)
+        }
+
+        androidMain {
+            kotlin.srcDir("build/generated/moko/androidMain/src")
         }
     }
 }

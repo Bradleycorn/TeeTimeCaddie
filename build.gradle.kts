@@ -7,6 +7,7 @@ plugins {
     kotlin("multiplatform").version(libs.versions.kotlin).apply(false)
     alias(libs.plugins.hilt).apply(false)
     alias(libs.plugins.mokoresources).apply(false)
+    alias(libs.plugins.skie).apply(false)
 }
 
 allprojects {

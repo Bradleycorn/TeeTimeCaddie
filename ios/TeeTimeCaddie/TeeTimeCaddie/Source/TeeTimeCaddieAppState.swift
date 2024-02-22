@@ -7,7 +7,6 @@
 
 import Foundation
 import TeeTimeCaddieKit
-import KMPNativeCoroutinesAsync
 
 
 enum UiState {
@@ -40,11 +39,9 @@ class TeeTimeCaddieAppState: ObservableObject {
     }
     
     func observeAuthState() async {
-        do {
-            for try await isLoggedIn in asyncSequence(for: authRepo.loginState) {
-                uiState = UiState.fromLoginState(isLoggedIn.boolValue, hasLoggedInOnce: authRepo.hasLoggedInOnce)
-            }
-        } catch { }
+        for await isLoggedIn in authRepo.loginState {
+            uiState = UiState.fromLoginState(isLoggedIn.boolValue, hasLoggedInOnce: authRepo.hasLoggedInOnce)
+        }
     }
     
     func setUiState(to newState: UiState) {

@@ -6,15 +6,19 @@ import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import net.bradbal.teetimecaddie.core.storage.StorageModule
 import net.bradbal.teetimecaddie.core.storage.providePlayerStorage
+import net.bradbal.teetimecaddie.core.storage.provideTeeTimeStorage
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.features.auth.AuthRepository
+import net.bradball.teetimecaddie.features.teetimes.TeeTimesRepository
 import kotlin.native.concurrent.ThreadLocal
 
 class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private val storageModule: StorageModule) {
 
     val eventManager: EventManager by lazy { EventManager() }
 
-    fun  provideAuthRepository(): AuthRepository = AuthRepository(eventManager, storageModule.provideSettings(), storageModule.providePlayerStorage())
+    fun provideAuthRepository(): AuthRepository = AuthRepository(eventManager, storageModule.provideSettings(), storageModule.providePlayerStorage())
+
+    fun provideTeeTimesRepository(): TeeTimesRepository = TeeTimesRepository(eventManager, storageModule.provideTeeTimeStorage())
 
     init {
         if (useLocalResources) {

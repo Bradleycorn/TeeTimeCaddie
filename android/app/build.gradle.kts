@@ -63,7 +63,8 @@ android {
         freeCompilerArgs += listOf(
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
-            "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi"
+            "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
+            "-opt-in=com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi"
         )
     }
 
@@ -81,10 +82,14 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.splashscreen)
 
+    // KOTLIN
+    implementation(libs.kotlinx.datetime)
+
     // ANDROIDX - COMPOSE
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
     implementation(libs.bundles.accompanist)
+    debugImplementation(libs.bundles.android.debug)
 
     // ANDROIDX - LIFECYCLE
     implementation(libs.androidx.lifecycle.runtime)
@@ -94,7 +99,7 @@ dependencies {
     // FIREBASE
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
-//    implementation(libs.firebase.ui)
+    //implementation(libs.firebase.ui)
 
     // HILT
     implementation(libs.hilt.android)
@@ -105,8 +110,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.bundles.android.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-
-    debugImplementation(libs.bundles.android.debug)
 }
 
 // Needed for Hilt
