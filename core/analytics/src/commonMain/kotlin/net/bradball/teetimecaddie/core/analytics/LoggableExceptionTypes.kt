@@ -10,5 +10,6 @@ enum class LoggableExceptionTypes(val displayName: String = toString()) {
     STARTUP("Application Startup"),
     AUTHENTICATION("Authentication"),
     NO_PLUGIN("Analytics-Plugin"),
-    INTEROP("Kotlin-Swift-Interop")
+    INTEROP("Kotlin-Swift-Interop"),
+    TEETIMES("Tee Times")
 }

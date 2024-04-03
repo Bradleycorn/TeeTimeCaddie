@@ -1,19 +1,9 @@
 package net.bradball.teetimecaddie.android.feature.auth.login
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -21,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,17 +21,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.bradball.teetimecaddie.android.feature.auth.common.AuthScreen
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.ui.common.LoadingIndicatorTypes
 import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingButton
-import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.forms.InputSpacer
 import net.bradball.teetimecaddie.android.ui.common.forms.OutlinedPasswordField
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
@@ -110,7 +94,6 @@ private fun LoginScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
-
         InputSpacer()
 
         OutlinedPasswordField(
@@ -142,7 +125,7 @@ private fun LoginScreen(
 
 
 @Composable
-@Preview
+@Preview(showSystemUi = false, device = "id:pixel_7_pro")
 fun LoginScreenPreview() {
     MyApplicationTheme {
         LoginScreen(showLoadingSpinner = false)

@@ -1,4 +1,5 @@
 import SwiftUI
+import ThemeUI
 import TeeTimeCaddieKit
 
 
@@ -88,7 +89,7 @@ fileprivate struct Registration: View {
                     Text(buttonTitle)
                         .frame(maxWidth: .infinity)
                 }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.Filled)
             .errorAlert(error: error)
         }
     }
@@ -97,6 +98,8 @@ fileprivate struct Registration: View {
 
 struct RegistrationScreen_Previews: PreviewProvider {
     static var previews: some View {
-        Registration(isProcessing: false, error: .constant(nil))
+        TeeTimeCaddieTheme {
+            Registration(isProcessing: false, error: .constant(nil))
+        }
     }
 }

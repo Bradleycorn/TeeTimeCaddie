@@ -1,8 +1,11 @@
 import SwiftUI
+import ThemeUI
 import TeeTimeCaddieKit
 
 struct AuthScreen<Content: View>: View {
-
+    @EnvironmentObject
+    private var theme: AppTheme
+    
     private let analyticsScreen: AnalyticsScreen
     private let title: String
     private let footerText: String?
@@ -45,21 +48,24 @@ struct AuthScreen<Content: View>: View {
                 }
             }
             .padding(.horizontal, 24)
-            .background(Color(UIColor.systemGroupedBackground))
+            .background(theme.colorScheme.surfaceVariant)
+            .foregroundStyle(theme.colorScheme.contentColorFor(theme.colorScheme.surfaceVariant))
         }
     }
 }
 
 struct AuthScreen_Previews: PreviewProvider {
     static var previews: some View {
-        AuthScreen(
-            analyticsScreen: AnalyticsScreen.Login.shared,
-            title: "Auth Screen",
-            footerText: "Do Something Else?",
-            footerActionText: "Click Here") {
-
-                Text("This is an Auth Screen")
-            
+        TeeTimeCaddieTheme {
+            AuthScreen(
+                analyticsScreen: AnalyticsScreen.Login.shared,
+                title: "Auth Screen",
+                footerText: "Do Something Else?",
+                footerActionText: "Click Here") {
+                    
+                    Text("This is an Auth Screen")
+                    
+                }
         }
     }
 }

@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 import TeeTimeCaddieKit
-import KMPNativeCoroutinesAsync
 
 @MainActor
 class LoginViewModel: ObservableObject {
@@ -33,7 +32,7 @@ class LoginViewModel: ObservableObject {
             defer { processingLogin = false }
             
             do {
-                _ = try await asyncFunction(for: authRepo.login(email: email, password: password))
+                try await authRepo.login(email: email, password: password)
             } catch {
                 let ex = error.asTeeTimeCaddieError(defaultTitle: AR.strings().reg_error_default_title)
                 print(ex.logMessage)

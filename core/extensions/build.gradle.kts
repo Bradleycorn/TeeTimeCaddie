@@ -5,7 +5,7 @@ plugins {
 }
 
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
@@ -13,19 +13,18 @@ kotlin {
         }
     }
 
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.crashkios)
-            }
+        commonMain.dependencies {
+            implementation(libs.crashkios)
+            implementation(libs.kotlinx.datetime)
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
     }
 }

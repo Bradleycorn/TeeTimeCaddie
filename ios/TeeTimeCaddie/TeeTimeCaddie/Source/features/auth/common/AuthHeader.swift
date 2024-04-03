@@ -1,13 +1,10 @@
-//
-//  AuthHeader.swift
-//  TeeTimeCaddie
-//
-//  Created by Brad Ball on 9/13/23.
-//
-
 import SwiftUI
+import ThemeUI
 
 struct AuthHeader: View {
+    @EnvironmentObject
+    private var theme: AppTheme
+    
     private let title: String
     
     init(_ title: String) {
@@ -17,8 +14,7 @@ struct AuthHeader: View {
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
             Text(title)
-                .font(.title)
-                .bold()
+                .font(theme.typography.headlineLarge)
 
             Spacer()
                 .frame(height: 16)
@@ -27,7 +23,7 @@ struct AuthHeader: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: .infinity, maxHeight: 164)
-                .foregroundColor(.blue)
+                .foregroundColor(theme.colorScheme.primary)
             
             Spacer()
                 .frame(height: 32)
@@ -38,6 +34,8 @@ struct AuthHeader: View {
 
 struct AuthHeader_Previews: PreviewProvider {
     static var previews: some View {
-        AuthHeader("Auth Header")
+        TeeTimeCaddieTheme {
+            AuthHeader("Auth Header")
+        }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import ThemeUI
 import TeeTimeCaddieKit
 
 struct LoginScreen: View {
@@ -84,7 +85,7 @@ fileprivate struct Login: View {
                     Text(loginButtonLabel)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.Filled)
                 .errorAlert(error: error)
         }
     }
@@ -92,7 +93,9 @@ fileprivate struct Login: View {
 
 struct LoginPreview: PreviewProvider {
     static var previews: some View {
-        Login(isProcessing: false, error: .constant(nil))
+        TeeTimeCaddieTheme {
+            Login(isProcessing: false, error: .constant(nil))
+        }
     }
 }
 

@@ -18,7 +18,7 @@ struct LoadingOverlay: ViewModifier {
 }
 
 extension View {
-    func lodingOverlay(type: DotType = .Flashing, isLoading: Bool) -> some View {
+    func loadingOverlay(type: DotType = .Flashing, isLoading: Bool) -> some View {
         modifier(LoadingOverlay(isLoading: isLoading, type: type))
     }
 }
@@ -34,7 +34,7 @@ struct LoadingOverlay_Previews: PreviewProvider {
                     .onTapGesture {
                         isLoading.toggle()
                     }
-                    .lodingOverlay(isLoading: isLoading)
+                    .loadingOverlay(isLoading: isLoading)
             }
         }
     }

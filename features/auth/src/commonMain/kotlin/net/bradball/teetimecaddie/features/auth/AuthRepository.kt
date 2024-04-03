@@ -1,7 +1,5 @@
 package net.bradball.teetimecaddie.features.auth
 
-import co.touchlab.kermit.Logger
-import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.FirebaseAuthEmailException
 import dev.gitlive.firebase.auth.FirebaseAuthException
@@ -18,6 +16,8 @@ import net.bradbal.teetimecaddie.core.storage.settings.hasLoggedIn
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
+import net.bradball.teetimecaddie.core.extensions.empty
+import net.bradball.teetimecaddie.core.models.User
 import kotlin.coroutines.cancellation.CancellationException
 
 class AuthRepository(
@@ -25,20 +25,22 @@ class AuthRepository(
     private val appSettings: TeeTimeCaddieSettings,
     private val playerStorage: PlayerStorage
 ) {
-    private val currentUser: FirebaseUser?
-        get() = Firebase.auth.currentUser
 
+    val currentUser: User
+        get() = Firebase.auth.currentUser?.let { fbUser ->
+            User(fbUser.uid, fbUser.displayName ?: String.empty)
+        } ?: User(String.empty, "Anonymous")
+    
     val isLoggedIn: Boolean
-        get() = currentUser != null
+        get() = Firebase.auth.currentUser != null
 
-    @NativeCoroutines
     val loginState: Flow<Boolean>
         get() = Firebase.auth.authStateChanged.map { it != null }
 
     val hasLoggedInOnce: Boolean
         get()  = appSettings.hasLoggedIn
 
-    @NativeCoroutines
+    @Throws(AuthException::class, CancellationException::class)
     suspend fun login(email: String, password: String) {
         try {
             Firebase.auth.signInWithEmailAndPassword(email, password)
@@ -49,7 +51,6 @@ class AuthRepository(
         }
     }
 
-    @NativeCoroutines
     suspend fun refreshAuthentication() {
         try {
             Firebase.auth.currentUser?.getIdToken(forceRefresh = true)
@@ -58,7 +59,6 @@ class AuthRepository(
         }
     }
 
-    @NativeCoroutines
     @Throws(AuthException::class, CancellationException::class)
     suspend fun registerUser(email: String, password: String, name: String) {
         if (password.length < 8 || !password.contains("\\d".toRegex())) {

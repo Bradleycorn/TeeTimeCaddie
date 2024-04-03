@@ -7,8 +7,8 @@ struct PasswordField: View {
 
     @State private var showText: Bool = false
     
-    private var icon: String {
-        return showText ? "eye.slash.fill" : "eye.fill"
+    private var icon: ImageResource {
+        return showText ? .Icons.eyeSlash : .Icons.eye
     }
     
     init(_ title: String = "", text: Binding<String>) {
@@ -28,7 +28,7 @@ struct PasswordField: View {
                     .autocorrectionDisabled(true)
             }
             Button(action: { showText.toggle() }) {
-                Image(systemName: icon)
+                Image(icon)
             }
         }
     }

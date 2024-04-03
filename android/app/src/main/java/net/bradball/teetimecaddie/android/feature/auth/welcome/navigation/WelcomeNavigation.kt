@@ -5,7 +5,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import net.bradball.teetimecaddie.android.feature.auth.welcome.WelcomeRoute
-import net.bradball.teetimecaddie.android.ui.navigateToHome
 import net.bradball.teetimecaddie.android.ui.navigation.clearBackStack
 
 const val welcomeRoute = "welcome"
@@ -18,10 +17,6 @@ const val welcomeRoute = "welcome"
  * from the welcome screen, they will wind up on the home screen
  */
 fun NavHostController.navigateToWelcome(navOptions: NavOptions? = null) {
-    // navigate to home first, clearing the back stack.
-    this.navigateToHome(navOptions = clearBackStack(this))
-
-    // Then navigate to welcome
     this.navigate(welcomeRoute, navOptions)
 }
 

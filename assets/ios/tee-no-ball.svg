@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="115px" height="104px" viewBox="0 0 115 104" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Tee</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="tee" transform="translate(0.986, 0.099)" fill="#1A1919" fill-rule="nonzero">
+            <path d="M114.018,0 L0,0 L0,16.714 C0.002,16.714 8.296,20.342 17.56,29.178 C20.243,31.737 23.008,34.734 25.676,38.205 C34.664,49.899 42.558,66.985 42.558,90.932 C42.558,94.705 42.558,99.057 42.558,103.869 L71.028,103.869 C71.028,99.057 71.028,94.705 71.028,90.932 C71.028,66.985 78.875,47.617 87.863,35.924 C90.532,32.452 93.296,29.456 95.98,26.897 C105.242,18.063 113.58,16.714 113.585,16.714 L114.018,16.714 L114.018,0" id="Tee"></path>
+        </g>
+    </g>
+</svg>

@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
@@ -14,7 +14,8 @@ kotlin {
         }
     }
 
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
@@ -24,35 +25,20 @@ kotlin {
             }
         }
 
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.crashkios)
-                implementation(libs.firebase.mpp.config)
-                implementation(libs.firebase.mpp.crashlytics)
-                implementation(libs.firebase.mpp.performance)
-                implementation(libs.kermit.core)
-                implementation(libs.kotlinx.serialization.core)
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:1.5.0-RC")
-                implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.21")
-                implementation(project(":core:extensions"))
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-        val androidMain by getting
-        val androidUnitTest by getting
 
-        val iosMain by getting
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
+        commonMain.dependencies {
+            implementation(libs.crashkios)
+            implementation(libs.firebase.mpp.config)
+            implementation(libs.firebase.mpp.crashlytics)
+            implementation(libs.firebase.mpp.performance)
+            implementation(libs.kermit.core)
+            implementation(libs.kotlinx.serialization.core)
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:1.5.1")
+            implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.21")
+            implementation(project(":core:extensions"))
         }
-
-        val iosTest by getting
-        val iosSimulatorArm64Test by getting {
-            dependsOn(iosTest)
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
     }
 }
