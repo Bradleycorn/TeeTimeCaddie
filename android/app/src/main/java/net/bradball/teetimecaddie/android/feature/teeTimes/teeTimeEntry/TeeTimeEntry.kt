@@ -3,22 +3,14 @@ package net.bradball.teetimecaddie.android.feature.teeTimes.teeTimeEntry
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.DisplayMode
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,12 +29,9 @@ import kotlinx.datetime.LocalDate
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.TtcDatePicker
 import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingButton
-import net.bradball.teetimecaddie.android.ui.common.forms.DateTextField
 import net.bradball.teetimecaddie.android.ui.common.forms.InputSpacer
-import net.bradball.teetimecaddie.android.ui.common.forms.OutlinedPasswordField
-import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.android.ui.common.rememberTtcDatePickerState
 import net.bradball.teetimecaddie.android.ui.common.selectedDate
-import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.teetimes.TTR
 
 @Composable
@@ -71,7 +60,7 @@ fun TeeTimeEntryScreen(showLoadingSpinner: Boolean = false, onSubmitClicked: (St
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var courseName by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
-    val date = rememberDatePickerState(initialDisplayMode = DisplayMode.Input)
+    val date = rememberTtcDatePickerState()
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
 
@@ -92,20 +81,6 @@ fun TeeTimeEntryScreen(showLoadingSpinner: Boolean = false, onSubmitClicked: (St
         InputSpacer()
 
         TtcDatePicker(pickerState = date, pickerDialogTitle = "Tee Time Date")
-
-//        DateTextField(
-//            label = stringResource(TTR.strings.field_label_Date.resourceId),
-//            value = date.text,
-//            onValueChange = { value ->
-//                date = TextFieldValue(value)
-//                onInputChanged()
-//            },
-//            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-//            trailingContent = { IconButton(onClick = { /*TODO*/ }) {
-//                Icon(imageVector = TtcIcons.Calendar, contentDescription = "Select Date")
-//            } },
-//            modifier = Modifier.fillMaxWidth()
-//        )
 
         InputSpacer()
 

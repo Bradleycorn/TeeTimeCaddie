@@ -10,19 +10,20 @@ import net.bradbal.teetimecaddie.core.storage.documents.TeeTimeDocument
 import net.bradbal.teetimecaddie.core.storage.documents.asModel
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.TeeTime
+import kotlin.coroutines.cancellation.CancellationException
 
 class TeeTimesRepository(
     private val eventManager: EventManager,
     private val teeTimeStorage: TeeTimeStorage
 ) {
 
+    @Throws(CancellationException::class)
     suspend fun createTeeTime(createdBy: String, course: String, dateTime: LocalDate): TeeTime {
         val doc = TeeTimeDocument(
             createdBy = createdBy,
             course = course,
             dateTime = dateTime
         )
-
         doc.id = teeTimeStorage.addTeeTime(doc)
         return doc.asModel()
     }
@@ -30,6 +31,10 @@ class TeeTimesRepository(
     fun getTeeTimes(player: String): Flow<List<TeeTime>> = teeTimeStorage
         .teeTimesFlow(player)
         .mapLatest { list ->
-            list.map { it.asModel() }
+            list.map {
+                it.asModel()
+            }
         }
+
+    fun test(): Int = 1
 }

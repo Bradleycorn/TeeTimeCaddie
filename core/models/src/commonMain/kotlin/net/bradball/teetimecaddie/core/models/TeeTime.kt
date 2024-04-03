@@ -13,6 +13,9 @@ data class TeeTime(
     val dateTime: LocalDate
 )
 
+val TeeTime.shortDate: String
+    get() = "${dateTime.month.name.take(3)}\n${dateTime.dayOfMonth}"
+
 val previewTeeTime = TeeTime(
     id = "previewTime",
     createdBy = "Brad",

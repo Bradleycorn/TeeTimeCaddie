@@ -2,6 +2,8 @@
 <resources>
     <string name="tee_times_title">Tee Times</string>
     <string name="add_tee_time">Add Tee Time</string>
+    <string name="empty_tee_times_title">Tee Sheet is Wide Open</string>
+    <string name="empty_tee_times_message">You don't have an scheduled tee times.</string>
 
     <string name="field_label_course_name">Course</string>
     <string name="field_label_Date">Date</string>

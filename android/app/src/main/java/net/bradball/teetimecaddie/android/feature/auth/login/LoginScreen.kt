@@ -3,6 +3,7 @@ package net.bradball.teetimecaddie.android.feature.auth.login
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -93,7 +94,6 @@ private fun LoginScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
-
         InputSpacer()
 
         OutlinedPasswordField(
@@ -125,7 +125,7 @@ private fun LoginScreen(
 
 
 @Composable
-@Preview
+@Preview(showSystemUi = false, device = "id:pixel_7_pro")
 fun LoginScreenPreview() {
     MyApplicationTheme {
         LoginScreen(showLoadingSpinner = false)

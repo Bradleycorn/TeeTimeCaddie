@@ -4,6 +4,7 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.CollectionReference
 import dev.gitlive.firebase.firestore.Direction
 import dev.gitlive.firebase.firestore.DocumentSnapshot
+import dev.gitlive.firebase.firestore.QuerySnapshot
 import dev.gitlive.firebase.firestore.firestore
 import dev.gitlive.firebase.firestore.orderBy
 import dev.gitlive.firebase.firestore.where
@@ -36,14 +37,10 @@ class TeeTimeStorage {
     suspend fun getTeeTimes(playerId: String): List<TeeTimeDocument> {
         return teeTimesCollection
             .where("createdBy", playerId)
+            .orderBy("dateTime", Direction.ASCENDING)
             .get()
             .documents
-            .deserialize()
-
-
-//            .map { snapshot ->
-//                snapshot.data<TeeTimeDocument>().apply { id = snapshot.id }
-//            }
+            .deserialize(predicate = { doc -> id = doc.id })
     }
 
     fun teeTimesFlow(playerId: String): Flow<List<TeeTimeDocument>> {
@@ -52,13 +49,15 @@ class TeeTimeStorage {
             .orderBy("dateTime", Direction.ASCENDING)
             .snapshots(includeMetadataChanges = false)
             .map { snapshot ->
-                snapshot.documents.deserialize()
+                snapshot.documents.deserialize(predicate = { doc -> id = doc.id })
             }
     }
 }
 
-inline fun <reified T : Any> List<DocumentSnapshot>.deserialize(): List<T> {
+inline fun <reified T : Any> List<DocumentSnapshot>.deserialize(predicate: T.(DocumentSnapshot)->Unit): List<T> {
     return this.map { document ->
-        document.data<T>()
+        document.data<T>().apply {
+            predicate(document)
+        }
     }
 }

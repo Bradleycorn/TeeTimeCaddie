@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerFormatter
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,6 +38,7 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.core.extensions.toEpochMilliseconds
 import net.bradball.teetimecaddie.features.teetimes.TTR
 
+
 /**
  * Renders a Date Picker input field that can be toggled between an OutlinedTextField
  * in which the user types a date in MM/DD/YYYY format, and a dialog that displays a date picker.
@@ -55,20 +59,20 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
  */
 @Composable
 fun TtcDatePicker(
-    pickerState: DatePickerState = rememberDatePickerState(initialDisplayMode = DisplayMode.Input),
+    pickerState: DatePickerState = rememberTtcDatePickerState(),
     pickerDialogTitle: String = "Select Date",
     validator: (Long) -> Boolean = { selectedDate ->
         selectedDate >= Clock.System.todayIn(TimeZone.UTC).toEpochMilliseconds(TimeZone.UTC)
     }
 ) {
     val focusManager = LocalFocusManager.current
-    val formatter = remember { DatePickerFormatter() }
+    val formatter = remember { DatePickerDefaults.dateFormatter() }
 
     DateTextField(
         label = stringResource(TTR.strings.field_label_Date.resourceId),
         date = pickerState.selectedDate,
         onValueChange = { newDate ->
-            pickerState.setSelection(newDate)
+            pickerState.selectedDateMillis = newDate?.toEpochMilliseconds(TimeZone.UTC)
         },
         modifier = Modifier.fillMaxWidth(),
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
@@ -97,11 +101,31 @@ fun TtcDatePicker(
                 state = pickerState,
                 dateFormatter = formatter,
                 showModeToggle = false,
-                dateValidator = validator,
                 title = { Text(pickerDialogTitle, modifier = Modifier.padding(PaddingValues(start = 24.dp, end = 12.dp, top = 16.dp)))})
         }
     }
 }
+
+@Composable
+fun rememberTtcDatePickerState(initialDisplayMode: DisplayMode = DisplayMode.Input): DatePickerState {
+
+    val today: LocalDate = Clock.System.todayIn(TimeZone.UTC)
+    val selectableYears = IntRange(today.year, today.year + 5)
+
+    val selectableTeeTimeDates = object: SelectableDates {
+        override fun isSelectableYear(year: Int): Boolean {
+            return year >= today.year
+        }
+
+        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+            return utcTimeMillis >= today.toEpochMilliseconds(TimeZone.UTC)
+        }
+    }
+
+    return rememberDatePickerState(initialDisplayMode = initialDisplayMode, yearRange = selectableYears,  selectableDates = selectableTeeTimeDates)
+}
+
+
 
 /**
  * An extension to DatePickerState to get the selectedDateMillis
@@ -124,9 +148,9 @@ val DatePickerState.selectedDate: LocalDate?
  *
  * @param date A LocalDate to use to set the selected date.
  */
-fun DatePickerState.setSelection(date: LocalDate?) {
-    setSelection(date?.toEpochMilliseconds(TimeZone.UTC))
-}
+//fun DatePickerState.setSelection(date: LocalDate?) {
+//    this.selectedDateMillis = date?.toEpochMilliseconds(TimeZone.UTC)
+//}
 
 @Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFFFFFFFF,)
 @Composable

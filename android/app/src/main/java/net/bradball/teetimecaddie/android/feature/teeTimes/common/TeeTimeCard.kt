@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,20 +23,17 @@ import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTime
+import net.bradball.teetimecaddie.core.models.shortDate
 
 @Composable
 fun TeeTimeCard(teeTime: TeeTime, onClick: ()->Unit, modifier: Modifier = Modifier) {
-
-    val month = teeTime.dateTime.month.name.take(3)
-    val day = teeTime.dateTime.dayOfMonth
-
     ElevatedCard {
         Row(
             modifier = modifier.height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "$month\n$day",
+                teeTime.shortDate,
                 modifier = Modifier
                     .fillMaxHeight()
                     .background(MaterialTheme.colorScheme.primary)

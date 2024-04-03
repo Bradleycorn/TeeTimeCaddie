@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,6 +33,7 @@ import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTimeList
+import net.bradball.teetimecaddie.features.teetimes.TTR
 
 @Composable
 fun TeeTimesRoute(
@@ -51,8 +53,8 @@ fun TeeTimesScreen(uiState: TeeTimesUiState) {
             when (uiState) {
                 is TeeTimesUiState.Loading -> ContentLoadingIndicator()
                 is TeeTimesUiState.Empty -> EmptyContent(
-                    title = "Tee Sheet is Wide Open",
-                    message = "You don't have any scheduled tee times.",
+                    title = stringResource(TTR.strings.empty_tee_times_title.resourceId),
+                    message = stringResource(TTR.strings.empty_tee_times_message.resourceId),
                     icon = painterResource(R.drawable.ic_empty_tee),
                     modifier = Modifier
                         .padding(top = 128.dp)

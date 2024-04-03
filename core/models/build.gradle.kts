@@ -46,16 +46,16 @@ android {
 
 multiplatformResources {
     multiplatformResourcesPackage = "net.bradball.teetimecaddie.core.models"
-    multiplatformResourcesClassName = "MR"
+    multiplatformResourcesClassName = "GR"
     iosBaseLocalizationRegion = "en"
 }
 
-tasks.matching { it.name == "kspKotlinIosX64" }.configureEach {
-    dependsOn(tasks.getByName("generateMRiosX64Main"))
-}
-tasks.matching { it.name == "kspKotlinIosArm64" }.configureEach {
-    dependsOn(tasks.getByName("generateMRiosArm64Main"))
-}
-tasks.matching { it.name == "kspKotlinIosSimulatorArm64" }.configureEach {
-    dependsOn(tasks.getByName("generateMRiosSimulatorArm64Main"))
-}
+//tasks.matching { it.name == "kspKotlinIosX64" }.configureEach {
+//    dependsOn(tasks.getByName("generateMRiosX64Main"))
+//}
+//tasks.matching { it.name == "kspKotlinIosArm64" }.configureEach {
+//    dependsOn(tasks.getByName("generateMRiosArm64Main"))
+//}
+//tasks.matching { it.name == "kspKotlinIosSimulatorArm64" }.configureEach {
+//    dependsOn(tasks.getByName("generateMRiosSimulatorArm64Main"))
+//}

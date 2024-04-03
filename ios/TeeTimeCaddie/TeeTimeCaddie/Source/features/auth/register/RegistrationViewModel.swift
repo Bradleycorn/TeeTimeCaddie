@@ -26,7 +26,7 @@ class RegistrationViewModel: ObservableObject {
     private(set) var processingRegistration = false
     
     @Published
-    private(set) var registrationError: TeeTimeCaddieError? = nil
+    var registrationError: TeeTimeCaddieError? = nil
     
     func registerUser(email: String, password: String, name: String) {
         Task {

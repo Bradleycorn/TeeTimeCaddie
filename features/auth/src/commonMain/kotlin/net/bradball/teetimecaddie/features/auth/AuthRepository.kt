@@ -40,6 +40,7 @@ class AuthRepository(
     val hasLoggedInOnce: Boolean
         get()  = appSettings.hasLoggedIn
 
+    @Throws(AuthException::class, CancellationException::class)
     suspend fun login(email: String, password: String) {
         try {
             Firebase.auth.signInWithEmailAndPassword(email, password)

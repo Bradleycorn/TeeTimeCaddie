@@ -51,6 +51,17 @@
                ReferencedContainer = "container:TeeTimeCaddie.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "02A8168F2BA37E640068F359"
+               BuildableName = "ThemeUITests.xctest"
+               BlueprintName = "ThemeUITests"
+               ReferencedContainer = "container:TeeTimeCaddie.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

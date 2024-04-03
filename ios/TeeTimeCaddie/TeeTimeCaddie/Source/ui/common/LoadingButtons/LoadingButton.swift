@@ -16,7 +16,7 @@ struct LoadingButton<Label: View>: View {
     var body: some View {
         Button(action: { action() }) {
             labelContent
-                .lodingOverlay(type: type, isLoading: isLoading)
+                .loadingOverlay(type: type, isLoading: isLoading)
         }
     }
 }
@@ -41,13 +41,13 @@ struct LoadingButton_Previews: PreviewProvider {
             VStack {
                 Spacer()
                 LoadingButton("Flashing Loading Button", isLoading: defaultLoading, action: { defaultLoading.toggle()})
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.Outlined)
                 Spacer()
                 LoadingButton("Pulsing Loading Button", type: .Pulsing, isLoading: pulsingLoading, action: { pulsingLoading.toggle() })
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.Filled, color: .Secondary)
                 Spacer()
                 LoadingButton("Bouncing Loading Button", type: .Bouncing, isLoading: bouncingLoading, action: { bouncingLoading.toggle() })
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.Outlined, color: .Tertiary)
                 Spacer()
             }
         }
@@ -55,6 +55,8 @@ struct LoadingButton_Previews: PreviewProvider {
     }
     
     static var previews: some View {
-        Content()
+        TeeTimeCaddieTheme {
+            Content()
+        }
     }
 }
