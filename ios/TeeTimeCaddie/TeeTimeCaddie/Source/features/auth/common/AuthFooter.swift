@@ -1,13 +1,10 @@
-//
-//  AuthFooter.swift
-//  TeeTimeCaddie
-//
-//  Created by Brad Ball on 9/13/23.
-//
-
 import SwiftUI
+import ThemeUI
 
 struct AuthFooter: View {
+    @EnvironmentObject
+    private var theme: AppTheme
+    
     private let text: String
     private let actionText: String?
     private let onActionClick: ()->Void
@@ -29,6 +26,8 @@ struct AuthFooter: View {
             
             if let label = actionText {
                 Button(label, action: onActionClick)
+                    .buttonStyle(.Text)
+                    .bold()                
             }
         }
     }
@@ -36,6 +35,8 @@ struct AuthFooter: View {
 
 struct AuthFooter_Previews: PreviewProvider {
     static var previews: some View {
-        AuthFooter("Do something else?", actionText: "Click Here")
+        TeeTimeCaddieTheme {
+            AuthFooter("Do something else?", actionText: "Click Here")
+        }
     }
 }

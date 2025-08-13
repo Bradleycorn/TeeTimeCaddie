@@ -18,9 +18,9 @@ import FirebaseAnalyticsSwift
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
- 
-        CrashKiOSKt.setup()
-        FirebaseApp.configure()
+
+        FirebaseApp.configure() // do this first
+        TeeTimeCaddieSdk.companion.initialize(useLocalResources: IS_DEBUG_BUILD)
         Analytics.setAnalyticsCollectionEnabled(!IS_DEBUG_BUILD)
         return true
     }

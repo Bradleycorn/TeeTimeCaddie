@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
@@ -14,7 +14,8 @@ kotlin {
         }
     }
 
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
@@ -24,21 +25,16 @@ kotlin {
             }
         }
 
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.crashkios)
-                implementation(libs.kotlinx.serialization.core)
-                implementation(libs.bundles.ktor.common)
-                implementation(libs.kermit.core)
-                implementation(project(":core:analytics"))
-            }
+        commonMain.dependencies {
+            implementation(libs.crashkios)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.bundles.ktor.common)
+            implementation(libs.kermit.core)
+            implementation(project(":core:analytics"))
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
-
     }
 }
 

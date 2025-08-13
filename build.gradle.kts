@@ -5,8 +5,15 @@ plugins {
     id("com.android.library").version(libs.versions.agp).apply(false)
     kotlin("android").version(libs.versions.kotlin).apply(false)
     kotlin("multiplatform").version(libs.versions.kotlin).apply(false)
+    alias(libs.plugins.ksp).apply(false)
     alias(libs.plugins.hilt).apply(false)
     alias(libs.plugins.mokoresources).apply(false)
+    alias(libs.plugins.skie).apply(false)
+}
+
+allprojects {
+    group = "net.bradball.teetimecaddie"
+    version = System.getenv("PUBLISH_VERSION") ?: "0.0.12"
 }
 
 buildscript {
@@ -19,7 +26,7 @@ buildscript {
 }
 
 tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }
 
 //tasks.getByName(":features:auth:kspKotlinIosX64")

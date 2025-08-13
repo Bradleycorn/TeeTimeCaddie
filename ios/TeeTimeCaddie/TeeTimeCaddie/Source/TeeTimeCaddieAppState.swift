@@ -7,15 +7,14 @@
 
 import Foundation
 import TeeTimeCaddieKit
-import KMPNativeCoroutinesAsync
 
 
-enum UiState {
+enum AppUiState {
     case REGISTRATION
     case LOGIN
     case APP
     
-    static func fromLoginState(_ isLoggedIn: Bool, hasLoggedInOnce: Bool) -> UiState {
+    static func fromLoginState(_ isLoggedIn: Bool, hasLoggedInOnce: Bool) -> AppUiState {
         print("Is logged in: \(isLoggedIn)")
         if (isLoggedIn) {
             return .APP
@@ -30,24 +29,22 @@ enum UiState {
 @MainActor
 class TeeTimeCaddieAppState: ObservableObject {
     @Published
-    private(set) var uiState: UiState
+    private(set) var uiState: AppUiState
     
     private let authRepo: AuthRepository
     
     init(authRepo: AuthRepository = AuthModule.shared.authRepository()) {
         self.authRepo = authRepo
-        self.uiState = UiState.fromLoginState(authRepo.isLoggedIn, hasLoggedInOnce: authRepo.hasLoggedInOnce)
+        self.uiState = AppUiState.fromLoginState(authRepo.isLoggedIn, hasLoggedInOnce: authRepo.hasLoggedInOnce)
     }
     
     func observeAuthState() async {
-        do {
-            for try await isLoggedIn in asyncSequence(for: authRepo.loginState) {
-                uiState = UiState.fromLoginState(isLoggedIn.boolValue, hasLoggedInOnce: authRepo.hasLoggedInOnce)
-            }
-        } catch { }
+        for await isLoggedIn in authRepo.loginState {
+            uiState = AppUiState.fromLoginState(isLoggedIn.boolValue, hasLoggedInOnce: authRepo.hasLoggedInOnce)
+        }
     }
     
-    func setUiState(to newState: UiState) {
+    func setUiState(to newState: AppUiState) {
         if (uiState != newState) { uiState = newState }
 
     }

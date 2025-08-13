@@ -1,48 +1,46 @@
 package net.bradball.teetimecaddie.features.auth
 
-import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.FirebaseAuthEmailException
 import dev.gitlive.firebase.auth.FirebaseAuthException
 import dev.gitlive.firebase.auth.FirebaseAuthInvalidCredentialsException
-import dev.gitlive.firebase.auth.FirebaseAuthInvalidUserException
 import dev.gitlive.firebase.auth.FirebaseAuthUserCollisionException
 import dev.gitlive.firebase.auth.FirebaseUser
 import dev.gitlive.firebase.auth.auth
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.StringDesc
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import net.bradbal.teetimecaddie.core.storage.PlayerStorage
+import net.bradbal.teetimecaddie.core.storage.documents.PlayerDocument
+import net.bradbal.teetimecaddie.core.storage.settings.TeeTimeCaddieSettings
+import net.bradbal.teetimecaddie.core.storage.settings.hasLoggedIn
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
+import net.bradball.teetimecaddie.core.extensions.empty
+import net.bradball.teetimecaddie.core.models.User
 import kotlin.coroutines.cancellation.CancellationException
 
 class AuthRepository(
     private val eventManager: EventManager,
-    private val authSettings: AuthSettings,
-    useEmulator: Boolean = false
+    private val appSettings: TeeTimeCaddieSettings,
+    private val playerStorage: PlayerStorage
 ) {
-    init {
-        if (useEmulator) {
-            Firebase.auth.useEmulator(authSettings.debugHost, authSettings.debugPort)
-        }
-    }
-    private val currentUser: FirebaseUser?
-        get() = Firebase.auth.currentUser
 
+    val currentUser: User
+        get() = Firebase.auth.currentUser?.let { fbUser ->
+            User(fbUser.uid, fbUser.displayName ?: String.empty)
+        } ?: User(String.empty, "Anonymous")
+    
     val isLoggedIn: Boolean
-        get() = currentUser != null
+        get() = Firebase.auth.currentUser != null
 
-    @NativeCoroutines
     val loginState: Flow<Boolean>
         get() = Firebase.auth.authStateChanged.map { it != null }
 
     val hasLoggedInOnce: Boolean
-        get() = authSettings.hasLoggedIn
+        get()  = appSettings.hasLoggedIn
 
-    @NativeCoroutines
+    @Throws(AuthException::class, CancellationException::class)
     suspend fun login(email: String, password: String) {
         try {
             Firebase.auth.signInWithEmailAndPassword(email, password)
@@ -53,7 +51,6 @@ class AuthRepository(
         }
     }
 
-    @NativeCoroutines
     suspend fun refreshAuthentication() {
         try {
             Firebase.auth.currentUser?.getIdToken(forceRefresh = true)
@@ -62,7 +59,6 @@ class AuthRepository(
         }
     }
 
-    @NativeCoroutines
     @Throws(AuthException::class, CancellationException::class)
     suspend fun registerUser(email: String, password: String, name: String) {
         if (password.length < 8 || !password.contains("\\d".toRegex())) {
@@ -80,7 +76,8 @@ class AuthRepository(
                 ?: throw Exception("No user available after registration.")
 
             user.updateProfile(displayName = name)
-            authSettings.hasLoggedIn = true
+            playerStorage.addPlayer(user.uid, PlayerDocument(name))
+            appSettings.hasLoggedIn = true
             eventManager.setUserId(user.uid)
             eventManager.logEvent(AnalyticsEvent.CreateAccount)
         } catch (ex: Exception) {

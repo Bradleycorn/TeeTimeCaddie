@@ -1,16 +1,13 @@
-import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
     alias(libs.plugins.mokoresources)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.nativecoroutines)
 }
 
 kotlin {
-    android {
+    androidTarget {
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
@@ -18,41 +15,28 @@ kotlin {
         }
     }
 
-    ios()
+    iosX64()
+    iosArm64()
     iosSimulatorArm64()
 
     sourceSets {
-       all {
-            languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
+        commonMain.dependencies {
+            implementation(libs.kotlinx.coroutines)
+            implementation(libs.firebase.mpp.auth)
+            implementation(libs.kermit.core)
+            api(libs.mokoresources.api)
+            implementation(project(":core:extensions"))
+            implementation(project(":core:analytics"))
+            implementation(project(":core:models"))
+            implementation(project(":core:storage"))
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.mokoresources.test)
         }
 
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.kotlinx.coroutines)
-                implementation(libs.firebase.mpp.auth)
-                api(libs.mokoresources.api)
-                implementation(project(":core:analytics"))
-                implementation(project(":core:models"))
-                implementation(project(":core:storage"))
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                implementation(libs.mokoresources.test)
-            }
-        }
-
-        val androidMain by getting
-
-        val iosMain by getting
-        val iosSimulatorArm64Main by getting {
-            dependsOn(iosMain)
-        }
-
-        val iosTest by getting
-        val iosSimulatorArm64Test by getting {
-            dependsOn(iosTest)
+        androidMain {
+            kotlin.srcDir("build/generated/moko/androidMain/src")
         }
     }
 }
@@ -75,17 +59,7 @@ dependencies {
 }
 
 multiplatformResources {
-    multiplatformResourcesPackage = "net.bradball.teetimecaddie.features.auth"
-    multiplatformResourcesClassName = "AR"
+    resourcesPackage.set("net.bradball.teetimecaddie.features.auth")
+    resourcesClassName.set("AR")
     iosBaseLocalizationRegion = "en"
-}
-
-tasks.matching { it.name == "kspKotlinIosX64" }.configureEach {
-    dependsOn(tasks.getByName("generateMRiosX64Main"))
-}
-tasks.matching { it.name == "kspKotlinIosArm64" }.configureEach {
-    dependsOn(tasks.getByName("generateMRiosArm64Main"))
-}
-tasks.matching { it.name == "kspKotlinIosSimulatorArm64" }.configureEach {
-    dependsOn(tasks.getByName("generateMRiosSimulatorArm64Main"))
 }

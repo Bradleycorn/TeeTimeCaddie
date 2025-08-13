@@ -2,6 +2,7 @@ package net.bradball.teetimecaddie.android.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -21,7 +22,14 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    surface = Color(0xFFEEEEEE)
+    scrim = Color(0xddFFFFFF)
+//    surface = Color(0xFFFFFFFF),
+
+    // Background is a legacy/deprecated color.
+    // It is recommended to use surface instead.
+    // Background is set to bright pink so it'll
+    // be an obvious defect if it is used.
+//    background = Color.Magenta,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

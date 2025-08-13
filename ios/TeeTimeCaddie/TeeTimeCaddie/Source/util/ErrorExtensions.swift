@@ -40,9 +40,9 @@ class UnknownException: TeeTimeCaddieException {
 
 extension Error {
     func asTeeTimeCaddieException(
-        defaultTitle: StringResource = MR.strings().error_default_title,
-        defaultMessage: StringResource = MR.strings().error_default_message,
-        defaultRecoveryMessage: StringResource? = MR.strings().error_default_recovery
+        defaultTitle: StringResource = GR.strings().error_default_title,
+        defaultMessage: StringResource = GR.strings().error_default_message,
+        defaultRecoveryMessage: StringResource? = GR.strings().error_default_recovery
     ) -> TeeTimeCaddieException {
         
         guard let ex = (self as NSError).userInfo["KotlinException"] as? TeeTimeCaddieException else {
@@ -54,15 +54,16 @@ extension Error {
     }
     
     func asTeeTimeCaddieError(
-        defaultTitle: StringResource = MR.strings().error_default_title,
-        defaultMessage: StringResource = MR.strings().error_default_message,
-        defaultRecoveryMessage: StringResource? = MR.strings().error_default_recovery
+        defaultTitle: StringResource = GR.strings().error_default_title,
+        defaultMessage: StringResource = GR.strings().error_default_message,
+        defaultRecoveryMessage: StringResource? = GR.strings().error_default_recovery
     ) -> TeeTimeCaddieError {
         let ex = self.asTeeTimeCaddieException(defaultTitle: defaultTitle, defaultMessage: defaultMessage, defaultRecoveryMessage: defaultRecoveryMessage)
         return TeeTimeCaddieError(exception: ex)
     }
 }
 
+ 
 struct TeeTimeCaddieError: LocalizedError {
     let exception: TeeTimeCaddieException
 
@@ -88,6 +89,10 @@ struct TeeTimeCaddieError: LocalizedError {
 
 extension View {
     func errorAlert<E: LocalizedError>(error: Binding<E?>, buttonTitle: String = "OK") -> some View {
+        
+        
+        
+        
         return alert(
             isPresented: .constant(error.wrappedValue != nil),
             error: error.wrappedValue,
@@ -104,7 +109,7 @@ extension View {
 
 extension LocalizedError {
     var displayMessage: String {
-        var message = failureReason ?? MR.strings().error_default_message.desc().localized()
+        var message = failureReason ?? GR.strings().error_default_message.desc().localized()
         if let recovery = recoverySuggestion {
             message.append("\n\n\(recovery)")
         }

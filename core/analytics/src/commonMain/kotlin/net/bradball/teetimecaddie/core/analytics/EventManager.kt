@@ -171,7 +171,7 @@ class EventManager internal constructor(
      * @param eventPlugin - An [EventPlugin] that has been created for a single third party event tracking/logging service.
      */
     fun registerPlugin(eventPlugin: EventPlugin) {
-        if(!eventPlugins.contains(eventPlugin)) {
+        if(eventPlugins.find { it::class == eventPlugin::class } == null) {
             eventPlugins.add(eventPlugin)
             logMessage("Registered Event Plugin: ${eventPlugin::class.simpleName}")
         }

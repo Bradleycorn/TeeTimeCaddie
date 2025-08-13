@@ -18,13 +18,13 @@
   <path
       android:pathData="M247.61,193.31L245.52,193.31C240.55,193.31 236.49,189.24 236.49,184.27L236.49,94.56C236.49,89.58 240.55,85.52 245.52,85.52L247.61,85.52C252.58,85.52 256.64,89.58 256.64,94.56L256.64,184.27C256.64,189.24 252.58,193.31 247.61,193.31"
       android:strokeWidth="1"
-      android:fillColor="#0A0B09"
+      android:fillColor="#1A1919"
       android:fillType="evenOdd"
       android:strokeColor="#00000000"/>
   <path
       android:pathData="M192.51,239.8L191.03,238.32C187.52,234.81 187.52,229.06 191.03,225.54L239.45,177.13C242.96,173.61 248.72,173.61 252.23,177.13L253.7,178.6C257.22,182.11 257.22,187.87 253.7,191.38L205.29,239.8C201.77,243.31 196.02,243.31 192.51,239.8"
       android:strokeWidth="1"
-      android:fillColor="#0A0B09"
+      android:fillColor="#1A1919"
       android:fillType="evenOdd"
       android:strokeColor="#00000000"/>
 </vector>

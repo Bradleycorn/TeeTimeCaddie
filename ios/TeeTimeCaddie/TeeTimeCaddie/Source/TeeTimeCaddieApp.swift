@@ -9,7 +9,6 @@ import SwiftUI
 import FirebaseCore
 import FirebaseAuth
 import TeeTimeCaddieKit
-import KMPNativeCoroutinesAsync
 
 import FirebaseAnalyticsSwift
 
@@ -30,7 +29,7 @@ struct TeeTimeCaddieApp: App {
                     .task { await appState.observeAuthState() }
                     .onChange(of: scenePhase) { phase in
                         if (phase == .active) {
-                            Task { await asyncResult(for: AuthModule.shared.authRepository().refreshAuthentication()) }
+                            Task { try? await AuthModule.shared.authRepository().refreshAuthentication() }
                         }
                     }
                     .animation(.default, value: appState.uiState)
@@ -40,12 +39,12 @@ struct TeeTimeCaddieApp: App {
 
 
 struct UserInterface: View {
-    private let state: UiState
+    private let state: AppUiState
     private let onLoginClick: ()->Void
     private let onRegisterClick: ()->Void
     
     init(
-        state: UiState,
+        state: AppUiState,
         onLoginClick: @escaping () -> Void = {},
         onRegisterClick: @escaping () -> Void = {}) {
  
@@ -55,17 +54,19 @@ struct UserInterface: View {
     }
     
     var body: some View {
-        switch(state) {
-        case .APP:
-            Text("Show the app")
-                .onTapGesture { try? Auth.auth().signOut() }
-            
-        case .LOGIN:
-            LoginScreen(onRegisterClick: onRegisterClick)
-                .transition(.move(edge: .trailing))
-        case .REGISTRATION:
-            RegistrationScreen(onLoginClick: onLoginClick)
-                .transition(.move(edge: .trailing))
+        TeeTimeCaddieTheme {
+            switch(state) {
+                case .APP:
+                    TeeTimesNavStack()
+                    
+                case .LOGIN:
+                    LoginScreen(onRegisterClick: onRegisterClick)
+                        .transition(.move(edge: .trailing))
+                    
+                case .REGISTRATION:
+                    RegistrationScreen(onLoginClick: onLoginClick)
+                        .transition(.move(edge: .trailing))
+            }
         }
     }
 }
