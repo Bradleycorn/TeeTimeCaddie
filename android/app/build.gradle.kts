@@ -2,20 +2,21 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("kapt")
+    alias(libs.plugins.ksp)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
+    alias(libs.plugins.androidx.compose.compiler)
     alias(libs.plugins.hilt)
 }
 
 android {
     namespace = "net.bradball.teetimecaddie.android"
-    compileSdk = 34
+    compileSdk = 35
     defaultConfig {
         applicationId = "net.bradball.teetimecaddie.android"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "0.0.1"
 
@@ -95,6 +96,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.lifecycle.viewModelCompose)
+    implementation(libs.androidx.lifecycle.process)
 
     // FIREBASE
     implementation(platform(libs.firebase.bom))
@@ -104,13 +106,10 @@ dependencies {
     // HILT
     implementation(libs.hilt.android)
     implementation(libs.material)
-    kapt(libs.hilt.kapt)
+    ksp(libs.hilt.ksp)
 
     // TESTING
     testImplementation(libs.junit)
     androidTestImplementation(libs.bundles.android.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 }
-
-// Needed for Hilt
-kapt { correctErrorTypes = true }

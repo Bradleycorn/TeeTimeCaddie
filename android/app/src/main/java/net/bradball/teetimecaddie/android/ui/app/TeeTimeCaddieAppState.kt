@@ -18,6 +18,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.bradball.teetimecaddie.android.feature.auth.AuthModule
+import net.bradball.teetimecaddie.android.feature.auth.AuthModule_ProvideAuthRepositoryFactory
 import net.bradball.teetimecaddie.android.feature.auth.login.navigation.navigateToLogin
 import net.bradball.teetimecaddie.android.feature.auth.registration.navigation.navigateToRegistration
 import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesListRoute
@@ -33,18 +35,16 @@ fun rememberTeeTimeCaddieAppState(
     authRepository: AuthRepository,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     navController: NavHostController = rememberNavController(),
-    modalSheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ): TeeTimeCaddieAppState {
     return remember(coroutineScope, appInitializers, authRepository) {
-        TeeTimeCaddieAppState(coroutineScope, modalSheetState, appInitializers, navController, authRepository)
+        TeeTimeCaddieAppState(coroutineScope, navController, appInitializers, authRepository)
     }
 }
 
 class TeeTimeCaddieAppState(
-    private val coroutineScope: CoroutineScope,
-    val modalSheetState: SheetState,
-    appInitializers: AppInitializers,
+    coroutineScope: CoroutineScope,
     val navController: NavHostController,
+    appInitializers: AppInitializers,
     private val authRepository: AuthRepository
 ) {
     val currentDestination: NavDestination?
@@ -53,10 +53,6 @@ class TeeTimeCaddieAppState(
 
     val destinationResources: TtcDestinationResources?
         @Composable get() = currentDestination?.resources
-
-
-    var modelSheetContent: AppModalSheetContent? by mutableStateOf(null)
-        private set
 
     val isLoggedIn = authRepository.loginState
         .stateIn(
@@ -76,31 +72,6 @@ class TeeTimeCaddieAppState(
         when {
             authRepository.hasLoggedInOnce -> navController.navigateToLogin()
             else -> navController.navigateToRegistration()
-        }
-    }
-
-    fun onFabClicked() {
-        modelSheetContent = when (navController.currentBackStackEntry?.destination?.route) {
-            teeTimesListRoute -> AppModalSheetContent.ADD_TEE_TIME
-            else -> null
-        }
-        modelSheetContent?.let {
-            coroutineScope.launch {
-                delay(1_000)
-                modalSheetState.show()
-            }
-        }
-    }
-
-    fun onModalBottomSheetDismissed() {
-        modelSheetContent = null
-    }
-
-    fun closeModalBottomSheet() {
-        coroutineScope.launch {
-            modalSheetState.hide()
-        }.invokeOnCompletion {
-            onModalBottomSheetDismissed()
         }
     }
 }

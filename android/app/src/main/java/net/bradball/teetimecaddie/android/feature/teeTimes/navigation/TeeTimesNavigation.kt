@@ -19,7 +19,7 @@ const val teeTimesListRoute = "teetimes_list"
 const val addTeeTimeRoute = "add_teetime"
 
 fun NavHostController.navigateToTeeTimes(clearBackStack: Boolean) {
-    val options = clearBackStack(this)
+    val options = clearBackStack(navHostController = this)
     navigateToTeeTimes(options)
 }
 
@@ -32,7 +32,6 @@ fun NavHostController.showAddTeeTimeSheet() {
 }
 
 fun NavGraphBuilder.teeTimesGraph(
-    onShowSnackbar: suspend (String, String?) -> SnackbarResult,
     nestedDestinations: NavGraphBuilder.()->Unit = {}
 ) {
     navigation(

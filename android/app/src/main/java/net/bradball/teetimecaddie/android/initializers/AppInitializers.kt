@@ -39,9 +39,18 @@ class AppInitializers @Inject constructor(
     private val createState = MutableStateFlow<InitializationState>(InitializationState.Pending)
     private val startState = MutableStateFlow<InitializationState>(InitializationState.Pending)
 
+    val initState = combine(launchState, createState) { launch, create ->
+        when {
+            launch is InitializationState.Failed -> launch
+            create is InitializationState.Failed -> create
+            launch == InitializationState.Complete
+                    && create == InitializationState.Complete -> InitializationState.Complete
+            else -> InitializationState.Pending
+        }
+    }
+
     val state = combine(launchState, createState, startState) { launch, create, start ->
         when {
-
             launch is InitializationState.Failed -> launch
             create is InitializationState.Failed -> create
             start is InitializationState.Failed -> start
@@ -57,7 +66,8 @@ class AppInitializers @Inject constructor(
     }
 
     init {
-        launchJob = ProcessLifecycleOwner.get().lifecycleScope.launch {
+        val process = ProcessLifecycleOwner.get()
+        launchJob = process.lifecycleScope.launch {
             launchState.value = InitializationState.Pending
             try {
                 log("Running launch initializers")
@@ -69,6 +79,7 @@ class AppInitializers @Inject constructor(
                 launchState.value = InitializationState.Failed(ex)
             }
         }
+        process.lifecycle.addObserver(this)
     }
 
     override fun onCreate(owner: LifecycleOwner) {

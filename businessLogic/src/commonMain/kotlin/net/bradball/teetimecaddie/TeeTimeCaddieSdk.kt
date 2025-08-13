@@ -41,8 +41,10 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
         }
 
         internal fun initialize(useLocalResources: Boolean, storageModule: StorageModule) {
-            instance = TeeTimeCaddieSdk(useLocalResources, storageModule)
-            enableCrashlytics()
+            if (instance == null) {
+                instance = TeeTimeCaddieSdk(useLocalResources, storageModule)
+                enableCrashlytics()
+            }
         }
     }
 }

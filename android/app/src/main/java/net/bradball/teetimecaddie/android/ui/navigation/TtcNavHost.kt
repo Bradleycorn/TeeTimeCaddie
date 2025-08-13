@@ -10,12 +10,20 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navOptions
+import androidx.navigation.navigation
+import net.bradball.teetimecaddie.android.feature.auth.login.LoginRoute
 import net.bradball.teetimecaddie.android.feature.auth.login.navigation.loginScreen
 import net.bradball.teetimecaddie.android.feature.auth.login.navigation.navigateToLogin
+import net.bradball.teetimecaddie.android.feature.auth.registration.RegistrationRoute
 import net.bradball.teetimecaddie.android.feature.auth.registration.navigation.navigateToRegistration
 import net.bradball.teetimecaddie.android.feature.auth.registration.navigation.registrationGraph
+import net.bradball.teetimecaddie.android.feature.auth.welcome.WelcomeRoute
 import net.bradball.teetimecaddie.android.feature.auth.welcome.navigation.navigateToWelcome
 import net.bradball.teetimecaddie.android.feature.auth.welcome.navigation.welcomeScreen
 import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.navigateToTeeTimes
@@ -25,7 +33,6 @@ import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesGr
 @Composable
 fun TtcNavHost(
     navController: NavHostController,
-    onShowSnackbar: suspend (String, String?)->SnackbarResult,
     modifier: Modifier = Modifier,
     startDestination: String = teeTimesGraphRoute) {
 
@@ -37,14 +44,11 @@ fun TtcNavHost(
         exitTransition = { fadeOut() + slideOutHorizontally { width -> -width / 4 } },
     ) {
 
-        teeTimesGraph(onShowSnackbar = onShowSnackbar) {
-
-        }
+        teeTimesGraph { }
 
         registrationGraph(
             onLoginClick = { navController.navigateToLogin() },
-            onRegistrationComplete = { navController.navigateToWelcome() },
-            onShowSnackbar = onShowSnackbar
+            onRegistrationComplete = { navController.navigateToWelcome() }
         ) {
             welcomeScreen(
                 onClose = {
@@ -55,8 +59,7 @@ fun TtcNavHost(
 
         loginScreen(
             onRegisterClick = { navController.navigateToRegistration() },
-            onLoggedIn = { navController.navigateToTeeTimes() },
-            onShowSnackbar = onShowSnackbar
+            onLoggedIn = { navController.navigateToTeeTimes() }
         )
     }
 }

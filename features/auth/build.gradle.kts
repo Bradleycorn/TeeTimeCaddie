@@ -59,7 +59,7 @@ dependencies {
 }
 
 multiplatformResources {
-    multiplatformResourcesPackage = "net.bradball.teetimecaddie.features.auth"
-    multiplatformResourcesClassName = "AR"
+    resourcesPackage.set("net.bradball.teetimecaddie.features.auth")
+    resourcesClassName.set("AR")
     iosBaseLocalizationRegion = "en"
 }

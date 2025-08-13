@@ -14,6 +14,9 @@ class TeeTimeCaddieApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        TeeTimeCaddieSdk.initialize(this, BuildConfig.DEBUG)
+
+        // Initialize the SDK right away, so that objects it provides can be
+        // injected as the rest of the app starts up.
+        TeeTimeCaddieSdk.initialize(this, false) //BuildConfig.DEBUG)
     }
 }

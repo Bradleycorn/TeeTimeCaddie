@@ -17,6 +17,8 @@
 		0219B4552AE755550043D4B2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B4542AE755550043D4B2 /* FirebaseFirestore */; };
 		0219B4572AE755550043D4B2 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B4562AE755550043D4B2 /* FirebaseFirestoreSwift */; };
 		0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B4582AE755550043D4B2 /* FirebasePerformance */; };
+		022684722DEA104A0053A48A /* AppInitializers in Frameworks */ = {isa = PBXBuildFile; productRef = 022684712DEA104A0053A48A /* AppInitializers */; };
+		022685822DEA11110053A48A /* AppInitModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022685812DEA110B0053A48A /* AppInitModule.swift */; };
 		0228D9752A63219500E82209 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9742A63219500E82209 /* Factory */; };
 		0228D9782A63265F00E82209 /* AppModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D9772A63265F00E82209 /* AppModule.swift */; };
 		0228D97B2A63293200E82209 /* ScopeFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0228D97A2A63293200E82209 /* ScopeFunctions.swift */; };
@@ -143,6 +145,7 @@
 		020332DF2AB9361A0080DC60 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		020706BF2AFDBBAF000C71F7 /* TeeTimesListScreenViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimesListScreenViewModel.swift; sourceTree = "<group>"; };
 		020706C12AFDCB24000C71F7 /* TeeTimesModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimesModule.swift; sourceTree = "<group>"; };
+		022685812DEA110B0053A48A /* AppInitModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInitModule.swift; sourceTree = "<group>"; };
 		0228D9772A63265F00E82209 /* AppModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModule.swift; sourceTree = "<group>"; };
 		0228D97A2A63293200E82209 /* ScopeFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopeFunctions.swift; sourceTree = "<group>"; };
 		0228D97D2A632A9200E82209 /* AuthModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModule.swift; sourceTree = "<group>"; };
@@ -236,6 +239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */,
+				022684722DEA104A0053A48A /* AppInitializers in Frameworks */,
 				0219B44F2AE755550043D4B2 /* FirebaseAnalyticsSwift in Frameworks */,
 				0228D9752A63219500E82209 /* Factory in Frameworks */,
 				0219B44D2AE755550043D4B2 /* FirebaseAnalytics in Frameworks */,
@@ -280,6 +284,7 @@
 		0228D9762A63264B00E82209 /* inject */ = {
 			isa = PBXGroup;
 			children = (
+				022685812DEA110B0053A48A /* AppInitModule.swift */,
 				0228D9772A63265F00E82209 /* AppModule.swift */,
 			);
 			path = inject;
@@ -692,6 +697,7 @@
 				0219B4542AE755550043D4B2 /* FirebaseFirestore */,
 				0219B4562AE755550043D4B2 /* FirebaseFirestoreSwift */,
 				0219B4582AE755550043D4B2 /* FirebasePerformance */,
+				022684712DEA104A0053A48A /* AppInitializers */,
 			);
 			productName = TeeTimeCaddie;
 			productReference = 02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */;
@@ -775,6 +781,7 @@
 			packageReferences = (
 				0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */,
 				0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				022684702DEA104A0053A48A /* XCRemoteSwiftPackageReference "SwiftAppInitializers" */,
 			);
 			productRefGroup = 02BA11622A195E0000BF0416 /* Products */;
 			projectDirPath = "";
@@ -909,6 +916,7 @@
 				0256DD782AAC9DBF009E2AE3 /* AppDelegate.swift in Sources */,
 				02B0F3072AB3EF0600D094BC /* LoadingButton.swift in Sources */,
 				02EDD9DF2BB72B29004EF6FC /* EmptyContent.swift in Sources */,
+				022685822DEA11110053A48A /* AppInitModule.swift in Sources */,
 				02A0A4EF2BAB57DC00DCB9A1 /* TeetimeEntryViewModel.swift in Sources */,
 				0233FF6D2BB207250095F2F8 /* DateField.swift in Sources */,
 				02F7E2C52AAF3B0E0071C3A3 /* Screen.swift in Sources */,
@@ -1449,6 +1457,14 @@
 				version = 10.7.0;
 			};
 		};
+		022684702DEA104A0053A48A /* XCRemoteSwiftPackageReference "SwiftAppInitializers" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Bradleycorn/SwiftAppInitializers.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/hmlongco/Factory";
@@ -1494,6 +1510,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebasePerformance;
+		};
+		022684712DEA104A0053A48A /* AppInitializers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 022684702DEA104A0053A48A /* XCRemoteSwiftPackageReference "SwiftAppInitializers" */;
+			productName = AppInitializers;
 		};
 		0228D9742A63219500E82209 /* Factory */ = {
 			isa = XCSwiftPackageProductDependency;

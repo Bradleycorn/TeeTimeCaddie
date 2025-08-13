@@ -6,51 +6,51 @@
 [versions]
 accompanist = "0.32.0"
 
-agp = "8.2.0"
+agp = "8.10.0"
 
-androidx-activity = "1.8.2"
-androidx-compose-bom = "2024.02.01" #1.4.3
+androidx-activity = "1.10.1"
+androidx-compose-bom = "2025.05.01" #1.8.2
 androidx-compose-compiler = "1.5.6"
-androidx-core = "1.12.0"
-androidx-lifecycle = "2.6.2"
-androidx-navigation-compose = "2.7.6"
-androidx-navigation-hilt = "1.1.0"
+androidx-core = "1.16.0"
+androidx-lifecycle = "2.9.0"
+androidx-navigation-compose = "2.9.0"
+androidx-navigation-hilt = "1.2.0"
 androidx-splashscreen = "1.0.1"
-androidx-test-espresso = "3.5.1"
-androidx-test-junit = "1.1.5"
+androidx-test-espresso = "3.6.1"
+androidx-test-junit = "1.2.1"
 
-crashkios = "0.8.2"
+crashkios = "0.9.0"
 
-firebase-bom = "32.3.1"
-firebase-crashlytics-plugin = "2.9.5"
+firebase-bom = "33.14.0"
+firebase-crashlytics-plugin = "3.0.3"
 firebase-performance-plugin = "1.4.2"
 firebase-mpp-sdk = "1.10.4"
 firebase-ui = "8.0.2"
 
-google-services = "4.4.0"
+google-services = "4.4.2"
 
-hilt = "2.47"
+hilt = "2.56.2"
 
 junit = "4.13.2"
 
-kermit = "2.0.0-RC4"
+kermit = "2.0.5"
 
-kotlin="1.9.21"
+kotlin="2.1.21"
 
-kotlinx-coroutines="1.7.3"
-kotlinx-serialization="1.5.1"
+kotlinx-coroutines="1.10.1"
+kotlinx-serialization="1.8.0"
 
-ksp="1.9.21-1.0.15"
+ksp="2.1.21-2.0.1"
 
 ktor="2.2.3"
 
-moko-resources="0.23.0"
+moko-resources="0.25.0"
 
 multiplatform-settings="1.0.0"
 
 sqldelight="2.0.0-alpha05"
 
-skie="0.5.6"
+skie="0.10.2"
 
 [libraries]
 accompanist-systemui = {module = "com.google.accompanist:accompanist-systemuicontroller", version.ref="accompanist" }
@@ -69,6 +69,7 @@ androidx-compose-icons = { module="androidx.compose.material:material-icons-exte
 androidx-core = { module="androidx.core:core-ktx", version.ref="androidx-core" }
 androidx-lifecycle-runtimeCompose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewModelCompose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime = { module="androidx.lifecycle:lifecycle-runtime-ktx", version.ref="androidx-lifecycle" }
 androidx-navigation-compose = { module="androidx.navigation:navigation-compose", version.ref="androidx-navigation-compose"}
 androidx-navigation-hilt = { module="androidx.hilt:hilt-navigation-compose", version.ref="androidx-navigation-hilt"}
@@ -99,7 +100,7 @@ firebase-plugins-performance = { module="com.google.firebase:perf-plugin", versi
 google-gms-services = { module="com.google.gms:google-services", version.ref="google-services"}
 
 hilt-android = { module="com.google.dagger:hilt-android", version.ref="hilt" }
-hilt-kapt = { module="com.google.dagger:hilt-android-compiler", version.ref="hilt" }
+hilt-ksp = { module="com.google.dagger:hilt-android-compiler", version.ref="hilt" }
 
 junit = { module="junit:junit", version.ref="junit" }
 
@@ -186,6 +187,7 @@ sqldelight = [
 ]
 
 [plugins]
+androidx-compose-compiler = { id="org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id="com.google.dagger.hilt.android", version.ref="hilt" }
 mokoresources = { id="dev.icerock.mobile.multiplatform-resources", version.ref="moko-resources" }
 ksp = { id="com.google.devtools.ksp", version.ref="ksp" }

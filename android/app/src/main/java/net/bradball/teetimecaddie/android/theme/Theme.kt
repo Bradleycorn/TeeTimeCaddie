@@ -22,6 +22,7 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40,
+    scrim = Color(0xddFFFFFF)
 //    surface = Color(0xFFFFFFFF),
 
     // Background is a legacy/deprecated color.

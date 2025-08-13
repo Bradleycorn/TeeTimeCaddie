@@ -45,8 +45,8 @@ android {
 }
 
 multiplatformResources {
-    multiplatformResourcesPackage = "net.bradball.teetimecaddie.core.models"
-    multiplatformResourcesClassName = "GR"
+    resourcesPackage.set("net.bradball.teetimecaddie.core.models")
+    resourcesClassName.set("GR")
     iosBaseLocalizationRegion = "en"
 }
 

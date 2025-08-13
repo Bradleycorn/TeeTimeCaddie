@@ -55,7 +55,7 @@ android {
 }
 
 multiplatformResources {
-    multiplatformResourcesPackage = "net.bradball.teetimecaddie.features.teetimes"
-    multiplatformResourcesClassName = "TTR"
+    resourcesPackage.set("net.bradball.teetimecaddie.features.teetimes")
+    resourcesClassName.set("TTR")
     iosBaseLocalizationRegion = "en"
 }

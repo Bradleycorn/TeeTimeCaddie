@@ -58,7 +58,6 @@ struct UserInterface: View {
             switch(state) {
                 case .APP:
                     TeeTimesNavStack()
-                    //                .onTapGesture { try? Auth.auth().signOut() }
                     
                 case .LOGIN:
                     LoginScreen(onRegisterClick: onRegisterClick)

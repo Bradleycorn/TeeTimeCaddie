@@ -5,12 +5,17 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.bradball.teetimecaddie.android.feature.auth.common.AuthScreen
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
+import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingButton
 import net.bradball.teetimecaddie.android.ui.common.forms.InputSpacer
 import net.bradball.teetimecaddie.android.ui.common.forms.OutlinedPasswordField
@@ -38,14 +44,18 @@ private const val SCREEN_NAME = "Login"
 fun LoginRoute(
     onRegisterClick: () -> Unit,
     onLoggedIn: () -> Unit,
-    onShowSnackbar: suspend (String, String?)-> SnackbarResult,
     viewModel: LoginViewModel = hiltViewModel()) {
 
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(viewModel.errorMessage) {
         viewModel.errorMessage?.let { messageId ->
-            onShowSnackbar(context.getString(messageId), null)
+            snackbarHostState.showSnackbar(
+                message = context.getString(messageId),
+                duration = SnackbarDuration.Long,
+                withDismissAction = true
+            )
             viewModel.clearError()
         }
     }
@@ -60,7 +70,8 @@ fun LoginRoute(
         showLoadingSpinner = viewModel.showLoadingProgress,
         onInputChanged = viewModel::clearError,
         onLoginClick = viewModel::login,
-        onRegisterClick = onRegisterClick)
+        onRegisterClick = onRegisterClick,
+        snackbarHostState)
 }
 
 @Composable
@@ -68,7 +79,8 @@ private fun LoginScreen(
     showLoadingSpinner: Boolean,
     onInputChanged: () -> Unit = {},
     onLoginClick: (String, String) -> Unit = { _,_ -> },
-    onRegisterClick: () -> Unit = {}) {
+    onRegisterClick: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }) {
 
     var email by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     var password by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
@@ -81,7 +93,8 @@ private fun LoginScreen(
         title = stringResource(id = AR.strings.login_screen_title.resourceId),
         footerText = stringResource(AR.strings.login_register_prompt.resourceId),
         footerActionText = stringResource(id = AR.strings.login_register_button.resourceId),
-        onFooterActionClick =  onRegisterClick
+        onFooterActionClick = onRegisterClick,
+        snackbarHostState = snackbarHostState
     ) {
         OutlinedTextField(
             label = { Text(stringResource(AR.strings.field_label_email.resourceId)) },
@@ -90,7 +103,10 @@ private fun LoginScreen(
                 email = value
                 onInputChanged()
             },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -102,7 +118,10 @@ private fun LoginScreen(
                 password = value
                 onInputChanged()
             },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
             keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             modifier = Modifier.fillMaxWidth()
         )

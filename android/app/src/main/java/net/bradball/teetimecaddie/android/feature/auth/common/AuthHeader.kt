@@ -25,9 +25,6 @@ import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 @Composable
 fun AuthHeader(title: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        
-        TtcCenteredTopAppBar("Tee Time Caddie")
-
         Icon(
             painterResource(id = R.drawable.app_logo),
             contentDescription = "TeeTimeCaddie",
@@ -39,7 +36,6 @@ fun AuthHeader(title: String) {
 
         Text(title, style = MaterialTheme.typography.titleMedium) //, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
         Spacer(modifier = Modifier.height(16.dp))
-
     }
 }
 

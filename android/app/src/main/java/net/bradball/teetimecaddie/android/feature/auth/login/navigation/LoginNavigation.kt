@@ -1,6 +1,5 @@
 package net.bradball.teetimecaddie.android.feature.auth.login.navigation
 
-import androidx.compose.material3.SnackbarResult
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptions
@@ -10,16 +9,15 @@ import net.bradball.teetimecaddie.android.ui.navigation.clearBackStack
 
 const val loginRoute = "login"
 
-fun NavHostController.navigateToLogin(navOptions: NavOptions? = clearBackStack(this)) {
+fun NavHostController.navigateToLogin(navOptions: NavOptions? = clearBackStack(navHostController = this)) {
     this.navigate(loginRoute, navOptions)
 }
 
 fun NavGraphBuilder.loginScreen(
     onRegisterClick: ()->Unit,
-    onLoggedIn: ()->Unit,
-    onShowSnackbar: suspend (String, String?) -> SnackbarResult) {
+    onLoggedIn: ()->Unit) {
 
     composable(route = loginRoute) {
-        LoginRoute(onRegisterClick = onRegisterClick, onLoggedIn = onLoggedIn, onShowSnackbar = onShowSnackbar)
+        LoginRoute(onRegisterClick = onRegisterClick, onLoggedIn = onLoggedIn)
     }
 }
