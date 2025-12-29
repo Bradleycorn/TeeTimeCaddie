@@ -17,6 +17,6 @@ class TeeTimeCaddieApplication: Application() {
 
         // Initialize the SDK right away, so that objects it provides can be
         // injected as the rest of the app starts up.
-        TeeTimeCaddieSdk.initialize(this, false) //BuildConfig.DEBUG)
+        TeeTimeCaddieSdk.initialize(this, BuildConfig.DEBUG)
     }
 }

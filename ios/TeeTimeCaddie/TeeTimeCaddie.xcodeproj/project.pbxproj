@@ -675,11 +675,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 02BA11852A195E0300BF0416 /* Build configuration list for PBXNativeTarget "TeeTimeCaddie" */;
 			buildPhases = (
-				02BA118E2A19607400BF0416 /* ShellScript */,
+				02BA118E2A19607400BF0416 /* Compile KMP Framework */,
 				02BA115D2A195E0000BF0416 /* Sources */,
 				02BA115E2A195E0000BF0416 /* Frameworks */,
 				02BA115F2A195E0000BF0416 /* Resources */,
-				02F5312D2A66D7CF00278F17 /* ShellScript */,
+				02F5312D2A66D7CF00278F17 /* Copy KMP resources */,
 				02A816A12BA37E650068F359 /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -838,7 +838,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		02BA118E2A19607400BF0416 /* ShellScript */ = {
+		02BA118E2A19607400BF0416 /* Compile KMP Framework */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -847,6 +847,7 @@
 			);
 			inputPaths = (
 			);
+			name = "Compile KMP Framework";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -855,7 +856,7 @@
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/../..\"\n./gradlew :businessLogic:embedAndSignAppleFrameworkForXcode\n";
 		};
-		02F5312D2A66D7CF00278F17 /* ShellScript */ = {
+		02F5312D2A66D7CF00278F17 /* Copy KMP resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -864,6 +865,7 @@
 			);
 			inputPaths = (
 			);
+			name = "Copy KMP resources";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -1272,6 +1274,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.teetimecaddie.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1307,6 +1310,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.bradball.teetimecaddie.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
