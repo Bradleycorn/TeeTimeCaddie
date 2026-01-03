@@ -1,10 +1,10 @@
 package net.bradball.teetimecaddie.android.analytics
 
 import androidx.core.os.bundleOf
+import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.analytics.ktx.logEvent
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.analytics.EventPlugin

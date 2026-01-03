@@ -41,7 +41,7 @@ import net.bradball.teetimecaddie.features.auth.AR
 private const val SCREEN_NAME = "Login"
 
 @Composable
-fun LoginRoute(
+fun LoginScreen(
     onRegisterClick: () -> Unit,
     onLoggedIn: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()) {
@@ -66,7 +66,7 @@ fun LoginRoute(
         }
     }
 
-    LoginScreen(
+    LoginContent(
         showLoadingSpinner = viewModel.showLoadingProgress,
         onInputChanged = viewModel::clearError,
         onLoginClick = viewModel::login,
@@ -75,7 +75,7 @@ fun LoginRoute(
 }
 
 @Composable
-private fun LoginScreen(
+private fun LoginContent(
     showLoadingSpinner: Boolean,
     onInputChanged: () -> Unit = {},
     onLoginClick: (String, String) -> Unit = { _,_ -> },
@@ -147,6 +147,6 @@ private fun LoginScreen(
 @Preview(showSystemUi = false, device = "id:pixel_7_pro")
 fun LoginScreenPreview() {
     MyApplicationTheme {
-        LoginScreen(showLoadingSpinner = false)
+        LoginContent(showLoadingSpinner = false)
     }
 }

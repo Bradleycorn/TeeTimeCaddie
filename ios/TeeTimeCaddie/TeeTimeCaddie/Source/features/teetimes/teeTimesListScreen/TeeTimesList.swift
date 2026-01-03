@@ -12,13 +12,6 @@ struct TeeTimesList: View {
     }
     
     var body: some View {
-        List(teeTimes, id: \.id) { teeTime in
-            TeeTimeCard(for: teeTime)
-                .listRowSeparator(.hidden)
-                .listRowInsets(.init(EdgeInsets(horizontal: 16, vertical: 8)))
-                .onTapGesture(perform: { onItemTapped(teeTime) })
-            
-        }
-        .listStyle(.plain)
+        EmptyView()
     }
 }

@@ -58,7 +58,7 @@ fun EmptyContentPreview() {
             EmptyContent(
                 title = "No Content",
                 message = "There is no content. Add some content and it will show here.",
-                icon = painterResource(id = R.drawable.app_logo),
+                icon = painterResource(id = R.drawable.icon_tee_clock),
                 modifier = Modifier.padding(top = 64.dp)
             )
         }

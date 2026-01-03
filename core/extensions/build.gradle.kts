@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("multiplatform")
@@ -6,10 +8,8 @@ plugins {
 
 kotlin {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -31,7 +31,7 @@ kotlin {
 
 android {
     namespace = "net.bradball.teetimecaddie.core.extensions"
-    compileSdk = 33
+    compileSdk = 36
     defaultConfig {
         minSdk = 24
     }

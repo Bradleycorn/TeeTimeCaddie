@@ -32,31 +32,14 @@
 		024616AB2A807FC70067CC0B /* RegistrationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */; };
 		0256DD782AAC9DBF009E2AE3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0256DD772AAC9DBF009E2AE3 /* AppDelegate.swift */; };
 		02735FDE2BA27BE60015D1A8 /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02735FDD2BA27BE60015D1A8 /* Button.swift */; };
-		027A67312BA4B3A3004DA7E1 /* TeeTimeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027A672F2BA4B3A3004DA7E1 /* TeeTimeCard.swift */; };
 		027A67322BA4B3A3004DA7E1 /* TeeTimesListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027A67302BA4B3A3004DA7E1 /* TeeTimesListScreen.swift */; };
 		0289F6102A9979D600E25084 /* LoginScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0289F60F2A9979D600E25084 /* LoginScreen.swift */; };
 		0289F6122A9A7E5D00E25084 /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0289F6112A9A7E5D00E25084 /* Debug.swift */; };
-		02A0A4ED2BAB57C900DCB9A1 /* TeeTimeEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A0A4EC2BAB57C900DCB9A1 /* TeeTimeEntry.swift */; };
-		02A0A4EF2BAB57DC00DCB9A1 /* TeetimeEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A0A4EE2BAB57DC00DCB9A1 /* TeetimeEntryViewModel.swift */; };
 		02A6CD192A826F4700EBEF09 /* ErrorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A6CD182A826F4700EBEF09 /* ErrorExtensions.swift */; };
 		02A816912BA37E650068F359 /* ThemeUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 02A816892BA37E640068F359 /* ThemeUI.framework */; };
 		02A816982BA37E650068F359 /* ThemeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816972BA37E650068F359 /* ThemeUITests.swift */; };
-		02A816992BA37E650068F359 /* ThemeUI.h in Headers */ = {isa = PBXBuildFile; fileRef = 02A8168B2BA37E640068F359 /* ThemeUI.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		02A8169C2BA37E650068F359 /* ThemeUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 02A816892BA37E640068F359 /* ThemeUI.framework */; };
 		02A8169D2BA37E650068F359 /* ThemeUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 02A816892BA37E640068F359 /* ThemeUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		02A816B72BA37F250068F359 /* ThemedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816A62BA37F250068F359 /* ThemedView.swift */; };
-		02A816B92BA37F250068F359 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816A92BA37F250068F359 /* Typography.swift */; };
-		02A816BA2BA37F250068F359 /* EdgeInsetsExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816AA2BA37F250068F359 /* EdgeInsetsExtensions.swift */; };
-		02A816BB2BA37F250068F359 /* ColorExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816AB2BA37F250068F359 /* ColorExtensions.swift */; };
-		02A816BC2BA37F250068F359 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816AC2BA37F250068F359 /* AppTheme.swift */; };
-		02A816BD2BA37F250068F359 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816AD2BA37F250068F359 /* Colors.swift */; };
-		02A816BE2BA37F250068F359 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816AE2BA37F250068F359 /* Shapes.swift */; };
-		02A816BF2BA37F250068F359 /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816B12BA37F250068F359 /* ButtonStyles.swift */; };
-		02A816C02BA37F250068F359 /* ButtonDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816B22BA37F250068F359 /* ButtonDefaults.swift */; };
-		02A816C12BA37F250068F359 /* DefaultColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816B32BA37F250068F359 /* DefaultColors.swift */; };
-		02A816C22BA37F250068F359 /* Surface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816B52BA37F250068F359 /* Surface.swift */; };
-		02A816C62BA383B10068F359 /* Size.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816C52BA383B10068F359 /* Size.swift */; };
-		02A816C82BA383F40068F359 /* ColorPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02A816C72BA383F40068F359 /* ColorPreview.swift */; };
 		02B0F2EC2AB29B2D00D094BC /* AuthScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2EB2AB29B2D00D094BC /* AuthScreen.swift */; };
 		02B0F2EF2AB29D6500D094BC /* AuthHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2EE2AB29D6500D094BC /* AuthHeader.swift */; };
 		02B0F2F12AB29F3D00D094BC /* AuthFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B0F2F02AB29F3D00D094BC /* AuthFooter.swift */; };
@@ -79,7 +62,6 @@
 		02EDD9DD2BB5F77B004EF6FC /* LoggableError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDD9DC2BB5F77B004EF6FC /* LoggableError.swift */; };
 		02EDD9DF2BB72B29004EF6FC /* EmptyContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDD9DE2BB72B29004EF6FC /* EmptyContent.swift */; };
 		02EDD9E12BB732E5004EF6FC /* ContentLoadingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDD9E02BB732E5004EF6FC /* ContentLoadingIndicator.swift */; };
-		02EDD9E32BB79F89004EF6FC /* TeeTimeError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDD9E22BB79F89004EF6FC /* TeeTimeError.swift */; };
 		02EDD9E52BB7A130004EF6FC /* TeeTimesNavStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDD9E42BB7A130004EF6FC /* TeeTimesNavStack.swift */; };
 		02EDD9E72BB7A2EC004EF6FC /* TeeTimesList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDD9E62BB7A2EC004EF6FC /* TeeTimesList.swift */; };
 		02EDD9E92BB7AA62004EF6FC /* ViewEnabled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EDD9E82BB7AA62004EF6FC /* ViewEnabled.swift */; };
@@ -87,6 +69,7 @@
 		02EF59172B9BB6F300F8319A /* TeeTimeCaddieTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EF590A2B9BB6F300F8319A /* TeeTimeCaddieTheme.swift */; };
 		02F531302A67829400278F17 /* RegistrationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F5312F2A67829400278F17 /* RegistrationScreen.swift */; };
 		02F7E2C52AAF3B0E0071C3A3 /* Screen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F7E2C42AAF3B0E0071C3A3 /* Screen.swift */; };
+		02FF81512F096D2E007ACD28 /* ThemeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 02FF81502F096D2E007ACD28 /* ThemeUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -158,30 +141,13 @@
 		024616AA2A807FC70067CC0B /* RegistrationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewModel.swift; sourceTree = "<group>"; };
 		0256DD772AAC9DBF009E2AE3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		02735FDD2BA27BE60015D1A8 /* Button.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
-		027A672F2BA4B3A3004DA7E1 /* TeeTimeCard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TeeTimeCard.swift; sourceTree = "<group>"; };
 		027A67302BA4B3A3004DA7E1 /* TeeTimesListScreen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TeeTimesListScreen.swift; sourceTree = "<group>"; };
 		0289F60F2A9979D600E25084 /* LoginScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginScreen.swift; sourceTree = "<group>"; };
 		0289F6112A9A7E5D00E25084 /* Debug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
-		02A0A4EC2BAB57C900DCB9A1 /* TeeTimeEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeEntry.swift; sourceTree = "<group>"; };
-		02A0A4EE2BAB57DC00DCB9A1 /* TeetimeEntryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeetimeEntryViewModel.swift; sourceTree = "<group>"; };
 		02A6CD182A826F4700EBEF09 /* ErrorExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorExtensions.swift; sourceTree = "<group>"; };
 		02A816892BA37E640068F359 /* ThemeUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ThemeUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		02A8168B2BA37E640068F359 /* ThemeUI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ThemeUI.h; sourceTree = "<group>"; };
 		02A816902BA37E640068F359 /* ThemeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThemeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		02A816972BA37E650068F359 /* ThemeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeUITests.swift; sourceTree = "<group>"; };
-		02A816A62BA37F250068F359 /* ThemedView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ThemedView.swift; sourceTree = "<group>"; };
-		02A816A92BA37F250068F359 /* Typography.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
-		02A816AA2BA37F250068F359 /* EdgeInsetsExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EdgeInsetsExtensions.swift; sourceTree = "<group>"; };
-		02A816AB2BA37F250068F359 /* ColorExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorExtensions.swift; sourceTree = "<group>"; };
-		02A816AC2BA37F250068F359 /* AppTheme.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
-		02A816AD2BA37F250068F359 /* Colors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
-		02A816AE2BA37F250068F359 /* Shapes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Shapes.swift; sourceTree = "<group>"; };
-		02A816B12BA37F250068F359 /* ButtonStyles.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ButtonStyles.swift; sourceTree = "<group>"; };
-		02A816B22BA37F250068F359 /* ButtonDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ButtonDefaults.swift; sourceTree = "<group>"; };
-		02A816B32BA37F250068F359 /* DefaultColors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DefaultColors.swift; sourceTree = "<group>"; };
-		02A816B52BA37F250068F359 /* Surface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Surface.swift; sourceTree = "<group>"; };
-		02A816C52BA383B10068F359 /* Size.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Size.swift; sourceTree = "<group>"; };
-		02A816C72BA383F40068F359 /* ColorPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPreview.swift; sourceTree = "<group>"; };
 		02B0F2EB2AB29B2D00D094BC /* AuthScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthScreen.swift; sourceTree = "<group>"; };
 		02B0F2EE2AB29D6500D094BC /* AuthHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthHeader.swift; sourceTree = "<group>"; };
 		02B0F2F02AB29F3D00D094BC /* AuthFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthFooter.swift; sourceTree = "<group>"; };
@@ -208,7 +174,6 @@
 		02EDD9DC2BB5F77B004EF6FC /* LoggableError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggableError.swift; sourceTree = "<group>"; };
 		02EDD9DE2BB72B29004EF6FC /* EmptyContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyContent.swift; sourceTree = "<group>"; };
 		02EDD9E02BB732E5004EF6FC /* ContentLoadingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentLoadingIndicator.swift; sourceTree = "<group>"; };
-		02EDD9E22BB79F89004EF6FC /* TeeTimeError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimeError.swift; sourceTree = "<group>"; };
 		02EDD9E42BB7A130004EF6FC /* TeeTimesNavStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimesNavStack.swift; sourceTree = "<group>"; };
 		02EDD9E62BB7A2EC004EF6FC /* TeeTimesList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeeTimesList.swift; sourceTree = "<group>"; };
 		02EDD9E82BB7AA62004EF6FC /* ViewEnabled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewEnabled.swift; sourceTree = "<group>"; };
@@ -245,6 +210,7 @@
 				0219B44D2AE755550043D4B2 /* FirebaseAnalytics in Frameworks */,
 				0219B4572AE755550043D4B2 /* FirebaseFirestoreSwift in Frameworks */,
 				0219B4552AE755550043D4B2 /* FirebaseFirestore in Frameworks */,
+				02FF81512F096D2E007ACD28 /* ThemeUI in Frameworks */,
 				02A8169C2BA37E650068F359 /* ThemeUI.framework in Frameworks */,
 				0219B4532AE755550043D4B2 /* FirebaseCrashlytics in Frameworks */,
 				0219B4512AE755550043D4B2 /* FirebaseAuth in Frameworks */,
@@ -271,11 +237,8 @@
 		020706BE2AFDBB72000C71F7 /* teetimes */ = {
 			isa = PBXGroup;
 			children = (
-				02A0A4EB2BAB579800DCB9A1 /* teeTimeEntryForm */,
 				02A0A4EA2BAB575D00DCB9A1 /* teeTimesListScreen */,
-				027A672E2BA4B3A3004DA7E1 /* common */,
 				020706C12AFDCB24000C71F7 /* TeeTimesModule.swift */,
-				02EDD9E22BB79F89004EF6FC /* TeeTimeError.swift */,
 				02EDD9E42BB7A130004EF6FC /* TeeTimesNavStack.swift */,
 			);
 			path = teetimes;
@@ -323,6 +286,7 @@
 				0230E4AE2A68BCA6009AAD8D /* forms */,
 				02F7E2C42AAF3B0E0071C3A3 /* Screen.swift */,
 				02EDD9DE2BB72B29004EF6FC /* EmptyContent.swift */,
+				02EDD9E02BB732E5004EF6FC /* ContentLoadingIndicator.swift */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -347,14 +311,6 @@
 				0230E4B22A68D3C6009AAD8D /* Color.swift */,
 			);
 			path = theme;
-			sourceTree = "<group>";
-		};
-		027A672E2BA4B3A3004DA7E1 /* common */ = {
-			isa = PBXGroup;
-			children = (
-				027A672F2BA4B3A3004DA7E1 /* TeeTimeCard.swift */,
-			);
-			path = common;
 			sourceTree = "<group>";
 		};
 		0289F60E2A9979B800E25084 /* login */ = {
@@ -387,90 +343,12 @@
 			path = teeTimesListScreen;
 			sourceTree = "<group>";
 		};
-		02A0A4EB2BAB579800DCB9A1 /* teeTimeEntryForm */ = {
-			isa = PBXGroup;
-			children = (
-				02A0A4EC2BAB57C900DCB9A1 /* TeeTimeEntry.swift */,
-				02A0A4EE2BAB57DC00DCB9A1 /* TeetimeEntryViewModel.swift */,
-			);
-			path = teeTimeEntryForm;
-			sourceTree = "<group>";
-		};
-		02A8168A2BA37E640068F359 /* ThemeUI */ = {
-			isa = PBXGroup;
-			children = (
-				02A816A52BA37F250068F359 /* Source */,
-				02A8168B2BA37E640068F359 /* ThemeUI.h */,
-			);
-			path = ThemeUI;
-			sourceTree = "<group>";
-		};
 		02A816962BA37E650068F359 /* ThemeUITests */ = {
 			isa = PBXGroup;
 			children = (
 				02A816972BA37E650068F359 /* ThemeUITests.swift */,
 			);
 			path = ThemeUITests;
-			sourceTree = "<group>";
-		};
-		02A816A52BA37F250068F359 /* Source */ = {
-			isa = PBXGroup;
-			children = (
-				02A816A62BA37F250068F359 /* ThemedView.swift */,
-				02A816B32BA37F250068F359 /* DefaultColors.swift */,
-				02A816A82BA37F250068F359 /* models */,
-				02A816AF2BA37F250068F359 /* styles */,
-				02A816B42BA37F250068F359 /* views */,
-			);
-			path = Source;
-			sourceTree = "<group>";
-		};
-		02A816A82BA37F250068F359 /* models */ = {
-			isa = PBXGroup;
-			children = (
-				02A816A92BA37F250068F359 /* Typography.swift */,
-				02A816AA2BA37F250068F359 /* EdgeInsetsExtensions.swift */,
-				02A816AB2BA37F250068F359 /* ColorExtensions.swift */,
-				02A816AC2BA37F250068F359 /* AppTheme.swift */,
-				02A816AD2BA37F250068F359 /* Colors.swift */,
-				02A816AE2BA37F250068F359 /* Shapes.swift */,
-			);
-			path = models;
-			sourceTree = "<group>";
-		};
-		02A816AF2BA37F250068F359 /* styles */ = {
-			isa = PBXGroup;
-			children = (
-				02A816B02BA37F250068F359 /* button */,
-			);
-			path = styles;
-			sourceTree = "<group>";
-		};
-		02A816B02BA37F250068F359 /* button */ = {
-			isa = PBXGroup;
-			children = (
-				02A816B12BA37F250068F359 /* ButtonStyles.swift */,
-				02A816B22BA37F250068F359 /* ButtonDefaults.swift */,
-			);
-			path = button;
-			sourceTree = "<group>";
-		};
-		02A816B42BA37F250068F359 /* views */ = {
-			isa = PBXGroup;
-			children = (
-				02A816C42BA383A50068F359 /* modifiers */,
-				02A816B52BA37F250068F359 /* Surface.swift */,
-				02A816C72BA383F40068F359 /* ColorPreview.swift */,
-			);
-			path = views;
-			sourceTree = "<group>";
-		};
-		02A816C42BA383A50068F359 /* modifiers */ = {
-			isa = PBXGroup;
-			children = (
-				02A816C52BA383B10068F359 /* Size.swift */,
-			);
-			path = modifiers;
 			sourceTree = "<group>";
 		};
 		02B0F2ED2AB29D4A00D094BC /* common */ = {
@@ -500,7 +378,6 @@
 				02BA11632A195E0000BF0416 /* TeeTimeCaddie */,
 				02BA11742A195E0300BF0416 /* TeeTimeCaddieTests */,
 				02BA117E2A195E0300BF0416 /* TeeTimeCaddieUITests */,
-				02A8168A2BA37E640068F359 /* ThemeUI */,
 				02A816962BA37E650068F359 /* ThemeUITests */,
 				02BA11622A195E0000BF0416 /* Products */,
 			);
@@ -580,8 +457,6 @@
 			children = (
 				0230E4B12A68D3B3009AAD8D /* theme */,
 				0230E4AD2A68BC9D009AAD8D /* common */,
-				02BD2C5C2A5B84F700B28088 /* app */,
-				02EDD9E02BB732E5004EF6FC /* ContentLoadingIndicator.swift */,
 			);
 			path = ui;
 			sourceTree = "<group>";
@@ -593,13 +468,6 @@
 				0228D97C2A632A7400E82209 /* auth */,
 			);
 			path = features;
-			sourceTree = "<group>";
-		};
-		02BD2C5C2A5B84F700B28088 /* app */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = app;
 			sourceTree = "<group>";
 		};
 		02EF591F2B9CA9C600F8319A /* modifiers */ = {
@@ -627,7 +495,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				02A816992BA37E650068F359 /* ThemeUI.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -698,6 +565,7 @@
 				0219B4562AE755550043D4B2 /* FirebaseFirestoreSwift */,
 				0219B4582AE755550043D4B2 /* FirebasePerformance */,
 				022684712DEA104A0053A48A /* AppInitializers */,
+				02FF81502F096D2E007ACD28 /* ThemeUI */,
 			);
 			productName = TeeTimeCaddie;
 			productReference = 02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */;
@@ -782,6 +650,7 @@
 				0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */,
 				0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				022684702DEA104A0053A48A /* XCRemoteSwiftPackageReference "SwiftAppInitializers" */,
+				02FF814F2F096D2E007ACD28 /* XCRemoteSwiftPackageReference "ThemeUI" */,
 			);
 			productRefGroup = 02BA11622A195E0000BF0416 /* Products */;
 			projectDirPath = "";
@@ -881,19 +750,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				02A816BA2BA37F250068F359 /* EdgeInsetsExtensions.swift in Sources */,
-				02A816C22BA37F250068F359 /* Surface.swift in Sources */,
-				02A816BB2BA37F250068F359 /* ColorExtensions.swift in Sources */,
-				02A816B72BA37F250068F359 /* ThemedView.swift in Sources */,
-				02A816C62BA383B10068F359 /* Size.swift in Sources */,
-				02A816C82BA383F40068F359 /* ColorPreview.swift in Sources */,
-				02A816BE2BA37F250068F359 /* Shapes.swift in Sources */,
-				02A816BF2BA37F250068F359 /* ButtonStyles.swift in Sources */,
-				02A816BD2BA37F250068F359 /* Colors.swift in Sources */,
-				02A816BC2BA37F250068F359 /* AppTheme.swift in Sources */,
-				02A816C02BA37F250068F359 /* ButtonDefaults.swift in Sources */,
-				02A816C12BA37F250068F359 /* DefaultColors.swift in Sources */,
-				02A816B92BA37F250068F359 /* Typography.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -911,7 +767,6 @@
 			files = (
 				02F531302A67829400278F17 /* RegistrationScreen.swift in Sources */,
 				024616AB2A807FC70067CC0B /* RegistrationViewModel.swift in Sources */,
-				02EDD9E32BB79F89004EF6FC /* TeeTimeError.swift in Sources */,
 				0228D97E2A632A9200E82209 /* AuthModule.swift in Sources */,
 				0230E4B32A68D3C6009AAD8D /* Color.swift in Sources */,
 				02B0F2F12AB29F3D00D094BC /* AuthFooter.swift in Sources */,
@@ -919,7 +774,6 @@
 				02B0F3072AB3EF0600D094BC /* LoadingButton.swift in Sources */,
 				02EDD9DF2BB72B29004EF6FC /* EmptyContent.swift in Sources */,
 				022685822DEA11110053A48A /* AppInitModule.swift in Sources */,
-				02A0A4EF2BAB57DC00DCB9A1 /* TeetimeEntryViewModel.swift in Sources */,
 				0233FF6D2BB207250095F2F8 /* DateField.swift in Sources */,
 				02F7E2C52AAF3B0E0071C3A3 /* Screen.swift in Sources */,
 				020332E02AB9361A0080DC60 /* LoginViewModel.swift in Sources */,
@@ -944,12 +798,10 @@
 				0230E4B02A68BCD1009AAD8D /* PasswordField.swift in Sources */,
 				0289F6102A9979D600E25084 /* LoginScreen.swift in Sources */,
 				020706C22AFDCB24000C71F7 /* TeeTimesModule.swift in Sources */,
-				027A67312BA4B3A3004DA7E1 /* TeeTimeCard.swift in Sources */,
 				02EDD9E92BB7AA62004EF6FC /* ViewEnabled.swift in Sources */,
 				02B0F2F32AB3E16400D094BC /* FormStack.swift in Sources */,
 				020706C02AFDBBAF000C71F7 /* TeeTimesListScreenViewModel.swift in Sources */,
 				02B0F2EC2AB29B2D00D094BC /* AuthScreen.swift in Sources */,
-				02A0A4ED2BAB57C900DCB9A1 /* TeeTimeEntry.swift in Sources */,
 				02735FDE2BA27BE60015D1A8 /* Button.swift in Sources */,
 				02BA11652A195E0000BF0416 /* TeeTimeCaddieApp.swift in Sources */,
 				0228D9802A64073100E82209 /* TeeTimeCaddieAppState.swift in Sources */,
@@ -1087,7 +939,6 @@
 		02A816A32BA37E650068F359 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1111,7 +962,6 @@
 		02A816A42BA37E650068F359 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1248,7 +1098,6 @@
 		02BA11862A195E0300BF0416 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = Purple600;
 				CODE_SIGN_STYLE = Automatic;
@@ -1284,7 +1133,6 @@
 		02BA11872A195E0300BF0416 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = Purple600;
 				CODE_SIGN_STYLE = Automatic;
@@ -1320,7 +1168,6 @@
 		02BA11892A195E0300BF0416 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1340,7 +1187,6 @@
 		02BA118A2A195E0300BF0416 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1360,7 +1206,6 @@
 		02BA118C2A195E0300BF0416 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XDJPMNG2Q7;
@@ -1378,7 +1223,6 @@
 		02BA118D2A195E0300BF0416 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XDJPMNG2Q7;
@@ -1457,8 +1301,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
-				kind = exactVersion;
-				version = 10.7.0;
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.7.0;
 			};
 		};
 		022684702DEA104A0053A48A /* XCRemoteSwiftPackageReference "SwiftAppInitializers" */ = {
@@ -1475,6 +1319,14 @@
 			requirement = {
 				kind = exactVersion;
 				version = 2.2.0;
+			};
+		};
+		02FF814F2F096D2E007ACD28 /* XCRemoteSwiftPackageReference "ThemeUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/bradleycorn/ThemeUI";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1524,6 +1376,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */;
 			productName = Factory;
+		};
+		02FF81502F096D2E007ACD28 /* ThemeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02FF814F2F096D2E007ACD28 /* XCRemoteSwiftPackageReference "ThemeUI" */;
+			productName = ThemeUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

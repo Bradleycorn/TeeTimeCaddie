@@ -13,7 +13,6 @@ fileprivate let ttcLightColors = lightColorScheme(
     onPrimary: .white,
     primaryContainer: Color(.white500),
     onPrimaryContainer: Color(.purple100),
-    inversePrimary: Color(.purple800),
     secondary: Color(.purpleGray500),
     onSecondary: .white,
     secondaryContainer: Color(.white800),
@@ -22,15 +21,13 @@ fileprivate let ttcLightColors = lightColorScheme(
     onTertiary: .white,
     tertiaryContainer: Color(.white600),
     onTertiaryContainer: Color(.plum200),
-    background: Color(.white900),
-    onBackground: Color(.gray100),
     surface: Color(.white900),
     onSurface: Color(.gray100),
     surfaceVariant: Color(.white400),
     onSurfaceVariant: Color(.gray300),
-    surfaceTint: Color(.purple600),
     inverseSurface: Color(.gray200),
     inverseOnSurface: Color(.white700),
+    inversePrimary: Color(.purple800),
     error: Color(.red700),
     onError: .white,
     errorContainer: Color(.white200),
@@ -52,7 +49,7 @@ struct TeeTimeCaddieTheme<Content: View>: View {
 
     @Environment(\.colorScheme) var colorMode
     
-    private var colors: Colors {
+    private var colors: ThemeColors {
         switch colorMode {
         case .dark:
             ttcDarkColors

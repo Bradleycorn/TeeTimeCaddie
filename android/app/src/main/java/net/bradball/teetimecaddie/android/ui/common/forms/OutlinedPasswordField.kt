@@ -24,7 +24,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.android.ui.common.icons.Icons
 import net.bradball.teetimecaddie.features.auth.AR
 
 @Composable
@@ -50,8 +50,8 @@ fun OutlinedPasswordField(
     }
 
     val passwordIcon = when {
-        passwordVisible -> TtcIcons.VisibilityOff
-        else -> TtcIcons.Visibility
+        passwordVisible -> Icons.VISIBILITY_OFF
+        else -> Icons.VISIBILITY
     }
 
     OutlinedTextField(
@@ -63,7 +63,7 @@ fun OutlinedPasswordField(
         trailingIcon = {
             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                 Icon(
-                    imageVector = passwordIcon,
+                    passwordIcon.painter,
                     contentDescription = stringResource(AR.strings.content_description_password_toggle.resourceId)
                 )
             }

@@ -13,22 +13,15 @@ struct TeeTimesListScreen: View {
     
     @StateObject
     private var viewModel = TeeTimesListScreenViewModel()
-
-    @State var showAddTeeTimeSheet: Bool = false
         
     var body: some View {
         TeeTimesListContent(uiState: viewModel.uiState)
             .task { await viewModel.loadTeetimes() }
             .toolbar {
-                Button(action: { showAddTeeTimeSheet = true }) {
+                Button(action: { }) {
                     Image(.Icons.calendarAdd)
                 }
                 .enabled(viewModel.addButtonEnabled)
-            }
-            .sheet(isPresented: $showAddTeeTimeSheet){
-                TeeTimeEntryScreen(onTeeTimeCreated: { showAddTeeTimeSheet = false })
-                    .presentationDetents([.fraction(0.4)])
-                    .presentationDragIndicator(.visible)
             }
     }
 }

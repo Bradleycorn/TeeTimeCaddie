@@ -9,12 +9,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerFormatter
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,16 +25,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import net.bradball.teetimecaddie.android.ui.common.forms.DateTextField
-import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.android.ui.common.icons.Icons
 import net.bradball.teetimecaddie.core.extensions.toEpochMilliseconds
 import net.bradball.teetimecaddie.features.teetimes.TTR
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 
 /**
@@ -57,6 +56,7 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
  *    It is passed a timestamp for the currently selected Date (at midnight, UTC). The validator method
  *    should return true if the date is allowed, or false if it is not.
  */
+@OptIn(ExperimentalTime::class)
 @Composable
 fun TtcDatePicker(
     pickerState: DatePickerState = rememberTtcDatePickerState(),
@@ -78,7 +78,7 @@ fun TtcDatePicker(
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         trailingContent = {
             IconButton(onClick = { pickerState.displayMode = DisplayMode.Picker }) {
-                Icon(imageVector = TtcIcons.Calendar, contentDescription = "Select Date")
+                Icon(Icons.CALENDAR.painter, contentDescription = "Select Date")
             }
         }
     )
@@ -106,6 +106,7 @@ fun TtcDatePicker(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun rememberTtcDatePickerState(initialDisplayMode: DisplayMode = DisplayMode.Input): DatePickerState {
 
@@ -132,6 +133,7 @@ fun rememberTtcDatePickerState(initialDisplayMode: DisplayMode = DisplayMode.Inp
  * as a LocalDate, or null if there is no selected Date.
  * The date returned is in UTC.
  */
+@OptIn(ExperimentalTime::class)
 val DatePickerState.selectedDate: LocalDate?
     get() = selectedDateMillis?.let { timestamp ->
         Instant

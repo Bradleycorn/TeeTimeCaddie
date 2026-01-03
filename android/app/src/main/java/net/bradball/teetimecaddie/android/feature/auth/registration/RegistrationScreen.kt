@@ -38,7 +38,7 @@ import net.bradball.teetimecaddie.features.auth.AR
 private const val SCREEN_NAME = "Registration"
 
 @Composable
-fun RegistrationRoute(
+fun RegistrationScreen(
     onLoginClick: () -> Unit,
     onRegistrationComplete: ()->Unit,
     viewModel: RegistrationViewModel = hiltViewModel()) {
@@ -63,7 +63,7 @@ fun RegistrationRoute(
         }
     }
 
-    RegistrationScreen(
+    RegistrationContent(
         showLoadingAnimation = viewModel.isProcessingRegistration,
         onInputChanged = viewModel::clearError,
         onCreateAccountClick = viewModel::registerUser,
@@ -73,7 +73,7 @@ fun RegistrationRoute(
 }
 
 @Composable
-private fun RegistrationScreen(
+private fun RegistrationContent(
     showLoadingAnimation: Boolean = false,
     onInputChanged: ()->Unit= {},
     onCreateAccountClick: (String, String, String)->Unit = { _, _, _ -> },
@@ -153,6 +153,6 @@ private fun RegistrationScreen(
 @Preview
 fun RegistrationScreenPreview() {
     MyApplicationTheme {
-        RegistrationScreen()
+        RegistrationContent()
     }
 }

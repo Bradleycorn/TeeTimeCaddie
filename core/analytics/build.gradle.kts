@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("multiplatform")
@@ -7,10 +9,8 @@ plugins {
 
 kotlin {
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
         }
     }
 
@@ -33,8 +33,8 @@ kotlin {
             implementation(libs.firebase.mpp.performance)
             implementation(libs.kermit.core)
             implementation(libs.kotlinx.serialization.core)
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:1.5.1")
-            implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.21")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:1.9.0")
+            implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
             implementation(project(":core:extensions"))
         }
         commonTest.dependencies {
@@ -45,7 +45,7 @@ kotlin {
 
 android {
     namespace = "net.bradball.teetimecaddie.core.analytics"
-    compileSdk = 33
+    compileSdk = 36
     defaultConfig {
         minSdk = 24
     }

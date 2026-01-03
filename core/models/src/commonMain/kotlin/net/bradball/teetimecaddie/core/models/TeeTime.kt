@@ -1,10 +1,10 @@
 package net.bradball.teetimecaddie.core.models
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
+import kotlin.time.ExperimentalTime
 
 data class TeeTime(
     val id: String?,
@@ -16,6 +16,7 @@ data class TeeTime(
 val TeeTime.shortDate: String
     get() = "${dateTime.month.name.take(3)}\n${dateTime.dayOfMonth}"
 
+@OptIn(ExperimentalTime::class)
 val previewTeeTime = TeeTime(
     id = "previewTime",
     createdBy = "Brad",

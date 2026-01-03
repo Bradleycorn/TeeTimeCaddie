@@ -19,19 +19,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.android.ui.common.icons.Icons
 
 @Composable
-fun WelcomeRoute(onClose: () -> Unit) {
+fun WelcomeScreen(onClose: () -> Unit) {
     BackHandler {
         onClose()
     }
 
-    WelcomeScreen(onClose = onClose)
+    WelcomeContent(onClose = onClose)
 }
 
 @Composable
-fun WelcomeScreen(onClose: ()->Unit = {}) {
+fun WelcomeContent(onClose: ()->Unit = {}) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.primary
@@ -39,7 +39,7 @@ fun WelcomeScreen(onClose: ()->Unit = {}) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(modifier = Modifier.size(128.dp))
             Icon(
-                TtcIcons.TeeBallClock,
+                Icons.TEE_CLOCK.painter,
                 contentDescription = "TeeTimeCaddie",
                 modifier = Modifier.size(64.dp)
             )
@@ -53,7 +53,7 @@ fun WelcomeScreen(onClose: ()->Unit = {}) {
                 border = BorderStroke(1.5.dp, LocalContentColor.current)
             ) {
                 Text("Get Started")
-                Icon(TtcIcons.ArrowForward, contentDescription = "Get Started Arrow")
+                Icon(Icons.ARROW_FORWARD.painter, contentDescription = "Get Started Arrow")
             }
         }
     }
@@ -63,6 +63,6 @@ fun WelcomeScreen(onClose: ()->Unit = {}) {
 @Composable
 fun WelcomeScreenPreview() {
     MyApplicationTheme {
-        WelcomeScreen()
+        WelcomeContent()
     }
 }

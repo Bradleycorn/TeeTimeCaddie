@@ -1,41 +1,30 @@
 package net.bradball.teetimecaddie.android.ui.app
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.blur
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavDestination
-import kotlinx.coroutines.launch
-import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesGraphRoute
-import net.bradball.teetimecaddie.android.feature.teeTimes.teeTimeEntry.TeeTimeEntryRoute
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import net.bradball.teetimecaddie.android.feature.auth.navigation.authEntries
+import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToAuthentication
+import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToLogin
+import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToRegistration
+import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToWelcome
+import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.navigateToTeeTimesList
+import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesEntries
 import net.bradball.teetimecaddie.android.initializers.InitializationState
 import net.bradball.teetimecaddie.android.ui.common.AnimatedLoadingScrim
-import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 import net.bradball.teetimecaddie.android.ui.common.modifiers.blur
-import net.bradball.teetimecaddie.android.ui.navigation.TopLevelDestinationResources
-import net.bradball.teetimecaddie.android.ui.navigation.TtcNavHost
-import net.bradball.teetimecaddie.android.ui.navigation.topLevelResources
+import net.bradball.teetimecaddie.android.ui.navigation.Navigator
+import net.bradball.teetimecaddie.android.ui.navigation.TopLevelDestination
+import net.bradball.teetimecaddie.android.ui.navigation.rememberNavigator
 
 @Composable
 fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
@@ -43,21 +32,46 @@ fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
     val isLoggedIn by appState.isLoggedIn.collectAsStateWithLifecycle()
 
     val showLoadingScrim = remember(initStatus) { initStatus == InitializationState.Pending}
+    val navigator = rememberNavigator(TopLevelDestination.TEE_TIMES)
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
-            appState.navigateToAuthentication()
+            navigator.navigateToAuthentication(appState.hasLoggedInOnce)
         }
     }
 
     if (initStatus is InitializationState.Failed) {
         AppErrorScreen(initStatus as InitializationState.Failed)
     } else {
-        TtcNavHost(
-            navController = appState.navController,
-            startDestination = teeTimesGraphRoute,
+        TtcNavDisplay(
+            navigator = navigator,
             modifier = Modifier.blur(enabled = showLoadingScrim)
         )
         AnimatedLoadingScrim(isVisible = showLoadingScrim)
+    }
+}
+
+@Composable
+fun TtcNavDisplay(navigator: Navigator, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        NavDisplay(
+            backStack = navigator.backStack,
+            modifier = Modifier.weight(1F),
+            onBack = { navigator.goBack() },
+            entryProvider = entryProvider {
+                teeTimesEntries()
+                authEntries(
+                    onLoginClick = navigator::navigateToLogin,
+                    onRegisterClick = navigator::navigateToRegistration,
+                    onLoggedIn = { navigator.navigateToTeeTimesList(true) },
+                    onRegistrationComplete = navigator::navigateToWelcome,
+                    onWelcomeClosed = { navigator.navigateToTeeTimesList(true) }
+                )
+            },
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            )
+        )
     }
 }
