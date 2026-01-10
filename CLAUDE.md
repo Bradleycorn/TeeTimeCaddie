@@ -1244,6 +1244,56 @@ When an Epic is complete (usually done manually by team lead):
 3. Create PR from Epic branch → `main` (usually manual process)
 4. After Epic PR is merged, delete the Epic branch
 
+### Handling PR Comments and Reviews
+
+When asked to address PR feedback, follow this system:
+
+**Default Behavior:**
+- Address ALL comments in "Request Changes" reviews by default
+- "Request Changes" reviews = changes that must be made
+- "Comment" reviews = discussion/suggestions that may or may not need action
+
+**Explicit Mentions:**
+- `@claude address these items` - Handle these specific comments
+- `@claude don't fix this` (or similar) - Skip this comment even if in "Request Changes"
+
+**Inferring Comment Intent:**
+- Can generally distinguish between definite changes vs. questions/suggestions based on comment content and tone
+- **Definite changes**: Bug reports, architecture violations, missing error handling, null checks
+- **Questions/Discussion**: "Why...", "Have you considered...", "What happens if..."
+- **Suggestions**: "Could this be simplified...", "Might be clearer if...", "Nit: ..."
+- For "Comment" reviews, use judgment about what clearly needs fixing vs. what's discussion
+- **When uncertain, ask for clarification** - collaboration is key and git makes rollback easy
+
+**Process for Addressing PR Feedback:**
+1. Fetch PR details: `gh pr view <pr-number>`
+2. Read all "Request Changes" reviews and their comments
+3. Address all comments UNLESS marked with `@claude don't fix` or similar
+4. For "Comment" reviews, use judgment to determine what needs action
+5. **Ask for clarification if unsure** - better to ask than guess wrong
+6. After making changes, commit and push updates
+7. Respond to PR comments indicating what was fixed
+
+**Example Workflow:**
+```bash
+# User: "Address the feedback on PR #42"
+
+# Fetch and read PR
+gh pr view 42
+
+# Make requested changes
+# ... code changes ...
+
+# Commit and push
+git add .
+git commit -m "TTC-123: Address PR feedback
+
+- Fix validation logic per review comment
+- Update error handling as requested
+- Refactor component structure"
+git push
+```
+
 ### Git Workflow Notes
 
 - **Main branch:** `main` - always stable, production-ready code
