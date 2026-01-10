@@ -1110,6 +1110,150 @@ Both platforms follow **MVVM with reactive state**:
 - Platform-specific tests in `androidTest`/`iosTest`
 - Use `./gradlew :module:allTests` for full test suite
 
+## Working with Jira Issues
+
+When implementing features or fixes from Jira:
+
+1. **Planning Phase:**
+   - If asked to plan work for a Jira issue, add appropriate subtasks or checklist items to the issue
+   - Break down the work into actionable steps that can be tracked
+   - This allows either you or others to pick up the issue and understand the implementation plan
+
+2. **Before Starting Work:**
+   - Assign the Jira issue to yourself
+   - Transition the issue to "In Progress" status on the Kanban board
+   - This ensures team visibility and prevents duplicate work
+
+3. **During Development:**
+   - Reference the issue key in commit messages (e.g., "TTC-123: Add user profile feature")
+   - Keep the issue updated with progress notes if needed
+   - Update subtasks/checklist items as work progresses
+
+4. **After Completion:**
+   - Transition the issue appropriately (e.g., to "Done" or "Ready for Review")
+   - Link pull requests to the Jira issue
+   - Add relevant comments about implementation decisions
+
+**Best Practices:**
+- Only assign issues you're actively working on
+- Keep issue status current to reflect actual work state
+- Use Jira comments for technical notes that help reviewers or future maintainers
+- When planning, create clear, actionable subtasks that provide a roadmap for implementation
+
+## Working with GitHub
+
+The project repository is at `https://github.com/Bradleycorn/TeeTimeCaddie.git` and the GitHub CLI (`gh`) is configured and authenticated.
+
+### Branch Strategy
+
+This project uses a **hierarchical branching strategy** aligned with Jira Epics and Stories:
+
+```
+main
+ └── epic/TTC-100-user-management (Epic branch)
+      ├── story/TTC-101-login-screen (Story branch)
+      ├── story/TTC-102-profile-screen (Story branch)
+      └── story/TTC-103-settings-screen (Story branch)
+```
+
+**Branch Types:**
+
+1. **Epic Branches** (correspond to Jira Epics):
+   - Created from `main`
+   - Naming: `epic/TTC-XXX-short-description` or `feature/TTC-XXX-short-description`
+   - Long-lived branches that accumulate story work
+   - Merged back to `main` when the entire Epic is complete (usually manual PR)
+
+2. **Story Branches** (correspond to Jira Stories):
+   - Created from the Epic/feature branch
+   - Naming: `story/TTC-XXX-short-description`
+   - Short-lived branches for individual stories
+   - Merged back to the Epic/feature branch via PR
+   - Should be focused on a single story's scope
+
+3. **Hotfix Branches** (for urgent fixes):
+   - Created from `main`
+   - Naming: `hotfix/TTC-XXX-short-description`
+   - Merged directly back to `main` via PR
+
+### Workflow for Story Development
+
+When working on a Jira Story within an Epic:
+
+1. **Branch Creation:**
+   - Ensure the Epic branch exists: `git fetch origin`
+   - Create story branch from Epic branch: `git checkout -b story/TTC-123-login-screen epic/TTC-100-user-management`
+   - Use descriptive branch names that include the Jira key
+
+2. **Making Changes:**
+   - Make code changes following the architecture patterns
+   - Commit frequently with clear, descriptive messages
+   - Reference Jira story key in commit messages (e.g., "TTC-123: Add login screen layout")
+
+3. **Creating Story PR (Story → Epic branch):**
+   - Push the story branch to GitHub: `git push -u origin story/TTC-123-login-screen`
+   - Create a pull request targeting the **Epic branch** (not main!)
+   - Use `gh pr create --base epic/TTC-100-user-management`
+   - Include in the PR description:
+     - Link to the Jira story
+     - Summary of changes (what and why)
+     - Test plan or testing notes
+     - Any breaking changes or migration notes
+     - Screenshots for UI changes
+
+4. **After Story PR Approval:**
+   - Merge the story branch into the Epic branch
+   - Delete the story branch after merge
+   - The Epic branch now contains your story's work
+
+**Example Story PR Creation:**
+```bash
+gh pr create \
+  --base epic/TTC-100-user-management \
+  --title "TTC-123: Add login screen" \
+  --body "$(cat <<'EOF'
+## Summary
+Implements login screen with email/password fields and validation.
+
+## Changes
+- Add LoginScreen composable (Android)
+- Add LoginView SwiftUI view (iOS)
+- Add form validation logic
+- Wire up to AuthRepository
+
+## Test Plan
+- [x] Verify validation shows errors for invalid input
+- [x] Test successful login flow
+- [x] Test failed login handling
+- [x] Test on both Android and iOS
+
+## Related Story
+[TTC-123: Add login screen](https://your-jira-instance.atlassian.net/browse/TTC-123)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+### Workflow for Epic Completion
+
+When an Epic is complete (usually done manually by team lead):
+
+1. All story branches have been merged into the Epic branch
+2. Epic branch is tested as a complete feature set
+3. Create PR from Epic branch → `main` (usually manual process)
+4. After Epic PR is merged, delete the Epic branch
+
+### Git Workflow Notes
+
+- **Main branch:** `main` - always stable, production-ready code
+- **Epic branches:** Long-lived feature branches aligned with Jira Epics
+- **Story branches:** Short-lived branches for individual stories, merged to Epic branch
+- **Hotfix branches:** Emergency fixes merged directly to `main`
+- **Commit messages:** Use conventional commit format when possible (feat:, fix:, docs:, etc.)
+- **Force push:** Avoid unless absolutely necessary and coordinate with team
+- **Always verify target branch:** Story PRs target Epic branch, not `main`
+
 ## Firebase Emulator Setup
 
 **Configuration:**
