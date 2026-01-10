@@ -1180,6 +1180,16 @@ main
 
 When working on a Jira Story within an Epic:
 
+**Before Starting - Check for Epic Branch:**
+1. Fetch latest branches: `git fetch origin`
+2. Check if the parent Epic branch exists
+3. **If Epic branch does NOT exist:**
+   - **ALWAYS ask the user before creating it**
+   - Confirm this is the first story in the Epic
+   - Ask which branch should be the base (usually `main`, but may be different)
+   - Example: "This story belongs to Epic TTC-100. Should I create epic/TTC-100-user-management from main?"
+4. **If Epic branch exists:** Proceed with story branch creation
+
 1. **Branch Creation:**
    - Ensure the Epic branch exists: `git fetch origin`
    - Create story branch from Epic branch: `git checkout -b story/TTC-123-login-screen epic/TTC-100-user-management`
