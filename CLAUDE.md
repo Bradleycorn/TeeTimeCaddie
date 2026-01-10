@@ -50,11 +50,70 @@ The project uses a modular architecture with shared business logic (80-90% code 
 
 ## iOS Framework
 
+Build the KMP framework that the iOS app depends on:
+
 ```bash
 ./gradlew linkDebugFrameworkIosX64                # Build iOS framework for x64 simulator
 ./gradlew linkDebugFrameworkIosArm64              # Build iOS framework for device
 ./gradlew linkDebugFrameworkIosSimulatorArm64     # Build iOS framework for ARM simulator
 ```
+
+## iOS App
+
+### Using Xcode
+
+Open the project in Xcode:
+```bash
+open ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj
+```
+
+Then use Xcode's build and run commands (⌘R to build and run).
+
+### Using xcodebuild (Command Line)
+
+**Build the iOS app:**
+```bash
+# Build for simulator (ARM - Apple Silicon Macs)
+xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
+  -scheme TeeTimeCaddie \
+  -configuration Debug \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 15'
+
+# Build for simulator (x64 - Intel Macs)
+xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
+  -scheme TeeTimeCaddie \
+  -configuration Debug \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 15' \
+  -arch x86_64
+
+# Build for device
+xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
+  -scheme TeeTimeCaddie \
+  -configuration Debug \
+  -sdk iphoneos
+```
+
+**Run on simulator:**
+```bash
+# List available simulators
+xcrun simctl list devices available
+
+# Boot a simulator (if not already running)
+xcrun simctl boot "iPhone 15"
+
+# Install and run the app
+xcrun simctl install booted path/to/TeeTimeCaddie.app
+xcrun simctl launch booted net.bradball.teetimecaddie
+```
+
+**Clean build:**
+```bash
+xcodebuild clean -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeTimeCaddie
+```
+
+**Note:** The iOS app requires the KMP framework to be built first. Always run the appropriate `./gradlew linkDebugFramework...` command before building the iOS app.
 
 ## Testing
 
