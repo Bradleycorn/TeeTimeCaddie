@@ -62,7 +62,7 @@ fileprivate struct Login: View {
     
     var body: some View {
         AuthScreen(
-            analyticsScreen: AnalyticsScreen.Login.shared,
+            analyticsScreen: .Login(viewName: self.viewName),
             title: screenTitle,
             footerText: registrationPrompt,
             footerActionText: registerButtonText,

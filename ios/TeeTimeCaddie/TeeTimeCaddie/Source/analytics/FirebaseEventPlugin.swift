@@ -20,8 +20,9 @@ class FirebaseEventPlugin: EventPlugin {
         
         var params: [String:Any] = screen.parameters
         
-        params[AnalyticsParameterScreenName] = screen.name
-        params[AnalyticsParameterScreenClass] = displayMethod.displayName
+        params[AnalyticsParameterScreenName] = screen.viewName
+        params[AnalyticsParameterScreenClass] = screen.name
+        params["displayMethod"] = displayMethod.displayName
         
         Analytics.logEvent(AnalyticsEventScreenView, parameters: params)
 

@@ -25,9 +25,10 @@ class FirebaseEventPlugin: EventPlugin {
 
     override fun logScreenView(screen: AnalyticsScreen, displayMethod: ScreenType): Boolean {
         Firebase.analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
-            param(FirebaseAnalytics.Param.SCREEN_NAME, screen.name)
-            param(FirebaseAnalytics.Param.SCREEN_CLASS, displayMethod.displayName)
+            param(FirebaseAnalytics.Param.SCREEN_NAME, screen.viewName)
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, screen.name)
             screen.parameters.forEach { (key, value) -> param(key, value) }
+            param("displayMethod", displayMethod.displayName)
         }
 
         return true

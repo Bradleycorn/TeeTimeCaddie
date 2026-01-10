@@ -58,7 +58,7 @@ struct AuthScreen_Previews: PreviewProvider {
     static var previews: some View {
         TeeTimeCaddieTheme {
             AuthScreen(
-                analyticsScreen: AnalyticsScreen.Login.shared,
+                analyticsScreen: AnalyticsScreen.None.shared,
                 title: "Auth Screen",
                 footerText: "Do Something Else?",
                 footerActionText: "Click Here") {

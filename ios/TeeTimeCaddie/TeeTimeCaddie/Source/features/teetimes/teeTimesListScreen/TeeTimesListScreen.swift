@@ -15,14 +15,16 @@ struct TeeTimesListScreen: View {
     private var viewModel = TeeTimesListScreenViewModel()
         
     var body: some View {
-        TeeTimesListContent(uiState: viewModel.uiState)
-            .task { await viewModel.loadTeetimes() }
-            .toolbar {
-                Button(action: { }) {
-                    Image(.Icons.calendarAdd)
-                }
-                .enabled(viewModel.addButtonEnabled)
+        Screen(AnalyticsScreen.TeeTimeList(viewName: self.viewName)) {
+            TeeTimesListContent(uiState: viewModel.uiState)
+        }
+        .task { await viewModel.loadTeetimes() }
+        .toolbar {
+            Button(action: { }) {
+                Image(.Icons.calendarAdd)
             }
+            .enabled(viewModel.addButtonEnabled)
+        }
     }
 }
 
@@ -46,7 +48,6 @@ fileprivate struct TeeTimesListContent: View {
 
             case .Content(let list):
                 TeeTimesList(list, onItemTapped: {teeTime in })
-                    .navigationTitle("Tee Times")
         }
     }
 }

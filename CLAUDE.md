@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TeeTimeCaddie is a Kotlin Multiplatform mobile application (Android + iOS) for managing golf tee times. The project uses a modular architecture with shared business logic (80-90% code sharing) and platform-specific UI implementations.
+TeeTimeCaddie is a Kotlin Multiplatform mobile application (Android + iOS) for managing golf tee times (games). 
+The application is primarily aimed at groups of golfers who play together, and need organization to keep
+track of who can and cannot play in a game. All players in the group can see the tee times, opt in or out, 
+get notifications of upcoming games, etc.
+
+The project uses a modular architecture with shared business logic (80-90% code sharing) and platform-specific UI implementations.
 
 ## Project Structure
 
@@ -655,23 +660,96 @@ switch(state) {
 }
 ```
 
-**Pattern:** Simple state-based navigation, much simpler than Android's multi-backstack system.
+**Pattern:** Simple state-based navigation for auth flow, then delegates to custom Navigator for in-app navigation.
 
-## Navigation
+## Navigation System - Custom Multi-Backstack Navigator
 
-Uses **SwiftUI's native NavigationStack**:
+Uses **SwiftUI's NavigationStack** with a custom `Navigator` class for per-tab navigation management.
+
+**Key Components:**
+
+**Navigator Class** (`ui/navigation/Navigator.swift`):
+- Manages separate back stacks for each top-level tab
+- Type-safe navigation with `TtcNavKey` protocol
+- `@Observable` for SwiftUI reactivity
+- Methods: `navigate(to:)`, `pop()`, `popUpTo(to:inclusive:)`, `clearbackstack()`
+
+**TtcNavKey Protocol** (`ui/navigation/TtcNavKey.swift`):
+```swift
+protocol TtcNavKey: Hashable, Equatable, Identifiable {
+    associatedtype Screen: View
+
+    @MainActor
+    @ViewBuilder
+    func destinationView(_ navigator: Navigator) -> Screen
+}
+```
+
+**Important:** The Navigator enforces separation of concerns - it should **NOT** be passed into views or added to the environment. Views receive navigation callbacks instead:
 
 ```swift
-struct TeeTimesNavStack: View {
-    var body: some View {
-        NavigationStack {
-            TeeTimesListScreen()
-        }
+// ✅ Correct: Views receive navigation callbacks
+HomeScreen(
+    onLoginClicked: { navigator.navigateToLogin() },
+    onDetailClicked: { item in navigator.navigateToDetail(item) }
+)
+
+// ❌ Incorrect: Don't pass Navigator to views
+HomeScreen(navigator: navigator)
+```
+
+**AppTabs Enum** (`ui/navigation/AppTabs.swift`):
+```swift
+enum AppTabs: TtcNavKey {
+    case teeTimes
+
+    var icon: ImageResource { ... }
+    var iconText: String { ... }
+
+    func destinationView(_ navigator: Navigator) -> some View {
+        // Returns tab's root view
     }
 }
 ```
 
-No custom navigation system like Android.
+**Feature Destinations** (`features/teetimes/TeetimesNavigation.swift`):
+```swift
+enum TeeTimesDestinations: TtcNavKey {
+    case teeTimesList
+
+    @ViewBuilder
+    func destinationView(_ navigator: Navigator) -> some View {
+        switch self {
+        case .teeTimesList:
+            TeeTimesListScreen()
+        }
+    }
+}
+
+// Extension methods for type-safe navigation
+extension Navigator {
+    func navigateToTeeTimesTab(clearBackStack: Bool = false) {
+        navigate(to: AppTabs.teeTimes, clearBackStack: clearBackStack)
+    }
+
+    func navigateToTeeTimes() {
+        navigate(to: TeeTimesDestinations.teeTimesList)
+    }
+}
+```
+
+**AnyTtcNavKey** - Type-erased wrapper that enables storing different destination types in the same collection (navigation stack).
+
+**View Components:**
+- **AppTabView** - Root TabView using Navigator's `currentTab` binding
+- **TabNavStack** - Wraps each tab in a NavigationStack with destination routing
+
+**Usage:**
+```swift
+@State private var navigator = Navigator()
+
+AppTabView(navigator)
+```
 
 ## App Initialization - SwiftAppInitializers
 
@@ -777,10 +855,11 @@ for await isLoggedIn in authRepo.loginState {
 │   │   ├── inject/                       - Factory DI modules
 │   │   ├── features/                     - Feature modules
 │   │   │   ├── auth/                     - Auth screens & ViewModels
-│   │   │   └── teetimes/                 - Tee times screens & ViewModels
+│   │   │   └── teetimes/                 - Tee times screens, ViewModels, navigation
 │   │   ├── ui/                           - UI components
 │   │   │   ├── common/                   - Shared UI components
-│   │   │   └── theme/                    - App theme
+│   │   │   ├── theme/                    - App theme
+│   │   │   └── navigation/               - Custom Navigator, AppTabs, TtcNavKey
 │   │   ├── util/                         - Utilities (UiState, extensions)
 │   │   └── analytics/                    - Analytics plugins
 ├── ThemeUI/                    - Custom theming package (local)
@@ -818,8 +897,8 @@ From `Package.resolved`:
 | Aspect | Android | iOS |
 |--------|---------|-----|
 | **DI** | Hilt (compile-time, comprehensive) | Factory (runtime, service locator) |
-| **Navigation** | Custom multi-backstack Navigator | Simple NavigationStack |
-| **State** | StateFlow + Compose State | @Published properties |
+| **Navigation** | Custom multi-backstack Navigator with androidx.navigation3 | Custom multi-backstack Navigator with NavigationStack |
+| **State** | StateFlow + Compose State | @Published properties + @Observable |
 | **Initialization** | Complex 3-phase system with dependencies | Infrastructure present, currently unused |
 | **ViewModels** | AAC ViewModel with Hilt injection | ObservableObject with Factory |
 | **Theming** | Material3 (built-in) | ThemeUI (custom, Material3-inspired) |
@@ -843,6 +922,96 @@ From `Package.resolved`:
 - ❌ ViewModels/ObservableObjects
 - ❌ Platform initialization
 - ❌ Theme implementation (Material3 vs ThemeUI)
+
+## Platform Parity Guidelines
+
+**IMPORTANT**: While the implementations are platform-specific, the **architectural patterns** and **concepts** must remain parallel between Android and iOS. This ensures consistency in:
+- Developer experience across platforms
+- Maintenance and updates
+- Feature parity
+- User experience consistency
+
+### Navigation Parity
+
+Both platforms implement a **custom multi-backstack Navigator** with identical capabilities:
+
+**Pattern Requirements:**
+- Per-tab navigation stacks (each tab maintains independent history)
+- Type-safe navigation keys (protocol/interface-based)
+- Separation of concerns (Navigator NOT passed to views, use callbacks instead)
+- Extension methods for type-safe navigation (e.g., `navigateToLogin()`, `navigateToDetail()`)
+- Same navigation methods: `navigate()`, `pop()`, `popUpTo()`, `clearbackstack()`
+
+**When adding navigation features:**
+1. Implement in both platforms using parallel patterns
+2. Keep method names and behavior identical where possible
+3. Follow the same destination enum/protocol structure
+4. Maintain separation of concerns (views receive callbacks, not Navigator)
+
+### Theme System Parity
+
+Both platforms use **Material3 design tokens** with identical color roles and type scales:
+
+**Pattern Requirements:**
+- Same color roles (primary, onPrimary, surface, etc.)
+- Same typography scale (displayLarge, headlineMedium, bodySmall, etc.)
+- Same shape definitions (small, medium, large)
+- Centralized theme definitions
+
+**When updating themes:**
+1. Changes must be applied to both platforms
+2. Use identical naming conventions
+3. Maintain the same semantic color meanings
+4. Android: Update Material3 theme files
+5. iOS: Update ThemeUI configuration
+
+### Initialization System Parity
+
+Both platforms have **priority-based initializer systems** (though iOS currently unused):
+
+**Pattern Requirements:**
+- Priority-based execution (APP_LAUNCH, ON_CREATE, ON_START)
+- Dependency resolution between initializers
+- Lifecycle-aware initialization
+
+**When adding initializers:**
+1. Create parallel initializers on both platforms
+2. Use same priority levels and dependencies
+3. Keep initialization logic consistent
+4. Android: Hilt-provided initializers
+5. iOS: Factory-provided initializers (via AppInitModule)
+
+### Dependency Injection Parity
+
+While using different frameworks, the **patterns** must be identical:
+
+**Pattern Requirements:**
+- All KMP repositories wrapped in DI modules
+- Singleton repositories provided from TeeTimeCaddieSdk
+- Module-per-feature organization
+- Same dependency graph structure
+
+**When adding dependencies:**
+1. Android: Create/update Hilt module
+2. iOS: Create/update Factory module
+3. Keep module names and structure parallel
+4. Provide same dependencies with same lifecycles
+
+### State Management Parity
+
+Both platforms follow **MVVM with reactive state**:
+
+**Pattern Requirements:**
+- ViewModels/ObservableObjects delegate to KMP repositories
+- Reactive state updates (StateFlow/Published properties)
+- Same state properties and methods across platforms
+- Identical business logic flow
+
+**When adding features:**
+1. Keep ViewModel/ObservableObject APIs parallel
+2. Use same state property names
+3. Maintain identical user interaction flows
+4. Business logic stays in KMP, UI orchestration in platform layer
 
 ---
 

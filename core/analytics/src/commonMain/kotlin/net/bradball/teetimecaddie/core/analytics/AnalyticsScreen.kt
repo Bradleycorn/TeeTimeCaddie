@@ -6,9 +6,9 @@ enum class ScreenType(val displayName: String) {
     BOTTOM_SHEET("Bottom Sheet")
 }
 
-sealed class AnalyticsScreen(val name: String, val parameters: Map<String, String> = mapOf()) {
-    object None: AnalyticsScreen("")
-    object Registration: AnalyticsScreen(name = "Registration")
-    object Login: AnalyticsScreen(name = "Login")
-    object TeeTimeList: AnalyticsScreen(name = "TeeTimeList")
+sealed class AnalyticsScreen(val name: String, val viewName: String, val parameters: Map<String, String> = mapOf()) {
+    object None: AnalyticsScreen("", viewName = "")
+    class Registration(viewName: String): AnalyticsScreen(name = "Registration", viewName)
+    class Login(viewName: String): AnalyticsScreen(name = "Login", viewName)
+    class TeeTimeList(viewName: String): AnalyticsScreen(name = "TeeTimeList", viewName)
 }

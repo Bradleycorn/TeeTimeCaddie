@@ -19,16 +19,20 @@ struct TeeTimeCaddieApp: App {
     
     @StateObject
     var appState: TeeTimeCaddieAppState = TeeTimeCaddieAppState()
-            
+         
+    @State
+    private var navigator: Navigator = Navigator()
+    
     var body: some Scene {
         WindowGroup {
             UserInterface(
                 state: appState.uiState,
+                navigator: navigator,
                 onLoginClick: { appState.setUiState(to: .LOGIN) },
                 onRegisterClick: { appState.setUiState(to: .REGISTRATION) })
                     .task { await appState.observeAuthState() }
-                    .onChange(of: scenePhase) { phase in
-                        if (phase == .active) {
+                    .onChange(of: scenePhase) { _, newPhase in
+                        if (newPhase == .active) {
                             Task { try? await AuthModule.shared.authRepository().refreshAuthentication() }
                         }
                     }
@@ -40,15 +44,18 @@ struct TeeTimeCaddieApp: App {
 
 struct UserInterface: View {
     private let state: AppUiState
+    private let navigator: Navigator
     private let onLoginClick: ()->Void
     private let onRegisterClick: ()->Void
     
     init(
         state: AppUiState,
+        navigator: Navigator,
         onLoginClick: @escaping () -> Void = {},
         onRegisterClick: @escaping () -> Void = {}) {
  
         self.state = state
+        self.navigator = navigator
         self.onLoginClick = onLoginClick
         self.onRegisterClick = onRegisterClick
     }
@@ -57,8 +64,9 @@ struct UserInterface: View {
         TeeTimeCaddieTheme {
             switch(state) {
                 case .APP:
-                    TeeTimesNavStack()
-                    
+                    //TODO: When we need to have tabs, swith to AppTabView here.
+                    TabNavStack(for: .teeTimes, navigator)
+                    //TeeTimesNavStack(navigator: navigator)
                 case .LOGIN:
                     LoginScreen(onRegisterClick: onRegisterClick)
                         .transition(.move(edge: .trailing))

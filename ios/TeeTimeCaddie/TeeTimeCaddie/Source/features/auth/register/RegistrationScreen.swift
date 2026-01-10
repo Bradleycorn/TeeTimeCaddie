@@ -57,7 +57,7 @@ fileprivate struct Registration: View {
     private let nameLabel = AR.strings().field_label_name.desc().localized()
     
     var body: some View {
-        AuthScreen(analyticsScreen: .Registration.shared,
+        AuthScreen(analyticsScreen: .Registration(viewName: self.viewName),
                    title: title,
                    footerText: footerText,
                    footerActionText: footerAction,
