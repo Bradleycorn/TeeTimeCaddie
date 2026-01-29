@@ -7,8 +7,12 @@ import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.QuerySnapshot
 import dev.gitlive.firebase.firestore.firestore
 import dev.gitlive.firebase.firestore.where
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import net.bradbal.teetimecaddie.core.storage.documents.PlayerDocument
 import net.bradbal.teetimecaddie.core.storage.documents.TeeTimeDocument
 
@@ -33,22 +37,29 @@ class TeeTimeStorage {
      */
     suspend fun addTeeTime(document: TeeTimeDocument): String = teeTimesCollection.add(document).id
 
+    @OptIn(ExperimentalTime::class)
     suspend fun getTeeTimes(playerId: String): List<TeeTimeDocument> {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         return teeTimesCollection
             .where("createdBy", playerId)
-            .orderBy("dateTime", Direction.ASCENDING)
+            .orderBy("date", Direction.ASCENDING)
             .get()
             .documents
-            .deserialize(predicate = { doc -> id = doc.id })
+            .deserialize<TeeTimeDocument>(predicate = { doc -> id = doc.id })
+            .filter { it.date >= now }
     }
 
+    @OptIn(ExperimentalTime::class)
     fun teeTimesFlow(playerId: String): Flow<List<TeeTimeDocument>> {
         return teeTimesCollection
             .where("createdBy", playerId)
-            .orderBy("dateTime", Direction.ASCENDING)
+            .orderBy("date", Direction.ASCENDING)
             .snapshots(includeMetadataChanges = false)
             .map { snapshot ->
-                snapshot.documents.deserialize(predicate = { doc -> id = doc.id })
+                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                snapshot.documents
+                    .deserialize<TeeTimeDocument>(predicate = { doc -> id = doc.id })
+                    .filter { it.date >= now }
             }
     }
 }

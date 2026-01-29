@@ -1,8 +1,7 @@
 package net.bradball.teetimecaddie.core.extensions
 
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.*
+import kotlin.time.ExperimentalTime
 
 /**
  * Converts a LocalDate to a timestamp.
@@ -14,7 +13,9 @@ import kotlinx.datetime.atStartOfDayIn
  *
  * @return A timestamp (number of milliseconds from the unix epoch).
  */
+@OptIn(ExperimentalTime::class)
 fun LocalDate.toEpochMilliseconds(timeZone: TimeZone = TimeZone.currentSystemDefault()): Long {
-    return this.atStartOfDayIn(timeZone)
+    return this
+        .atStartOfDayIn(timeZone)
         .toEpochMilliseconds()
 }

@@ -36,6 +36,9 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
     companion object {
         private var instance: TeeTimeCaddieSdk? = null
 
+        val isInitialized: Boolean
+            get() = instance != null
+
         fun getInstance(): TeeTimeCaddieSdk {
             return instance ?: throw IllegalStateException("TeeTimeCaddieSdk not initialized")
         }

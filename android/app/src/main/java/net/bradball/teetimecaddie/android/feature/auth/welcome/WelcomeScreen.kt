@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.ui.common.icons.Icons
+import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 
 @Composable
 fun WelcomeScreen(onClose: () -> Unit) {
@@ -39,7 +39,7 @@ fun WelcomeContent(onClose: ()->Unit = {}) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(modifier = Modifier.size(128.dp))
             Icon(
-                Icons.TEE_CLOCK.painter,
+                TtcIcons.TEE_CLOCK.painter,
                 contentDescription = "TeeTimeCaddie",
                 modifier = Modifier.size(64.dp)
             )
@@ -53,7 +53,7 @@ fun WelcomeContent(onClose: ()->Unit = {}) {
                 border = BorderStroke(1.5.dp, LocalContentColor.current)
             ) {
                 Text("Get Started")
-                Icon(Icons.ARROW_FORWARD.painter, contentDescription = "Get Started Arrow")
+                Icon(TtcIcons.ARROW_FORWARD.painter, contentDescription = "Get Started Arrow")
             }
         }
     }

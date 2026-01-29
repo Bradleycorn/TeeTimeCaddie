@@ -27,10 +27,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import net.bradball.teetimecaddie.android.ui.common.forms.DateTextField
-import net.bradball.teetimecaddie.android.ui.common.icons.Icons
+import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.core.extensions.toEpochMilliseconds
 import net.bradball.teetimecaddie.features.teetimes.TTR
 import kotlin.time.Clock
@@ -78,7 +79,7 @@ fun TtcDatePicker(
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         trailingContent = {
             IconButton(onClick = { pickerState.displayMode = DisplayMode.Picker }) {
-                Icon(Icons.CALENDAR.painter, contentDescription = "Select Date")
+                Icon(TtcIcons.CALENDAR.painter, contentDescription = "Select Date")
             }
         }
     )

@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.initializers.InitializationState
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.ui.common.icons.Icons
+import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 
 @Composable
 fun AppErrorScreen(failedState: InitializationState.Failed) {
@@ -26,7 +26,7 @@ fun AppErrorScreen(failedState: InitializationState.Failed) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(modifier = Modifier.size(128.dp))
             Icon(
-                Icons.TEE_STRIKE.painter,
+                TtcIcons.TEE_STRIKE.painter,
                 contentDescription = "TeeTimeCaddie",
                 modifier = Modifier.size(64.dp)
             )

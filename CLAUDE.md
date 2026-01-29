@@ -9,7 +9,13 @@ The application is primarily aimed at groups of golfers who play together, and n
 track of who can and cannot play in a game. All players in the group can see the tee times, opt in or out, 
 get notifications of upcoming games, etc.
 
-The project uses a modular architecture with shared business logic (80-90% code sharing) and platform-specific UI implementations.
+The project uses a modular architecture with shared business logic (80-90% code sharing) and 
+platform-specific UI implementations.
+
+**IMPORTANT:** EVERY time I ask you to implement a Jira Issue (Story, Defect, etc), you must
+follow all steps and guidelines in the **Jira Issue Workflow** section below, as well as the
+guidelines in the **Development Workflow** section.
+
 
 ## Project Structure
 
@@ -40,7 +46,7 @@ The project uses a modular architecture with shared business logic (80-90% code 
 ./gradlew clean                    # Clean all build artifacts
 ```
 
-## Android-Specific
+## Android App
 
 ```bash
 ./gradlew :android:app:assembleDebug      # Build debug APK
@@ -58,20 +64,9 @@ Build the KMP framework that the iOS app depends on:
 ./gradlew linkDebugFrameworkIosSimulatorArm64     # Build iOS framework for ARM simulator
 ```
 
-## iOS App
+## iOS App (Command line build using xcodebuild)
 
-### Using Xcode
-
-Open the project in Xcode:
-```bash
-open ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj
-```
-
-Then use Xcode's build and run commands (⌘R to build and run).
-
-### Using xcodebuild (Command Line)
-
-**Build the iOS app:**
+** Build the app:**
 ```bash
 # Build for simulator (ARM - Apple Silicon Macs)
 xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
@@ -94,7 +89,6 @@ xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
   -configuration Debug \
   -sdk iphoneos
 ```
-
 **Run on simulator:**
 ```bash
 # List available simulators
@@ -144,825 +138,161 @@ xcodebuild clean -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeT
 ./gradlew lintDebug                # Lint debug build
 ./gradlew lintFix                  # Run lint and apply safe fixes
 ```
-
 ---
 
 # KMP Shared Logic Architecture
 
 ## Overview
 
-All business logic is shared between Android and iOS through Kotlin Multiplatform. The shared code provides repositories, data management, analytics, and domain models.
+All business logic is shared between Android and iOS through Kotlin Multiplatform (KMP SDK). 
+The shared code provides repositories, data management, analytics, and domain models.
+You should always strive to keep business logic out of the applications themselves, and 
+put it in the multiplatform modules instead.
 
-## TeeTimeCaddieSdk - Entry Point
-
-The SDK is a **singleton** that provides access to all shared functionality:
-
-```kotlin
-class TeeTimeCaddieSdk private constructor(
-    useLocalResources: Boolean,  // Use Firebase emulators
-    private val storageModule: StorageModule
-) {
-    val eventManager: EventManager
-    fun provideAuthRepository(): AuthRepository
-    fun provideTeeTimesRepository(): TeeTimesRepository
-}
-```
-
-**Initialization:**
-- Android: `TeeTimeCaddieSdk.initialize(context, BuildConfig.DEBUG)`
-- iOS: `TeeTimeCaddieSdk.companion.getInstance().initialize(useLocalResources: false)`
-
-**Platform-Specific Files:**
-- `businessLogic/src/androidMain/kotlin/.../TeeTimeCaddieSdk.kt` - Android extension
-- `businessLogic/src/iosMain/kotlin/.../TeeTimeCaddieSdk.kt` - iOS extension (includes CrashKiOS setup)
-
-## Repository Pattern
-
-### AuthRepository
-
-Location: `features/auth/src/commonMain/kotlin/.../AuthRepository.kt`
-
-```kotlin
-class AuthRepository(
-    private val eventManager: EventManager,
-    private val appSettings: TeeTimeCaddieSettings,
-    private val playerStorage: PlayerStorage
-)
-```
-
-**Key APIs:**
-- `val currentUser: User` - Current logged-in user
-- `val isLoggedIn: Boolean` - Auth status
-- `val loginState: Flow<Boolean>` - Reactive auth state changes
-- `val hasLoggedInOnce: Boolean` - Has user ever logged in
-- `suspend fun login(email: String, password: String)` - Login user
-- `suspend fun registerUser(email: String, password: String, name: String)` - Register new user
-- `suspend fun refreshAuthentication()` - Refresh auth token
-
-### TeeTimesRepository
-
-Location: `features/teetimes/src/commonMain/kotlin/.../TeeTimesRepository.kt`
-
-```kotlin
-class TeeTimesRepository(
-    private val eventManager: EventManager,
-    private val teeTimeStorage: TeeTimeStorage
-)
-```
-
-**Key APIs:**
-- `suspend fun createTeeTime(createdBy: String, course: String, dateTime: LocalDate): TeeTime`
-- `fun getTeeTimes(player: String): Flow<List<TeeTime>>` - Reactive tee times list
-
-## Storage Layer
-
-### Firestore Storage
-
-**PlayerStorage** (`core/storage/src/commonMain/kotlin/.../PlayerStorage.kt`):
-- `suspend fun addPlayer(id: String, document: PlayerDocument)` - Add player to Firestore
-
-**TeeTimeStorage** (`core/storage/src/commonMain/kotlin/.../TeeTimeStorage.kt`):
-- `suspend fun addTeeTime(document: TeeTimeDocument): String` - Add tee time, returns ID
-- `suspend fun getTeeTimes(playerId: String): List<TeeTimeDocument>` - Get all tee times
-- `fun teeTimesFlow(playerId: String): Flow<List<TeeTimeDocument>>` - Reactive tee times
-
-### Local Settings Storage
-
-**StorageModule** - Platform-specific (expect/actual pattern):
-- Common: `core/storage/src/commonMain/kotlin/.../StorageModule.kt` (expect)
-- Android: `core/storage/src/androidMain/kotlin/.../StorageModule.kt` (requires Context)
-- iOS: `core/storage/src/iosMain/kotlin/.../StorageModule.kt` (no parameters)
-
-Uses **multiplatform-settings** library for SharedPreferences/NSUserDefaults abstraction.
-
-## EventManager - Analytics System
-
-Location: `core/analytics/src/commonMain/kotlin/.../EventManager.kt`
-
-**Plugin-based architecture** for analytics and logging:
-
-```kotlin
-class EventManager(
-    private val errorLogger: ErrorLogger = FirebaseErrorLogger(),
-    private val transactionLogger: TransactionLogger = FirebaseTransactionLogger()
-)
-```
-
-**Key APIs:**
-- `fun logEvent(event: AnalyticsEvent)` - Log analytics event
-- `fun logScreenView(screen: AnalyticsScreen, type: ScreenType)` - Log screen view
-- `fun logException(throwable: Throwable, errorType: LoggableExceptionTypes, data: HashMap<String, Any?>?)` - Log errors
-- `fun startTransaction(name: String)` / `fun stopTransaction(name: String)` - Track performance
-- `fun setUserId(userId: String)` - Associate events with user
-- `fun registerPlugin(eventPlugin: EventPlugin)` - Add analytics provider
-
-**Platform Integration:**
-- Android: `FirebaseEventPlugin` registered in `AppModule` (Hilt)
-- iOS: `FirebaseEventPlugin` registered in `AppModule` (Factory)
-
-## Data Layer Architecture
-
-**Documents vs Models:**
-- **Documents** - Firestore entities with `@Serializable`, `@Transient var id: String?`
-- **Models** - Domain objects consumed by UI
-- **Mapping** - `fun Document.asModel(): Model` extension functions
-
-**Example:**
-```kotlin
-// Document (persistence)
-@Serializable
-data class TeeTimeDocument(
-    val createdBy: String,
-    val course: String,
-    val dateTime: LocalDate
-) {
-    @Transient var id: String? = null
-}
-
-// Model (domain)
-data class TeeTime(
-    val id: String?,
-    val createdBy: String,
-    val course: String,
-    val dateTime: LocalDate
-)
-
-// Mapping
-fun TeeTimeDocument.asModel(): TeeTime = TeeTime(...)
-```
-
-## Firebase Integration
-
-Uses **gitlive/firebase-kotlin-sdk** for multiplatform Firebase:
-
-**Services:**
-- `Firebase.auth` - Authentication
-- `Firebase.firestore` - NoSQL database
-
-**Emulator Support:**
-```kotlin
-// Configured in TeeTimeCaddieSdk.init() when useLocalResources = true
-Firebase.auth.useEmulator(host, port)
-Firebase.firestore.useEmulator(host, port)
-```
-
-Emulator configuration in `FirebaseConfig.kt` (platform-specific).
-
-## Resource Management
-
-**Moko Resources** provides shared strings across platforms:
-
-```kotlin
-// Generated per-feature module (e.g., features/auth)
-object AR {  // Auth Resources
-    object strings {
-        val reg_error_default_title: StringResource
-    }
-}
-
-// Usage in KMP
-AR.strings.reg_error_default_title
-
-// Usage in Swift (via SKIE)
-AR.shared.strings.reg_error_default_title
-```
+The KMP SDK is made up of multiple gradle modules that are compiled into a single SDK artifact. 
+This modular approach enforces separation of concerns and encapsulation, exposing a semantic public
+API for the applications to consume, and keeping implementation concerns private. 
 
 ## Key Technologies
 
 - **Kotlin Multiplatform** - Cross-platform code sharing
-- **Firebase Multiplatform SDK** (gitlive) - Auth, Firestore
+- **Firebase Multiplatform SDK** (https://github.com/GitLiveApp/firebase-kotlin-sdk) - Multiplatform Firebase implementation (Firebase Auth, FireStore Storage, etc)
 - **Kotlinx Coroutines** - Async operations
 - **Kotlinx Serialization** - JSON serialization
 - **Kotlinx DateTime** - Cross-platform dates
 - **Kermit** - Multiplatform logging
 - **Multiplatform Settings** - Key-value storage (SharedPreferences/NSUserDefaults)
 - **CrashKiOS** - iOS crash reporting
-- **Moko Resources** - Shared resources (strings)
-- **SKIE** - Swift/Kotlin interop enhancements
+- **Moko Resources** (https://github.com/icerockdev/moko-resources) - Shared resources (strings)
+- **SKIE** (https://github.com/touchlab/SKIE) - Swift/Kotlin interop enhancements (https://skie.touchlab.co/intro)
 
----
+## Structure
 
-# Android App Architecture
+### `:businessLogic` Module
+Found in the `businessLogic/` folder, this module provides the `TeeTimeCaddieSdk` class, which
+operates as a singleton and serves as the entry point to the shared KMP business logic. It
+provides instances of the classes that make up the public API of the shared KMP SDK. 
 
-## Overview
 
-Native Jetpack Compose application using **Hilt** for DI, **custom multi-backstack Navigator**, and **MVVM** architecture. The app is a thin UI layer over the shared KMP business logic.
+### Public (Exported) Modules
+The publicly exported modules make up the public API of the Shared KMP SDK. They can be divided
+into two categories.
 
-## Application Lifecycle
+#### Core Modules
+These modules provide core and/or shared functionality and data structures that are used 
+across multiple features. They include:
 
-```
-TeeTimeCaddieApplication (@HiltAndroidApp)
-    ↓ (initializes TeeTimeCaddieSdk)
-TeeTimeCaddieActivity (@AndroidEntryPoint)
-    ↓ (Hilt provides dependencies)
-TeeTimeCaddieActivityViewModel (@HiltViewModel)
-    ↓ (exposes initialization state, repositories)
-TeeTimeCaddieApp (Composable)
-    ↓ (manages app-level state, navigation)
-NavDisplay (androidx.navigation3)
-    ↓ (renders screens based on Navigator backStack)
-Feature Screens (Auth, TeeTimes)
-```
+- **`:core:models`** - Found in the `core/models` folder this module contains all of the Data
+models that are used by the applications. Prefer to put data models here instead of in feature
+modules, as data models are often used across features. 
 
-## Dependency Injection - Hilt
+When you define a new model, also define a corresponding `preview*` object that applications
+can use in tests and previews. If the model is often used in a list, also create a `preview*List`
+object. 
 
-**Application:**
+For example:
 ```kotlin
-@HiltAndroidApp
-class TeeTimeCaddieApplication: Application() {
-    override fun onCreate() {
-        TeeTimeCaddieSdk.initialize(this, BuildConfig.DEBUG)
-    }
-}
-```
+data class TeeTime(
+    val id: String?,
+    val createdBy: String,
+    val course: String,
+    val date: LocalDate,
+    val time: LocalTime,
+    val numberOfPlayers: Int
+)
 
-**Hilt Modules:**
+val previewTeeTime = TeeTime(
+    id = "previewTime",
+    createdBy = "Brad",
+    course = "Persimmon Ridge",
+    date = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+    time = LocalTime(9, 0),
+    numberOfPlayers = 4
+)
 
-**AppModule** (`di/AppModule.kt`):
-```kotlin
-@InstallIn(SingletonComponent::class)
-@Module
-class AppModule {
-    @Provides
-    fun provideEventManager(): EventManager =
-        TeeTimeCaddieSdk.getInstance().eventManager.apply {
-            registerPlugin(FirebaseEventPlugin())
-        }
-}
-```
-
-**AuthModule** (`feature/auth/AuthModule.kt`):
-```kotlin
-@InstallIn(SingletonComponent::class)
-@Module
-class AuthModule {
-    @Provides @Singleton
-    fun provideAuthRepository(): AuthRepository =
-        TeeTimeCaddieSdk.getInstance().provideAuthRepository()
-}
-```
-
-**Pattern:** All KMP repositories wrapped in Hilt modules for injection.
-
-## MVVM Architecture
-
-**ViewModels:**
-```kotlin
-@HiltViewModel
-class LoginViewModel @Inject constructor(
-    private val authRepo: AuthRepository  // From KMP
-): ViewModel() {
-    var errorMessage: Int? by mutableStateOf(null)
-    var showLoadingProgress: Boolean by mutableStateOf(false)
-    var loginSuccess: Boolean by mutableStateOf(false)
-
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            // Delegate to KMP repository
-        }
-    }
-}
-```
-
-**Views:**
-```kotlin
-@Composable
-fun LoginScreen(onLoggedIn: () -> Unit) {
-    val viewModel = hiltViewModel<LoginViewModel>()
-    // Observe state and render UI
-}
-```
-
-**Pattern:** ViewModels are thin orchestration layers that delegate to KMP repositories.
-
-## App Initialization System
-
-**Sophisticated priority-based initializer pattern** for startup tasks.
-
-**AppInitializer Interface:**
-```kotlin
-interface AppInitializer {
-    val priority: InitializerPriority  // APP_LAUNCH, ON_CREATE, ON_START
-    val dependencies: List<KClass<out AppInitializer>>
-    suspend fun init(application: Application)
-}
-```
-
-**AppInitializers Manager** (`initializers/AppInitializers.kt`):
-- Coordinates all initializers based on priority and dependencies
-- Three lifecycle-based phases:
-  - `APP_LAUNCH` - During `ProcessLifecycleOwner` init
-  - `ON_CREATE` - During `ProcessLifecycleOwner.onCreate`
-  - `ON_START` - During `ProcessLifecycleOwner.onStart`
-- Automatic dependency resolution
-- Circular dependency detection
-- Exposes `StateFlow<InitializationState>` for UI
-
-**Splash Screen Integration:**
-```kotlin
-val showSplashScreen: Flow<Boolean> =
-    appInitializers.state.map { it == InitializationState.Pending }
-```
-
-**Creating Initializers:**
-1. Implement `AppInitializer` interface
-2. Provide via Hilt in `InitializersModule`
-3. Set priority and dependencies
-4. AppInitializers automatically runs them
-
-## Navigation System - Custom Multi-Backstack Navigator
-
-Uses **androidx.navigation3** (new Navigation library) with custom `Navigator` class.
-
-**Key Components:**
-
-**Navigator Class** (`ui/navigation/Navigator.kt`):
-- Manages separate back stacks for each top-level destination
-- State preservation using custom `KSerializer` with SavedState API
-- Type-safe navigation with `@Serializable` destinations
-
-**TopLevelDestination Enum:**
-```kotlin
-enum class TopLevelDestination(
-    val icon: Icons,
-    val iconTextId: Int,
-    val destination: TtcNavKey
-): TtcNavKey {
-    TEE_TIMES(...)
-}
-```
-
-**Navigation Destinations:**
-```kotlin
-@Serializable
-data object LoginDestination: TtcNavKey
-
-@Serializable
-data object RegistrationDestination: TtcNavKey
-```
-
-**Navigation Extensions:**
-```kotlin
-fun Navigator.navigateToLogin() {
-    navigate(LoginDestination, clearBackStack = true)
-}
-```
-
-**Entry Providers** (define screen → composable mappings):
-```kotlin
-fun EntryProviderScope<NavKey>.authEntries(
-    onLoginClick: () -> Unit,
-    onLoggedIn: () -> Unit
-) {
-    entry<LoginDestination> {
-        LoginScreen(onLoggedIn = onLoggedIn)
-    }
-}
-```
-
-**Usage:**
-```kotlin
-val navigator = rememberNavigator(TopLevelDestination.TEE_TIMES)
-
-NavDisplay(
-    backStack = navigator.backStack,
-    onBack = { navigator.goBack() },
-    entryProvider = entryProvider {
-        teeTimesEntries()
-        authEntries(...)
-    }
+val previewTeeTimeList = listOf(
+    previewTeeTime.copy(time = LocalTime(10, 0)),
+    previewTeeTime.copy(time = LocalTime(11, 0)),
+    previewTeeTime.copy(time = LocalTime(12, 0)),
+    previewTeeTime.copy(time = LocalTime(13, 0))
 )
 ```
 
-## State Management
+In addition, if a model contains properties whose types are other models, you can leverage existing
+preview variables. For example:
 
-**App-Level State** (`TeeTimeCaddieAppState`):
 ```kotlin
-class TeeTimeCaddieAppState(
-    coroutineScope: CoroutineScope,
-    appInitializers: AppInitializers,
-    authRepository: AuthRepository
-) {
-    val hasLoggedInOnce: Boolean
-    val isLoggedIn: StateFlow<Boolean>
-    val appInitStatus: StateFlow<InitializationState>
-}
-```
 
-**Activity-Level State** (`TeeTimeCaddieActivityViewModel`):
-```kotlin
-@HiltViewModel
-class TeeTimeCaddieActivityViewModel @Inject constructor(
-    val appInitializers: AppInitializers,
-    val authRepo: AuthRepository,
-    val eventManager: EventManager
-): ViewModel() {
-    val showSplashScreen: Flow<Boolean>
-    val showApp: StateFlow<Boolean>
-}
-```
-
-## Module Structure
-
-```
-/android/app/src/main/java/net/bradball/teetimecaddie/android/
-├── di/                          - Hilt modules
-├── initializers/                - App initialization system
-├── analytics/                   - Firebase analytics plugin
-├── feature/                     - Feature modules
-│   ├── auth/                    - Auth screens, VMs, navigation, Hilt module
-│   └── teeTimes/                - Tee times screens, VMs, navigation, Hilt module
-├── ui/
-│   ├── app/                     - Root app composable, app state
-│   ├── common/                  - Shared UI components
-│   └── navigation/              - Custom Navigator, TopLevelDestination
-└── theme/                       - Material3 theme
-```
-
-## Key Technologies
-
-- **Jetpack Compose** - Declarative UI
-- **Material3** - Design system
-- **Hilt** - Dependency injection
-- **androidx.navigation3** - Navigation (new library)
-- **Kotlin Coroutines** - Async operations
-- **StateFlow** - Reactive state
-- **ViewModel** - UI state management
-- **ProcessLifecycleOwner** - App lifecycle
-- **SavedState API** - State preservation
-- **Accompanist** - System UI controller
-- **Core Splashscreen** - Android 12+ splash screen API
-
-## Firebase Configuration
-
-**Debug builds:**
-- Analytics, Crashlytics, Performance disabled via `manifestPlaceholders` in `build.gradle.kts`
-
-**Release builds:**
-- All Firebase services enabled
-
----
-
-# iOS App Architecture
-
-## Overview
-
-Native SwiftUI application using **Factory** for DI, **SwiftUI NavigationStack**, and **MVVM** architecture. Like Android, it's a thin UI layer over shared KMP logic.
-
-## Application Lifecycle
-
-```
-TeeTimeCaddieApp (@main)
-    ↓ (AppDelegate via @UIApplicationDelegateAdaptor)
-TeeTimeCaddieAppState (@StateObject)
-    ↓ (observes auth state from KMP)
-UserInterface (View)
-    ↓ (switches between app states)
-TeeTimeCaddieTheme
-    ↓
-Feature Screens (Auth, TeeTimes)
-```
-
-## Dependency Injection - Factory
-
-Uses **Factory** library (https://github.com/hmlongco/Factory) for service location.
-
-**Module Pattern:**
-```swift
-final class AuthModule: SharedContainer {
-    static let shared = AuthModule()
-    var manager = ContainerManager()
-
-    var authRepository: Factory<AuthRepository> {
-        self { TeeTimeCaddieSdk.companion.getInstance().provideAuthRepository() }
-            .singleton
-    }
-}
-```
-
-**Modules:**
-- `AppModule` - EventManager, Firebase services
-- `AuthModule` - AuthRepository from KMP
-- `TeeTimesModule` - TeeTimesRepository from KMP
-- `AppInitModule` - App initializers (currently unused)
-
-**Usage:**
-```swift
-let authRepo = AuthModule.shared.authRepository()
-```
-
-## MVVM Architecture
-
-**ViewModels:**
-```swift
-@MainActor
-class LoginViewModel: ObservableObject {
-    private let authRepo: AuthRepository  // From KMP
-
-    @Published private(set) var processingLogin: Bool = false
-    @Published var loginError: TeeTimeCaddieError? = nil
-
-    func loginUser(email: String, password: String) {
-        Task {
-            try await authRepo.login(email: email, password: password)
-        }
-    }
-}
-```
-
-**Views:**
-```swift
-struct LoginScreen: View {
-    @StateObject private var viewModel = LoginViewModel(
-        authRepo: AuthModule.shared.authRepository(),
-        eventManager: AppModule.shared.eventManager()
-    )
-
-    var body: some View {
-        // UI
-    }
-}
-```
-
-## State Management
-
-**App-Level State** (`TeeTimeCaddieAppState`):
-```swift
-enum AppUiState {
-    case REGISTRATION
-    case LOGIN
-    case APP
-}
-
-@MainActor
-class TeeTimeCaddieAppState: ObservableObject {
-    @Published private(set) var uiState: AppUiState
-    private let authRepo: AuthRepository
-
-    func observeAuthState() async {
-        for await isLoggedIn in authRepo.loginState {
-            uiState = AppUiState.fromLoginState(isLoggedIn.boolValue, hasLoggedInOnce: authRepo.hasLoggedInOnce)
-        }
-    }
-}
-```
-
-**Navigation:**
-```swift
-switch(state) {
-    case .APP:
-        TeeTimesNavStack()
-    case .LOGIN:
-        LoginScreen(onRegisterClick: onRegisterClick)
-    case .REGISTRATION:
-        RegistrationScreen(onLoginClick: onLoginClick)
-}
-```
-
-**Pattern:** Simple state-based navigation for auth flow, then delegates to custom Navigator for in-app navigation.
-
-## Navigation System - Custom Multi-Backstack Navigator
-
-Uses **SwiftUI's NavigationStack** with a custom `Navigator` class for per-tab navigation management.
-
-**Key Components:**
-
-**Navigator Class** (`ui/navigation/Navigator.swift`):
-- Manages separate back stacks for each top-level tab
-- Type-safe navigation with `TtcNavKey` protocol
-- `@Observable` for SwiftUI reactivity
-- Methods: `navigate(to:)`, `pop()`, `popUpTo(to:inclusive:)`, `clearbackstack()`
-
-**TtcNavKey Protocol** (`ui/navigation/TtcNavKey.swift`):
-```swift
-protocol TtcNavKey: Hashable, Equatable, Identifiable {
-    associatedtype Screen: View
-
-    @MainActor
-    @ViewBuilder
-    func destinationView(_ navigator: Navigator) -> Screen
-}
-```
-
-**Important:** The Navigator enforces separation of concerns - it should **NOT** be passed into views or added to the environment. Views receive navigation callbacks instead:
-
-```swift
-// ✅ Correct: Views receive navigation callbacks
-HomeScreen(
-    onLoginClicked: { navigator.navigateToLogin() },
-    onDetailClicked: { item in navigator.navigateToDetail(item) }
+data class SomeContainer(
+    val id: String,
+    val teeTime: TeeTime
 )
 
-// ❌ Incorrect: Don't pass Navigator to views
-HomeScreen(navigator: navigator)
+val previewSomeContainer = SomeContainer(
+    id = "previewcontainer",
+    teeTime = previewTeeTime
+)
 ```
 
-**AppTabs Enum** (`ui/navigation/AppTabs.swift`):
-```swift
-enum AppTabs: TtcNavKey {
-    case teeTimes
+- **:`core:extensions`** - Found in the `core/extensions` folder, this module provides convenience
+utility extension methods and properties on common and primitive types used across both the shared KMP SDK as well 
+as the apps. Check here when writing code for methods and properties that can be used to make code
+shorter and easier to read and maintain.
+- **:`core:analytics`** - Provides a single, shared abstraction layer for logging Analytics Events,
+Performance Traces, and Errors to any provider. 
 
-    var icon: ImageResource { ... }
-    var iconText: String { ... }
+#### Feature Modules
+These modules use a Repository Pattern to abstract data access and contain most business logic. 
+Modules are defined for each major app feature/section. These modules are defined as sub-modules
+under the `:features` modules, for example, an authentication module `:features:auth` 
+(located at `features/auth`), or a module for tee time CRUD operations `:features:teetimes`
+(located at `features/teetimes`). These modules consume the other public and private core modules
+and use them to execute business logic and provide data to the applications.
 
-    func destinationView(_ navigator: Navigator) -> some View {
-        // Returns tab's root view
-    }
-}
-```
+Feature modules should also define extension methods for converting "private" data model instances
+(such as `*Document` storage models and `*Network` response models) to instance of public 
+data models that are defined in the `:core/models` module, as well as converting between private 
+data model instances. These methods should follow a standardized pattern:
 
-**Feature Destinations** (`features/teetimes/TeetimesNavigation.swift`):
-```swift
-enum TeeTimesDestinations: TtcNavKey {
-    case teeTimesList
+- `.toModel(): SomeDataModel` - `.toModel()` methods should be defined as extensions on storage
+and network models to convert them to data model instances.
+- `.toDocument(): SomeDocument` - `.toDocument()` methods should be defined as extensions on 
+data models and network response models to convert them to documents for storage.
 
-    @ViewBuilder
-    func destinationView(_ navigator: Navigator) -> some View {
-        switch self {
-        case .teeTimesList:
-            TeeTimesListScreen()
-        }
-    }
-}
+### Private Modules
+The KMP SDK also includes a set of "private" modules, which are modules that are consumed by
+other modules in the KMP SDK but who's classes, methods, and properties are NOT exposed to client
+applications. They include:
 
-// Extension methods for type-safe navigation
-extension Navigator {
-    func navigateToTeeTimesTab(clearBackStack: Bool = false) {
-        navigate(to: AppTabs.teeTimes, clearBackStack: clearBackStack)
-    }
+#### Storage 
+The `:core:storage` module (found in the `core/storage` folder) contains classes, objects,
+and data structures for persisting application data, both locally and in the cloud. 
 
-    func navigateToTeeTimes() {
-        navigate(to: TeeTimesDestinations.teeTimesList)
-    }
-}
-```
+**Local Settings** - Within the `:core:storage` module, the **multiplatform-settings** library is used
+to provide a common API abstraction for storing key value data such as user settings via
+SharedPreferences on Android and NSUserDefaults on iOS.
 
-**AnyTtcNavKey** - Type-erased wrapper that enables storing different destination types in the same collection (navigation stack).
+**Firestore Storage** - Firebase Firestore is used to persist structured data in the cloud.
+`Document` classes (for example `PlayerDocument` and `TeeTimeDocument`) model firestore documents
+and `Storage` classes (for example `PlayerStorage` and `TeeTimeStorage`) provide an api for
+CRUD operations on documents.
 
-**View Components:**
-- **AppTabView** - Root TabView using Navigator's `currentTab` binding
-- **TabNavStack** - Wraps each tab in a NavigationStack with destination routing
+#### Network
+The `:core:network` module (found in the `core/network` folder) contains classes, objects, and
+data structures for making http network requests, using the `ktor` networking library.
 
-**Usage:**
-```swift
-@State private var navigator = Navigator()
+## Dependency Injection
 
-AppTabView(navigator)
-```
-
-## App Initialization - SwiftAppInitializers
-
-**Package:** https://github.com/Bradleycorn/SwiftAppInitializers
-
-**Setup in AppInitModule:**
-```swift
-import AppInitializers
-
-final class AppInitModule: SharedContainer {
-    static let shared = AppInitModule()
-
-    private var allInitializers: Array<AppInitializer> {
-        return []  // Currently empty
-    }
-
-    var initManager: Factory<InitManager> {
-        self { InitManager(self.allInitializers) }
-            .singleton
-    }
-}
-```
-
-**Note:** Infrastructure is in place but not currently used. Android has active initializers (Firebase), iOS handles initialization in AppDelegate.
-
-## Theme System - ThemeUI
-
-**Package:** https://github.com/bradleycorn/ThemeUI
-
-**Material3-inspired theming for SwiftUI:**
-
-```swift
-public class AppTheme: ObservableObject {
-    public let colorScheme: Colors
-    public let typography: Typography
-    public let shapes: Shapes
-}
-```
-
-**Colors** - Material3 color roles:
-- `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`
-- `secondary`, `tertiary` (with variants)
-- `surface`, `background`, `error` (with variants)
-- `outline`, `scrim`, `inversePrimary`
-
-**Typography** - Material3 type scale:
-- `displayLarge/Medium/Small`
-- `headlineLarge/Medium/Small`
-- `titleLarge/Medium/Small`
-- `bodyLarge/Medium/Small`
-- `labelLarge/Medium/Small`
-
-**Shapes:**
-- `small`, `medium`, `large` (rounded rectangles with different radii)
-
-**Usage:**
-```swift
-ThemedView(colors: colors, typography: Typography(), shapes: Shapes()) {
-    // Your content
-}
-.environmentObject(theme)
-
-// Access in views
-@EnvironmentObject var theme: AppTheme
-theme.colorScheme.primary
-```
-
-Provides design consistency with Android Material3.
-
-## KMP Integration
-
-**SDK Access:**
-```swift
-TeeTimeCaddieSdk.companion.getInstance()
-```
-
-**Framework Import:**
-```swift
-import TeeTimeCaddieKit  // Static framework from businessLogic module
-```
-
-**Swift/Kotlin Interop:**
-- SKIE plugin enhances interop (better Flow support, sealed classes)
-- Kotlin Flows accessible as Swift AsyncSequence
-
-**Example:**
-```swift
-// Kotlin: val loginState: Flow<Boolean>
-// Swift:
-for await isLoggedIn in authRepo.loginState {
-    // Handle state change
-}
-```
-
-## Module Structure
-
-```
-/ios/TeeTimeCaddie/
-├── TeeTimeCaddie/              - Main iOS app
-│   ├── Source/
-│   │   ├── TeeTimeCaddieApp.swift        - App entry point
-│   │   ├── TeeTimeCaddieAppState.swift   - Root app state
-│   │   ├── inject/                       - Factory DI modules
-│   │   ├── features/                     - Feature modules
-│   │   │   ├── auth/                     - Auth screens & ViewModels
-│   │   │   └── teetimes/                 - Tee times screens, ViewModels, navigation
-│   │   ├── ui/                           - UI components
-│   │   │   ├── common/                   - Shared UI components
-│   │   │   ├── theme/                    - App theme
-│   │   │   └── navigation/               - Custom Navigator, AppTabs, TtcNavKey
-│   │   ├── util/                         - Utilities (UiState, extensions)
-│   │   └── analytics/                    - Analytics plugins
-├── ThemeUI/                    - Custom theming package (local)
-├── TeeTimeCaddieTests/         - Unit tests
-└── TeeTimeCaddieUITests/       - UI tests
-```
-
-## Key Technologies
-
-- **SwiftUI** - Declarative UI
-- **Factory** - Dependency injection
-- **NavigationStack** - SwiftUI navigation
-- **Combine** - Reactive programming (via @Published)
-- **Swift Concurrency** - async/await
-- **TeeTimeCaddieKit** - KMP framework
-- **SKIE** - Swift/Kotlin interop
-- **ThemeUI** - Material3-inspired theming
-- **SwiftAppInitializers** - App initialization (available but unused)
-- **Firebase iOS SDK** - Firebase services
-
-## Swift Package Dependencies
-
-From `Package.resolved`:
-- **Factory** (2.2.0) - DI
-- **Firebase iOS SDK** (10.29.0) - Firebase services
-- **SwiftAppInitializers** (1.0.0) - App initialization framework
-- **ThemeUI** (1.0.0) - Material3-inspired theming
+The modules that make up the shared KMP SDK use a "do-it-yourself" dependency injection system. 
+Gradle modules contain a `*Module` class (for example, `StorageModule` in the
+`:core:storage` module) that is responsible fore creating and providing instances of classes
+defined in the module. The `TeeTimeCaddieSdk` creates and uses instances of the `*Module` classes
+to obtain instances and expose them to the consuming android and ios applications.
 
 ---
 
-# Architecture Comparison
 
-## Android vs iOS
 
-| Aspect | Android | iOS |
-|--------|---------|-----|
-| **DI** | Hilt (compile-time, comprehensive) | Factory (runtime, service locator) |
-| **Navigation** | Custom multi-backstack Navigator with androidx.navigation3 | Custom multi-backstack Navigator with NavigationStack |
-| **State** | StateFlow + Compose State | @Published properties + @Observable |
-| **Initialization** | Complex 3-phase system with dependencies | Infrastructure present, currently unused |
-| **ViewModels** | AAC ViewModel with Hilt injection | ObservableObject with Factory |
-| **Theming** | Material3 (built-in) | ThemeUI (custom, Material3-inspired) |
-| **Lifecycle** | ProcessLifecycleOwner observers | Scene phase monitoring |
-| **Async** | Kotlin Coroutines | Swift async/await |
 
 ## Code Sharing Strategy
 
@@ -982,9 +312,20 @@ From `Package.resolved`:
 - ❌ Platform initialization
 - ❌ Theme implementation (Material3 vs ThemeUI)
 
+
+### String Resources
+This project uses the moko-resources library to provide string resources to the android and ios apps. 
+Each exported module (usually feature modules, but perhaps some others) should define string resources
+for all static strings displayed in the apps. This includes things like titles, labels, content descriptions, 
+etc. Strings should be defined in the feature module that they are related to.  
+For example a string for the Add Tee Time screen title, should be defined in the teetimes feature module.
+Generic Strings that are used across features (for example, text for common buttons such as "Save", or "OK")
+should be defined in the strings resource file in the core:models module.
+
 ## Platform Parity Guidelines
 
-**IMPORTANT**: While the implementations are platform-specific, the **architectural patterns** and **concepts** must remain parallel between Android and iOS. This ensures consistency in:
+**IMPORTANT**: While the implementations are platform-specific, the **architectural patterns** and 
+**concepts** must remain parallel between Android and iOS. This ensures consistency in:
 - Developer experience across platforms
 - Maintenance and updates
 - Feature parity
@@ -1074,79 +415,61 @@ Both platforms follow **MVVM with reactive state**:
 
 ---
 
-# Development Guidelines
 
-## Adding a New Feature
+# Jira Issue Workflow
+A Jira "Issue" is any Story, Defect, Epic (feature) defined in Jira.
+"Acceptance Criteria" is all of the details and description in a Jira Issue.
 
-1. **Create KMP module** under `/features/`
-2. **Add to `settings.gradle.kts`**
-3. **Create Repository** in `commonMain`
-4. **Add Storage classes** if needed in `core/storage`
-5. **Define Models** in `core/models` or feature module
-6. **Export from businessLogic** if needed for iOS framework
-7. **Create Hilt module** in Android app to provide repository
-8. **Create Factory module** in iOS app to provide repository
-9. **Create ViewModels** (Android) and ObservableObjects (iOS)
-10. **Create Compose screens** (Android) and SwiftUI views (iOS)
-11. **Add navigation destinations** and entry providers
+Follow all of the Steps in the sections below for EVERY Jira Issue that you implement. 
 
-## Working with Shared Code
+## Before Writing Any Code:
 
-**Repository Pattern:**
-- Repositories in `features/*/src/commonMain`
-- Constructor injection (dependencies provided by platform DI)
-- Suspend functions for async operations
-- Kotlin Flows for reactive data
-- Integrate EventManager for analytics
+1. Plan the work to be done:
+   1. Read the full Issue, including Acceptance Criteria and Notes. 
+   2. Make sure the Issue has proper sub-tasks:
+      a. If the Issue already has sub-tasks, read them to understand what to do and how to complete the implementation.
+         - If the sub-tasks are not sufficient to complete the story, follow the rest of these instructions to complete the task list.
+     b. If the Issue does not have sub-tasks (or if the tasks aren't enough to fully implement the story):
+        - Add appropriate sub-tasks to the Issue so that you or others can complete the Issue.
+          - Keep sub-tasks fairly high level. Prefer defining 5-10 broad tasks to complete an Issue, instead of 20+ detailed tasks.
+          - Tasks can have a list of steps in the task list if you want to provide detailed instructions for a task. However, this is not optional, not required.
+     c. Ask me to check and verify the sub-tasks before continuing.
+   3. Assign the Issue to yourself, and move it to the IN-PROGRESS step/column in Jira.
+   4. Ensure that the necessary git branches are setup, according to the "Branch Strategy" and "Workflow for Jira Issue Development" guidelines in the "Working with Github" section of this document.
+      a. If there are uncommited changes on the current branch, ask me what to do before continuing.
 
-**Storage Layer:**
-- Firestore: `core/storage/.../PlayerStorage.kt`, `TeeTimeStorage.kt`
-- Local: `StorageModule` (expect/actual for platform-specific)
-- Documents (Firestore) vs Models (domain)
-- Mapping functions: `fun Document.asModel(): Model`
+## Writing Code to Implement the Issue
 
-**Testing:**
-- Common tests in `commonTest`
-- Platform-specific tests in `androidTest`/`iosTest`
-- Use `./gradlew :module:allTests` for full test suite
+1. Implement the Issue following all of the guidelines in this file, as well as context provided by other Claude.md files in this project.
+   - Make sure all Acceptance Criteria of the Issue are met. 
+   - Commit somewhat frequently to the Issue branch A decent guideline might be to commit the work for each sub-task in the Issue. 
+2. Write Unit tests for non-UI code, including all shared KMP code, and View Models in platform code.
+3. Write UI tests for all views and UI code in each platform. 
+4. Build and test both platforms.
+   - Note that is is not enough to just build the iOS framework with gradle. Use xcodebuild to build the ios app.
+   - Run unit tests for both platforms and ensure all tests pass. 
+   - Run UI tests for both platforms and ensure all tests pass. 
 
-## Working with Jira Issues
+## Finishing the Implementation
+1. Once all code is written to meet the Acceptance Criteria of the Issue, and tests are passing, make sure all code is commited to the Issue branch.
+2. Push the Issue branch to the git origin repository.
+3. Create a PR targeting the parent branch (which will usually be the epic/feature branch).
+4. Include a link to the Jira Issue. 
+5. In Jira, Transition the Issue to to the IN-REVIEW step/column.
+   - Link the PR to the Issue.
 
-When implementing features or fixes from Jira:
+## Important Notes
+- Never commit directly to the `main` or Epic branches unless I explicitly tell you to do so. 
+  - If I do tell you to do so, ask me one more time to confirm.
+- Always target PR's back to the branch that the head branch was created from. For a story/defect, this is usually the Epic branch. 
 
-1. **Planning Phase:**
-   - If asked to plan work for a Jira issue, add appropriate subtasks or checklist items to the issue
-   - Break down the work into actionable steps that can be tracked
-   - This allows either you or others to pick up the issue and understand the implementation plan
-
-2. **Before Starting Work:**
-   - Assign the Jira issue to yourself
-   - Transition the issue to "In Progress" status on the Kanban board
-   - This ensures team visibility and prevents duplicate work
-
-3. **During Development:**
-   - Reference the issue key in commit messages (e.g., "TTC-123: Add user profile feature")
-   - Keep the issue updated with progress notes if needed
-   - Update subtasks/checklist items as work progresses
-
-4. **After Completion:**
-   - Transition the issue appropriately (e.g., to "Done" or "Ready for Review")
-   - Link pull requests to the Jira issue
-   - Add relevant comments about implementation decisions
-
-**Best Practices:**
-- Only assign issues you're actively working on
-- Keep issue status current to reflect actual work state
-- Use Jira comments for technical notes that help reviewers or future maintainers
-- When planning, create clear, actionable subtasks that provide a roadmap for implementation
-
-## Working with GitHub
+# Working with GitHub
 
 The project repository is at `https://github.com/Bradleycorn/TeeTimeCaddie.git` and the GitHub CLI (`gh`) is configured and authenticated.
 
-### Branch Strategy
+## Branch Strategy
 
-This project uses a **hierarchical branching strategy** aligned with Jira Epics and Stories:
+This project uses a **hierarchical branching strategy** aligned with Jira Epics and Stories, loosely based on Git Flow:
 
 ```
 main
@@ -1159,62 +482,62 @@ main
 **Branch Types:**
 
 1. **Epic Branches** (correspond to Jira Epics):
-   - Created from `main`
-   - Naming: `epic/TTC-XXX-short-description` or `feature/TTC-XXX-short-description`
-   - Long-lived branches that accumulate story work
-   - Merged back to `main` when the entire Epic is complete (usually manual PR)
+    - Created from `main`
+    - Naming: `epic/TTC-XXX-short-description`
+    - Long-lived branches that accumulate story work
+    - Merged back to `main` when the entire Epic is complete (usually manual PR)
 
-2. **Story Branches** (correspond to Jira Stories):
-   - Created from the Epic/feature branch
-   - Naming: `story/TTC-XXX-short-description`
-   - Short-lived branches for individual stories
-   - Merged back to the Epic/feature branch via PR
-   - Should be focused on a single story's scope
+2. **Story Branches** (correspond to Jira Stories and Defects):
+    - Created from the Epic/feature branch
+    - Naming: `story/TTC-XXX-short-description`
+    - Short-lived branches for individual stories
+    - Merged back to the Epic/feature branch via PR
+    - Should be focused on a single story's scope
 
 3. **Hotfix Branches** (for urgent fixes):
-   - Created from `main`
-   - Naming: `hotfix/TTC-XXX-short-description`
-   - Merged directly back to `main` via PR
+    - Created from `main`
+    - Naming: `hotfix/TTC-XXX-short-description`
+    - Merged directly back to `main` via PR
 
-### Workflow for Story Development
+## Workflow for Jira Issue Development
 
 When working on a Jira Story within an Epic:
 
-**Before Starting - Check for Epic Branch:**
-1. Fetch latest branches: `git fetch origin`
-2. Check if the parent Epic branch exists
-3. **If Epic branch does NOT exist:**
-   - **ALWAYS ask the user before creating it**
-   - Confirm this is the first story in the Epic
-   - Ask which branch should be the base (usually `main`, but may be different)
-   - Example: "This story belongs to Epic TTC-100. Should I create epic/TTC-100-user-management from main?"
-4. **If Epic branch exists:** Proceed with story branch creation
+1. **Before Starting - Check for Epic Branch:**
+    - If there are uncommitted changes on the current branch, ask the user what to do with them before continuing.
+    - Fetch latest branches: `git fetch origin`
+    - Check if the parent Epic branch exists.
+    - **If Epic branch does NOT exist:**
+        - **ALWAYS ask the user before creating it**
+        - Ask which branch should be the base (usually `main`, but may be different)
+        - Example: "This story belongs to Epic TTC-100. Should I create epic/TTC-100-user-management from main?"
+    - **If Epic branch exists:** Proceed with story branch creation from epic branch
 
-1. **Branch Creation:**
-   - Ensure the Epic branch exists: `git fetch origin`
-   - Create story branch from Epic branch: `git checkout -b story/TTC-123-login-screen epic/TTC-100-user-management`
-   - Use descriptive branch names that include the Jira key
+2. **Story Branch Creation:**
+    - Check if story branch exists.
+    - **If Story Branch Exists**, switch to it.
+    - **If Story Branch does NOT Exist**, Create story branch from Epic branch: `git checkout -b story/TTC-100-user-management`
+    - Use descriptive branch names that include the Jira key
 
-2. **Making Changes:**
-   - Make code changes following the architecture patterns
-   - Commit frequently with clear, descriptive messages
-   - Reference Jira story key in commit messages (e.g., "TTC-123: Add login screen layout")
+3. **Making Changes:**
+    - Make code changes following the architecture patterns
+    - Commit frequently with clear, descriptive messages
 
-3. **Creating Story PR (Story → Epic branch):**
-   - Push the story branch to GitHub: `git push -u origin story/TTC-123-login-screen`
-   - Create a pull request targeting the **Epic branch** (not main!)
-   - Use `gh pr create --base epic/TTC-100-user-management`
-   - Include in the PR description:
-     - Link to the Jira story
-     - Summary of changes (what and why)
-     - Test plan or testing notes
-     - Any breaking changes or migration notes
-     - Screenshots for UI changes
+4. **Creating Story PR (Story → Epic branch):**
+    - Push the story branch to GitHub: `git push -u origin story/TTC-123-login-screen`
+    - Create a pull request targeting the **Epic branch** (not main!)
+    - Use `gh pr create --base epic/TTC-100-user-management`
+    - Include in the PR description:
+        - Link to the Jira story
+        - Summary of changes (what and why)
+        - Test plan or testing notes
+        - Any breaking changes or migration notes
+        - Screenshots for UI changes
 
-4. **After Story PR Approval:**
-   - Merge the story branch into the Epic branch
-   - Delete the story branch after merge
-   - The Epic branch now contains your story's work
+5. **After Story PR Approval:**
+    - Merge the story branch into the Epic branch
+    - Delete the story branch after merge
+    - The Epic branch now contains your story's work
 
 **Example Story PR Creation:**
 ```bash
@@ -1244,22 +567,13 @@ Implements login screen with email/password fields and validation.
 EOF
 )"
 ```
-
-### Workflow for Epic Completion
-
-When an Epic is complete (usually done manually by team lead):
-
-1. All story branches have been merged into the Epic branch
-2. Epic branch is tested as a complete feature set
-3. Create PR from Epic branch → `main` (usually manual process)
-4. After Epic PR is merged, delete the Epic branch
-
-### Handling PR Comments and Reviews
+## Handling PR Comments and Reviews
 
 When asked to address PR feedback, follow this system:
 
 **Default Behavior:**
-- Address ALL comments in "Request Changes" reviews by default
+- If there are no `@claude` mentions in any comments, then address ALL comments in "Request Changes" reviews by default
+- If one or more comments mention `@claude` in "Request Changes" reviews, only address those comments.
 - "Request Changes" reviews = changes that must be made
 - "Comment" reviews = discussion/suggestions that may or may not need action
 
@@ -1284,27 +598,7 @@ When asked to address PR feedback, follow this system:
 6. After making changes, commit and push updates
 7. Respond to PR comments indicating what was fixed
 
-**Example Workflow:**
-```bash
-# User: "Address the feedback on PR #42"
-
-# Fetch and read PR
-gh pr view 42
-
-# Make requested changes
-# ... code changes ...
-
-# Commit and push
-git add .
-git commit -m "TTC-123: Address PR feedback
-
-- Fix validation logic per review comment
-- Update error handling as requested
-- Refactor component structure"
-git push
-```
-
-### Git Workflow Notes
+## Git Workflow Notes
 
 - **Main branch:** `main` - always stable, production-ready code
 - **Epic branches:** Long-lived feature branches aligned with Jira Epics
@@ -1314,20 +608,54 @@ git push
 - **Force push:** Avoid unless absolutely necessary and coordinate with team
 - **Always verify target branch:** Story PRs target Epic branch, not `main`
 
-## Firebase Emulator Setup
+# Development Guidelines
 
-**Configuration:**
-- Update `FirebaseConfig.kt` in platform-specific source sets
-- Set `useLocalResources = true` in SDK initialization
+## Adding a New Feature
 
-**Running Emulators:**
-```bash
-firebase emulators:start
-```
+1. **Create KMP module** under `/features/`
+2. **Add to `settings.gradle.kts`**
+3. **Create Repository** in `commonMain`
+   - Repository should be defined as an interface (`interface ExampleRepository`) , with a corresponding implementation class named with an "Impl" suffix (`class ExampleRespositoryImpl`).
+   - The Implementation class should have an internal constructor (`class ExampleRepositoryImpl internal constructor(..): ExampleRepository`), so that it cannot be instantiated from other modules.
+4. **Create a `Module` class** in `commonMain`
+   - It should contain provider methods to obtain an instance of the Repositories defined in the module.
+   - provider methods should return the interface type, and the method should create instances of the implementation class. 
+     For example:
+     ```kotlin
+     class ExampleFeatureModule() {
+        fun providesExampleRepository(): ExampleRepository {
+           return ExampleRepositoryImpl()
+        }
+     }
+     ```
+4. **Add Storage classes and Storage Models** if needed in `core/storage`
+5. **Define Data Models** in `core/models`
+6. **Export module from businessLogic**, and expose repositories via `TeeTimeCaddieSdk` class.
+7. **Create Hilt module** in Android app to provide repository
+8. **Create Factory module** in iOS app to provide repository
+9. **Create ViewModels** (Android) and ObservableObjects (iOS)
+10. **Create Compose screens** (Android) and SwiftUI views (iOS)
+11. **Add navigation destinations** and entry providers
 
-**Ports:**
-- Auth: Usually 9099
-- Firestore: Usually 8080
+## Working with Shared Code
+
+**Repository Pattern:**
+- Repositories in `features/*/src/commonMain`
+- Constructor injection (dependencies provided by platform DI)
+- Suspend functions for async operations
+- Kotlin Flows for reactive data
+- Integrate EventManager for analytics
+
+**Storage Layer:**
+- Firestore: `core/storage/.../PlayerStorage.kt`, `TeeTimeStorage.kt`
+- Local: `StorageModule` (expect/actual for platform-specific)
+- Documents (Firestore) vs Models (domain)
+- Mapping functions: `fun Document.asModel(): Model`
+
+**Testing:**
+- Common tests in `commonTest`
+- Platform-specific tests in `androidTest`/`iosTest`
+- Use `./gradlew :module:allTests` for full test suite
 
 ## Gradle Properties Notes
 
@@ -1355,39 +683,6 @@ firebase emulators:start
 ---
 
 # Key Architectural Concepts
-
-## EventManager Plugin System
-
-The EventManager uses a **plugin architecture** for extensible analytics:
-
-1. Create an `EventPlugin` implementation
-2. Register with `eventManager.registerPlugin(plugin)`
-3. Plugin receives all events via `logEvent()` and decides which to track
-4. Multiple plugins can track the same event
-
-**Example:**
-```kotlin
-class FirebaseEventPlugin : EventPlugin {
-    override fun logEvent(event: AnalyticsEvent): Boolean {
-        return when (event) {
-            is AnalyticsEvent.Login -> {
-                Firebase.analytics.logEvent("login", ...)
-                true
-            }
-            else -> false
-        }
-    }
-}
-```
-
-## Navigator State Preservation (Android)
-
-The custom Navigator uses `KSerializer` with SavedState API to preserve state across process death:
-
-- Each `TopLevelDestination` maintains its own back stack
-- Navigator state serialized using kotlinx.serialization
-- Restored automatically via `rememberSaveable`
-- Custom serializers handle navigation keys
 
 ## Expect/Actual Pattern
 
@@ -1419,11 +714,9 @@ Use this pattern sparingly - prefer shared code when possible.
 Repositories use constructor injection to receive dependencies:
 
 ```kotlin
-class AuthRepository(
+class AuthRepositoryImpl(
     private val eventManager: EventManager,
     private val appSettings: TeeTimeCaddieSettings,
     private val playerStorage: PlayerStorage
-)
+): AuthRepository
 ```
-
-Platform DI (Hilt/Factory) provides these dependencies when obtaining repositories from the SDK.

@@ -9,59 +9,97 @@ import kotlin.native.HidesFromObjC
 import kotlin.reflect.KClass
 
 /**
-* Injectable Singleton that can be used to log events, errors, and transactions
-* in the application, without needing to worry or care about the individual tracking
-* services that are interested in the event.
-*
-* The EventManager is the central piece of the app-wide event tracking system,
-* and exposes a public API that can be used to log/track events and other user data
-* with various third party tracking systems, including Google Analytics, Firebase,
-* Kochava, Emarsys, the CDI DataStore, and others. You should not instantiate the
-* EventManager yourself. Instead, it is injectable via the Dagger dependency injection
-* system setup in the app. For the most part, you should not need to log events directly
-* from views in the app, and if you find yourself doing so, it should be a red flag that
-* perhaps there is a better way. Events should be logged at the ViewModel or Repository
-* level or deeper, and injecting the EventManager into these objects is trivial.
-*
-* Third party tracking services should be registered with the EventManager using
-* the [registerPlugin] method. Create a class for the tracking service, implementing
-* the [EventPlugin] service, and register the plugin to track events. Events will
-* NOT be sent to a Plugin until it is registered, and any events that happened prior
-* to registration will NOT be sent to the plugin when it is registered.
-*
-*  *Tracking Events*
-*  Events that happen in the app should be tracked using the [logEvent] method.
-*  All events will be passed to each registered plugin, and the plugin is responsible
-*  for deciding whether or not to log/track the event and send it on to the third
-*  party data source. If a plugin does NOT wish to track a certain event, it can just
-*  ignore it. See [EventPlugin] for more information on setting up a plugin to filter
-*  events. When you call [logEvent], the event is passed to every registered plugin,
-*  and each plugin can make it's own decision whether or not to log/track the event.
-*  Therefore, it is possible (even likely) that an event gets logged with multiple providers.
-*  For example, a "deposit" event might get logged with Google Analytics, Kochava, and the DataStore,
-*  and Emarsys and Firebase may choose to ignore the "deposit" event.
-*
-*  *Creating Events*
-*  In order to track/log an event, an [AnalyticsEvent] must be created first.
-*  Then, you can call [logEvent] and pass the [AnalyticsEvent] that matches,
-*  along with any data that may need to be sent to a third party tracking/analytics
-*  service.
-*
-*  In addition to events, errors and transactions can be tracked and logged as well.
-*  A single error logger and transaction logger are passed in (via dependency Injection)
-*  when the EventManager instance is created, and you cannot register additional
-*  plugins for error and transaction logging. Currently, Firebase is used for
-*  all event and transaction logging. Note that when we refer to "transactions" in this context,
-*  we are NOT referring to things like deposits or wagers. Completing a deposit or placing
-*  a wager are EVENTS that can be tracked using [logEvent] and sent to multiple tracking services.
-*  "Transactions" are long running user flows in the app that may span several screens. For example
-*  a "deposit" transaction starts when the user first goes to funding. Then they choose a funding method,
-*  enter account and amount information, and submit the deposit. Finally the response is returned
-*  and the deposit was a success or a failure. At this point the deposit "Transaction" is finished.
-*  There may be several EVENTS that happen during the course of this single TRANSACTION.
-*  Perhaps an event is logged when the user chooses a funding method, and another when the deposit
-*  button is clicked, and another indicating a successful or failed deposit.
-*/
+ * The main entry point for the application's analytics and error logging system.
+ *
+ * `EventManager` provides a unified interface for tracking events, screen views, transactions,
+ * and errors across multiple analytics services. It uses a plugin-based architecture that allows
+ * applications to easily integrate with any number of third-party analytics providers without
+ * changing application code.
+ *
+ * ## Architecture
+ *
+ * The analytics system is built around three core components:
+ *
+ * 1. **EventManager** - The central coordinator that receives all analytics calls and distributes
+ *    them to registered plugins
+ * 2. **EventPlugin** - An interface that analytics service providers implement to receive events,
+ *    screen views, and user information
+ * 3. **ErrorLogger** and **TransactionLogger** - Specialized loggers for error tracking and
+ *    performance monitoring
+ *
+ * ## Setup
+ *
+ * To use the analytics system, first create an instance of `EventManager` and register any
+ * analytics plugins:
+ *
+ * ```kotlin
+ * val eventManager = EventManager()
+ * eventManager.registerPlugin(MyAnalyticsPlugin())
+ * eventManager.registerPlugin(AnotherAnalyticsPlugin())
+ * ```
+ *
+ * ## Usage
+ *
+ * ### Tracking Events
+ *
+ * Create an `AnalyticsEvent` subclass and log it:
+ *
+ * ```kotlin
+ * val event = MyCustomEvent(parameter1 = "value1")
+ * eventManager.logEvent(event)
+ * ```
+ *
+ * ### Tracking Screen Views
+ *
+ * Create an `AnalyticsScreen` and log it:
+ *
+ * ```kotlin
+ * val screen = MyScreen(userId = "123")
+ * eventManager.logScreenView(screen)
+ * ```
+ *
+ * ### Setting User Identity
+ *
+ * When a user logs in, set their ID to associate all future events with that user:
+ *
+ * ```kotlin
+ * eventManager.setUserId("user123")
+ * ```
+ *
+ * ### Tracking Performance
+ *
+ * Use transactions to measure performance of key operations:
+ *
+ * ```kotlin
+ * eventManager.startTransaction("load_data")
+ * // ... perform operation ...
+ * eventManager.stopTransaction("load_data")
+ * ```
+ *
+ * ### Error Logging
+ *
+ * Log exceptions and messages for debugging:
+ *
+ * ```kotlin
+ * try {
+ *     // risky operation
+ * } catch (e: Exception) {
+ *     eventManager.logException(e, LoggableExceptionTypes.NETWORK_ERROR)
+ * }
+ * ```
+ *
+ * ## Plugin System
+ *
+ * The plugin architecture allows the same analytics code to send data to multiple services
+ * simultaneously. Each `EventPlugin` implementation decides which events it's interested in
+ * and how to format them for its specific analytics service.
+ *
+ * If an event or screen view is logged but no registered plugin handles it, an exception
+ * is logged to alert developers that the tracking code may be obsolete.
+ *
+ * @property errorLogger The logger used for recording errors and debug messages
+ * @property transactionLogger The logger used for performance monitoring
+ */
 class EventManager internal constructor(
     private val errorLogger: ErrorLogger = FirebaseErrorLogger(),
     private val transactionLogger: TransactionLogger = FirebaseTransactionLogger()) {
@@ -213,8 +251,8 @@ class EventManager internal constructor(
      * development teams that the view is no longer logged, and the code which
      * calls this method can likely be removed.
      *
-     * @param screenName - A display name for the screen being logged (eg "Todays Races")
-     * @param screenClass - The Kotlin KClass for the screen being logged (eg TodaysRacesFragment::class)
+     * @param screenName - The name of the Composable/View for the screen being logged (eg "TeeTimesListScreen")
+     * @param screenClass - A display name for the screen being logged (eg "TeeTimes List")
      */
     fun logScreenView(screen: AnalyticsScreen, type: ScreenType = ScreenType.SCREEN) {
         // Don't log the "None" screen

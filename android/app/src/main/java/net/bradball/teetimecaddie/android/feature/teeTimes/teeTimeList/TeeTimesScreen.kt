@@ -20,38 +20,47 @@ import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.EmptyContent
 import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
-import net.bradball.teetimecaddie.android.ui.common.icons.Icons
+import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTimeList
 import net.bradball.teetimecaddie.features.teetimes.TTR
 
 @Composable
-fun TeeTimesListScreen(viewModel: TeeTimesViewModel = hiltViewModel()) {
+fun TeeTimesListScreen(
+    onAddTeeTimeClick: () -> Unit,
+    viewModel: TeeTimesViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    TeeTimesContent(uiState)
+    TeeTimesContent(
+        uiState = uiState,
+        onAddTeeTimeClick = onAddTeeTimeClick
+    )
 }
 
 @Composable
-fun TeeTimesContent(uiState: TeeTimesUiState) {
+fun TeeTimesContent(
+    uiState: TeeTimesUiState,
+    onAddTeeTimeClick: () -> Unit = {}
+) {
 
     Scaffold(
         topBar = { TtcCenteredTopAppBar(stringResource(TTR.strings.tee_times_title.resourceId)) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { TODO("Show Add tee time screen/modal") }) {
-                Icon(Icons.ADD.painter, contentDescription = "Add Tee Time")
+            FloatingActionButton(onClick = onAddTeeTimeClick) {
+                Icon(TtcIcons.ADD.painter, contentDescription = "Add Tee Time")
             }
         }
     ) { insets ->
-        Screen(AnalyticsScreen.TeeTimeList, modifier = Modifier.padding(insets)) {
+        Screen(AnalyticsScreen.TeeTimeList("TeeTimesScreen"), modifier = Modifier.padding(insets)) {
             Column {
                 when (uiState) {
                     is TeeTimesUiState.Loading -> ContentLoadingIndicator()
                     is TeeTimesUiState.Empty -> EmptyContent(
                         title = stringResource(TTR.strings.empty_tee_times_title.resourceId),
                         message = stringResource(TTR.strings.empty_tee_times_message.resourceId),
-                        icon = Icons.TEE.painter,
+                        icon = TtcIcons.TEE.painter,
                         modifier = Modifier
                             .padding(top = 128.dp)
                             .fillMaxWidth()
@@ -67,7 +76,12 @@ fun TeeTimesContent(uiState: TeeTimesUiState) {
 @Composable
 private fun TeeTimesList(teeTimes: List<TeeTime>) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
-        TODO("Show Tee Times")
+        items(teeTimes.size) { index ->
+            TeeTimeCard(
+                teeTime = teeTimes[index],
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
     }
 }
 

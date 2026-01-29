@@ -1,8 +1,8 @@
 import Foundation
 import TeeTimeCaddieKit
 
-@MainActor
-class TeeTimesListScreenViewModel: ObservableObject {
+@Observable
+class TeeTimesListScreenViewModel {
 
     private let teeTimesRepo: TeeTimesRepository
     private let authRepo: AuthRepository
@@ -12,8 +12,7 @@ class TeeTimesListScreenViewModel: ObservableObject {
         self.teeTimesRepo = teeTimesRepository
         self.authRepo = authRepository
     }
-        
-    @Published
+
     private(set) var uiState: UiState<[TeeTime]> = .Loading
     
     var addButtonEnabled: Bool {

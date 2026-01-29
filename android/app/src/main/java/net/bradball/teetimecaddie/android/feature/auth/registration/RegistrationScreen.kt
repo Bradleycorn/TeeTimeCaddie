@@ -89,7 +89,7 @@ private fun RegistrationContent(
     val focusManager = LocalFocusManager.current
 
         AuthScreen(
-            analyticsScreen = AnalyticsScreen.Registration,
+            analyticsScreen = AnalyticsScreen.Registration("RegistrationScreen"),
             title = stringResource(AR.strings.reg_screen_title.resourceId),
             footerText = stringResource(AR.strings.reg_existing_account_prompt.resourceId),
             footerActionText = stringResource(AR.strings.reg_login_button.resourceId),

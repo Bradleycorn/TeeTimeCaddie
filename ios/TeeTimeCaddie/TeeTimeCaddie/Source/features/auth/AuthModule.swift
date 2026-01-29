@@ -7,7 +7,7 @@ final class AuthModule: SharedContainer {
     var manager = ContainerManager()
         
     var authRepository: Factory<AuthRepository> {
-        self { TeeTimeCaddieSdk.companion.getInstance().provideAuthRepository() }
+        self { AppModule.shared.teeTimeCaddieSdk().provideAuthRepository() }
             .singleton
     }
      

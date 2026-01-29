@@ -89,7 +89,7 @@ private fun LoginContent(
     val focusManager = LocalFocusManager.current
 
     AuthScreen(
-        analyticsScreen = AnalyticsScreen.Login,
+        analyticsScreen = AnalyticsScreen.Login("LoginScreen"),
         title = stringResource(id = AR.strings.login_screen_title.resourceId),
         footerText = stringResource(AR.strings.login_register_prompt.resourceId),
         footerActionText = stringResource(id = AR.strings.login_register_button.resourceId),

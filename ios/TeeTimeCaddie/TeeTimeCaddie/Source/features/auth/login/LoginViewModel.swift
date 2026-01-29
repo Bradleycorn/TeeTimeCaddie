@@ -9,21 +9,16 @@ import Foundation
 import SwiftUI
 import TeeTimeCaddieKit
 
-@MainActor
-class LoginViewModel: ObservableObject {
-    
-    init(authRepo: AuthRepository, eventManager: EventManager) {
-        self.authRepo = authRepo
-        self.eventManager = eventManager
-    }
-    
+@Observable
+class LoginViewModel {
     private let authRepo: AuthRepository
-    private let eventManager: EventManager
-
-    @Published
-    private(set) var processingLogin: Bool = false
     
-    @Published
+    init(authRepo: AuthRepository) {
+        self.authRepo = authRepo
+    }
+
+    private(set) var processingLogin: Bool = false
+
     var loginError: TeeTimeCaddieError? = nil
     
     func loginUser(email: String, password: String) {

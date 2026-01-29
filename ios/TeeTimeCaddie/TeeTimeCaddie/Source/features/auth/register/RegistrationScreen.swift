@@ -6,16 +6,14 @@ import TeeTimeCaddieKit
 
 struct RegistrationScreen: View {
     private let onLoginClick: ()->Void
-    
+
     init(onLoginClick: @escaping () -> Void = {}) {
         self.onLoginClick = onLoginClick
     }
-    
-    @StateObject
-    private var viewModel = RegistrationViewModel(
-        authRepo: AuthModule.shared.authRepository(),
-        eventManager: AppModule.shared.eventManager())
-    
+
+    @State
+    private var viewModel = RegistrationViewModel(authRepo: AuthModule.shared.authRepository())
+
     var body: some View {
         Registration(
             isProcessing: viewModel.processingRegistration,

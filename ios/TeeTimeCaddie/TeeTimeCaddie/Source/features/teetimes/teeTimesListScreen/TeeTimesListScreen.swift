@@ -10,17 +10,18 @@ import ThemeUI
 import TeeTimeCaddieKit
 
 struct TeeTimesListScreen: View {
-    
-    @StateObject
+    let onAddTeeTimeClick: () -> Void
+
+    @State
     private var viewModel = TeeTimesListScreenViewModel()
-        
+
     var body: some View {
         Screen(AnalyticsScreen.TeeTimeList(viewName: self.viewName)) {
             TeeTimesListContent(uiState: viewModel.uiState)
         }
         .task { await viewModel.loadTeetimes() }
         .toolbar {
-            Button(action: { }) {
+            Button(action: onAddTeeTimeClick) {
                 Image(.Icons.calendarAdd)
             }
             .enabled(viewModel.addButtonEnabled)

@@ -2,6 +2,7 @@ package net.bradbal.teetimecaddie.core.storage.documents
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.bradball.teetimecaddie.core.models.TeeTime
@@ -11,7 +12,9 @@ import net.bradball.teetimecaddie.core.models.TeeTime
 data class TeeTimeDocument(
     val createdBy: String,
     val course: String,
-    val dateTime: LocalDate
+    val date: LocalDate,
+    val time: LocalTime,
+    val numberOfPlayers: Int
 ) {
 
     @Transient
@@ -23,6 +26,8 @@ fun TeeTimeDocument.asModel(): TeeTime {
         id = id,
         createdBy = createdBy,
         course = course,
-        dateTime = dateTime
+        date = date,
+        time = time,
+        numberOfPlayers = numberOfPlayers
     )
 }

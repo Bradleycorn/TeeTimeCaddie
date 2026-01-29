@@ -51,6 +51,91 @@ fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
     }
 }
 
+
+/**
+ * The primary navigation display component for the TeeTime Caddie app.
+ *
+ * `TtcNavDisplay` wraps the androidx.navigation3 [NavDisplay] component and configures it with
+ * all navigation entries, entry decorators, and back navigation handling for the entire app.
+ * This is the central point where all feature module navigation entries are registered and
+ * wired together.
+ *
+ * ## Responsibilities
+ *
+ * This composable:
+ * - Registers all navigation entry definitions from feature modules
+ * - Wires up navigation callbacks between features
+ * - Configures entry decorators for state preservation and ViewModel scoping
+ * - Handles system back button navigation
+ *
+ * ## Navigation Entry Registration
+ *
+ * Navigation entries are defined in feature module extension functions and registered here
+ * via the `entryProvider` parameter. Each feature module provides its own entry definitions:
+ *
+ * ```kotlin
+ * entryProvider = entryProvider {
+ *     // Tee Times feature entries
+ *     teeTimesEntries(navigator)
+ *
+ *     // Auth feature entries with callbacks
+ *     authEntries(
+ *         onLoginClick = navigator::navigateToLogin,
+ *         onLoggedIn = { navigator.navigateToTeeTimesList(true) }
+ *     )
+ * }
+ * ```
+ *
+ * ## Entry Decorators
+ *
+ * Entry decorators enhance navigation entries with additional functionality:
+ *
+ * - **SaveableStateHolder**: Preserves Compose state across navigation (e.g., scroll position,
+ *   text field values) when navigating away and back to a destination
+ * - **ViewModelStore**: Provides proper ViewModel scoping per navigation entry, ensuring
+ *   ViewModels survive configuration changes but are cleared when the entry is removed from
+ *   the back stack
+ *
+ * ## Navigation Callback Wiring
+ *
+ * This is where navigation callbacks are connected between features. The Navigator instance
+ * is used to create lambda callbacks that are passed to feature entry definitions:
+ *
+ * ```kotlin
+ * authEntries(
+ *     onLoginClick = navigator::navigateToLogin,          // Method reference
+ *     onLoggedIn = { navigator.navigateToTeeTimesList(true) }  // Lambda wrapper
+ * )
+ * ```
+ *
+ * **Important**: Screen composables should never receive the Navigator instance directly.
+ * They should only receive these lambda callbacks, which are defined here and passed through
+ * the entry definitions.
+ *
+ * ## Usage
+ *
+ * This composable is typically used once in the app's root composable:
+ *
+ * ```kotlin
+ * @Composable
+ * fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
+ *     val navigator = rememberNavigator(TopLevelDestination.TEE_TIMES)
+ *
+ *     TtcNavDisplay(
+ *         navigator = navigator,
+ *         modifier = Modifier.blur(enabled = showLoadingScrim)
+ *     )
+ * }
+ * ```
+ *
+ * @param navigator The Navigator instance that manages navigation state and back stacks.
+ * @param modifier Optional modifier to apply to the navigation display (e.g., for loading overlays).
+ *
+ * @see Navigator
+ * @see NavDisplay
+ * @see authEntries
+ * @see teeTimesEntries
+ */
 @Composable
 fun TtcNavDisplay(navigator: Navigator, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
@@ -59,7 +144,7 @@ fun TtcNavDisplay(navigator: Navigator, modifier: Modifier = Modifier) {
             modifier = Modifier.weight(1F),
             onBack = { navigator.goBack() },
             entryProvider = entryProvider {
-                teeTimesEntries()
+                teeTimesEntries(navigator)
                 authEntries(
                     onLoginClick = navigator::navigateToLogin,
                     onRegisterClick = navigator::navigateToRegistration,

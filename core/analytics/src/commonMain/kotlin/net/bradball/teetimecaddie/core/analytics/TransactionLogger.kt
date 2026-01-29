@@ -1,5 +1,58 @@
 package net.bradball.teetimecaddie.core.analytics
 
+/**
+ * Interface for logging performance transactions in the analytics system.
+ *
+ * `TransactionLogger` provides methods to track the duration and metrics of significant operations
+ * in the application. Transactions help identify performance bottlenecks and monitor the health
+ * of critical user flows.
+ *
+ * ## Usage
+ *
+ * Transactions are accessed through `EventManager`, which delegates to registered plugins that
+ * implement this interface:
+ *
+ * !!!kotlin
+ * // Start timing an operation
+ * eventManager.startTransaction("load_user_data")
+ *
+ * // Perform the operation
+ * try {
+ *     loadDataFromNetwork()
+ *     eventManager.incrementPerformanceEvent("load_user_data", "network_calls", 1)
+ *     processData()
+ *     eventManager.logPerformanceAttribute("load_user_data", "data_source", "cache")
+ * } finally {
+ *     // Always stop the transaction
+ *     eventManager.stopTransaction("load_user_data")
+ * }
+ * !!!
+ *
+ * ## Implementation Notes
+ *
+ * Implementers of this interface must handle several edge cases:
+ *
+ * - **Duplicate starts**: The same transaction may be started multiple times before being stopped.
+ *   Implementations should track active transactions and ignore duplicate start calls.
+ *
+ * - **Stopping without starting**: A transaction may be stopped without a corresponding start.
+ *   Implementations should validate that a transaction exists before stopping it.
+ *
+ * - **Duplicate stops**: A transaction may be stopped multiple times. Implementations should
+ *   ensure a transaction is only recorded once.
+ *
+ * ## Transaction Metrics
+ *
+ * In addition to timing, transactions can capture:
+ * - **Performance counters**: Track how many times specific events occur during the transaction
+ * - **Attributes**: Attach contextual string data to provide additional details
+ *
+ * @see EventManager.startTransaction
+ * @see EventManager.stopTransaction
+ * @see EventManager.incrementPerformanceEvent
+ * @see EventManager.logPerformanceAttribute
+ * @see EventManager.removePerformanceAttribute
+ */
 internal interface TransactionLogger {
 
     companion object { }

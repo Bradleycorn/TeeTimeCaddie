@@ -74,8 +74,6 @@ enum AppTabs: @MainActor TtcNavKey, Hashable {
         switch self {
         case .teeTimes:
             TeeTimesDestinations.teeTimesList.destinationView(navigator)
-                .navigationTitle(iconText)
-                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

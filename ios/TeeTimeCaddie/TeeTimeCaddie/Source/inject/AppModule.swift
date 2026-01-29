@@ -6,6 +6,15 @@ final class AppModule: SharedContainer {
     static let shared = AppModule()
     var manager = ContainerManager()
     
+    var teeTimeCaddieSdk: Factory<TeeTimeCaddieSdk> {
+        self {
+            if (!TeeTimeCaddieSdk.companion.isInitialized) {
+                TeeTimeCaddieSdk.companion.initialize(useLocalResources: IS_DEBUG_BUILD)
+            }
+            return TeeTimeCaddieSdk.companion.getInstance()
+        }.singleton
+    }
+    
     var eventManager: Factory<EventManager> {
         self {
             EventManager().also { e in

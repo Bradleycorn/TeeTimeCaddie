@@ -15,13 +15,11 @@ struct LoginScreen: View {
         self.onRegisterClick = onRegisterClick
     }
 
-    @StateObject
-    private var viewModel = LoginViewModel(
-        authRepo: AuthModule.shared.authRepository(),
-        eventManager: AppModule.shared.eventManager())
-    
+    @State
+    private var viewModel = LoginViewModel(authRepo: AuthModule.shared.authRepository())
+
     private let onRegisterClick: ()->Void
-    
+
     var body: some View {
         Login(
             isProcessing: viewModel.processingLogin,

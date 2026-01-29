@@ -1,16 +1,13 @@
 package net.bradball.teetimecaddie.android.ui.common.icons
 
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import net.bradball.teetimecaddie.android.R
 
-enum class Icons(val resource: Int) {
+enum class TtcIcons(val resource: Int) {
     ADD(R.drawable.icon_add),
+    ARROW_BACK(R.drawable.icon_arrow_back),
     ARROW_FORWARD(R.drawable.icon_arrow_forward),
     CALENDAR(R.drawable.icon_calendar),
     CALENDAR_CLOCK(R.drawable.icon_calendar_clock),
