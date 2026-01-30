@@ -18,11 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.core.models.TeeTime
+import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.core.models.previewTeeTime
+import net.bradball.teetimecaddie.core.models.previewTeeTimeList
 import net.bradball.teetimecaddie.core.models.shortDate
+import net.bradball.teetimecaddie.core.models.totalPlayers
 
 @Composable
 fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
@@ -65,6 +69,7 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                // Display all times in ascending order
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -76,14 +81,14 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = formatTime(teeTime.time),
+                        text = formatTimes(teeTime.times),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // Player count (right)
+            // Total player count (right)
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -95,7 +100,7 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = teeTime.numberOfPlayers.toString(),
+                    text = teeTime.totalPlayers.toString(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -104,7 +109,11 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
     }
 }
 
-private fun formatTime(time: kotlinx.datetime.LocalTime): String {
+private fun formatTimes(times: List<TeeTimeSlot>): String {
+    return times.sortedBy { it.time }.joinToString(", ") { formatTime(it.time) }
+}
+
+private fun formatTime(time: LocalTime): String {
     val hour = if (time.hour == 0) 12 else if (time.hour > 12) time.hour - 12 else time.hour
     val minute = time.minute.toString().padStart(2, '0')
     val amPm = if (time.hour < 12) "AM" else "PM"
@@ -116,5 +125,13 @@ private fun formatTime(time: kotlinx.datetime.LocalTime): String {
 fun TeeTimeCardPreview() {
     MyApplicationTheme {
         TeeTimeCard(previewTeeTime)
+    }
+}
+
+@Preview
+@Composable
+fun TeeTimeCardMultipleTimesPreview() {
+    MyApplicationTheme {
+        TeeTimeCard(previewTeeTimeList[1]) // This one has 2 times
     }
 }

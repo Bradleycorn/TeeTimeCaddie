@@ -36,7 +36,7 @@ struct TeeTimeRow: View {
                         .frame(width: 16, height: 16)
                         .foregroundColor(.secondary)
 
-                    Text(formattedTime)
+                    Text(formattedTimes)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -44,14 +44,14 @@ struct TeeTimeRow: View {
 
             Spacer()
 
-            // Player count (right)
+            // Total player count (right)
             HStack(spacing: 4) {
                 Image(.teeEmpty)
                     .resizable()
                     .frame(width: 20, height: 20)
                     .foregroundColor(.accentColor)
 
-                Text("\(teeTime.numberOfPlayers)")
+                Text("\(teeTime.totalPlayers)")
                     .font(.headline)
             }
         }
@@ -74,10 +74,16 @@ struct TeeTimeRow: View {
         return "\(monthName) \(teeTime.date.day)"
     }
 
-    private var formattedTime: String {
-        let hour = teeTime.time.hour == 0 ? 12 : (teeTime.time.hour > 12 ? teeTime.time.hour - 12 : teeTime.time.hour)
-        let minute = String(format: "%02d", teeTime.time.minute)
-        let amPm = teeTime.time.hour < 12 ? "AM" : "PM"
+    private var formattedTimes: String {
+        // Sort times and format each one
+        let sortedSlots = teeTime.times.sorted { compareLocalTime($0.time, $1.time) }
+        return sortedSlots.map { formatTime($0.time) }.joined(separator: ", ")
+    }
+
+    private func formatTime(_ time: LocalTime) -> String {
+        let hour = time.hour == 0 || time.hour == 12 ? 12 : Int(time.hour) % 12
+        let minute = String(format: "%02d", time.minute)
+        let amPm = time.hour < 12 ? "AM" : "PM"
         return "\(hour):\(minute) \(amPm)"
     }
 }

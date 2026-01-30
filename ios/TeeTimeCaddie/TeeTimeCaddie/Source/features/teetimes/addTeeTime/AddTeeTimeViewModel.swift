@@ -17,6 +17,9 @@ class AddTeeTimeViewModel {
     private(set) var showLoadingProgress: Bool = false
     private(set) var saveSuccess: Bool = false
 
+    /// List of tee time slots, sorted by time
+    private(set) var timeSlots: [TeeTimeSlot] = []
+
     init(
         teeTimesRepo: TeeTimesRepository = TeeTimesModule.shared.teeTimesRepository(),
         authRepo: AuthRepository = AuthModule.shared.authRepository()
@@ -25,26 +28,56 @@ class AddTeeTimeViewModel {
         self.authRepo = authRepo
     }
 
-    func saveTeeTime(courseName: String, selectedDate: Date, selectedTime: Date, numberOfPlayers: Int) {
-        
-        guard !courseName.isEmpty, numberOfPlayers > 0, selectedDate >= Date() else {
+    /// Adds a new time slot with the default number of players (4).
+    /// If the time already exists in the list, it will not be added.
+    /// - Parameter time: The time to add (as a Date).
+    /// - Returns: true if the time was added, false if it already existed.
+    @discardableResult
+    func addTimeSlot(time: Date) -> Bool {
+        let localTime = time.toLocalTime()
+
+        // Check if time already exists
+        if timeSlots.contains(where: { $0.time == localTime }) {
+            return false
+        }
+
+        let newSlot = TeeTimeSlot(time: localTime, numberOfPlayers: 4)
+        timeSlots.append(newSlot)
+        timeSlots.sort { compareLocalTime($0.time, $1.time) }
+        return true
+    }
+
+    /// Updates the number of players for a specific time slot.
+    /// - Parameters:
+    ///   - time: The LocalTime of the slot to update.
+    ///   - numberOfPlayers: The new number of players (1-4).
+    func updatePlayerCount(time: LocalTime, numberOfPlayers: Int) {
+        guard let index = timeSlots.firstIndex(where: { $0.time == time }) else { return }
+        let clampedPlayers = min(max(numberOfPlayers, 1), 4)
+        timeSlots[index] = TeeTimeSlot(time: time, numberOfPlayers: Int32(clampedPlayers))
+    }
+
+    /// Saves the tee time with all added time slots.
+    /// - Parameters:
+    ///   - courseName: The name of the golf course.
+    ///   - selectedDate: The date of the tee time.
+    func saveTeeTime(courseName: String, selectedDate: Date) {
+        guard !courseName.isEmpty, !timeSlots.isEmpty else {
             return
         }
-                    
+
         Task {
             showLoadingProgress = true
             defer { showLoadingProgress = false }
 
             do {
                 let localDate = selectedDate.toLocalDate()
-                let localTime = selectedTime.toLocalTime()
 
                 _ = try await teeTimesRepo.createTeeTime(
                     createdBy: authRepo.currentUser.id,
                     course: courseName,
                     date: localDate,
-                    time: localTime,
-                    numberOfPlayers: Int32(numberOfPlayers)
+                    times: timeSlots
                 )
 
                 saveSuccess = true
@@ -57,7 +90,7 @@ class AddTeeTimeViewModel {
 }
 
 // MARK: - Date Conversion Extensions
-private extension Date {
+extension Date {
     func toLocalDate() -> LocalDate {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month, .day], from: self)
@@ -78,4 +111,15 @@ private extension Date {
             nanosecond: 0
         )
     }
+}
+
+// MARK: - LocalTime Comparison Helper
+
+/// Compares two LocalTime values for sorting purposes.
+/// Returns true if the first time is before the second time.
+func compareLocalTime(_ lhs: LocalTime, _ rhs: LocalTime) -> Bool {
+    if lhs.hour != rhs.hour {
+        return lhs.hour < rhs.hour
+    }
+    return lhs.minute < rhs.minute
 }
