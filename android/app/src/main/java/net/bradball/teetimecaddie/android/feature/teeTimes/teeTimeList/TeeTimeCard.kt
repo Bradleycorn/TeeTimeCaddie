@@ -25,8 +25,6 @@ import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.core.models.previewTeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTimeList
-import net.bradball.teetimecaddie.core.models.shortDate
-import net.bradball.teetimecaddie.core.models.totalPlayers
 
 @Composable
 fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {

@@ -25,20 +25,18 @@ data class TeeTime(
     val course: String,
     val date: LocalDate,
     val times: List<TeeTimeSlot>
-)
+) {
 
-/**
- * Returns the total number of players across all time slots.
- */
-val TeeTime.totalPlayers: Int
-    get() = times.sumOf { it.numberOfPlayers }
+    /**
+     * Returns the total number of players across all time slots.
+     */
+    val totalPlayers: Int = times.sumOf { it.numberOfPlayers }
 
-/**
- * Returns a short date representation (e.g., "JAN\n15")
- */
-val TeeTime.shortDate: String
-    get() = "${date.month.name.take(3)}\n${date.dayOfMonth}"
-
+    /**
+     * Returns a short date representation (e.g., "JAN\n15")
+     */
+    val shortDate: String = "${date.month.name.take(3)}\n${date.day}"
+}
 val previewTeeTimeSlot = TeeTimeSlot(
     time = LocalTime(9, 0),
     numberOfPlayers = 4
