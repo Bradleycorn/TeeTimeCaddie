@@ -162,18 +162,10 @@ fileprivate struct TimeSlotRow: View {
     let slot: TeeTimeSlot
     let onUpdatePlayerCount: (Int) -> Void
 
-    private var formattedTime: String {
-        let hour = slot.time.hour
-        let minute = slot.time.minute
-        let displayHour = hour == 0 || hour == 12 ? 12 : hour % 12
-        let amPm = hour < 12 ? "AM" : "PM"
-        return String(format: "%d:%02d %@", displayHour, minute, amPm)
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Time display
-            Text(formattedTime)
+            // Time display - uses the shared formattedTime property from KMP
+            Text(slot.time.formattedTime)
                 .font(.headline)
 
             // Player count slider

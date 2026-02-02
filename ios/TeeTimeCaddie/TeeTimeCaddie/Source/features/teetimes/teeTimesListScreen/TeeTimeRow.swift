@@ -36,7 +36,8 @@ struct TeeTimeRow: View {
                         .frame(width: 16, height: 16)
                         .foregroundColor(.secondary)
 
-                    Text(formattedTimes)
+                    // Uses the shared formattedTimes property from KMP
+                    Text(teeTime.formattedTimes)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -74,18 +75,6 @@ struct TeeTimeRow: View {
         return "\(monthName) \(teeTime.date.day)"
     }
 
-    private var formattedTimes: String {
-        // Sort times and format each one
-        let sortedSlots = teeTime.times.sorted { compareLocalTime($0.time, $1.time) }
-        return sortedSlots.map { formatTime($0.time) }.joined(separator: ", ")
-    }
-
-    private func formatTime(_ time: LocalTime) -> String {
-        let hour = time.hour == 0 || time.hour == 12 ? 12 : Int(time.hour) % 12
-        let minute = String(format: "%02d", time.minute)
-        let amPm = time.hour < 12 ? "AM" : "PM"
-        return "\(hour):\(minute) \(amPm)"
-    }
 }
 
 // Extension to convert Kotlin LocalDate to Swift Date

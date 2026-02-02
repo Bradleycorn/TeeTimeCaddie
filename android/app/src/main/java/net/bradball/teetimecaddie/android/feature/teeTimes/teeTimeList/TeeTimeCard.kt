@@ -18,11 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.core.models.TeeTime
-import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.core.models.previewTeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTimeList
 
@@ -79,7 +77,7 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = formatTimes(teeTime.times),
+                        text = teeTime.formattedTimes,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -105,17 +103,6 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
             }
         }
     }
-}
-
-private fun formatTimes(times: List<TeeTimeSlot>): String {
-    return times.sortedBy { it.time }.joinToString(", ") { formatTime(it.time) }
-}
-
-private fun formatTime(time: LocalTime): String {
-    val hour = if (time.hour == 0) 12 else if (time.hour > 12) time.hour - 12 else time.hour
-    val minute = time.minute.toString().padStart(2, '0')
-    val amPm = if (time.hour < 12) "AM" else "PM"
-    return "$hour:$minute $amPm"
 }
 
 @Preview

@@ -6,6 +6,7 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import kotlin.time.ExperimentalTime
+import net.bradball.teetimecaddie.core.extensions.formattedTime
 
 /**
  * Represents a single tee time slot with a specific time and number of players.
@@ -36,6 +37,14 @@ data class TeeTime(
      * Returns a short date representation (e.g., "JAN\n15")
      */
     val shortDate: String = "${date.month.name.take(3)}\n${date.day}"
+
+    /**
+     * Returns a comma-separated string of all times in ascending order.
+     * Example: "9:00 AM, 9:10 AM, 9:20 AM"
+     */
+    val formattedTimes: String = times
+        .sortedBy { it.time }
+        .joinToString(", ") { it.time.formattedTime }
 }
 val previewTeeTimeSlot = TeeTimeSlot(
     time = LocalTime(9, 0),

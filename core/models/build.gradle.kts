@@ -24,6 +24,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             api(libs.mokoresources.api)
             implementation(project(":core:analytics"))
+            implementation(project(":core:extensions"))
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

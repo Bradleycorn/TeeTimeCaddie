@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -21,10 +20,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,10 +37,12 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.TtcDatePicker
+import net.bradball.teetimecaddie.android.ui.common.TtcTimePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingButton
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.rememberTtcDatePickerState
 import net.bradball.teetimecaddie.android.ui.common.selectedDate
+import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.core.models.GR
 import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.core.models.previewTeeTimeSlotList
@@ -143,7 +141,7 @@ private fun AddTeeTimeContent(
 
     // Time Picker Dialog
     if (showTimePickerDialog) {
-        AddTimePickerDialog(
+        TtcTimePickerDialog(
             onDismiss = { showTimePickerDialog = false },
             onTimeSelected = { time ->
                 onAddTimeSlot(time)
@@ -202,7 +200,7 @@ private fun TimeSlotRow(
     Column {
         // Time display
         Text(
-            text = formatTime(slot.time),
+            text = slot.time.formattedTime,
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -231,46 +229,6 @@ private fun TimeSlotRow(
             )
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddTimePickerDialog(
-    onDismiss: () -> Unit,
-    onTimeSelected: (LocalTime) -> Unit
-) {
-    val timePickerState = rememberTimePickerState(
-        initialHour = 9,
-        initialMinute = 0,
-        is24Hour = false
-    )
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onTimeSelected(LocalTime(timePickerState.hour, timePickerState.minute))
-                }
-            ) {
-                Text(stringResource(GR.strings.ok.resourceId))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(GR.strings.cancel.resourceId))
-            }
-        },
-        text = {
-            TimeInput(state = timePickerState)
-        }
-    )
-}
-
-private fun formatTime(time: LocalTime): String {
-    val hour = if (time.hour == 0 || time.hour == 12) 12 else time.hour % 12
-    val amPm = if (time.hour < 12) "AM" else "PM"
-    return "$hour:${time.minute.toString().padStart(2, '0')} $amPm"
 }
 
 @Preview(showBackground = true)

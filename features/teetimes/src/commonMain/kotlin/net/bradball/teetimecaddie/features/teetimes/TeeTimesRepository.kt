@@ -6,7 +6,6 @@ import kotlinx.datetime.LocalDate
 import net.bradbal.teetimecaddie.core.storage.TeeTimeStorage
 import net.bradbal.teetimecaddie.core.storage.documents.TeeTimeDocument
 import net.bradbal.teetimecaddie.core.storage.documents.TeeTimeSlotDocument
-import net.bradbal.teetimecaddie.core.storage.documents.toModel
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.TeeTime
