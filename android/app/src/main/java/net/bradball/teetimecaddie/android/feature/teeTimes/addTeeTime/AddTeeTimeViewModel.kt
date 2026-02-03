@@ -74,11 +74,12 @@ class AddTeeTimeViewModel @Inject constructor(
     }
 
     /**
-     * Removes a time slot from the list.
+     * Removes a time slot from the list and logs the analytics event.
      *
      * @param time The time of the slot to remove.
      */
     fun removeTimeSlot(time: LocalTime) {
+        eventManager.logEvent(AnalyticsEvent.RemoveTimeClick)
         _timeSlots.removeAll { it.time == time }
     }
 

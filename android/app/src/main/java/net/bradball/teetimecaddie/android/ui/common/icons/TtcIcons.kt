@@ -14,6 +14,7 @@ enum class TtcIcons(val resource: Int) {
     TEE(R.drawable.icon_tee),
     TEE_CLOCK(R.drawable.icon_tee_clock),
     TEE_STRIKE(R.drawable.icon_strikethrough),
+    TRASH(R.drawable.icon_trash),
     VISIBILITY(R.drawable.icon_visibility),
     VISIBILITY_OFF(R.drawable.icon_visibility_off);
 

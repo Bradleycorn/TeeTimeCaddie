@@ -67,6 +67,7 @@ fun AddTeeTimeScreen(
         onAddTimeClick = viewModel::onAddTimeClick,
         onAddTimeSlot = viewModel::addTimeSlot,
         onUpdatePlayerCount = viewModel::updatePlayerCount,
+        onRemoveTimeSlot = viewModel::removeTimeSlot,
         onSaveClick = viewModel::saveTeeTime,
         onBackClick = onBack
     )
@@ -80,6 +81,7 @@ private fun AddTeeTimeContent(
     onAddTimeClick: () -> Unit,
     onAddTimeSlot: (LocalTime) -> Boolean,
     onUpdatePlayerCount: (LocalTime, Int) -> Unit,
+    onRemoveTimeSlot: (LocalTime) -> Unit,
     onSaveClick: (String, LocalDate?) -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -128,7 +130,8 @@ private fun AddTeeTimeContent(
                     onAddTimeClick()
                     showTimePickerDialog = true
                 },
-                onUpdatePlayerCount = onUpdatePlayerCount
+                onUpdatePlayerCount = onUpdatePlayerCount,
+                onRemoveTimeSlot = onRemoveTimeSlot
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -160,7 +163,8 @@ private fun AddTeeTimeContent(
 private fun TeeTimesSection(
     timeSlots: List<TeeTimeSlot>,
     onAddTimeClick: () -> Unit,
-    onUpdatePlayerCount: (LocalTime, Int) -> Unit
+    onUpdatePlayerCount: (LocalTime, Int) -> Unit,
+    onRemoveTimeSlot: (LocalTime) -> Unit
 ) {
     Column {
         // Section Header
@@ -176,7 +180,8 @@ private fun TeeTimesSection(
             timeSlots.forEach { slot ->
                 TimeSlotRow(
                     slot = slot,
-                    onUpdatePlayerCount = { players -> onUpdatePlayerCount(slot.time, players) }
+                    onUpdatePlayerCount = { players -> onUpdatePlayerCount(slot.time, players) },
+                    onRemove = { onRemoveTimeSlot(slot.time) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             }
@@ -200,16 +205,27 @@ private fun TeeTimesSection(
 @Composable
 private fun TimeSlotRow(
     slot: TeeTimeSlot,
-    onUpdatePlayerCount: (Int) -> Unit
+    onUpdatePlayerCount: (Int) -> Unit,
+    onRemove: () -> Unit
 ) {
     Column {
-        // Time display
-        Text(
-            text = slot.time.formattedTime,
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
+        // Time display with trash icon
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = slot.time.formattedTime,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onRemove) {
+                Icon(
+                    TtcIcons.TRASH.painter,
+                    contentDescription = stringResource(GR.strings.delete.resourceId),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
 
         // Player count slider
         Row(
@@ -246,6 +262,7 @@ private fun AddTeeTimeContentPreview() {
             onAddTimeClick = { },
             onAddTimeSlot = { true },
             onUpdatePlayerCount = { _, _ -> },
+            onRemoveTimeSlot = { },
             onSaveClick = { _, _ -> },
             onBackClick = { }
         )
@@ -262,6 +279,7 @@ private fun AddTeeTimeContentWithTimesPreview() {
             onAddTimeClick = { },
             onAddTimeSlot = { true },
             onUpdatePlayerCount = { _, _ -> },
+            onRemoveTimeSlot = { },
             onSaveClick = { _, _ -> },
             onBackClick = { }
         )

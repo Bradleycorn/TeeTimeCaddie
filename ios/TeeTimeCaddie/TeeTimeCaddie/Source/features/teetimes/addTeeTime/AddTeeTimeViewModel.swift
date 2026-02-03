@@ -67,6 +67,13 @@ class AddTeeTimeViewModel {
         eventManager.logEvent(event: AnalyticsEvent.NumberOfPlayersClick(numberOfPlayers: Int32(clampedPlayers)))
     }
 
+    /// Removes a time slot from the list and logs the analytics event.
+    /// - Parameter time: The LocalTime of the slot to remove.
+    func removeTimeSlot(time: LocalTime) {
+        eventManager.logEvent(event: AnalyticsEvent.RemoveTimeClick())
+        timeSlots.removeAll { $0.time == time }
+    }
+
     /// Saves the tee time with all added time slots.
     /// - Parameters:
     ///   - courseName: The name of the golf course.

@@ -44,6 +44,7 @@ struct AddTeeTimeScreen: View {
                     showTimePicker = true
                 },
                 onUpdatePlayerCount: viewModel.updatePlayerCount,
+                onRemoveTimeSlot: viewModel.removeTimeSlot,
                 onSave: {
                     viewModel.saveTeeTime(
                         courseName: courseName,
@@ -79,6 +80,7 @@ fileprivate struct AddTeeTimeContent: View {
     let isLoading: Bool
     let onAddTimeClick: () -> Void
     let onUpdatePlayerCount: (LocalTime, Int) -> Void
+    let onRemoveTimeSlot: (LocalTime) -> Void
     let onSave: () -> Void
 
     private var canSave: Bool {
@@ -105,7 +107,8 @@ fileprivate struct AddTeeTimeContent: View {
                 TeeTimesSection(
                     timeSlots: timeSlots,
                     onAddTimeClick: onAddTimeClick,
-                    onUpdatePlayerCount: onUpdatePlayerCount
+                    onUpdatePlayerCount: onUpdatePlayerCount,
+                    onRemoveTimeSlot: onRemoveTimeSlot
                 )
                 .padding(.horizontal)
 
@@ -128,6 +131,7 @@ fileprivate struct TeeTimesSection: View {
     let timeSlots: [TeeTimeSlot]
     let onAddTimeClick: () -> Void
     let onUpdatePlayerCount: (LocalTime, Int) -> Void
+    let onRemoveTimeSlot: (LocalTime) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -141,6 +145,9 @@ fileprivate struct TeeTimesSection: View {
                     slot: slot,
                     onUpdatePlayerCount: { players in
                         onUpdatePlayerCount(slot.time, players)
+                    },
+                    onRemove: {
+                        onRemoveTimeSlot(slot.time)
                     }
                 )
                 Divider()
@@ -164,12 +171,24 @@ fileprivate struct TeeTimesSection: View {
 fileprivate struct TimeSlotRow: View {
     let slot: TeeTimeSlot
     let onUpdatePlayerCount: (Int) -> Void
+    let onRemove: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Time display - uses the shared formattedTime property from KMP
-            Text(slot.time.formattedTime)
-                .font(.headline)
+            // Time display with trash icon
+            HStack {
+                Text(slot.time.formattedTime)
+                    .font(.headline)
+
+                Spacer()
+
+                Button(action: onRemove) {
+                    Image("icons/trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(GR.strings().delete.desc().localized())
+            }
 
             // Player count slider
             HStack {
@@ -266,6 +285,7 @@ fileprivate struct AddTeeTimeContentPreviewWrapper: View {
             isLoading: false,
             onAddTimeClick: {},
             onUpdatePlayerCount: { _, _ in },
+            onRemoveTimeSlot: { _ in },
             onSave: {}
         )
     }
