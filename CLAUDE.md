@@ -690,7 +690,8 @@ When asked to address PR feedback, follow this system:
 
 Before writing custom code to work around a perceived limitation (especially in KMP/Swift interop), verify the assumption first:
 
-1. **Check what already exists** - Before writing a helper/extension, ask: "Does something like this already exist?" Common operations (comparison, formatting, conversion) often have built-in solutions.
+1. **Check what already exists**
+   - For swift/kotlin interop issus: Look at the generated Swift code and headers to see what is available. 
 
 2. **Verify SKIE behavior** - SKIE exposes many Kotlin features to Swift that might not be obvious:
    - `Comparable` types expose `compareTo()` methods in Swift
@@ -700,7 +701,9 @@ Before writing custom code to work around a perceived limitation (especially in 
 
 3. **Test before implementing** - If you think a Kotlin method/property isn't available in Swift, try using it first before writing a workaround. The compilation error (or success) will confirm your assumption.
 
-4. **Question platform-specific code** - If you find yourself writing iOS-only or Android-only code for something that seems like it should be shared, pause and investigate whether a shared solution already exists.
+4. **Ask** - Before writing a helper/extension, ask: "Does something like this already exist?" Common operations (comparison, formatting, conversion) often have built-in solutions.
+
+5. **Question platform-specific code** - If you find yourself writing iOS-only or Android-only code for something that seems like it should be shared, pause and investigate whether a shared solution already exists.
 
 ---
 
