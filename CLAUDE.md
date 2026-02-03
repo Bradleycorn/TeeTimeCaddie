@@ -589,6 +589,12 @@ When asked to address PR feedback, follow this system:
 - For "Comment" reviews, use judgment about what clearly needs fixing vs. what's discussion
 - **When uncertain, ask for clarification** - collaboration is key and git makes rollback easy
 
+**Discussion Comments:**
+- When a comment is marked "For discussion:", "Let's discuss:", "Question:", or uses similar exploratory language, do NOT immediately implement changes
+- Instead, reply to the PR comment directly (using `gh api` or `gh pr comment`) with analysis and thoughts
+- Wait for the user's response before making any code changes
+- This creates a documented record of architectural decisions in the PR for future reference
+
 **Process for Addressing PR Feedback:**
 1. Fetch PR details: `gh pr view <pr-number>`
 2. Read all "Request Changes" reviews and their comments
