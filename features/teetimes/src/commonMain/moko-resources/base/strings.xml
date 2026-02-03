@@ -10,4 +10,10 @@
     <string name="field_Label_Time">Time</string>
     <string name="field_Label_Players">Number of Players</string>
     <string name="button_create">Create</string>
+
+    <!-- Multiple tee times -->
+    <string name="tee_times_section_header">Tee Times</string>
+    <string name="add_time_button">Add Time</string>
+    <string name="players_label">Players</string>
+    <string name="validation_at_least_one_time">At least one tee time is required</string>
 </resources>

@@ -589,6 +589,12 @@ When asked to address PR feedback, follow this system:
 - For "Comment" reviews, use judgment about what clearly needs fixing vs. what's discussion
 - **When uncertain, ask for clarification** - collaboration is key and git makes rollback easy
 
+**Discussion Comments:**
+- When a comment is marked "For discussion:", "Let's discuss:", "Question:", or uses similar exploratory language, do NOT immediately implement changes
+- Instead, reply to the PR comment directly (using `gh api` or `gh pr comment`) with analysis and thoughts
+- Wait for the user's response before making any code changes
+- This creates a documented record of architectural decisions in the PR for future reference
+
 **Process for Addressing PR Feedback:**
 1. Fetch PR details: `gh pr view <pr-number>`
 2. Read all "Request Changes" reviews and their comments
@@ -679,6 +685,25 @@ When asked to address PR feedback, follow this system:
 - Check expect/actual implementations match
 - Verify platform-specific dependencies in build.gradle.kts
 - Ensure SKIE plugin is applied for iOS interop
+
+## Verifying Assumptions Before Writing Workarounds
+
+Before writing custom code to work around a perceived limitation (especially in KMP/Swift interop), verify the assumption first:
+
+1. **Check what already exists**
+   - For swift/kotlin interop issus: Look at the generated Swift code and headers to see what is available. 
+
+2. **Verify SKIE behavior** - SKIE exposes many Kotlin features to Swift that might not be obvious:
+   - `Comparable` types expose `compareTo()` methods in Swift
+   - Kotlin Flows become Swift AsyncSequences
+   - Sealed classes get proper Swift enum-like handling
+   - Check SKIE documentation (https://skie.touchlab.co) when unsure
+
+3. **Test before implementing** - If you think a Kotlin method/property isn't available in Swift, try using it first before writing a workaround. The compilation error (or success) will confirm your assumption.
+
+4. **Ask** - Before writing a helper/extension, ask: "Does something like this already exist?" Common operations (comparison, formatting, conversion) often have built-in solutions.
+
+5. **Question platform-specific code** - If you find yourself writing iOS-only or Android-only code for something that seems like it should be shared, pause and investigate whether a shared solution already exists.
 
 ---
 

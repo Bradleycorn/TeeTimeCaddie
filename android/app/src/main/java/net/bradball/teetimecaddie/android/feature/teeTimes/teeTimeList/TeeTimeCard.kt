@@ -22,7 +22,7 @@ import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTime
-import net.bradball.teetimecaddie.core.models.shortDate
+import net.bradball.teetimecaddie.core.models.previewTeeTimeList
 
 @Composable
 fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
@@ -65,6 +65,7 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                // Display all times in ascending order
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -76,14 +77,14 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = formatTime(teeTime.time),
+                        text = teeTime.formattedTimes,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // Player count (right)
+            // Total player count (right)
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -95,7 +96,7 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = teeTime.numberOfPlayers.toString(),
+                    text = teeTime.totalPlayers.toString(),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -104,17 +105,18 @@ fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
     }
 }
 
-private fun formatTime(time: kotlinx.datetime.LocalTime): String {
-    val hour = if (time.hour == 0) 12 else if (time.hour > 12) time.hour - 12 else time.hour
-    val minute = time.minute.toString().padStart(2, '0')
-    val amPm = if (time.hour < 12) "AM" else "PM"
-    return "$hour:$minute $amPm"
-}
-
 @Preview
 @Composable
 fun TeeTimeCardPreview() {
     MyApplicationTheme {
         TeeTimeCard(previewTeeTime)
+    }
+}
+
+@Preview
+@Composable
+fun TeeTimeCardMultipleTimesPreview() {
+    MyApplicationTheme {
+        TeeTimeCard(previewTeeTimeList[1]) // This one has 2 times
     }
 }

@@ -1,7 +1,7 @@
 package net.bradball.teetimecaddie.android.feature.teeTimes.addTeeTime
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -10,9 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.analytics.EventManager
-import net.bradball.teetimecaddie.core.analytics.ScreenType
+import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.teetimes.TeeTimesRepository
 import javax.inject.Inject
@@ -20,8 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AddTeeTimeViewModel @Inject constructor(
     private val teeTimesRepo: TeeTimesRepository,
-    private val authRepo: AuthRepository,
-    private val eventManager: EventManager
+    private val authRepo: AuthRepository
 ): ViewModel() {
 
     // UI state
@@ -31,8 +28,55 @@ class AddTeeTimeViewModel @Inject constructor(
     var saveSuccess: Boolean by mutableStateOf(false)
         private set
 
-    fun saveTeeTime(courseName: String, date: LocalDate?, time: LocalTime?, players: Int) {
-        if (date == null || time == null) return
+    // List of tee time slots
+    private val _timeSlots = mutableStateListOf<TeeTimeSlot>()
+    val timeSlots: List<TeeTimeSlot> get() = _timeSlots.sortedBy { it.time }
+
+    /**
+     * Adds a new time slot with the default number of players (4).
+     * If the time already exists in the list, it will not be added.
+     *
+     * @param time The time to add.
+     * @return true if the time was added, false if it already existed.
+     */
+    fun addTimeSlot(time: LocalTime): Boolean {
+        if (_timeSlots.any { it.time == time }) {
+            return false
+        }
+        _timeSlots.add(TeeTimeSlot(time = time, numberOfPlayers = 4))
+        return true
+    }
+
+    /**
+     * Updates the number of players for a specific time slot.
+     *
+     * @param time The time of the slot to update.
+     * @param numberOfPlayers The new number of players (1-4).
+     */
+    fun updatePlayerCount(time: LocalTime, numberOfPlayers: Int) {
+        val index = _timeSlots.indexOfFirst { it.time == time }
+        if (index != -1) {
+            _timeSlots[index] = _timeSlots[index].copy(numberOfPlayers = numberOfPlayers.coerceIn(1, 4))
+        }
+    }
+
+    /**
+     * Removes a time slot from the list.
+     *
+     * @param time The time of the slot to remove.
+     */
+    fun removeTimeSlot(time: LocalTime) {
+        _timeSlots.removeAll { it.time == time }
+    }
+
+    /**
+     * Saves the tee time with all added time slots.
+     *
+     * @param courseName The name of the golf course.
+     * @param date The date of the tee time.
+     */
+    fun saveTeeTime(courseName: String, date: LocalDate?) {
+        if (date == null || _timeSlots.isEmpty()) return
         viewModelScope.launch {
             showLoadingProgress = true
             try {
@@ -40,8 +84,7 @@ class AddTeeTimeViewModel @Inject constructor(
                     createdBy = authRepo.currentUser.id,
                     course = courseName,
                     date = date,
-                    time = time,
-                    numberOfPlayers = players
+                    times = _timeSlots.toList()
                 )
                 saveSuccess = true
             } finally {
