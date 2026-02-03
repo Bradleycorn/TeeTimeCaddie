@@ -43,7 +43,7 @@ class AddTeeTimeViewModel {
 
         let newSlot = TeeTimeSlot(time: localTime, numberOfPlayers: 4)
         timeSlots.append(newSlot)
-        timeSlots.sort { compareLocalTime($0.time, $1.time) }
+        timeSlots.sort { $0.time.compareTo(other: $1.time) < 0 }
         return true
     }
 
@@ -113,13 +113,3 @@ extension Date {
     }
 }
 
-// MARK: - LocalTime Comparison Helper
-
-/// Compares two LocalTime values for sorting purposes.
-/// Returns true if the first time is before the second time.
-func compareLocalTime(_ lhs: LocalTime, _ rhs: LocalTime) -> Bool {
-    if lhs.hour != rhs.hour {
-        return lhs.hour < rhs.hour
-    }
-    return lhs.minute < rhs.minute
-}
