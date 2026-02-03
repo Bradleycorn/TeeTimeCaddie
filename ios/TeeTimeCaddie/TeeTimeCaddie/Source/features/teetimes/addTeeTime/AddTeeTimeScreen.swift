@@ -39,7 +39,10 @@ struct AddTeeTimeScreen: View {
                 selectedDate: $selectedDate,
                 timeSlots: viewModel.timeSlots,
                 isLoading: viewModel.showLoadingProgress,
-                onAddTimeClick: { showTimePicker = true },
+                onAddTimeClick: {
+                    viewModel.onAddTimeClick()
+                    showTimePicker = true
+                },
                 onUpdatePlayerCount: viewModel.updatePlayerCount,
                 onSave: {
                     viewModel.saveTeeTime(

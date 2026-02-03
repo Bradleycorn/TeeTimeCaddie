@@ -66,21 +66,25 @@ Build the KMP framework that the iOS app depends on:
 
 ## iOS App (Command line build using xcodebuild)
 
+**Note:** The `-destination` parameter can use any available iPhone simulator with iOS 17.0+.
+Use `xcrun simctl list devices available` to see available simulators and choose one that exists on your system.
+
 ** Build the app:**
 ```bash
 # Build for simulator (ARM - Apple Silicon Macs)
+# Replace the destination with any available iPhone simulator (iOS 17.0+)
 xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
   -scheme TeeTimeCaddie \
   -configuration Debug \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 15'
+  -destination 'platform=iOS Simulator,name=iPhone 16'
 
 # Build for simulator (x64 - Intel Macs)
 xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
   -scheme TeeTimeCaddie \
   -configuration Debug \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 15' \
+  -destination 'platform=iOS Simulator,name=iPhone 16' \
   -arch x86_64
 
 # Build for device
@@ -94,8 +98,8 @@ xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj \
 # List available simulators
 xcrun simctl list devices available
 
-# Boot a simulator (if not already running)
-xcrun simctl boot "iPhone 15"
+# Boot a simulator (if not already running) - use any available iPhone simulator
+xcrun simctl boot "iPhone 16"
 
 # Install and run the app
 xcrun simctl install booted path/to/TeeTimeCaddie.app
@@ -107,7 +111,7 @@ xcrun simctl launch booted net.bradball.teetimecaddie
 xcodebuild clean -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeTimeCaddie
 ```
 
-**Note:** The iOS app requires the KMP framework to be built first. Always run the appropriate `./gradlew linkDebugFramework...` command before building the iOS app.
+**Note:** The iOS app build process automatically builds the KMP framework as a build phase, so you do NOT need to run `./gradlew linkDebugFramework...` separately before building the app.
 
 ## Testing
 

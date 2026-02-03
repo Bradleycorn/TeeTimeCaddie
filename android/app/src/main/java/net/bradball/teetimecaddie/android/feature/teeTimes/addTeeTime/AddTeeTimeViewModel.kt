@@ -10,6 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.teetimes.TeeTimesRepository
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AddTeeTimeViewModel @Inject constructor(
     private val teeTimesRepo: TeeTimesRepository,
-    private val authRepo: AuthRepository
+    private val authRepo: AuthRepository,
+    private val eventManager: EventManager
 ): ViewModel() {
 
     // UI state
@@ -33,6 +36,13 @@ class AddTeeTimeViewModel @Inject constructor(
     val timeSlots: List<TeeTimeSlot> get() = _timeSlots.sortedBy { it.time }
 
     /**
+     * Logs the analytics event when the user clicks the "Add Time" button.
+     */
+    fun onAddTimeClick() {
+        eventManager.logEvent(AnalyticsEvent.AddTimeClick)
+    }
+
+    /**
      * Adds a new time slot with the default number of players (4).
      * If the time already exists in the list, it will not be added.
      *
@@ -44,6 +54,7 @@ class AddTeeTimeViewModel @Inject constructor(
             return false
         }
         _timeSlots.add(TeeTimeSlot(time = time, numberOfPlayers = 4))
+        eventManager.logEvent(AnalyticsEvent.AddTime)
         return true
     }
 
@@ -56,7 +67,9 @@ class AddTeeTimeViewModel @Inject constructor(
     fun updatePlayerCount(time: LocalTime, numberOfPlayers: Int) {
         val index = _timeSlots.indexOfFirst { it.time == time }
         if (index != -1) {
-            _timeSlots[index] = _timeSlots[index].copy(numberOfPlayers = numberOfPlayers.coerceIn(1, 4))
+            val clampedPlayers = numberOfPlayers.coerceIn(1, 4)
+            _timeSlots[index] = _timeSlots[index].copy(numberOfPlayers = clampedPlayers)
+            eventManager.logEvent(AnalyticsEvent.NumberOfPlayersClick(clampedPlayers))
         }
     }
 
