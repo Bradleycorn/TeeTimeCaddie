@@ -686,6 +686,22 @@ When asked to address PR feedback, follow this system:
 - Verify platform-specific dependencies in build.gradle.kts
 - Ensure SKIE plugin is applied for iOS interop
 
+## Verifying Assumptions Before Writing Workarounds
+
+Before writing custom code to work around a perceived limitation (especially in KMP/Swift interop), verify the assumption first:
+
+1. **Check what already exists** - Before writing a helper/extension, ask: "Does something like this already exist?" Common operations (comparison, formatting, conversion) often have built-in solutions.
+
+2. **Verify SKIE behavior** - SKIE exposes many Kotlin features to Swift that might not be obvious:
+   - `Comparable` types expose `compareTo()` methods in Swift
+   - Kotlin Flows become Swift AsyncSequences
+   - Sealed classes get proper Swift enum-like handling
+   - Check SKIE documentation (https://skie.touchlab.co) when unsure
+
+3. **Test before implementing** - If you think a Kotlin method/property isn't available in Swift, try using it first before writing a workaround. The compilation error (or success) will confirm your assumption.
+
+4. **Question platform-specific code** - If you find yourself writing iOS-only or Android-only code for something that seems like it should be shared, pause and investigate whether a shared solution already exists.
+
 ---
 
 # Key Architectural Concepts
