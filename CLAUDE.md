@@ -431,16 +431,16 @@ Follow all of the Steps in the sections below for EVERY Jira Issue that you impl
 1. Plan the work to be done:
    1. Read the full Issue, including Acceptance Criteria and Notes. 
    2. Make sure the Issue has proper sub-tasks:
-      a. If the Issue already has sub-tasks, read them to understand what to do and how to complete the implementation.
+      - If the Issue already has sub-tasks, read them to understand what to do and how to complete the implementation.
          - If the sub-tasks are not sufficient to complete the story, follow the rest of these instructions to complete the task list.
-     b. If the Issue does not have sub-tasks (or if the tasks aren't enough to fully implement the story):
+      - If the Issue does not have sub-tasks (or if the tasks aren't enough to fully implement the story):
         - Add appropriate sub-tasks to the Issue so that you or others can complete the Issue.
           - Keep sub-tasks fairly high level. Prefer defining 5-10 broad tasks to complete an Issue, instead of 20+ detailed tasks.
           - Tasks can have a list of steps in the task list if you want to provide detailed instructions for a task. However, this is not optional, not required.
-     c. Ask me to check and verify the sub-tasks before continuing.
-   3. Assign the Issue to yourself, and move it to the IN-PROGRESS step/column in Jira.
-   4. Ensure that the necessary git branches are setup, according to the "Branch Strategy" and "Workflow for Jira Issue Development" guidelines in the "Working with Github" section of this document.
-      a. If there are uncommited changes on the current branch, ask me what to do before continuing.
+2. **CHECKPOINT: Ask the user to check and verify the sub-tasks before continuing.**
+3. Assign the Issue to yourself, and move it to the IN-PROGRESS step/column in Jira.
+4. Ensure that the necessary git branches are setup, according to the "Branch Strategy" and "Workflow for Jira Issue Development" guidelines in the "Working with Github" section of this document.
+      - If there are uncommited changes on the current branch, ask me what to do before continuing.
 
 ## Writing Code to Implement the Issue
 
