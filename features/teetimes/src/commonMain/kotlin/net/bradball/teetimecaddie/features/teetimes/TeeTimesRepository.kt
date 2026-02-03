@@ -34,8 +34,6 @@ class TeeTimesRepository(
         date: LocalDate,
         times: List<TeeTimeSlot>
     ): TeeTime {
-        eventManager.logEvent(AnalyticsEvent.AddTeeTime)
-
         val sortedTimes = times.sortedBy { it.time }
         val doc = TeeTimeDocument(
             createdBy = createdBy,
@@ -49,6 +47,13 @@ class TeeTimesRepository(
             }
         )
         doc.id = teeTimeStorage.addTeeTime(doc)
+
+        val totalPlayers = times.fold(0) { total, slot ->
+            total + slot.numberOfPlayers
+        }
+
+        eventManager.logEvent(AnalyticsEvent.AddTeeTime(times.count(), totalPlayers))
+
         return doc.toModel()
     }
 

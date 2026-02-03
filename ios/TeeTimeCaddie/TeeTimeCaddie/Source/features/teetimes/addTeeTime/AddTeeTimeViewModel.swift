@@ -13,6 +13,7 @@ import Factory
 class AddTeeTimeViewModel {
     private let teeTimesRepo: TeeTimesRepository
     private let authRepo: AuthRepository
+    private let eventManager: EventManager
 
     private(set) var showLoadingProgress: Bool = false
     private(set) var saveSuccess: Bool = false
@@ -22,10 +23,17 @@ class AddTeeTimeViewModel {
 
     init(
         teeTimesRepo: TeeTimesRepository = TeeTimesModule.shared.teeTimesRepository(),
-        authRepo: AuthRepository = AuthModule.shared.authRepository()
+        authRepo: AuthRepository = AuthModule.shared.authRepository(),
+        eventManager: EventManager = AppModule.shared.eventManager()
     ) {
         self.teeTimesRepo = teeTimesRepo
         self.authRepo = authRepo
+        self.eventManager = eventManager
+    }
+
+    /// Logs the analytics event when the user clicks the "Add Time" button.
+    func onAddTimeClick() {
+        eventManager.logEvent(event: AnalyticsEvent.AddTimeClick())
     }
 
     /// Adds a new time slot with the default number of players (4).
@@ -44,6 +52,7 @@ class AddTeeTimeViewModel {
         let newSlot = TeeTimeSlot(time: localTime, numberOfPlayers: 4)
         timeSlots.append(newSlot)
         timeSlots.sort { $0.time.compareTo(other: $1.time) < 0 }
+        eventManager.logEvent(event: AnalyticsEvent.AddTime())
         return true
     }
 
@@ -55,6 +64,7 @@ class AddTeeTimeViewModel {
         guard let index = timeSlots.firstIndex(where: { $0.time == time }) else { return }
         let clampedPlayers = min(max(numberOfPlayers, 1), 4)
         timeSlots[index] = TeeTimeSlot(time: time, numberOfPlayers: Int32(clampedPlayers))
+        eventManager.logEvent(event: AnalyticsEvent.NumberOfPlayersClick(numberOfPlayers: Int32(clampedPlayers)))
     }
 
     /// Saves the tee time with all added time slots.

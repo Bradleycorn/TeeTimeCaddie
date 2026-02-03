@@ -64,6 +64,7 @@ fun AddTeeTimeScreen(
     AddTeeTimeContent(
         showLoadingProgress = viewModel.showLoadingProgress,
         timeSlots = viewModel.timeSlots,
+        onAddTimeClick = viewModel::onAddTimeClick,
         onAddTimeSlot = viewModel::addTimeSlot,
         onUpdatePlayerCount = viewModel::updatePlayerCount,
         onSaveClick = viewModel::saveTeeTime,
@@ -76,6 +77,7 @@ fun AddTeeTimeScreen(
 private fun AddTeeTimeContent(
     showLoadingProgress: Boolean,
     timeSlots: List<TeeTimeSlot>,
+    onAddTimeClick: () -> Unit,
     onAddTimeSlot: (LocalTime) -> Boolean,
     onUpdatePlayerCount: (LocalTime, Int) -> Unit,
     onSaveClick: (String, LocalDate?) -> Unit,
@@ -122,7 +124,10 @@ private fun AddTeeTimeContent(
             // Tee Times Section
             TeeTimesSection(
                 timeSlots = timeSlots,
-                onAddTimeClick = { showTimePickerDialog = true },
+                onAddTimeClick = {
+                    onAddTimeClick()
+                    showTimePickerDialog = true
+                },
                 onUpdatePlayerCount = onUpdatePlayerCount
             )
 
@@ -238,6 +243,7 @@ private fun AddTeeTimeContentPreview() {
         AddTeeTimeContent(
             showLoadingProgress = false,
             timeSlots = emptyList(),
+            onAddTimeClick = { },
             onAddTimeSlot = { true },
             onUpdatePlayerCount = { _, _ -> },
             onSaveClick = { _, _ -> },
@@ -253,6 +259,7 @@ private fun AddTeeTimeContentWithTimesPreview() {
         AddTeeTimeContent(
             showLoadingProgress = false,
             timeSlots = previewTeeTimeSlotList,
+            onAddTimeClick = { },
             onAddTimeSlot = { true },
             onUpdatePlayerCount = { _, _ -> },
             onSaveClick = { _, _ -> },
