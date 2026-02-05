@@ -1,34 +1,72 @@
 //
-//  AddTeeTimeViewModel.swift
+//  EditTeeTimeViewModel.swift
 //  TeeTimeCaddie
-//
-//  Created by Bradley Ball on 1/10/26.
 //
 
 import Foundation
 import TeeTimeCaddieKit
-import Factory
 
 @Observable
-class AddTeeTimeViewModel {
+class EditTeeTimeViewModel {
     private let teeTimesRepo: TeeTimesRepository
     private let authRepo: AuthRepository
     private let eventManager: EventManager
+    private let teeTimeId: String
 
-    private(set) var showLoadingProgress: Bool = false
+    private(set) var isLoading: Bool = true
+    private(set) var showSavingProgress: Bool = false
     private(set) var saveSuccess: Bool = false
+
+    var courseName: String = ""
+    var selectedDate: Date = Date()
 
     /// List of tee time slots, sorted by time
     private(set) var timeSlots: [TeeTimeSlot] = []
 
+    /// Original tee time for comparison
+    private var originalTeeTime: TeeTime?
+
+    /// Track if any changes have been made
+    var hasChanges: Bool {
+        guard let original = originalTeeTime else { return false }
+        let originalDate = original.date.toDate()
+        let currentSortedSlots = timeSlots.sorted { $0.time.compareTo(other: $1.time) < 0 }
+        let originalSortedSlots = original.times.sorted { $0.time.compareTo(other: $1.time) < 0 }
+
+        return courseName != original.course ||
+            !Calendar.current.isDate(selectedDate, inSameDayAs: originalDate) ||
+            currentSortedSlots != originalSortedSlots
+    }
+
     init(
+        teeTimeId: String,
         teeTimesRepo: TeeTimesRepository = TeeTimesModule.shared.teeTimesRepository(),
         authRepo: AuthRepository = AuthModule.shared.authRepository(),
         eventManager: EventManager = AppModule.shared.eventManager()
     ) {
+        self.teeTimeId = teeTimeId
         self.teeTimesRepo = teeTimesRepo
         self.authRepo = authRepo
         self.eventManager = eventManager
+    }
+
+    func loadTeeTime() async {
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            for await teeTimes in teeTimesRepo.getTeeTimes(player: authRepo.currentUser.id) {
+                if let teeTime = teeTimes.first(where: { $0.id == teeTimeId }) {
+                    originalTeeTime = teeTime
+                    courseName = teeTime.course
+                    selectedDate = teeTime.date.toDate()
+                    timeSlots = Array(teeTime.times)
+                }
+                break // Only need the first emission
+            }
+        } catch {
+            print("Error loading tee time: \(error)")
+        }
     }
 
     /// Logs the analytics event when the user clicks the "Add Time" button.
@@ -74,32 +112,28 @@ class AddTeeTimeViewModel {
         timeSlots.removeAll { $0.time == time }
     }
 
-    /// Saves the tee time with all added time slots.
-    /// - Parameters:
-    ///   - courseName: The name of the golf course.
-    ///   - selectedDate: The date of the tee time.
-    func saveTeeTime(courseName: String, selectedDate: Date) {
-        guard !courseName.isEmpty, !timeSlots.isEmpty else {
-            return
-        }
+    /// Saves the updated tee time.
+    func saveTeeTime() {
+        guard !courseName.isEmpty, !timeSlots.isEmpty else { return }
+        guard let original = originalTeeTime, let id = original.id else { return }
 
         Task {
-            showLoadingProgress = true
-            defer { showLoadingProgress = false }
+            showSavingProgress = true
+            defer { showSavingProgress = false }
 
             do {
                 let localDate = selectedDate.toLocalDate()
-
-                _ = try await teeTimesRepo.createTeeTime(
-                    createdBy: authRepo.currentUser.id,
+                let updatedTeeTime = TeeTime(
+                    id: id,
+                    createdBy: original.createdBy,
                     course: courseName,
                     date: localDate,
                     times: timeSlots
                 )
 
+                _ = try await teeTimesRepo.updateTeeTime(teeTime: updatedTeeTime)
                 saveSuccess = true
             } catch {
-                // Per acceptance criteria, no error handling required
                 print("Error saving tee time: \(error)")
             }
         }

@@ -77,19 +77,6 @@ struct TeeTimeRow: View {
 
 }
 
-// Extension to convert Kotlin LocalDate to Swift Date
-private extension LocalDate {
-    func toDate() -> Date {
-        let calendar = Calendar.current
-        let components = DateComponents(
-            year: Int(self.year),
-            month: Int(self.month.number),
-            day: Int(self.day)
-        )
-        return calendar.date(from: components) ?? Date()
-    }
-}
-
 #Preview {
     TeeTimeRow(teeTime: TeeTimeKt.previewTeeTime)
         .padding()
