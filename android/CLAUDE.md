@@ -138,6 +138,67 @@ This app uses the compose Navigation3 library for navigation, and navigation is 
 by the `Navigator` class (`ui/navigation/Navigator.kt`) and the `TtcNavDisplay` composable
 (`ui/app/TeeTimeCaddieApp.kt`).
 
+### Passing Navigation Parameters to ViewModels
+
+When a screen needs navigation parameters (e.g., an item ID from a destination), use **Hilt Assisted
+Injection** to inject those parameters into the ViewModel. This is necessary because Navigation3's
+type-safe destinations don't automatically populate the `SavedStateHandle` like the older
+navigation-compose library did.
+
+**Step 1: Define an AssistedFactory in the ViewModel file**
+
+```kotlin
+@AssistedFactory
+interface MyViewModelFactory {
+    fun create(itemId: String): MyViewModel
+}
+```
+
+**Step 2: Use @AssistedInject and @Assisted in the ViewModel**
+
+```kotlin
+@HiltViewModel(assistedFactory = MyViewModelFactory::class)
+class MyViewModel @AssistedInject constructor(
+    @Assisted private val itemId: String,
+    private val someRepo: SomeRepository,
+    // ... other Hilt-provided dependencies
+): ViewModel() {
+    // Use itemId as needed
+}
+```
+
+**Step 3: Create the ViewModel in the navigation entry using the factory**
+
+```kotlin
+entry<MyDestination> { destination ->
+    val viewModel = hiltViewModel<MyViewModel, MyViewModelFactory> { factory ->
+        factory.create(destination.itemId)
+    }
+    MyScreen(
+        viewModel = viewModel,
+        onBack = { navigator.goBack() }
+    )
+}
+```
+
+**Step 4: Update the Screen composable to accept the ViewModel as a parameter**
+
+```kotlin
+@Composable
+fun MyScreen(
+    viewModel: MyViewModel,
+    onBack: () -> Unit
+) {
+    // Screen implementation
+}
+```
+
+**Key Points:**
+- The ViewModel should NOT use `SavedStateHandle` to get navigation parameters with Navigation3
+- Pass only primitive types or simple data (String, Int, etc.) to the factory, not the whole destination object
+- The Screen composable should receive the ViewModel as a parameter (not create it internally)
+- This keeps the ViewModel decoupled from navigation concerns while allowing runtime parameters
+
 ## Theme
 
 The app uses Material3 design components, and the Material3 theming system. 

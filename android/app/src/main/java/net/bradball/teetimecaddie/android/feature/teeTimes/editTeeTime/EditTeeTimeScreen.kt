@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
@@ -54,9 +53,9 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
 
 @Composable
 fun EditTeeTimeScreen(
+    viewModel: EditTeeTimeViewModel,
     onBack: () -> Unit,
-    onTeeTimeUpdated: () -> Unit,
-    viewModel: EditTeeTimeViewModel = hiltViewModel()
+    onTeeTimeUpdated: () -> Unit
 ) {
     // Handle save success
     LaunchedEffect(viewModel.saveSuccess) {

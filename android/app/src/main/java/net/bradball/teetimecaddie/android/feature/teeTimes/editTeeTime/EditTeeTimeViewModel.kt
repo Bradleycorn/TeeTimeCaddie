@@ -4,9 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -18,17 +20,25 @@ import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.teetimes.TeeTimesRepository
-import javax.inject.Inject
 
-@HiltViewModel
-class EditTeeTimeViewModel @Inject constructor(
+/**
+ * Factory for creating [EditTeeTimeViewModel] instances with assisted injection.
+ *
+ * This factory is used to inject navigation parameters (teeTimeId) into the ViewModel
+ * at runtime, while still allowing Hilt to provide other dependencies.
+ */
+@AssistedFactory
+interface EditTeeTimeViewModelFactory {
+    fun create(teeTimeId: String): EditTeeTimeViewModel
+}
+
+@HiltViewModel(assistedFactory = EditTeeTimeViewModelFactory::class)
+class EditTeeTimeViewModel @AssistedInject constructor(
+    @Assisted private val teeTimeId: String,
     private val teeTimesRepo: TeeTimesRepository,
     private val authRepo: AuthRepository,
-    private val eventManager: EventManager,
-    savedStateHandle: SavedStateHandle
+    private val eventManager: EventManager
 ): ViewModel() {
-
-    private val teeTimeId: String = checkNotNull(savedStateHandle["teeTimeId"])
 
     // UI state
     var isLoading: Boolean by mutableStateOf(true)
