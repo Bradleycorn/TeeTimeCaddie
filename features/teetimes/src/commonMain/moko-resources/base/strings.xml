@@ -10,7 +10,6 @@
     <string name="field_Label_Time">Time</string>
     <string name="field_Label_Players">Number of Players</string>
     <string name="button_create">Create</string>
-    <string name="button_save">Save</string>
     <string name="edit_tee_time">Edit Tee Time</string>
 
     <!-- Multiple tee times -->

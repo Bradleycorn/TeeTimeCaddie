@@ -164,7 +164,7 @@ private fun EditTeeTimeContent(
 
             // Save Button
             LoadingButton(
-                text = stringResource(TTR.strings.button_save.resourceId),
+                text = stringResource(GR.strings.save.resourceId),
                 onClick = onSaveClick,
                 enabled = isValid && hasChanges,
                 modifier = Modifier.fillMaxWidth(),
