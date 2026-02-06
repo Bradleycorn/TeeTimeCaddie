@@ -148,14 +148,14 @@ xcodebuild clean -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeT
 
 ## Overview
 
-All business logic is shared between Android and iOS through Kotlin Multiplatform (KMP SDK). 
+All business logic is shared between Android and iOS through Kotlin Multiplatform (KMP SDK).
 The shared code provides repositories, data management, analytics, and domain models.
-You should always strive to keep business logic out of the applications themselves, and 
+You should always strive to keep business logic out of the applications themselves, and
 put it in the multiplatform modules instead.
 
-The KMP SDK is made up of multiple gradle modules that are compiled into a single SDK artifact. 
+The KMP SDK is made up of multiple gradle modules that are compiled into a single SDK artifact.
 This modular approach enforces separation of concerns and encapsulation, exposing a semantic public
-API for the applications to consume, and keeping implementation concerns private. 
+API for the applications to consume, and keeping implementation concerns private.
 
 ## Key Technologies
 
@@ -175,7 +175,7 @@ API for the applications to consume, and keeping implementation concerns private
 ### `:businessLogic` Module
 Found in the `businessLogic/` folder, this module provides the `TeeTimeCaddieSdk` class, which
 operates as a singleton and serves as the entry point to the shared KMP business logic. It
-provides instances of the classes that make up the public API of the shared KMP SDK. 
+provides instances of the classes that make up the public API of the shared KMP SDK.
 
 
 ### Public (Exported) Modules
@@ -183,16 +183,16 @@ The publicly exported modules make up the public API of the Shared KMP SDK. They
 into two categories.
 
 #### Core Modules
-These modules provide core and/or shared functionality and data structures that are used 
+These modules provide core and/or shared functionality and data structures that are used
 across multiple features. They include:
 
 - **`:core:models`** - Found in the `core/models` folder this module contains all of the Data
-models that are used by the applications. Prefer to put data models here instead of in feature
-modules, as data models are often used across features. 
+  models that are used by the applications. Prefer to put data models here instead of in feature
+  modules, as data models are often used across features.
 
 When you define a new model, also define a corresponding `preview*` object that applications
 can use in tests and previews. If the model is often used in a list, also create a `preview*List`
-object. 
+object.
 
 For example:
 ```kotlin
@@ -239,38 +239,38 @@ val previewSomeContainer = SomeContainer(
 ```
 
 - **:`core:extensions`** - Found in the `core/extensions` folder, this module provides convenience
-utility extension methods and properties on common and primitive types used across both the shared KMP SDK as well 
-as the apps. Check here when writing code for methods and properties that can be used to make code
-shorter and easier to read and maintain.
+  utility extension methods and properties on common and primitive types used across both the shared KMP SDK as well
+  as the apps. Check here when writing code for methods and properties that can be used to make code
+  shorter and easier to read and maintain.
 - **:`core:analytics`** - Provides a single, shared abstraction layer for logging Analytics Events,
-Performance Traces, and Errors to any provider. 
+  Performance Traces, and Errors to any provider.
 
 #### Feature Modules
-These modules use a Repository Pattern to abstract data access and contain most business logic. 
+These modules use a Repository Pattern to abstract data access and contain most business logic.
 Modules are defined for each major app feature/section. These modules are defined as sub-modules
-under the `:features` modules, for example, an authentication module `:features:auth` 
+under the `:features` modules, for example, an authentication module `:features:auth`
 (located at `features/auth`), or a module for tee time CRUD operations `:features:teetimes`
 (located at `features/teetimes`). These modules consume the other public and private core modules
 and use them to execute business logic and provide data to the applications.
 
 Feature modules should also define extension methods for converting "private" data model instances
-(such as `*Document` storage models and `*Network` response models) to instance of public 
-data models that are defined in the `:core/models` module, as well as converting between private 
+(such as `*Document` storage models and `*Network` response models) to instance of public
+data models that are defined in the `:core/models` module, as well as converting between private
 data model instances. These methods should follow a standardized pattern:
 
 - `.toModel(): SomeDataModel` - `.toModel()` methods should be defined as extensions on storage
-and network models to convert them to data model instances.
-- `.toDocument(): SomeDocument` - `.toDocument()` methods should be defined as extensions on 
-data models and network response models to convert them to documents for storage.
+  and network models to convert them to data model instances.
+- `.toDocument(): SomeDocument` - `.toDocument()` methods should be defined as extensions on
+  data models and network response models to convert them to documents for storage.
 
 ### Private Modules
 The KMP SDK also includes a set of "private" modules, which are modules that are consumed by
 other modules in the KMP SDK but who's classes, methods, and properties are NOT exposed to client
 applications. They include:
 
-#### Storage 
+#### Storage
 The `:core:storage` module (found in the `core/storage` folder) contains classes, objects,
-and data structures for persisting application data, both locally and in the cloud. 
+and data structures for persisting application data, both locally and in the cloud.
 
 **Local Settings** - Within the `:core:storage` module, the **multiplatform-settings** library is used
 to provide a common API abstraction for storing key value data such as user settings via
@@ -287,7 +287,7 @@ data structures for making http network requests, using the `ktor` networking li
 
 ## Dependency Injection
 
-The modules that make up the shared KMP SDK use a "do-it-yourself" dependency injection system. 
+The modules that make up the shared KMP SDK use a "do-it-yourself" dependency injection system.
 Gradle modules contain a `*Module` class (for example, `StorageModule` in the
 `:core:storage` module) that is responsible fore creating and providing instances of classes
 defined in the module. The `TeeTimeCaddieSdk` creates and uses instances of the `*Module` classes
@@ -318,9 +318,9 @@ to obtain instances and expose them to the consuming android and ios application
 
 
 ### String Resources
-This project uses the moko-resources library to provide string resources to the android and ios apps. 
+This project uses the moko-resources library to provide string resources to the android and ios apps.
 Each exported module (usually feature modules, but perhaps some others) should define string resources
-for all static strings displayed in the apps. This includes things like titles, labels, content descriptions, 
+for all static strings displayed in the apps. This includes things like titles, labels, content descriptions,
 etc. Strings should be defined in the feature module that they are related to.  
 For example a string for the Add Tee Time screen title, should be defined in the teetimes feature module.
 Generic Strings that are used across features (for example, text for common buttons such as "Save", or "OK")
@@ -328,7 +328,7 @@ should be defined in the strings resource file in the core:models module.
 
 ## Platform Parity Guidelines
 
-**IMPORTANT**: While the implementations are platform-specific, the **architectural patterns** and 
+**IMPORTANT**: While the implementations are platform-specific, the **architectural patterns** and
 **concepts** must remain parallel between Android and iOS. This ensures consistency in:
 - Developer experience across platforms
 - Maintenance and updates
@@ -424,48 +424,48 @@ Both platforms follow **MVVM with reactive state**:
 A Jira "Issue" is any Story, Defect, Epic (feature) defined in Jira.
 "Acceptance Criteria" is all of the details and description in a Jira Issue.
 
-Follow all of the Steps in the sections below for EVERY Jira Issue that you implement. 
+Follow all of the Steps in the sections below for EVERY Jira Issue that you implement.
 
 ## Before Writing Any Code:
 
 1. Plan the work to be done:
-   1. Read the full Issue, including Acceptance Criteria and Notes. 
-   2. Make sure the Issue has proper sub-tasks:
-      - If the Issue already has sub-tasks, read them to understand what to do and how to complete the implementation.
-         - If the sub-tasks are not sufficient to complete the story, follow the rest of these instructions to complete the task list.
-      - If the Issue does not have sub-tasks (or if the tasks aren't enough to fully implement the story):
-        - Add appropriate sub-tasks to the Issue so that you or others can complete the Issue.
-          - Keep sub-tasks fairly high level. Prefer defining 5-10 broad tasks to complete an Issue, instead of 20+ detailed tasks.
-          - Tasks can have a list of steps in the task list if you want to provide detailed instructions for a task. However, this is not optional, not required.
+    1. Read the full Issue, including Acceptance Criteria and Notes.
+    2. Make sure the Issue has proper sub-tasks:
+        - If the Issue already has sub-tasks, read them to understand what to do and how to complete the implementation.
+            - If the sub-tasks are not sufficient to complete the story, follow the rest of these instructions to complete the task list.
+        - If the Issue does not have sub-tasks (or if the tasks aren't enough to fully implement the story):
+            - Add appropriate sub-tasks to the Issue so that you or others can complete the Issue.
+                - Keep sub-tasks fairly high level. Prefer defining 5-10 broad tasks to complete an Issue, instead of 20+ detailed tasks.
+                - Tasks can have a list of steps in the task list if you want to provide detailed instructions for a task. However, this is not optional, not required.
 2. **CHECKPOINT: Ask the user to check and verify the sub-tasks before continuing.**
 3. Assign the Issue to yourself, and move it to the IN-PROGRESS step/column in Jira.
 4. Ensure that the necessary git branches are setup, according to the "Branch Strategy" and "Workflow for Jira Issue Development" guidelines in the "Working with Github" section of this document.
-      - If there are uncommited changes on the current branch, ask me what to do before continuing.
+    - If there are uncommited changes on the current branch, ask me what to do before continuing.
 
 ## Writing Code to Implement the Issue
 
 1. Implement the Issue following all of the guidelines in this file, as well as context provided by other Claude.md files in this project.
-   - Make sure all Acceptance Criteria of the Issue are met. 
-   - Commit somewhat frequently to the Issue branch A decent guideline might be to commit the work for each sub-task in the Issue. 
+    - Make sure all Acceptance Criteria of the Issue are met.
+    - Commit somewhat frequently to the Issue branch A decent guideline might be to commit the work for each sub-task in the Issue.
 2. Write Unit tests for non-UI code, including all shared KMP code, and View Models in platform code.
-3. Write UI tests for all views and UI code in each platform. 
+3. Write UI tests for all views and UI code in each platform.
 4. Build and test both platforms.
-   - Note that is is not enough to just build the iOS framework with gradle. Use xcodebuild to build the ios app.
-   - Run unit tests for both platforms and ensure all tests pass. 
-   - Run UI tests for both platforms and ensure all tests pass. 
+    - Note that is is not enough to just build the iOS framework with gradle. Use xcodebuild to build the ios app.
+    - Run unit tests for both platforms and ensure all tests pass.
+    - Run UI tests for both platforms and ensure all tests pass.
 
 ## Finishing the Implementation
 1. Once all code is written to meet the Acceptance Criteria of the Issue, and tests are passing, make sure all code is commited to the Issue branch.
 2. Push the Issue branch to the git origin repository.
 3. Create a PR targeting the parent branch (which will usually be the epic/feature branch).
-4. Include a link to the Jira Issue. 
+4. Include a link to the Jira Issue.
 5. In Jira, Transition the Issue to to the IN-REVIEW step/column.
-   - Link the PR to the Issue.
+    - Link the PR to the Issue.
 
 ## Important Notes
-- Never commit directly to the `main` or Epic branches unless I explicitly tell you to do so. 
-  - If I do tell you to do so, ask me one more time to confirm.
-- Always target PR's back to the branch that the head branch was created from. For a story/defect, this is usually the Epic branch. 
+- Never commit directly to the `main` or Epic branches unless I explicitly tell you to do so.
+    - If I do tell you to do so, ask me one more time to confirm.
+- Always target PR's back to the branch that the head branch was created from. For a story/defect, this is usually the Epic branch.
 
 # Working with GitHub
 
@@ -576,6 +576,7 @@ EOF
 When asked to address PR feedback, follow this system:
 
 **Default Behavior:**
+- **Important:** - Make sure you thoroughly check for, find, and address **ALL** unresolved comments on the PR.
 - If there are no `@claude` mentions in any comments, then address ALL comments in "Request Changes" reviews by default
 - If one or more comments mention `@claude` in "Request Changes" reviews, only address those comments.
 - "Request Changes" reviews = changes that must be made
@@ -595,7 +596,9 @@ When asked to address PR feedback, follow this system:
 
 **Discussion Comments:**
 - When a comment is marked "For discussion:", "Let's discuss:", "Question:", or uses similar exploratory language, do NOT immediately implement changes
-- Instead, reply to the PR comment directly (using `gh api` or `gh pr comment`) with analysis and thoughts
+- Instead, **REPLY** to the PR comment directly (using `gh api` or `gh pr comment`) with analysis and thoughts
+    - Don't just add a new comment that references the original, post your reply as a **reply to the original comment** so that we can track the discussion.
+    - Start your reply with "From Claude: ".
 - Wait for the user's response before making any code changes
 - This creates a documented record of architectural decisions in the PR for future reference
 
@@ -603,7 +606,7 @@ When asked to address PR feedback, follow this system:
 1. Fetch PR details: `gh pr view <pr-number>`
 2. Read all "Request Changes" reviews and their comments
 3. Address all comments UNLESS marked with `@claude don't fix` or similar
-4. For "Comment" reviews, use judgment to determine what needs action
+4. For "Comment" reviews, use judgment to determine what needs action, but make sure you check for ALL comments.
 5. **Ask for clarification if unsure** - better to ask than guess wrong
 6. After making changes, commit and push updates
 7. Respond to PR comments indicating what was fixed
@@ -625,19 +628,19 @@ When asked to address PR feedback, follow this system:
 1. **Create KMP module** under `/features/`
 2. **Add to `settings.gradle.kts`**
 3. **Create Repository** in `commonMain`
-   - Repository should be defined as an interface (`interface ExampleRepository`) , with a corresponding implementation class named with an "Impl" suffix (`class ExampleRespositoryImpl`).
-   - The Implementation class should have an internal constructor (`class ExampleRepositoryImpl internal constructor(..): ExampleRepository`), so that it cannot be instantiated from other modules.
+    - Repository should be defined as an interface (`interface ExampleRepository`) , with a corresponding implementation class named with an "Impl" suffix (`class ExampleRespositoryImpl`).
+    - The Implementation class should have an internal constructor (`class ExampleRepositoryImpl internal constructor(..): ExampleRepository`), so that it cannot be instantiated from other modules.
 4. **Create a `Module` class** in `commonMain`
-   - It should contain provider methods to obtain an instance of the Repositories defined in the module.
-   - provider methods should return the interface type, and the method should create instances of the implementation class. 
-     For example:
-     ```kotlin
-     class ExampleFeatureModule() {
-        fun providesExampleRepository(): ExampleRepository {
-           return ExampleRepositoryImpl()
-        }
-     }
-     ```
+    - It should contain provider methods to obtain an instance of the Repositories defined in the module.
+    - provider methods should return the interface type, and the method should create instances of the implementation class.
+      For example:
+      ```kotlin
+      class ExampleFeatureModule() {
+         fun providesExampleRepository(): ExampleRepository {
+            return ExampleRepositoryImpl()
+         }
+      }
+      ```
 4. **Add Storage classes and Storage Models** if needed in `core/storage`
 5. **Define Data Models** in `core/models`
 6. **Export module from businessLogic**, and expose repositories via `TeeTimeCaddieSdk` class.
@@ -695,13 +698,13 @@ When asked to address PR feedback, follow this system:
 Before writing custom code to work around a perceived limitation (especially in KMP/Swift interop), verify the assumption first:
 
 1. **Check what already exists**
-   - For swift/kotlin interop issus: Look at the generated Swift code and headers to see what is available. 
+    - For swift/kotlin interop issus: Look at the generated Swift code and headers to see what is available.
 
 2. **Verify SKIE behavior** - SKIE exposes many Kotlin features to Swift that might not be obvious:
-   - `Comparable` types expose `compareTo()` methods in Swift
-   - Kotlin Flows become Swift AsyncSequences
-   - Sealed classes get proper Swift enum-like handling
-   - Check SKIE documentation (https://skie.touchlab.co) when unsure
+    - `Comparable` types expose `compareTo()` methods in Swift
+    - Kotlin Flows become Swift AsyncSequences
+    - Sealed classes get proper Swift enum-like handling
+    - Check SKIE documentation (https://skie.touchlab.co) when unsure
 
 3. **Test before implementing** - If you think a Kotlin method/property isn't available in Swift, try using it first before writing a workaround. The compilation error (or success) will confirm your assumption.
 
