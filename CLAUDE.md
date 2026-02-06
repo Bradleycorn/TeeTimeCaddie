@@ -576,6 +576,7 @@ EOF
 When asked to address PR feedback, follow this system:
 
 **Default Behavior:**
+- **Important:** - Make sure you thoroughly check for, find, and address **ALL** unresolved comments on the PR.
 - If there are no `@claude` mentions in any comments, then address ALL comments in "Request Changes" reviews by default
 - If one or more comments mention `@claude` in "Request Changes" reviews, only address those comments.
 - "Request Changes" reviews = changes that must be made
@@ -595,7 +596,9 @@ When asked to address PR feedback, follow this system:
 
 **Discussion Comments:**
 - When a comment is marked "For discussion:", "Let's discuss:", "Question:", or uses similar exploratory language, do NOT immediately implement changes
-- Instead, reply to the PR comment directly (using `gh api` or `gh pr comment`) with analysis and thoughts
+- Instead, **REPLY** to the PR comment directly (using `gh api` or `gh pr comment`) with analysis and thoughts
+  - Don't just add a new comment that references the original, post your reply as a **reply to the original comment** so that we can track the discussion. 
+  - Start your reply with "From Claude: ".
 - Wait for the user's response before making any code changes
 - This creates a documented record of architectural decisions in the PR for future reference
 
@@ -603,7 +606,7 @@ When asked to address PR feedback, follow this system:
 1. Fetch PR details: `gh pr view <pr-number>`
 2. Read all "Request Changes" reviews and their comments
 3. Address all comments UNLESS marked with `@claude don't fix` or similar
-4. For "Comment" reviews, use judgment to determine what needs action
+4. For "Comment" reviews, use judgment to determine what needs action, but make sure you check for ALL comments.
 5. **Ask for clarification if unsure** - better to ask than guess wrong
 6. After making changes, commit and push updates
 7. Respond to PR comments indicating what was fixed

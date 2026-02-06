@@ -1,17 +1,9 @@
 package net.bradball.teetimecaddie.android.feature.teeTimes.addTeeTime
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -24,18 +16,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import net.bradball.teetimecaddie.android.feature.teeTimes.common.TeeTimesSection
+import net.bradball.teetimecaddie.android.feature.teeTimes.common.TeeTimeFormContent
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.ui.common.TtcDatePicker
-import net.bradball.teetimecaddie.android.ui.common.TtcTimePickerDialog
-import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingButton
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
-import net.bradball.teetimecaddie.android.ui.common.rememberTtcDatePickerState
-import net.bradball.teetimecaddie.android.ui.common.selectedDate
 import net.bradball.teetimecaddie.core.models.GR
 import net.bradball.teetimecaddie.core.models.TeeTimeSlot
 import net.bradball.teetimecaddie.core.models.previewTeeTimeSlotList
@@ -79,8 +65,7 @@ private fun AddTeeTimeContent(
     onBackClick: () -> Unit
 ) {
     var courseName by remember { mutableStateOf("") }
-    val date = rememberTtcDatePickerState()
-    var showTimePickerDialog by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
 
     Scaffold(
         topBar = {
@@ -94,60 +79,21 @@ private fun AddTeeTimeContent(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            // Course Name TextField
-            OutlinedTextField(
-                value = courseName,
-                onValueChange = { courseName = it },
-                label = { Text(stringResource(TTR.strings.field_label_course_name.resourceId)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Date Picker Field
-            TtcDatePicker(pickerState = date)
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Tee Times Section
-            TeeTimesSection(
-                timeSlots = timeSlots,
-                onAddTimeClick = {
-                    onAddTimeClick()
-                    showTimePickerDialog = true
-                },
-                onUpdatePlayerCount = onUpdatePlayerCount,
-                onRemoveTimeSlot = onRemoveTimeSlot
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Save Button
-            LoadingButton(
-                text = stringResource(TTR.strings.button_create.resourceId),
-                onClick = { onSaveClick(courseName, date.selectedDate) },
-                enabled = courseName.isNotBlank() && date.selectedDate != null && timeSlots.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth(),
-                isLoading = showLoadingProgress
-            )
-        }
-    }
-
-    // Time Picker Dialog
-    if (showTimePickerDialog) {
-        TtcTimePickerDialog(
-            onDismiss = { showTimePickerDialog = false },
-            onTimeSelected = { time ->
-                onAddTimeSlot(time)
-                showTimePickerDialog = false
-            }
+        TeeTimeFormContent(
+            courseName = courseName,
+            initialDate = null,
+            timeSlots = timeSlots,
+            isLoading = showLoadingProgress,
+            buttonText = stringResource(TTR.strings.button_create.resourceId),
+            canSave = { name, date, slots -> name.isNotBlank() && date != null && slots.isNotEmpty() },
+            onCourseNameChange = { courseName = it },
+            onDateChange = { selectedDate = it },
+            onAddTimeClick = onAddTimeClick,
+            onAddTimeSlot = onAddTimeSlot,
+            onUpdatePlayerCount = onUpdatePlayerCount,
+            onRemoveTimeSlot = onRemoveTimeSlot,
+            onSaveClick = { onSaveClick(courseName, selectedDate) },
+            modifier = Modifier.padding(padding)
         )
     }
 }

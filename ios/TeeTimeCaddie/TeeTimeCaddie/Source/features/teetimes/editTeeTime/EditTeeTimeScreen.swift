@@ -90,40 +90,18 @@ fileprivate struct EditTeeTimeContent: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Course Name TextField
-                TextField(TTR.strings().field_label_course_name.desc().localized(), text: $courseName)
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.horizontal)
-
-                // Date Picker
-                DatePicker(
-                    TTR.strings().field_label_Date.desc().localized(),
-                    selection: $selectedDate,
-                    displayedComponents: .date
-                )
-                .padding(.horizontal)
-
-                // Tee Times Section
-                TeeTimesSection(
-                    timeSlots: timeSlots,
-                    onAddTimeClick: onAddTimeClick,
-                    onUpdatePlayerCount: onUpdatePlayerCount,
-                    onRemoveTimeSlot: onRemoveTimeSlot
-                )
-                .padding(.horizontal)
-
-                Spacer()
-                    .frame(height: 32)
-
-                // Save Button
-                LoadingButton(GR.strings().save.desc().localized(), isLoading: isLoading, action: onSave)
-                    .buttonStyle(.Filled)
-                    .disabled(!canSave)
-            }
-            .padding(.vertical)
-        }
+        TeeTimeFormContent(
+            courseName: $courseName,
+            selectedDate: $selectedDate,
+            timeSlots: timeSlots,
+            isLoading: isLoading,
+            buttonText: GR.strings().save.desc().localized(),
+            canSave: canSave,
+            onAddTimeClick: onAddTimeClick,
+            onUpdatePlayerCount: onUpdatePlayerCount,
+            onRemoveTimeSlot: onRemoveTimeSlot,
+            onSave: onSave
+        )
     }
 }
 

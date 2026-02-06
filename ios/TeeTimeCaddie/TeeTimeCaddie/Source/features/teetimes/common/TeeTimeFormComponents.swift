@@ -140,6 +140,65 @@ struct TimePickerSheet: View {
     }
 }
 
+// MARK: - Tee Time Form Content
+
+/// A shared form content view for Add and Edit tee time screens.
+///
+/// This view encapsulates the entire form layout including:
+/// - Course name text field
+/// - Date picker
+/// - Tee times section with time slots
+/// - Save/Create button
+struct TeeTimeFormContent: View {
+    @Binding var courseName: String
+    @Binding var selectedDate: Date
+    let timeSlots: [TeeTimeSlot]
+    let isLoading: Bool
+    let buttonText: String
+    let canSave: Bool
+    let onAddTimeClick: () -> Void
+    let onUpdatePlayerCount: (LocalTime, Int) -> Void
+    let onRemoveTimeSlot: (LocalTime) -> Void
+    let onSave: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                // Course Name TextField
+                TextField(TTR.strings().field_label_course_name.desc().localized(), text: $courseName)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal)
+
+                // Date Picker
+                DatePicker(
+                    TTR.strings().field_label_Date.desc().localized(),
+                    selection: $selectedDate,
+                    displayedComponents: .date
+                )
+                .padding(.horizontal)
+
+                // Tee Times Section
+                TeeTimesSection(
+                    timeSlots: timeSlots,
+                    onAddTimeClick: onAddTimeClick,
+                    onUpdatePlayerCount: onUpdatePlayerCount,
+                    onRemoveTimeSlot: onRemoveTimeSlot
+                )
+                .padding(.horizontal)
+
+                Spacer()
+                    .frame(height: 32)
+
+                // Save/Create Button
+                LoadingButton(buttonText, isLoading: isLoading, action: onSave)
+                    .buttonStyle(.Filled)
+                    .disabled(!canSave)
+            }
+            .padding(.vertical)
+        }
+    }
+}
+
 // MARK: - Previews
 
 #Preview("Tee Times Section - Empty") {
@@ -163,5 +222,41 @@ struct TimePickerSheet: View {
             onRemoveTimeSlot: { _ in }
         )
         .padding()
+    }
+}
+
+#Preview("Tee Time Form Content - Empty") {
+    TeeTimeCaddieTheme {
+        TeeTimeFormContentPreviewWrapper(courseName: "", timeSlots: [])
+    }
+}
+
+#Preview("Tee Time Form Content - With Data") {
+    TeeTimeCaddieTheme {
+        TeeTimeFormContentPreviewWrapper(
+            courseName: "Persimmon Ridge",
+            timeSlots: TeeTimeKt.previewTeeTimeSlotList
+        )
+    }
+}
+
+fileprivate struct TeeTimeFormContentPreviewWrapper: View {
+    @State var courseName: String
+    @State var selectedDate: Date = Date()
+    let timeSlots: [TeeTimeSlot]
+
+    var body: some View {
+        TeeTimeFormContent(
+            courseName: $courseName,
+            selectedDate: $selectedDate,
+            timeSlots: timeSlots,
+            isLoading: false,
+            buttonText: "Create",
+            canSave: !courseName.isEmpty && !timeSlots.isEmpty,
+            onAddTimeClick: {},
+            onUpdatePlayerCount: { _, _ in },
+            onRemoveTimeSlot: { _ in },
+            onSave: {}
+        )
     }
 }
