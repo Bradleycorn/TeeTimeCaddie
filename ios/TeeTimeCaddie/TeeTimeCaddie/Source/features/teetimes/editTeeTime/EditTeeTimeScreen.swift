@@ -9,12 +9,12 @@ import SwiftUI
 import TeeTimeCaddieKit
 
 struct EditTeeTimeScreen: View {
-    let teeTime: TeeTime
+    let teeTimeId: String
     let onBack: () -> Void
     let onTeeTimeSaved: () -> Void
 
     @State
-    private var viewModel = EditTeeTimeViewModel()
+    private var viewModel: EditTeeTimeViewModel
 
     @State
     private var showTimePicker: Bool = false
@@ -27,31 +27,42 @@ struct EditTeeTimeScreen: View {
         of: Date()
     ) ?? Date()
 
+    init(teeTimeId: String, onBack: @escaping () -> Void, onTeeTimeSaved: @escaping () -> Void) {
+        self.teeTimeId = teeTimeId
+        self.onBack = onBack
+        self.onTeeTimeSaved = onTeeTimeSaved
+        self._viewModel = State(initialValue: EditTeeTimeViewModel(teeTimeId: teeTimeId))
+    }
+
     var body: some View {
         Screen(AnalyticsScreen.EditTeeTime(viewName: self.viewName)) {
-            EditTeeTimeContent(
-                courseName: Binding(
-                    get: { viewModel.courseName },
-                    set: { viewModel.courseName = $0 }
-                ),
-                selectedDate: Binding(
-                    get: { viewModel.selectedDate },
-                    set: { viewModel.selectedDate = $0 }
-                ),
-                timeSlots: viewModel.timeSlots,
-                isLoading: viewModel.showLoadingProgress,
-                canSave: canSave,
-                onAddTimeClick: {
-                    viewModel.onAddTimeClick()
-                    showTimePicker = true
-                },
-                onUpdatePlayerCount: viewModel.updatePlayerCount,
-                onRemoveTimeSlot: viewModel.removeTimeSlot,
-                onSave: viewModel.saveTeeTime
-            )
+            if viewModel.isLoading {
+                ContentLoadingIndicator()
+            } else {
+                EditTeeTimeContent(
+                    courseName: Binding(
+                        get: { viewModel.courseName },
+                        set: { viewModel.courseName = $0 }
+                    ),
+                    selectedDate: Binding(
+                        get: { viewModel.selectedDate },
+                        set: { viewModel.selectedDate = $0 }
+                    ),
+                    timeSlots: viewModel.timeSlots,
+                    isLoading: viewModel.showLoadingProgress,
+                    canSave: viewModel.canSave,
+                    onAddTimeClick: {
+                        viewModel.onAddTimeClick()
+                        showTimePicker = true
+                    },
+                    onUpdatePlayerCount: viewModel.updatePlayerCount,
+                    onRemoveTimeSlot: viewModel.removeTimeSlot,
+                    onSave: viewModel.saveTeeTime
+                )
+            }
         }
-        .onAppear {
-            viewModel.initialize(teeTime: teeTime)
+        .task {
+            await viewModel.loadTeeTime()
         }
         .sheet(isPresented: $showTimePicker) {
             TimePickerSheet(
@@ -68,12 +79,6 @@ struct EditTeeTimeScreen: View {
                 onTeeTimeSaved()
             }
         }
-    }
-
-    private var canSave: Bool {
-        !viewModel.courseName.isEmpty &&
-        !viewModel.timeSlots.isEmpty &&
-        viewModel.hasChanges
     }
 }
 

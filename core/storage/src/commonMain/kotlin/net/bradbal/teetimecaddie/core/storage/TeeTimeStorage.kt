@@ -48,6 +48,21 @@ class TeeTimeStorage {
         teeTimesCollection.document(id).set(document)
     }
 
+    /**
+     * Get a single Tee Time by ID.
+     *
+     * @param teeTimeId The ID of the tee time to retrieve.
+     * @return The [TeeTimeDocument] if found, null otherwise.
+     */
+    suspend fun getTeeTime(teeTimeId: String): TeeTimeDocument? {
+        val snapshot = teeTimesCollection.document(teeTimeId).get()
+        return if (snapshot.exists) {
+            snapshot.data<TeeTimeDocument>().apply { id = snapshot.id }
+        } else {
+            null
+        }
+    }
+
     @OptIn(ExperimentalTime::class)
     suspend fun getTeeTimes(playerId: String): List<TeeTimeDocument> {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date

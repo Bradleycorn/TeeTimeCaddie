@@ -13,7 +13,9 @@ import Factory
 class EditTeeTimeViewModel {
     private let teeTimesRepo: TeeTimesRepository
     private let eventManager: EventManager
+    private let teeTimeId: String
 
+    private(set) var isLoading: Bool = true
     private(set) var showLoadingProgress: Bool = false
     private(set) var saveSuccess: Bool = false
 
@@ -38,22 +40,36 @@ class EditTeeTimeViewModel {
                !areTimeSlotsEqual(sortedCurrentTimes, sortedOriginalTimes)
     }
 
+    /// Indicates whether the Save button should be enabled
+    var canSave: Bool {
+        !courseName.isEmpty && !timeSlots.isEmpty && hasChanges
+    }
+
     init(
+        teeTimeId: String,
         teeTimesRepo: TeeTimesRepository = TeeTimesModule.shared.teeTimesRepository(),
         eventManager: EventManager = AppModule.shared.eventManager()
     ) {
+        self.teeTimeId = teeTimeId
         self.teeTimesRepo = teeTimesRepo
         self.eventManager = eventManager
     }
 
-    /// Initializes the ViewModel with the tee time data.
-    func initialize(teeTime: TeeTime) {
-        guard originalTeeTime == nil else { return } // Already initialized
+    /// Loads the tee time from the repository.
+    func loadTeeTime() async {
+        isLoading = true
+        defer { isLoading = false }
 
-        originalTeeTime = teeTime
-        courseName = teeTime.course
-        selectedDate = teeTime.date.toDate()
-        timeSlots = Array(teeTime.times)
+        do {
+            if let teeTime = try await teeTimesRepo.getTeeTime(teeTimeId: teeTimeId) {
+                originalTeeTime = teeTime
+                courseName = teeTime.course
+                selectedDate = teeTime.date.toDate()
+                timeSlots = Array(teeTime.times)
+            }
+        } catch {
+            print("Error loading tee time: \(error)")
+        }
     }
 
     /// Logs the analytics event when the user clicks the "Add Time" button.

@@ -1,5 +1,6 @@
 package net.bradball.teetimecaddie.android.feature.teeTimes.editTeeTime
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.feature.teeTimes.common.TeeTimesSection
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
+import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.TtcDatePicker
 import net.bradball.teetimecaddie.android.ui.common.TtcTimePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingButton
@@ -36,24 +38,16 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.rememberTtcDatePickerState
 import net.bradball.teetimecaddie.android.ui.common.selectedDate
 import net.bradball.teetimecaddie.core.models.GR
-import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.TeeTimeSlot
-import net.bradball.teetimecaddie.core.models.previewTeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTimeSlotList
 import net.bradball.teetimecaddie.features.teetimes.TTR
 
 @Composable
 fun EditTeeTimeScreen(
-    teeTime: TeeTime,
     viewModel: EditTeeTimeViewModel,
     onBack: () -> Unit,
     onTeeTimeSaved: () -> Unit
 ) {
-    // Initialize ViewModel with tee time data
-    LaunchedEffect(teeTime) {
-        viewModel.initialize(teeTime)
-    }
-
     // Handle save success
     LaunchedEffect(viewModel.saveSuccess) {
         if (viewModel.saveSuccess) {
@@ -61,21 +55,48 @@ fun EditTeeTimeScreen(
         }
     }
 
-    EditTeeTimeContent(
-        showLoadingProgress = viewModel.showLoadingProgress,
-        courseName = viewModel.courseName,
-        initialDate = viewModel.selectedDate,
-        timeSlots = viewModel.timeSlots,
-        hasChanges = viewModel.hasChanges,
-        onCourseNameChange = viewModel::updateCourseName,
-        onDateChange = viewModel::updateDate,
-        onAddTimeClick = viewModel::onAddTimeClick,
-        onAddTimeSlot = viewModel::addTimeSlot,
-        onUpdatePlayerCount = viewModel::updatePlayerCount,
-        onRemoveTimeSlot = viewModel::removeTimeSlot,
-        onSaveClick = viewModel::saveTeeTime,
-        onBackClick = onBack
-    )
+    if (viewModel.isLoading) {
+        EditTeeTimeLoadingContent(onBackClick = onBack)
+    } else {
+        EditTeeTimeContent(
+            showLoadingProgress = viewModel.showLoadingProgress,
+            courseName = viewModel.courseName,
+            initialDate = viewModel.selectedDate,
+            timeSlots = viewModel.timeSlots,
+            canSave = viewModel.canSave,
+            onCourseNameChange = viewModel::updateCourseName,
+            onDateChange = viewModel::updateDate,
+            onAddTimeClick = viewModel::onAddTimeClick,
+            onAddTimeSlot = viewModel::addTimeSlot,
+            onUpdatePlayerCount = viewModel::updatePlayerCount,
+            onRemoveTimeSlot = viewModel::removeTimeSlot,
+            onSaveClick = viewModel::saveTeeTime,
+            onBackClick = onBack
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditTeeTimeLoadingContent(
+    onBackClick: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(TTR.strings.edit_tee_time.resourceId)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(TtcIcons.ARROW_BACK.painter, contentDescription = stringResource(GR.strings.back.resourceId))
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+            ContentLoadingIndicator()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,7 +106,7 @@ private fun EditTeeTimeContent(
     courseName: String,
     initialDate: LocalDate?,
     timeSlots: List<TeeTimeSlot>,
-    hasChanges: Boolean,
+    canSave: Boolean,
     onCourseNameChange: (String) -> Unit,
     onDateChange: (LocalDate?) -> Unit,
     onAddTimeClick: () -> Unit,
@@ -102,11 +123,6 @@ private fun EditTeeTimeContent(
     LaunchedEffect(date.selectedDate) {
         onDateChange(date.selectedDate)
     }
-
-    val canSave = courseName.isNotBlank() &&
-            date.selectedDate != null &&
-            timeSlots.isNotEmpty() &&
-            hasChanges
 
     Scaffold(
         topBar = {
@@ -180,14 +196,22 @@ private fun EditTeeTimeContent(
 
 @Preview(showBackground = true)
 @Composable
+private fun EditTeeTimeLoadingPreview() {
+    MyApplicationTheme {
+        EditTeeTimeLoadingContent(onBackClick = { })
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
 private fun EditTeeTimeContentPreview() {
     MyApplicationTheme {
         EditTeeTimeContent(
             showLoadingProgress = false,
             courseName = "Persimmon Ridge",
-            initialDate = previewTeeTime.date,
+            initialDate = kotlinx.datetime.LocalDate(2025, 3, 15),
             timeSlots = previewTeeTimeSlotList,
-            hasChanges = false,
+            canSave = false,
             onCourseNameChange = { },
             onDateChange = { },
             onAddTimeClick = { },
@@ -207,9 +231,9 @@ private fun EditTeeTimeContentWithChangesPreview() {
         EditTeeTimeContent(
             showLoadingProgress = false,
             courseName = "Persimmon Ridge Golf Club",
-            initialDate = previewTeeTime.date,
+            initialDate = kotlinx.datetime.LocalDate(2025, 3, 15),
             timeSlots = previewTeeTimeSlotList,
-            hasChanges = true,
+            canSave = true,
             onCourseNameChange = { },
             onDateChange = { },
             onAddTimeClick = { },

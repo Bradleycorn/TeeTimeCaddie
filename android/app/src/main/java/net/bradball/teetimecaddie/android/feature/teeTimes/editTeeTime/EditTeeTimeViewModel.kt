@@ -32,6 +32,9 @@ class EditTeeTimeViewModel @AssistedInject constructor(
 ): ViewModel() {
 
     // UI state
+    var isLoading: Boolean by mutableStateOf(true)
+        private set
+
     var showLoadingProgress: Boolean by mutableStateOf(false)
         private set
 
@@ -61,17 +64,37 @@ class EditTeeTimeViewModel @AssistedInject constructor(
         }
 
     /**
-     * Initializes the ViewModel with the tee time data.
-     * This should be called by the screen after obtaining the TeeTime.
+     * Indicates whether the Save button should be enabled.
      */
-    fun initialize(teeTime: TeeTime) {
-        if (originalTeeTime != null) return // Already initialized
+    val canSave: Boolean
+        get() = courseName.isNotBlank() &&
+                selectedDate != null &&
+                _timeSlots.isNotEmpty() &&
+                hasChanges
 
-        originalTeeTime = teeTime
-        courseName = teeTime.course
-        selectedDate = teeTime.date
-        _timeSlots.clear()
-        _timeSlots.addAll(teeTime.times)
+    init {
+        loadTeeTime()
+    }
+
+    /**
+     * Loads the tee time from the repository.
+     */
+    private fun loadTeeTime() {
+        viewModelScope.launch {
+            isLoading = true
+            try {
+                val teeTime = teeTimesRepo.getTeeTime(teeTimeId)
+                if (teeTime != null) {
+                    originalTeeTime = teeTime
+                    courseName = teeTime.course
+                    selectedDate = teeTime.date
+                    _timeSlots.clear()
+                    _timeSlots.addAll(teeTime.times)
+                }
+            } finally {
+                isLoading = false
+            }
+        }
     }
 
     /**

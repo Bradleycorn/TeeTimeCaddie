@@ -64,6 +64,17 @@ class TeeTimesRepository(
         }
 
     /**
+     * Gets a single tee time by ID.
+     *
+     * @param teeTimeId The ID of the tee time to retrieve.
+     * @return The TeeTime if found, null otherwise.
+     */
+    @Throws(CancellationException::class)
+    suspend fun getTeeTime(teeTimeId: String): TeeTime? {
+        return teeTimeStorage.getTeeTime(teeTimeId)?.toModel()
+    }
+
+    /**
      * Updates an existing tee time.
      *
      * @param teeTime The tee time to update. Must have a non-null id.

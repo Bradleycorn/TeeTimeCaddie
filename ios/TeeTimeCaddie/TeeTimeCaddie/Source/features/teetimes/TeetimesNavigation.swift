@@ -10,7 +10,7 @@ import TeeTimeCaddieKit
 enum TeeTimesDestinations: @MainActor TtcNavKey {
     case teeTimesList
     case addTeeTime
-    case editTeeTime(TeeTime)
+    case editTeeTime(String)
 
     @ViewBuilder
     func destinationView(_ navigator: Navigator) -> some View {
@@ -32,9 +32,9 @@ enum TeeTimesDestinations: @MainActor TtcNavKey {
             .navigationTitle(TTR.strings().add_tee_time.desc().localized())
             .navigationBarTitleDisplayMode(.inline)
 
-        case .editTeeTime(let teeTime):
+        case .editTeeTime(let teeTimeId):
             EditTeeTimeScreen(
-                teeTime: teeTime,
+                teeTimeId: teeTimeId,
                 onBack: { navigator.pop() },
                 onTeeTimeSaved: { navigator.pop() }
             )
@@ -59,6 +59,7 @@ extension Navigator {
     }
 
     func navigateToEditTeeTime(_ teeTime: TeeTime) {
-        self.navigate(to: TeeTimesDestinations.editTeeTime(teeTime))
+        guard let teeTimeId = teeTime.id else { return }
+        self.navigate(to: TeeTimesDestinations.editTeeTime(teeTimeId))
     }
 }

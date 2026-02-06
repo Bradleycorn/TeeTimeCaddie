@@ -14,26 +14,6 @@ import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
 import net.bradball.teetimecaddie.core.models.TeeTime
 
 /**
- * Cache for holding TeeTime objects during navigation.
- * Since Navigation3 requires serializable destination keys, we cache the full TeeTime
- * object here and only pass the ID through the navigation destination.
- */
-private object TeeTimeNavigationCache {
-    private val cache = mutableMapOf<String, TeeTime>()
-
-    fun put(teeTime: TeeTime) {
-        val id = teeTime.id ?: return
-        cache[id] = teeTime
-    }
-
-    fun get(id: String): TeeTime? = cache[id]
-
-    fun remove(id: String) {
-        cache.remove(id)
-    }
-}
-
-/**
  * Navigation destination for the Tee Times list screen.
  *
  * This is the main entry point for the Tee Times feature, displaying all upcoming
@@ -87,7 +67,6 @@ fun Navigator.navigateToAddTeeTime() {
  */
 fun Navigator.navigateToEditTeeTime(teeTime: TeeTime) {
     val teeTimeId = requireNotNull(teeTime.id) { "Cannot edit a tee time without an id" }
-    TeeTimeNavigationCache.put(teeTime)
     navigate(EditTeeTimeDestination(teeTimeId))
 }
 
@@ -151,23 +130,13 @@ fun EntryProviderScope<NavKey>.teeTimesEntries(navigator: Navigator) {
     }
 
     entry<EditTeeTimeDestination> { destination ->
-        val teeTime = TeeTimeNavigationCache.get(destination.teeTimeId)
-        if (teeTime != null) {
-            val viewModel = hiltViewModel<EditTeeTimeViewModel, EditTeeTimeViewModelFactory> { factory ->
-                factory.create(destination.teeTimeId)
-            }
-            EditTeeTimeScreen(
-                teeTime = teeTime,
-                viewModel = viewModel,
-                onBack = {
-                    TeeTimeNavigationCache.remove(destination.teeTimeId)
-                    navigator.goBack()
-                },
-                onTeeTimeSaved = {
-                    TeeTimeNavigationCache.remove(destination.teeTimeId)
-                    navigator.goBack()
-                }
-            )
+        val viewModel = hiltViewModel<EditTeeTimeViewModel, EditTeeTimeViewModelFactory> { factory ->
+            factory.create(destination.teeTimeId)
         }
+        EditTeeTimeScreen(
+            viewModel = viewModel,
+            onBack = { navigator.goBack() },
+            onTeeTimeSaved = { navigator.goBack() }
+        )
     }
 }
