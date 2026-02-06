@@ -109,7 +109,10 @@ fun TtcDatePicker(
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun rememberTtcDatePickerState(initialDisplayMode: DisplayMode = DisplayMode.Input): DatePickerState {
+fun rememberTtcDatePickerState(
+    initialDate: LocalDate? = null,
+    initialDisplayMode: DisplayMode = DisplayMode.Input
+): DatePickerState {
 
     val today: LocalDate = Clock.System.todayIn(TimeZone.UTC)
     val selectableYears = IntRange(today.year, today.year + 5)
@@ -124,7 +127,14 @@ fun rememberTtcDatePickerState(initialDisplayMode: DisplayMode = DisplayMode.Inp
         }
     }
 
-    return rememberDatePickerState(initialDisplayMode = initialDisplayMode, yearRange = selectableYears,  selectableDates = selectableTeeTimeDates)
+    val initialDateMillis = initialDate?.toEpochMilliseconds(TimeZone.UTC)
+
+    return rememberDatePickerState(
+        initialSelectedDateMillis = initialDateMillis,
+        initialDisplayMode = initialDisplayMode,
+        yearRange = selectableYears,
+        selectableDates = selectableTeeTimeDates
+    )
 }
 
 

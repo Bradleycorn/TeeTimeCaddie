@@ -1,25 +1,20 @@
 //
-//  AddTeeTimeScreen.swift
+//  EditTeeTimeScreen.swift
 //  TeeTimeCaddie
 //
-//  Created by Bradley Ball on 1/10/26.
+//  Created by Claude on 2/6/26.
 //
 
 import SwiftUI
 import TeeTimeCaddieKit
 
-struct AddTeeTimeScreen: View {
+struct EditTeeTimeScreen: View {
+    let teeTime: TeeTime
     let onBack: () -> Void
-    let onTeeTimeCreated: () -> Void
+    let onTeeTimeSaved: () -> Void
 
     @State
-    private var viewModel = AddTeeTimeViewModel()
-
-    @State
-    var courseName: String = ""
-
-    @State
-    var selectedDate: Date = Date()
+    private var viewModel = EditTeeTimeViewModel()
 
     @State
     private var showTimePicker: Bool = false
@@ -33,25 +28,30 @@ struct AddTeeTimeScreen: View {
     ) ?? Date()
 
     var body: some View {
-        Screen(AnalyticsScreen.AddTeeTime(viewName: self.viewName)) {
-            AddTeeTimeContent(
-                courseName: $courseName,
-                selectedDate: $selectedDate,
+        Screen(AnalyticsScreen.EditTeeTime(viewName: self.viewName)) {
+            EditTeeTimeContent(
+                courseName: Binding(
+                    get: { viewModel.courseName },
+                    set: { viewModel.courseName = $0 }
+                ),
+                selectedDate: Binding(
+                    get: { viewModel.selectedDate },
+                    set: { viewModel.selectedDate = $0 }
+                ),
                 timeSlots: viewModel.timeSlots,
                 isLoading: viewModel.showLoadingProgress,
+                canSave: canSave,
                 onAddTimeClick: {
                     viewModel.onAddTimeClick()
                     showTimePicker = true
                 },
                 onUpdatePlayerCount: viewModel.updatePlayerCount,
                 onRemoveTimeSlot: viewModel.removeTimeSlot,
-                onSave: {
-                    viewModel.saveTeeTime(
-                        courseName: courseName,
-                        selectedDate: selectedDate
-                    )
-                }
+                onSave: viewModel.saveTeeTime
             )
+        }
+        .onAppear {
+            viewModel.initialize(teeTime: teeTime)
         }
         .sheet(isPresented: $showTimePicker) {
             TimePickerSheet(
@@ -65,27 +65,30 @@ struct AddTeeTimeScreen: View {
         }
         .onChange(of: viewModel.saveSuccess) { _, newValue in
             if newValue {
-                onTeeTimeCreated()
+                onTeeTimeSaved()
             }
         }
+    }
+
+    private var canSave: Bool {
+        !viewModel.courseName.isEmpty &&
+        !viewModel.timeSlots.isEmpty &&
+        viewModel.hasChanges
     }
 }
 
 // MARK: - Content View
 
-fileprivate struct AddTeeTimeContent: View {
+fileprivate struct EditTeeTimeContent: View {
     @Binding var courseName: String
     @Binding var selectedDate: Date
     let timeSlots: [TeeTimeSlot]
     let isLoading: Bool
+    let canSave: Bool
     let onAddTimeClick: () -> Void
     let onUpdatePlayerCount: (LocalTime, Int) -> Void
     let onRemoveTimeSlot: (LocalTime) -> Void
     let onSave: () -> Void
-
-    private var canSave: Bool {
-        !courseName.isEmpty && !timeSlots.isEmpty
-    }
 
     var body: some View {
         ScrollView {
@@ -116,7 +119,7 @@ fileprivate struct AddTeeTimeContent: View {
                     .frame(height: 32)
 
                 // Save Button
-                LoadingButton(TTR.strings().button_create.desc().localized(), isLoading: isLoading, action: onSave)
+                LoadingButton(GR.strings().save.desc().localized(), isLoading: isLoading, action: onSave)
                     .buttonStyle(.Filled)
                     .disabled(!canSave)
             }
@@ -127,39 +130,27 @@ fileprivate struct AddTeeTimeContent: View {
 
 // MARK: - Previews
 
-#Preview("Empty") {
+#Preview("Edit Tee Time") {
     TeeTimeCaddieTheme {
         NavigationStack {
-            AddTeeTimeScreen(
-                onBack: {},
-                onTeeTimeCreated: {}
-            )
-            .navigationTitle(TTR.strings().add_tee_time.desc().localized())
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-#Preview("With Times") {
-    TeeTimeCaddieTheme {
-        NavigationStack {
-            AddTeeTimeContentPreviewWrapper()
-                .navigationTitle(TTR.strings().add_tee_time.desc().localized())
+            EditTeeTimeContentPreviewWrapper()
+                .navigationTitle(TTR.strings().edit_tee_time.desc().localized())
                 .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
 
-fileprivate struct AddTeeTimeContentPreviewWrapper: View {
+fileprivate struct EditTeeTimeContentPreviewWrapper: View {
     @State var courseName: String = "Persimmon Ridge"
     @State var selectedDate: Date = Date()
 
     var body: some View {
-        AddTeeTimeContent(
+        EditTeeTimeContent(
             courseName: $courseName,
             selectedDate: $selectedDate,
             timeSlots: TeeTimeKt.previewTeeTimeSlotList,
             isLoading: false,
+            canSave: true,
             onAddTimeClick: {},
             onUpdatePlayerCount: { _, _ in },
             onRemoveTimeSlot: { _ in },

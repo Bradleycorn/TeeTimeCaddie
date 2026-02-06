@@ -1,12 +1,37 @@
 package net.bradball.teetimecaddie.android.feature.teeTimes.navigation
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import net.bradball.teetimecaddie.android.feature.teeTimes.addTeeTime.AddTeeTimeScreen
+import net.bradball.teetimecaddie.android.feature.teeTimes.editTeeTime.EditTeeTimeScreen
+import net.bradball.teetimecaddie.android.feature.teeTimes.editTeeTime.EditTeeTimeViewModel
+import net.bradball.teetimecaddie.android.feature.teeTimes.editTeeTime.EditTeeTimeViewModelFactory
 import net.bradball.teetimecaddie.android.feature.teeTimes.teeTimeList.TeeTimesListScreen
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
+import net.bradball.teetimecaddie.core.models.TeeTime
+
+/**
+ * Cache for holding TeeTime objects during navigation.
+ * Since Navigation3 requires serializable destination keys, we cache the full TeeTime
+ * object here and only pass the ID through the navigation destination.
+ */
+private object TeeTimeNavigationCache {
+    private val cache = mutableMapOf<String, TeeTime>()
+
+    fun put(teeTime: TeeTime) {
+        val id = teeTime.id ?: return
+        cache[id] = teeTime
+    }
+
+    fun get(id: String): TeeTime? = cache[id]
+
+    fun remove(id: String) {
+        cache.remove(id)
+    }
+}
 
 /**
  * Navigation destination for the Tee Times list screen.
@@ -24,6 +49,14 @@ data object TeeTimesListDestination: TtcNavKey
  */
 @Serializable
 data object AddTeeTimeDestination: TtcNavKey
+
+/**
+ * Navigation destination for the Edit Tee Time screen.
+ *
+ * @property teeTimeId The ID of the tee time to edit.
+ */
+@Serializable
+data class EditTeeTimeDestination(val teeTimeId: String): TtcNavKey
 
 
 /**
@@ -45,6 +78,17 @@ fun Navigator.navigateToTeeTimesList(clearBackStack: Boolean = false) {
  */
 fun Navigator.navigateToAddTeeTime() {
     navigate(AddTeeTimeDestination)
+}
+
+/**
+ * Navigates to the Edit Tee Time screen.
+ *
+ * @param teeTime The tee time to edit.
+ */
+fun Navigator.navigateToEditTeeTime(teeTime: TeeTime) {
+    val teeTimeId = requireNotNull(teeTime.id) { "Cannot edit a tee time without an id" }
+    TeeTimeNavigationCache.put(teeTime)
+    navigate(EditTeeTimeDestination(teeTimeId))
 }
 
 /**
@@ -94,7 +138,8 @@ fun Navigator.navigateToAddTeeTime() {
 fun EntryProviderScope<NavKey>.teeTimesEntries(navigator: Navigator) {
     entry<TeeTimesListDestination> {
         TeeTimesListScreen(
-            onAddTeeTimeClick = { navigator.navigateToAddTeeTime() }
+            onAddTeeTimeClick = { navigator.navigateToAddTeeTime() },
+            onTeeTimeClick = { teeTime -> navigator.navigateToEditTeeTime(teeTime) }
         )
     }
 
@@ -103,5 +148,26 @@ fun EntryProviderScope<NavKey>.teeTimesEntries(navigator: Navigator) {
             onBack = { navigator.goBack() },
             onTeeTimeCreated = { navigator.goBack() }
         )
+    }
+
+    entry<EditTeeTimeDestination> { destination ->
+        val teeTime = TeeTimeNavigationCache.get(destination.teeTimeId)
+        if (teeTime != null) {
+            val viewModel = hiltViewModel<EditTeeTimeViewModel, EditTeeTimeViewModelFactory> { factory ->
+                factory.create(destination.teeTimeId)
+            }
+            EditTeeTimeScreen(
+                teeTime = teeTime,
+                viewModel = viewModel,
+                onBack = {
+                    TeeTimeNavigationCache.remove(destination.teeTimeId)
+                    navigator.goBack()
+                },
+                onTeeTimeSaved = {
+                    TeeTimeNavigationCache.remove(destination.teeTimeId)
+                    navigator.goBack()
+                }
+            )
+        }
     }
 }

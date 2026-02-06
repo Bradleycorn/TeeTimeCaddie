@@ -1,4 +1,4 @@
-package net.bradball.teetimecaddie.android.feature.teeTimes.addTeeTime
+package net.bradball.teetimecaddie.android.feature.teeTimes.editTeeTime
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.feature.teeTimes.common.TeeTimesSection
@@ -37,26 +36,39 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.rememberTtcDatePickerState
 import net.bradball.teetimecaddie.android.ui.common.selectedDate
 import net.bradball.teetimecaddie.core.models.GR
+import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.core.models.TeeTimeSlot
+import net.bradball.teetimecaddie.core.models.previewTeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTimeSlotList
 import net.bradball.teetimecaddie.features.teetimes.TTR
 
 @Composable
-fun AddTeeTimeScreen(
+fun EditTeeTimeScreen(
+    teeTime: TeeTime,
+    viewModel: EditTeeTimeViewModel,
     onBack: () -> Unit,
-    onTeeTimeCreated: () -> Unit,
-    viewModel: AddTeeTimeViewModel = hiltViewModel()
+    onTeeTimeSaved: () -> Unit
 ) {
+    // Initialize ViewModel with tee time data
+    LaunchedEffect(teeTime) {
+        viewModel.initialize(teeTime)
+    }
+
     // Handle save success
     LaunchedEffect(viewModel.saveSuccess) {
         if (viewModel.saveSuccess) {
-            onTeeTimeCreated()
+            onTeeTimeSaved()
         }
     }
 
-    AddTeeTimeContent(
+    EditTeeTimeContent(
         showLoadingProgress = viewModel.showLoadingProgress,
+        courseName = viewModel.courseName,
+        initialDate = viewModel.selectedDate,
         timeSlots = viewModel.timeSlots,
+        hasChanges = viewModel.hasChanges,
+        onCourseNameChange = viewModel::updateCourseName,
+        onDateChange = viewModel::updateDate,
         onAddTimeClick = viewModel::onAddTimeClick,
         onAddTimeSlot = viewModel::addTimeSlot,
         onUpdatePlayerCount = viewModel::updatePlayerCount,
@@ -68,24 +80,38 @@ fun AddTeeTimeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddTeeTimeContent(
+private fun EditTeeTimeContent(
     showLoadingProgress: Boolean,
+    courseName: String,
+    initialDate: LocalDate?,
     timeSlots: List<TeeTimeSlot>,
+    hasChanges: Boolean,
+    onCourseNameChange: (String) -> Unit,
+    onDateChange: (LocalDate?) -> Unit,
     onAddTimeClick: () -> Unit,
     onAddTimeSlot: (LocalTime) -> Boolean,
     onUpdatePlayerCount: (LocalTime, Int) -> Unit,
     onRemoveTimeSlot: (LocalTime) -> Unit,
-    onSaveClick: (String, LocalDate?) -> Unit,
+    onSaveClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    var courseName by remember { mutableStateOf("") }
-    val date = rememberTtcDatePickerState()
+    val date = rememberTtcDatePickerState(initialDate)
     var showTimePickerDialog by remember { mutableStateOf(false) }
+
+    // Sync date picker state with ViewModel
+    LaunchedEffect(date.selectedDate) {
+        onDateChange(date.selectedDate)
+    }
+
+    val canSave = courseName.isNotBlank() &&
+            date.selectedDate != null &&
+            timeSlots.isNotEmpty() &&
+            hasChanges
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(TTR.strings.add_tee_time.resourceId)) },
+                title = { Text(stringResource(TTR.strings.edit_tee_time.resourceId)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(TtcIcons.ARROW_BACK.painter, contentDescription = stringResource(GR.strings.back.resourceId))
@@ -104,7 +130,7 @@ private fun AddTeeTimeContent(
             // Course Name TextField
             OutlinedTextField(
                 value = courseName,
-                onValueChange = { courseName = it },
+                onValueChange = onCourseNameChange,
                 label = { Text(stringResource(TTR.strings.field_label_course_name.resourceId)) },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -131,9 +157,9 @@ private fun AddTeeTimeContent(
 
             // Save Button
             LoadingButton(
-                text = stringResource(TTR.strings.button_create.resourceId),
-                onClick = { onSaveClick(courseName, date.selectedDate) },
-                enabled = courseName.isNotBlank() && date.selectedDate != null && timeSlots.isNotEmpty(),
+                text = stringResource(GR.strings.save.resourceId),
+                onClick = onSaveClick,
+                enabled = canSave,
                 modifier = Modifier.fillMaxWidth(),
                 isLoading = showLoadingProgress
             )
@@ -154,16 +180,21 @@ private fun AddTeeTimeContent(
 
 @Preview(showBackground = true)
 @Composable
-private fun AddTeeTimeContentPreview() {
+private fun EditTeeTimeContentPreview() {
     MyApplicationTheme {
-        AddTeeTimeContent(
+        EditTeeTimeContent(
             showLoadingProgress = false,
-            timeSlots = emptyList(),
+            courseName = "Persimmon Ridge",
+            initialDate = previewTeeTime.date,
+            timeSlots = previewTeeTimeSlotList,
+            hasChanges = false,
+            onCourseNameChange = { },
+            onDateChange = { },
             onAddTimeClick = { },
             onAddTimeSlot = { true },
             onUpdatePlayerCount = { _, _ -> },
             onRemoveTimeSlot = { },
-            onSaveClick = { _, _ -> },
+            onSaveClick = { },
             onBackClick = { }
         )
     }
@@ -171,16 +202,21 @@ private fun AddTeeTimeContentPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun AddTeeTimeContentWithTimesPreview() {
+private fun EditTeeTimeContentWithChangesPreview() {
     MyApplicationTheme {
-        AddTeeTimeContent(
+        EditTeeTimeContent(
             showLoadingProgress = false,
+            courseName = "Persimmon Ridge Golf Club",
+            initialDate = previewTeeTime.date,
             timeSlots = previewTeeTimeSlotList,
+            hasChanges = true,
+            onCourseNameChange = { },
+            onDateChange = { },
             onAddTimeClick = { },
             onAddTimeSlot = { true },
             onUpdatePlayerCount = { _, _ -> },
             onRemoveTimeSlot = { },
-            onSaveClick = { _, _ -> },
+            onSaveClick = { },
             onBackClick = { }
         )
     }

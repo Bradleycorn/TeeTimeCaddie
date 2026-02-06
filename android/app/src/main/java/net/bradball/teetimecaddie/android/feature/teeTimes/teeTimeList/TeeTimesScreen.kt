@@ -29,20 +29,26 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
 @Composable
 fun TeeTimesListScreen(
     onAddTeeTimeClick: () -> Unit,
+    onTeeTimeClick: (TeeTime) -> Unit,
     viewModel: TeeTimesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     TeeTimesContent(
         uiState = uiState,
-        onAddTeeTimeClick = onAddTeeTimeClick
+        onAddTeeTimeClick = onAddTeeTimeClick,
+        onTeeTimeClick = { teeTime ->
+            viewModel.onTeeTimeClick()
+            onTeeTimeClick(teeTime)
+        }
     )
 }
 
 @Composable
 fun TeeTimesContent(
     uiState: TeeTimesUiState,
-    onAddTeeTimeClick: () -> Unit = {}
+    onAddTeeTimeClick: () -> Unit = {},
+    onTeeTimeClick: (TeeTime) -> Unit = {}
 ) {
 
     Scaffold(
@@ -66,7 +72,10 @@ fun TeeTimesContent(
                             .fillMaxWidth()
                     )
 
-                    is TeeTimesUiState.Content -> TeeTimesList(uiState.teeTimes)
+                    is TeeTimesUiState.Content -> TeeTimesList(
+                        teeTimes = uiState.teeTimes,
+                        onTeeTimeClick = onTeeTimeClick
+                    )
                 }
             }
         }
@@ -74,11 +83,16 @@ fun TeeTimesContent(
 }
 
 @Composable
-private fun TeeTimesList(teeTimes: List<TeeTime>) {
+private fun TeeTimesList(
+    teeTimes: List<TeeTime>,
+    onTeeTimeClick: (TeeTime) -> Unit
+) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(teeTimes.size) { index ->
+            val teeTime = teeTimes[index]
             TeeTimeCard(
-                teeTime = teeTimes[index],
+                teeTime = teeTime,
+                onClick = { onTeeTimeClick(teeTime) },
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
