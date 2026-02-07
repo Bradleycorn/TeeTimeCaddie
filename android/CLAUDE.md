@@ -140,6 +140,13 @@ by the `Navigator` class (`ui/navigation/Navigator.kt`) and the `TtcNavDisplay` 
 
 ### Passing Navigation Parameters to ViewModels
 
+When navigating and passing parameters, avoid passing entire objects if possible.
+Instead, pass a primitive identifier, and let the new destination's view model load the object using the identifier.
+For example, when navigating from an item list screen to an item detail screen, don't pass
+the `Item` object as a parameter. Instead pass the item id. When the details screen loads, its
+view model can use the item id to load the item from it's usual storage location (fetch it from the network, )
+load it from a database, etc).
+
 When a screen needs navigation parameters (e.g., an item ID from a destination), use **Hilt Assisted
 Injection** to inject those parameters into the ViewModel. This is necessary because Navigation3's
 type-safe destinations don't automatically populate the `SavedStateHandle` like the older
@@ -206,7 +213,49 @@ The theme is defined in the files in the `theme/` folder and the `MyApplicationT
 composable is called at the root of the Composable view tree, providing the theme
 for the entire application.
 
-## Common UI Components
+## UI Components
+
+As a general rule, create a file for each composable, named the same as the composable function. 
+
+If there are multiple composables that are always used together, they can be put in the same file, 
+with the "child" composables using the `private` keyword to indicate that they should only
+be called from the "parent" or other composables in this file. In this case, the file should be named the same as the parent. 
+
+For example:
+```kotlin
+@Composable
+fun SomeView(items: List<Item>) {
+    Column {
+        items(items.size) { index ->
+            ItemCard(item = items[index])
+        }
+    }
+}
+
+private fun ItemCard(item: Item) {
+    ElevatedCard(item.name)
+}
+```
+
+Whenever you create a composable file, create a corresponding preview to preview that composable.
+Previews should come at the end of the file.
+For files with a main "public" composable and one or more private "child" composables, you do not
+need to create previews for the child composables. They will be handled by previewing the public
+"parent" composable.
+
+If the composable can be rendered in several different states, create previews for each of the
+major states. However, you do not need to create previews for every minor state. For most views,
+you should not need more than 2 or 3 previews. When creating previews, you can use available
+`preview*` instances to pass preview model data into views that need it.
+
+### Screens
+
+All "Screen" level composables in the app should use the `Screen` composable (`ui/common/Screen.kt`)
+at the top level to log the screen view. Create an appropriate `AnalyticsScreen` entry in the
+shared KMP SDK as needed to log new screens.
+
+
+### Common/Shared Components
 
 UI components that are generic and usable in all areas of the app can be found in the
 `ui/common` folder. Check this folder (and it's sub-folders) for reusable components and
@@ -233,14 +282,3 @@ object for use with Image/Icon composables. You can render a TtcIcon like this:
 ```kotlin
 Icon(Icons.ADD.painter, contentDescription = "Add Tee Time")
 ```
-# Development Instructions
-
-Whenever you create a composable, create a corresponding preview to preview that composable.
-If the composable can be rendered in several different states, create previews for each of the
-major states. However, you do not need to create previews for every minor state. For most views,
-you should not need more than 2 or 3 previews. When creating previews, you can use available
-`preview*` instances to pass preview model data into views that need it.
-
-All "Screen" level composables in the app should use the `Screen` composable (`ui/common/Screen.kt`)
-at the top level to log the screen view. Create an appropriate `AnalyticsScreen` entry in the
-shared KMP SDK as needed to log new screens. 

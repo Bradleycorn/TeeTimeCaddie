@@ -152,6 +152,13 @@ Navigation-related view modifiers (`.navigationTitle()`, `.navigationBarTitleDis
 `*Destinations` enums), not inside the Screen views themselves. This keeps navigation concerns
 separate from view content and allows the navigation system to manage all navigation-related UI.
 
+When navigating and passing parameters, avoid passing entire objects if possible.
+Instead, pass a primitive identifier, and let the new destination's view model load the object using the identifier.
+For example, when navigating from an item list screen to an item detail screen, don't pass
+the `Item` object as a parameter. Instead pass the item id. When the details screen loads, its
+view model can use the item id to load the item from it's usual storage location (fetch it from the network, )
+load it from a database, etc).
+
 ## Theme
 
 The app uses the ThemeUI (https://github.com/Bradleycorn/ThemeUI) framework to provide
@@ -165,8 +172,52 @@ colors and shapes.
 Note: While the `ThemeUI` framework provides typography theming, it is not used in this application.
 Instead it uses standard, built in SwiftUI typography elements.
 
+## UI Components
+As a general rule, create a file for each view, named the same as the view struct.
 
-## Common UI Components
+If there are multiple views that are always used together, they can be put in the same file,
+with the "child" views using the `fileprivate` keyword to indicate that they should only
+be called from the "parent" or other vies in this file. In this case, the file should be named the same as the parent.
+
+For example:
+```swift
+struct SomeView: View {
+    let items: [Item]
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                ForEach(items, id: \.id) { item in
+                    ItemView(item: item)
+                }
+            }
+        }
+    }
+}
+
+fileprivate struct ItemView: View {
+    let item: Item
+    
+    var body: some View {
+        Text(item.name)
+    }
+}
+```
+
+Whenever you create a view file, create a corresponding preview to preview that view.
+Previews should come at the end of the file.
+When creating previews, you can use available `preview*` instances to pass preview model data into views that need it.
+For files with a main "public" view and one or more fileprivate "child" views, you do not
+need to create previews for the child views. They will be handled by previewing the public
+"parent" view.
+
+### Screens
+
+All "Screen" level views in the app should use the `Screen` view (`ui/common/Screen.swift`)
+at the top level to log the screen view. Create an appropriate `AnalyticsScreen` entry in the
+shared KMP SDK as needed to log new screens.
+
+### Common/Shared Components
 
 UI components that are generic and usable in all areas of the app can be found in the
 `ui/common` folder. Check this folder (and it's sub-folders) for reusable components and
@@ -180,16 +231,4 @@ screens within the Auth feature.
 ## Utilities
 
 The `util` folder contains several files that define extension and other utility methods.
-When doing development, check for components defined in these files that can be used. 
-
-# Development Instructions
-
-Whenever you create a view, create a corresponding preview to preview that view.
-If the view can be rendered in several different states, create previews for each of the
-major states. However, you do not need to create previews for every minor state. For most views,
-you should not need more than 2 or 3 previews. When creating previews, you can use available
-`preview*` instances to pass preview model data into views that need it.
-
-All "Screen" level views in the app should use the `Screen` view (`ui/common/Screen.swift`)
-at the top level to log the screen view. Create an appropriate `AnalyticsScreen` entry in the
-shared KMP SDK as needed to log new screens. 
+When doing development, check for components defined in these files that can be used.
