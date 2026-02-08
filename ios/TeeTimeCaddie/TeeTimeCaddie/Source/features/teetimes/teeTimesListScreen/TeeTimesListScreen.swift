@@ -11,13 +11,20 @@ import TeeTimeCaddieKit
 
 struct TeeTimesListScreen: View {
     let onAddTeeTimeClick: () -> Void
+    let onTeeTimeClick: (String) -> Void
 
     @State
     private var viewModel = TeeTimesListScreenViewModel()
 
     var body: some View {
         Screen(AnalyticsScreen.TeeTimeList(viewName: self.viewName)) {
-            TeeTimesListContent(uiState: viewModel.uiState)
+            TeeTimesListContent(
+                uiState: viewModel.uiState,
+                onTeeTimeClick: { teeTimeId in
+                    viewModel.onTeeTimeClick()
+                    onTeeTimeClick(teeTimeId)
+                }
+            )
         }
         .task { await viewModel.loadTeetimes() }
         .toolbar {
@@ -31,11 +38,13 @@ struct TeeTimesListScreen: View {
 
 fileprivate struct TeeTimesListContent: View {
     private var uiState: UiState<[TeeTime]>
-    
-    init(uiState: UiState<[TeeTime]>) {
+    private var onTeeTimeClick: (String) -> Void
+
+    init(uiState: UiState<[TeeTime]>, onTeeTimeClick: @escaping (String) -> Void) {
         self.uiState = uiState
+        self.onTeeTimeClick = onTeeTimeClick
     }
-        
+
     var body: some View {
         switch uiState {
             case .Loading:
@@ -48,25 +57,29 @@ fileprivate struct TeeTimesListContent: View {
                     icon: .teeEmpty)
 
             case .Content(let list):
-                TeeTimesList(list, onItemTapped: {teeTime in })
+                TeeTimesList(list, onItemTapped: { teeTime in
+                    if let teeTimeId = teeTime.id {
+                        onTeeTimeClick(teeTimeId)
+                    }
+                })
         }
     }
 }
 
 #Preview("Content") {
     TeeTimeCaddieTheme {
-        TeeTimesListContent(uiState: .Content(TeeTimeKt.previewTeeTimeList))
+        TeeTimesListContent(uiState: .Content(TeeTimeKt.previewTeeTimeList), onTeeTimeClick: { _ in })
     }
 }
 
 #Preview("Loading") {
     TeeTimeCaddieTheme {
-        TeeTimesListContent(uiState: .Loading)
+        TeeTimesListContent(uiState: .Loading, onTeeTimeClick: { _ in })
     }
 }
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        TeeTimesListContent(uiState: .Empty)
+        TeeTimesListContent(uiState: .Empty, onTeeTimeClick: { _ in })
     }
 }

@@ -151,9 +151,9 @@ val DatePickerState.selectedDate: LocalDate?
  *
  * @param date A LocalDate to use to set the selected date.
  */
-//fun DatePickerState.setSelection(date: LocalDate?) {
-//    this.selectedDateMillis = date?.toEpochMilliseconds(TimeZone.UTC)
-//}
+fun DatePickerState.setSelectedDate(date: LocalDate?) {
+    this.selectedDateMillis = date?.toEpochMilliseconds(TimeZone.UTC)
+}
 
 @Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFFFFFFFF,)
 @Composable

@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.TeeTime
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.teetimes.TeeTimesRepository
@@ -28,7 +30,8 @@ sealed interface TeeTimesUiState {
 @HiltViewModel
 class TeeTimesViewModel @Inject constructor(
     private val teeTimesRepo: TeeTimesRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val eventManager: EventManager
 ): ViewModel() {
 
     val uiState: StateFlow<TeeTimesUiState> = teeTimesRepo.getTeeTimes(authRepository.currentUser.id)
@@ -44,4 +47,11 @@ class TeeTimesViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(1_000),
             initialValue = TeeTimesUiState.Loading
         )
+
+    /**
+     * Logs the analytics event when a tee time is clicked.
+     */
+    fun onTeeTimeClick() {
+        eventManager.logEvent(AnalyticsEvent.TeeTimeListItemClick)
+    }
 }

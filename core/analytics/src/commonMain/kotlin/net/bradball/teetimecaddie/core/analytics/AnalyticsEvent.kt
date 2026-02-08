@@ -81,6 +81,10 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     data class NumberOfPlayersClick(val numberOfPlayers: Int): AnalyticsEvent("number_of_players_click", EventType.CLICK)
     @Serializable
     object RemoveTimeClick: AnalyticsEvent("remove_time_click", EventType.CLICK)
+    @Serializable
+    object TeeTimeListItemClick: AnalyticsEvent("tee_time_list_item_click", EventType.CLICK)
+    @Serializable
+    data class TeeTimeEdit(val times: Int, val players: Int): AnalyticsEvent("tee_time_edit", EventType.OPERATION)
 
 
     @OptIn(ExperimentalSerializationApi::class)

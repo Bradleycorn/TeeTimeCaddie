@@ -37,6 +37,17 @@ class TeeTimeStorage {
      */
     suspend fun addTeeTime(document: TeeTimeDocument): String = teeTimesCollection.add(document).id
 
+    /**
+     * Update an existing Tee Time in the database.
+     *
+     * @param document A [TeeTimeDocument] with updated information. The document's id must be set.
+     * @throws IllegalArgumentException if the document id is null.
+     */
+    suspend fun updateTeeTime(document: TeeTimeDocument) {
+        val docId = document.id ?: throw IllegalArgumentException("Document id must be set for update")
+        teeTimesCollection.document(docId).set(document)
+    }
+
     @OptIn(ExperimentalTime::class)
     suspend fun getTeeTimes(playerId: String): List<TeeTimeDocument> {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date

@@ -62,4 +62,31 @@ class TeeTimesRepository(
         .mapLatest { list ->
             list.map { it.toModel() }
         }
+
+    /**
+     * Updates an existing tee time.
+     *
+     * @param teeTime The tee time to update. Must have a non-null id.
+     * @return The updated TeeTime.
+     * @throws IllegalArgumentException if the tee time id is null.
+     */
+    @Throws(CancellationException::class, IllegalArgumentException::class)
+    suspend fun updateTeeTime(teeTime: TeeTime): TeeTime {
+        requireNotNull(teeTime.id) { "TeeTime id must not be null for update" }
+
+        val sortedTimes = teeTime.times.sortedBy { it.time }
+        val doc = teeTime.copy(times = sortedTimes).toDocument().apply {
+            id = teeTime.id
+        }
+
+        teeTimeStorage.updateTeeTime(doc)
+
+        val totalPlayers = sortedTimes.fold(0) { total, slot ->
+            total + slot.numberOfPlayers
+        }
+
+        eventManager.logEvent(AnalyticsEvent.TeeTimeEdit(sortedTimes.count(), totalPlayers))
+
+        return doc.toModel()
+    }
 }

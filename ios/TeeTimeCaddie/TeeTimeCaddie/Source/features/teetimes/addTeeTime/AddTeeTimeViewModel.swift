@@ -106,27 +106,3 @@ class AddTeeTimeViewModel {
     }
 }
 
-// MARK: - Date Conversion Extensions
-extension Date {
-    func toLocalDate() -> LocalDate {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.year, .month, .day], from: self)
-        return LocalDate(
-            year: Int32(components.year ?? 2024),
-            month: Int32(components.month ?? 1),
-            day: Int32(components.day ?? 1)
-        )
-    }
-
-    func toLocalTime() -> LocalTime {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: self)
-        return LocalTime(
-            hour: Int32(components.hour ?? 0),
-            minute: Int32(components.minute ?? 0),
-            second: 0,
-            nanosecond: 0
-        )
-    }
-}
-

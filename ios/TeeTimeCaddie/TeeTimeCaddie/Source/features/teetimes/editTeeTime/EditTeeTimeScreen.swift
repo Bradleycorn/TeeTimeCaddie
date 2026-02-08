@@ -1,25 +1,18 @@
 //
-//  AddTeeTimeScreen.swift
+//  EditTeeTimeScreen.swift
 //  TeeTimeCaddie
-//
-//  Created by Bradley Ball on 1/10/26.
 //
 
 import SwiftUI
 import TeeTimeCaddieKit
 
-struct AddTeeTimeScreen: View {
+struct EditTeeTimeScreen: View {
+    let teeTimeId: String
     let onBack: () -> Void
-    let onTeeTimeCreated: () -> Void
+    let onTeeTimeUpdated: () -> Void
 
     @State
-    private var viewModel = AddTeeTimeViewModel()
-
-    @State
-    var courseName: String = ""
-
-    @State
-    var selectedDate: Date = Date()
+    private var viewModel: EditTeeTimeViewModel?
 
     @State
     private var showTimePicker: Bool = false
@@ -33,39 +26,56 @@ struct AddTeeTimeScreen: View {
     ) ?? Date()
 
     var body: some View {
-        Screen(AnalyticsScreen.AddTeeTime(viewName: self.viewName)) {
-            AddTeeTimeContent(
-                courseName: $courseName,
-                selectedDate: $selectedDate,
-                timeSlots: viewModel.timeSlots,
-                isLoading: viewModel.showLoadingProgress,
-                onAddTimeClick: {
-                    viewModel.onAddTimeClick()
-                    showTimePicker = true
-                },
-                onUpdatePlayerCount: viewModel.updatePlayerCount,
-                onRemoveTimeSlot: viewModel.removeTimeSlot,
-                onSave: {
-                    viewModel.saveTeeTime(
-                        courseName: courseName,
-                        selectedDate: selectedDate
+        Screen(AnalyticsScreen.EditTeeTime(viewName: self.viewName)) {
+            if let vm = viewModel {
+                if vm.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    EditTeeTimeContent(
+                        courseName: Binding(
+                            get: { vm.courseName },
+                            set: { vm.updateCourseName($0) }
+                        ),
+                        selectedDate: Binding(
+                            get: { vm.selectedDate },
+                            set: { vm.updateDate($0) }
+                        ),
+                        timeSlots: vm.timeSlots,
+                        isLoading: vm.showSaveProgress,
+                        hasChanges: vm.hasChanges,
+                        onAddTimeClick: {
+                            vm.onAddTimeClick()
+                            showTimePicker = true
+                        },
+                        onUpdatePlayerCount: vm.updatePlayerCount,
+                        onRemoveTimeSlot: vm.removeTimeSlot,
+                        onSave: vm.saveTeeTime
                     )
                 }
-            )
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .onAppear {
+            if viewModel == nil {
+                viewModel = EditTeeTimeViewModel(teeTimeId: teeTimeId)
+            }
         }
         .sheet(isPresented: $showTimePicker) {
             TimePickerSheet(
                 selectedTime: $selectedTimeForPicker,
                 onCancel: { showTimePicker = false },
                 onConfirm: {
-                    viewModel.addTimeSlot(time: selectedTimeForPicker)
+                    viewModel?.addTimeSlot(time: selectedTimeForPicker)
                     showTimePicker = false
                 }
             )
         }
-        .onChange(of: viewModel.saveSuccess) { _, newValue in
+        .onChange(of: viewModel?.saveSuccess ?? false) { _, newValue in
             if newValue {
-                onTeeTimeCreated()
+                onTeeTimeUpdated()
             }
         }
     }
@@ -73,18 +83,19 @@ struct AddTeeTimeScreen: View {
 
 // MARK: - Content View
 
-fileprivate struct AddTeeTimeContent: View {
+fileprivate struct EditTeeTimeContent: View {
     @Binding var courseName: String
     @Binding var selectedDate: Date
     let timeSlots: [TeeTimeSlot]
     let isLoading: Bool
+    let hasChanges: Bool
     let onAddTimeClick: () -> Void
     let onUpdatePlayerCount: (LocalTime, Int) -> Void
     let onRemoveTimeSlot: (LocalTime) -> Void
     let onSave: () -> Void
 
     private var canSave: Bool {
-        !courseName.isEmpty && !timeSlots.isEmpty
+        hasChanges && !courseName.isEmpty && !timeSlots.isEmpty
     }
 
     var body: some View {
@@ -116,7 +127,7 @@ fileprivate struct AddTeeTimeContent: View {
                     .frame(height: 32)
 
                 // Save Button
-                LoadingButton(TTR.strings().button_create.desc().localized(), isLoading: isLoading, action: onSave)
+                LoadingButton(TTR.strings().button_save.desc().localized(), isLoading: isLoading, action: onSave)
                     .buttonStyle(.Filled)
                     .disabled(!canSave)
             }
@@ -127,39 +138,27 @@ fileprivate struct AddTeeTimeContent: View {
 
 // MARK: - Previews
 
-#Preview("Empty") {
+#Preview("Edit Screen") {
     TeeTimeCaddieTheme {
         NavigationStack {
-            AddTeeTimeScreen(
-                onBack: {},
-                onTeeTimeCreated: {}
-            )
-            .navigationTitle(TTR.strings().add_tee_time.desc().localized())
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-#Preview("With Times") {
-    TeeTimeCaddieTheme {
-        NavigationStack {
-            AddTeeTimeContentPreviewWrapper()
-                .navigationTitle(TTR.strings().add_tee_time.desc().localized())
+            EditTeeTimeContentPreviewWrapper()
+                .navigationTitle(TTR.strings().edit_tee_time.desc().localized())
                 .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
 
-fileprivate struct AddTeeTimeContentPreviewWrapper: View {
+fileprivate struct EditTeeTimeContentPreviewWrapper: View {
     @State var courseName: String = "Persimmon Ridge"
     @State var selectedDate: Date = Date()
 
     var body: some View {
-        AddTeeTimeContent(
+        EditTeeTimeContent(
             courseName: $courseName,
             selectedDate: $selectedDate,
             timeSlots: TeeTimeKt.previewTeeTimeSlotList,
             isLoading: false,
+            hasChanges: true,
             onAddTimeClick: {},
             onUpdatePlayerCount: { _, _ in },
             onRemoveTimeSlot: { _ in },
