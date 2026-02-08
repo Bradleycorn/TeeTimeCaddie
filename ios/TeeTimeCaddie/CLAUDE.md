@@ -56,7 +56,7 @@ Within a feature, each "screen" should get it's own folder that contains:
         - The `*Content` view is stateless and contains the screen content. It should NOT be passed
           the View Model instance, and instead it should be passed State that is exposed by the View Model.
     - This setup allows for easier creation of previews and testing of screens.
-- A `*ViewModel.kt` file that contains the View Model for the screen.
+- A `*ViewModel.swift` file that contains the View Model for the screen, and uses the `@Observable` macro.
 - A feature will likely also have a `navigation/` folder with a file that contains Navigation
   extensions and methods for that feature.
 - A feature may or may not contain a `common/` folder with additional components and widgets

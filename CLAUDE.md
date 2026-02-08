@@ -312,7 +312,7 @@ to obtain instances and expose them to the consuming android and ios application
 - ❌ UI (Compose vs SwiftUI)
 - ❌ DI frameworks (Hilt vs Factory)
 - ❌ Navigation systems
-- ❌ ViewModels/ObservableObjects
+- ❌ ViewModels
 - ❌ Platform initialization
 - ❌ Theme implementation (Material3 vs ThemeUI)
 
@@ -406,13 +406,13 @@ While using different frameworks, the **patterns** must be identical:
 Both platforms follow **MVVM with reactive state**:
 
 **Pattern Requirements:**
-- ViewModels/ObservableObjects delegate to KMP repositories
+- ViewModels delegate to KMP repositories
 - Reactive state updates (StateFlow/Published properties)
 - Same state properties and methods across platforms
 - Identical business logic flow
 
 **When adding features:**
-1. Keep ViewModel/ObservableObject APIs parallel
+1. Keep ViewModel APIs parallel
 2. Use same state property names
 3. Maintain identical user interaction flows
 4. Business logic stays in KMP, UI orchestration in platform layer
@@ -646,7 +646,7 @@ When asked to address PR feedback, follow this system:
 6. **Export module from businessLogic**, and expose repositories via `TeeTimeCaddieSdk` class.
 7. **Create Hilt module** in Android app to provide repository
 8. **Create Factory module** in iOS app to provide repository
-9. **Create ViewModels** (Android) and ObservableObjects (iOS)
+9. **Create ViewModels** (Android and iOS)
 10. **Create Compose screens** (Android) and SwiftUI views (iOS)
 11. **Add navigation destinations** and entry providers
 
