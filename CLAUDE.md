@@ -437,6 +437,7 @@ Follow all of the Steps in the sections below for EVERY Jira Issue that you impl
             - Add appropriate sub-tasks to the Issue so that you or others can complete the Issue.
                 - Keep sub-tasks fairly high level. Prefer defining 5-10 broad tasks to complete an Issue, instead of 20+ detailed tasks.
                 - Tasks can have a list of steps in the task list if you want to provide detailed instructions for a task. However, this is not optional, not required.
+                - If you need to evaluate the current codebase in order to determine what tasks to create, make sure that you are working with the correct branch, per the instructions in the "Branch Strategy" section of this document.
 2. **CHECKPOINT: Ask the user to check and verify the sub-tasks before continuing.**
 3. Assign the Issue to yourself, and move it to the IN-PROGRESS step/column in Jira.
 4. Ensure that the necessary git branches are setup, according to the "Branch Strategy" and "Workflow for Jira Issue Development" guidelines in the "Working with Github" section of this document.
