@@ -62,4 +62,51 @@ class TeeTimesRepository(
         .mapLatest { list ->
             list.map { it.toModel() }
         }
+
+    /**
+     * Gets a single tee time by its ID.
+     *
+     * @param id The unique identifier of the tee time.
+     * @return The TeeTime if found, null otherwise.
+     */
+    @Throws(CancellationException::class)
+    suspend fun getTeeTime(id: String): TeeTime? {
+        return teeTimeStorage.getTeeTime(id)?.toModel()
+    }
+
+    /**
+     * Updates an existing tee time.
+     *
+     * @param teeTime The tee time with updated values. Must have a non-null ID.
+     * @return The updated TeeTime.
+     * @throws IllegalArgumentException if the teeTime has a null ID.
+     */
+    @Throws(CancellationException::class, IllegalArgumentException::class)
+    suspend fun updateTeeTime(teeTime: TeeTime): TeeTime {
+        val id = teeTime.id ?: throw IllegalArgumentException("Cannot update a tee time without an ID")
+
+        val sortedTimes = teeTime.times.sortedBy { it.time }
+        val doc = TeeTimeDocument(
+            createdBy = teeTime.createdBy,
+            course = teeTime.course,
+            date = teeTime.date,
+            times = sortedTimes.map { slot ->
+                TeeTimeSlotDocument(
+                    time = slot.time,
+                    numberOfPlayers = slot.numberOfPlayers
+                )
+            }
+        )
+        doc.id = id
+
+        teeTimeStorage.updateTeeTime(id, doc)
+
+        val totalPlayers = teeTime.times.fold(0) { total, slot ->
+            total + slot.numberOfPlayers
+        }
+
+        eventManager.logEvent(AnalyticsEvent.EditTeeTime(teeTime.times.count(), totalPlayers))
+
+        return doc.toModel()
+    }
 }

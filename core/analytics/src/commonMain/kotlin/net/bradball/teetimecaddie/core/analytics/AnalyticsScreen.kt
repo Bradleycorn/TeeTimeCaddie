@@ -68,4 +68,7 @@ sealed class AnalyticsScreen(val name: String, val viewName: String, val paramet
 
     /** The screen for adding a new tee time */
     class AddTeeTime(viewName: String): AnalyticsScreen(name = "AddTeeTime", viewName)
+
+    /** The screen for editing an existing tee time */
+    class EditTeeTime(viewName: String): AnalyticsScreen(name = "EditTeeTime", viewName)
 }
