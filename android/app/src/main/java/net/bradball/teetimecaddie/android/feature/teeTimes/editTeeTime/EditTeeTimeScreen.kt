@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.feature.teeTimes.common.TeeTimesSection
+import net.bradball.teetimecaddie.core.extensions.toEpochMilliseconds
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.TtcDatePicker
@@ -102,6 +103,13 @@ private fun EditTeeTimeContent(
 ) {
     var showTimePickerDialog by remember { mutableStateOf(false) }
     val datePickerState = rememberTtcDatePickerState(initialDate = date)
+
+    // Sync date from viewmodel to picker state (for when data loads asynchronously)
+    LaunchedEffect(date) {
+        if (date != null && datePickerState.selectedDate != date) {
+            datePickerState.selectedDateMillis = date.toEpochMilliseconds(TimeZone.UTC)
+        }
+    }
 
     // Sync date picker state changes back to viewmodel
     LaunchedEffect(datePickerState.selectedDate) {
