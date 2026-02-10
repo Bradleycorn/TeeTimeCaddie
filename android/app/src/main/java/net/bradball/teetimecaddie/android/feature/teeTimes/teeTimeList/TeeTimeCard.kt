@@ -25,8 +25,13 @@ import net.bradball.teetimecaddie.core.models.previewTeeTime
 import net.bradball.teetimecaddie.core.models.previewTeeTimeList
 
 @Composable
-fun TeeTimeCard(teeTime: TeeTime, modifier: Modifier = Modifier) {
+fun TeeTimeCard(
+    teeTime: TeeTime,
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
