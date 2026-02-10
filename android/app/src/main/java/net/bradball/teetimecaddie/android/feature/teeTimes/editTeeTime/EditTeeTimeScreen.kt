@@ -1,0 +1,285 @@
+package net.bradball.teetimecaddie.android.feature.teeTimes.editTeeTime
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import net.bradball.teetimecaddie.android.feature.teeTimes.common.TeeTimesSection
+import net.bradball.teetimecaddie.core.extensions.toEpochMilliseconds
+import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
+import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
+import net.bradball.teetimecaddie.android.ui.common.TtcDatePicker
+import net.bradball.teetimecaddie.android.ui.common.TtcTimePickerDialog
+import net.bradball.teetimecaddie.android.ui.common.buttons.LoadingButton
+import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.android.ui.common.rememberTtcDatePickerState
+import net.bradball.teetimecaddie.android.ui.common.selectedDate
+import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
+import net.bradball.teetimecaddie.android.ui.common.Screen
+import net.bradball.teetimecaddie.core.models.GR
+import net.bradball.teetimecaddie.core.models.TeeTimeSlot
+import net.bradball.teetimecaddie.core.models.previewTeeTimeSlotList
+import net.bradball.teetimecaddie.features.teetimes.TTR
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+
+@Composable
+fun EditTeeTimeScreen(
+    viewModel: EditTeeTimeViewModel,
+    onBack: () -> Unit,
+    onTeeTimeUpdated: () -> Unit
+) {
+    // Handle save success
+    LaunchedEffect(viewModel.saveSuccess) {
+        if (viewModel.saveSuccess) {
+            onTeeTimeUpdated()
+        }
+    }
+
+    EditTeeTimeContent(
+        isLoading = viewModel.isLoading,
+        loadError = viewModel.loadError,
+        showLoadingProgress = viewModel.showLoadingProgress,
+        courseName = viewModel.courseName,
+        date = viewModel.date,
+        timeSlots = viewModel.timeSlots,
+        hasChanges = viewModel.hasChanges,
+        onCourseNameChange = viewModel::updateCourseName,
+        onDateChange = viewModel::updateDate,
+        onAddTimeClick = viewModel::onAddTimeClick,
+        onAddTimeSlot = viewModel::addTimeSlot,
+        onUpdatePlayerCount = viewModel::updatePlayerCount,
+        onRemoveTimeSlot = viewModel::removeTimeSlot,
+        onSaveClick = viewModel::saveTeeTime,
+        onBackClick = onBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditTeeTimeContent(
+    isLoading: Boolean,
+    loadError: Boolean,
+    showLoadingProgress: Boolean,
+    courseName: String,
+    date: LocalDate?,
+    timeSlots: List<TeeTimeSlot>,
+    hasChanges: Boolean,
+    onCourseNameChange: (String) -> Unit,
+    onDateChange: (LocalDate?) -> Unit,
+    onAddTimeClick: () -> Unit,
+    onAddTimeSlot: (LocalTime) -> Boolean,
+    onUpdatePlayerCount: (LocalTime, Int) -> Unit,
+    onRemoveTimeSlot: (LocalTime) -> Unit,
+    onSaveClick: () -> Unit,
+    onBackClick: () -> Unit
+) {
+    var showTimePickerDialog by remember { mutableStateOf(false) }
+    val datePickerState = rememberTtcDatePickerState(initialDate = date)
+
+    // Sync date from viewmodel to picker state (for when data loads asynchronously)
+    LaunchedEffect(date) {
+        if (date != null && datePickerState.selectedDate != date) {
+            datePickerState.selectedDateMillis = date.toEpochMilliseconds(TimeZone.UTC)
+        }
+    }
+
+    // Sync date picker state changes back to viewmodel
+    LaunchedEffect(datePickerState.selectedDate) {
+        if (datePickerState.selectedDate != date) {
+            onDateChange(datePickerState.selectedDate)
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(TTR.strings.edit_tee_time.resourceId)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(TtcIcons.ARROW_BACK.painter, contentDescription = stringResource(GR.strings.back.resourceId))
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Screen(AnalyticsScreen.EditTeeTime("EditTeeTimeScreen"), modifier = Modifier.padding(padding)) {
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ContentLoadingIndicator()
+                    }
+                }
+                loadError -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Failed to load tee time")
+                    }
+                }
+                else -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        // Course Name TextField
+                        OutlinedTextField(
+                            value = courseName,
+                            onValueChange = onCourseNameChange,
+                            label = { Text(stringResource(TTR.strings.field_label_course_name.resourceId)) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Date Picker Field
+                        TtcDatePicker(pickerState = datePickerState)
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Tee Times Section
+                        TeeTimesSection(
+                            timeSlots = timeSlots,
+                            onAddTimeClick = {
+                                onAddTimeClick()
+                                showTimePickerDialog = true
+                            },
+                            onUpdatePlayerCount = onUpdatePlayerCount,
+                            onRemoveTimeSlot = onRemoveTimeSlot
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // Save Button
+                        LoadingButton(
+                            text = stringResource(TTR.strings.button_save.resourceId),
+                            onClick = onSaveClick,
+                            enabled = hasChanges && courseName.isNotBlank() && date != null && timeSlots.isNotEmpty(),
+                            modifier = Modifier.fillMaxWidth(),
+                            isLoading = showLoadingProgress
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Time Picker Dialog
+    if (showTimePickerDialog) {
+        TtcTimePickerDialog(
+            onDismiss = { showTimePickerDialog = false },
+            onTimeSelected = { time ->
+                onAddTimeSlot(time)
+                showTimePickerDialog = false
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalTime::class)
+@Preview(showBackground = true)
+@Composable
+private fun EditTeeTimeContentLoadingPreview() {
+    MyApplicationTheme {
+        EditTeeTimeContent(
+            isLoading = true,
+            loadError = false,
+            showLoadingProgress = false,
+            courseName = "",
+            date = null,
+            timeSlots = emptyList(),
+            hasChanges = false,
+            onCourseNameChange = { },
+            onDateChange = { },
+            onAddTimeClick = { },
+            onAddTimeSlot = { true },
+            onUpdatePlayerCount = { _, _ -> },
+            onRemoveTimeSlot = { },
+            onSaveClick = { },
+            onBackClick = { }
+        )
+    }
+}
+
+@OptIn(ExperimentalTime::class)
+@Preview(showBackground = true)
+@Composable
+private fun EditTeeTimeContentPreview() {
+    MyApplicationTheme {
+        EditTeeTimeContent(
+            isLoading = false,
+            loadError = false,
+            showLoadingProgress = false,
+            courseName = "Persimmon Ridge",
+            date = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+            timeSlots = previewTeeTimeSlotList,
+            hasChanges = false,
+            onCourseNameChange = { },
+            onDateChange = { },
+            onAddTimeClick = { },
+            onAddTimeSlot = { true },
+            onUpdatePlayerCount = { _, _ -> },
+            onRemoveTimeSlot = { },
+            onSaveClick = { },
+            onBackClick = { }
+        )
+    }
+}
+
+@OptIn(ExperimentalTime::class)
+@Preview(showBackground = true)
+@Composable
+private fun EditTeeTimeContentWithChangesPreview() {
+    MyApplicationTheme {
+        EditTeeTimeContent(
+            isLoading = false,
+            loadError = false,
+            showLoadingProgress = false,
+            courseName = "Persimmon Ridge Golf Club",
+            date = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+            timeSlots = previewTeeTimeSlotList,
+            hasChanges = true,
+            onCourseNameChange = { },
+            onDateChange = { },
+            onAddTimeClick = { },
+            onAddTimeSlot = { true },
+            onUpdatePlayerCount = { _, _ -> },
+            onRemoveTimeSlot = { },
+            onSaveClick = { },
+            onBackClick = { }
+        )
+    }
+}

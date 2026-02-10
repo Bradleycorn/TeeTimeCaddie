@@ -2,6 +2,7 @@
 <resources>
     <string name="tee_times_title">Tee Times</string>
     <string name="add_tee_time">Add Tee Time</string>
+    <string name="edit_tee_time">Edit Tee Time</string>
     <string name="empty_tee_times_title">Tee Sheet is Wide Open</string>
     <string name="empty_tee_times_message">You don\'t have an scheduled tee times.</string>
 
@@ -10,6 +11,7 @@
     <string name="field_Label_Time">Time</string>
     <string name="field_Label_Players">Number of Players</string>
     <string name="button_create">Create</string>
+    <string name="button_save">Save</string>
 
     <!-- Multiple tee times -->
     <string name="tee_times_section_header">Tee Times</string>

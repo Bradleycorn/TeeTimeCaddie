@@ -62,6 +62,31 @@ class TeeTimeStorage {
                     .filter { it.date >= now }
             }
     }
+
+    /**
+     * Get a single tee time by ID.
+     *
+     * @param id The unique id of the tee time document.
+     * @return The [TeeTimeDocument] if found, null otherwise.
+     */
+    suspend fun getTeeTime(id: String): TeeTimeDocument? {
+        val doc = teeTimesCollection.document(id).get()
+        return if (doc.exists) {
+            doc.data<TeeTimeDocument>().apply { this.id = doc.id }
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Update an existing tee time in the database.
+     *
+     * @param id The unique id of the tee time document to update.
+     * @param document A [TeeTimeDocument] with the updated information.
+     */
+    suspend fun updateTeeTime(id: String, document: TeeTimeDocument) {
+        teeTimesCollection.document(id).set(document)
+    }
 }
 
 inline fun <reified T : Any> List<DocumentSnapshot>.deserialize(predicate: T.(DocumentSnapshot)->Unit): List<T> {
