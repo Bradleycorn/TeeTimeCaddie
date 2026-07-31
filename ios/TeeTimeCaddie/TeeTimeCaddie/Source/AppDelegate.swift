@@ -11,7 +11,6 @@ import FirebaseCore
 import FirebaseAuth
 import FirebaseAnalytics
 import TeeTimeCaddieKit
-import FirebaseAnalyticsSwift
 
 // Firebase requires us to use an App Delegate, and to disable method swizzing.
 // More Info: https://firebase.google.com/docs/ios/learn-more#swiftui

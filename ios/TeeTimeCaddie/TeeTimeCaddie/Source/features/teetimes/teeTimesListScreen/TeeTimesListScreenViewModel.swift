@@ -16,26 +16,4 @@ class TeeTimesListScreenViewModel {
         self.eventManager = eventManager
     }
 
-    private(set) var uiState: UiState<[TeeTime]> = .Loading
-
-    var addButtonEnabled: Bool {
-        uiState != .Loading
-    }
-
-    func loadTeetimes() async {
-
-        if !uiState.hasContent {
-            uiState = .Loading
-        }
-
-        for await teeTimesList in teeTimesRepo.getTeeTimes(player: authRepo.currentUser.id) {
-            print("Got TeeTimes \(teeTimesList.count)")
-            uiState = (teeTimesList.isEmpty) ? .Empty : .Content(teeTimesList)
-        }
-    }
-
-    /// Logs the analytics event when a tee time is clicked.
-    func onTeeTimeClick() {
-        eventManager.logEvent(event: AnalyticsEvent.TeeTimeListItemClick())
-    }
 }

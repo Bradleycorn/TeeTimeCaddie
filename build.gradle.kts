@@ -30,5 +30,5 @@ tasks.register("clean", Delete::class) {
     delete(rootProject.layout.buildDirectory)
 }
 
-//tasks.getByName(":features:auth:kspKotlinIosX64")
-//    .dependsOn(":features:auth:generateMRiosX64Main")
+//tasks.getByName(":sdk:features:auth:kspKotlinIosX64")
+//    .dependsOn(":sdk:features:auth:generateMRiosX64Main")

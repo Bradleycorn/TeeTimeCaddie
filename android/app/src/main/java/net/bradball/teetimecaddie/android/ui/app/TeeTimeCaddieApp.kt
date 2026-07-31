@@ -16,7 +16,6 @@ import net.bradball.teetimecaddie.android.feature.auth.navigation.authEntries
 import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToAuthentication
 import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToLogin
 import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToRegistration
-import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToWelcome
 import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.navigateToTeeTimesList
 import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesEntries
 import net.bradball.teetimecaddie.android.initializers.InitializationState
@@ -149,8 +148,7 @@ fun TtcNavDisplay(navigator: Navigator, modifier: Modifier = Modifier) {
                     onLoginClick = navigator::navigateToLogin,
                     onRegisterClick = navigator::navigateToRegistration,
                     onLoggedIn = { navigator.navigateToTeeTimesList(true) },
-                    onRegistrationComplete = navigator::navigateToWelcome,
-                    onWelcomeClosed = { navigator.navigateToTeeTimesList(true) }
+                    onRegistrationComplete = { navigator.navigateToTeeTimesList(true) },
                 )
             },
             entryDecorators = listOf(

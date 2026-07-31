@@ -10,8 +10,6 @@ import FirebaseCore
 import FirebaseAuth
 import TeeTimeCaddieKit
 
-import FirebaseAnalyticsSwift
-
 /// The main entry point for the TeeTimeCaddie iOS application.
 ///
 /// This struct serves as a minimal shell whose primary responsibility is to register the

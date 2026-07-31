@@ -74,7 +74,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":businessLogic"))
+    implementation(project(":sdk"))
 
     // CORE
     implementation(libs.androidx.activity)

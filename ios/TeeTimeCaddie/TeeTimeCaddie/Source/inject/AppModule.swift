@@ -1,6 +1,7 @@
 import Foundation
 import Factory
 import TeeTimeCaddieKit
+import Firebase
 
 final class AppModule: SharedContainer {
     static let shared = AppModule()
@@ -24,13 +25,8 @@ final class AppModule: SharedContainer {
     }
     
     
-    var fireabseCrashlytics: Factory<FirebaseCrashlytics> {
-        self { Firebase.shared.crashlytics }
-            .singleton
-    }
-    
-    var firebasePerformance: Factory<FirebasePerformance> {
-        self { Firebase.shared.performance }
+    var fireabseCrashlytics: Factory<Crashlytics> {
+        self { Crashlytics.crashlytics() }
             .singleton
     }
     

@@ -20,16 +20,16 @@ guidelines in the **Development Workflow** section.
 ## Project Structure
 
 ```
-/businessLogic/          - KMP SDK entry point, exports TeeTimeCaddieKit framework for iOS
-/core/                   - Shared core modules
-  ├── network/           - Ktor networking abstractions
-  ├── analytics/         - EventManager system (plugin-based analytics)
-  ├── extensions/        - Kotlin utility extensions
-  ├── storage/           - Data persistence (Firestore + local settings)
-  └── models/            - Shared domain models
-/features/               - Feature modules
-  ├── auth/              - Authentication (Firebase Auth)
-  └── teetimes/          - Tee time management (Firestore)
+/sdk/                    - KMP SDK entry point, exports TeeTimeCaddieKit framework for iOS
+  ├── core/              - Shared core modules
+  │   ├── network/       - Ktor networking abstractions
+  │   ├── analytics/     - EventManager system (plugin-based analytics)
+  │   ├── extensions/    - Kotlin utility extensions
+  │   ├── storage/       - Data persistence (Firestore + local settings)
+  │   └── models/        - Shared domain models
+  └── features/          - Feature modules
+      ├── auth/          - Authentication (Firebase Auth)
+      └── teetimes/      - Tee time management (Firestore)
 /android/app/            - Android app with Jetpack Compose UI
 /ios/TeeTimeCaddie/      - iOS app with SwiftUI
 ```
@@ -132,8 +132,8 @@ xcodebuild clean -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeT
 
 ### Module-Specific Tests
 ```bash
-./gradlew :core:analytics:test           # Test specific module
-./gradlew :features:auth:allTests        # Test specific feature module
+./gradlew :sdk:core:analytics:test       # Test specific module
+./gradlew :sdk:features:auth:allTests    # Test specific feature module
 ```
 
 ### Linting
@@ -172,8 +172,8 @@ API for the applications to consume, and keeping implementation concerns private
 
 ## Structure
 
-### `:businessLogic` Module
-Found in the `businessLogic/` folder, this module provides the `TeeTimeCaddieSdk` class, which
+### `:sdk` Module
+Found in the `sdk/` folder, this module provides the `TeeTimeCaddieSdk` class, which
 operates as a singleton and serves as the entry point to the shared KMP business logic. It
 provides instances of the classes that make up the public API of the shared KMP SDK.
 
@@ -186,7 +186,7 @@ into two categories.
 These modules provide core and/or shared functionality and data structures that are used
 across multiple features. They include:
 
-- **`:core:models`** - Found in the `core/models` folder this module contains all of the Data
+- **`:sdk:core:models`** - Found in the `sdk/core/models` folder this module contains all of the Data
   models that are used by the applications. Prefer to put data models here instead of in feature
   modules, as data models are often used across features.
 
@@ -238,24 +238,24 @@ val previewSomeContainer = SomeContainer(
 )
 ```
 
-- **:`core:extensions`** - Found in the `core/extensions` folder, this module provides convenience
+- **:`sdk:core:extensions`** - Found in the `sdk/core/extensions` folder, this module provides convenience
   utility extension methods and properties on common and primitive types used across both the shared KMP SDK as well
   as the apps. Check here when writing code for methods and properties that can be used to make code
   shorter and easier to read and maintain.
-- **:`core:analytics`** - Provides a single, shared abstraction layer for logging Analytics Events,
+- **:`sdk:core:analytics`** - Provides a single, shared abstraction layer for logging Analytics Events,
   Performance Traces, and Errors to any provider.
 
 #### Feature Modules
 These modules use a Repository Pattern to abstract data access and contain most business logic.
 Modules are defined for each major app feature/section. These modules are defined as sub-modules
-under the `:features` modules, for example, an authentication module `:features:auth`
-(located at `features/auth`), or a module for tee time CRUD operations `:features:teetimes`
-(located at `features/teetimes`). These modules consume the other public and private core modules
+under the `:sdk:features` modules, for example, an authentication module `:sdk:features:auth`
+(located at `sdk/features/auth`), or a module for tee time CRUD operations `:sdk:features:teetimes`
+(located at `sdk/features/teetimes`). These modules consume the other public and private core modules
 and use them to execute business logic and provide data to the applications.
 
 Feature modules should also define extension methods for converting "private" data model instances
 (such as `*Document` storage models and `*Network` response models) to instance of public
-data models that are defined in the `:core/models` module, as well as converting between private
+data models that are defined in the `:sdk:core:models` module, as well as converting between private
 data model instances. These methods should follow a standardized pattern:
 
 - `.toModel(): SomeDataModel` - `.toModel()` methods should be defined as extensions on storage
@@ -269,10 +269,10 @@ other modules in the KMP SDK but who's classes, methods, and properties are NOT 
 applications. They include:
 
 #### Storage
-The `:core:storage` module (found in the `core/storage` folder) contains classes, objects,
+The `:sdk:core:storage` module (found in the `sdk/core/storage` folder) contains classes, objects,
 and data structures for persisting application data, both locally and in the cloud.
 
-**Local Settings** - Within the `:core:storage` module, the **multiplatform-settings** library is used
+**Local Settings** - Within the `:sdk:core:storage` module, the **multiplatform-settings** library is used
 to provide a common API abstraction for storing key value data such as user settings via
 SharedPreferences on Android and NSUserDefaults on iOS.
 
@@ -282,14 +282,14 @@ and `Storage` classes (for example `PlayerStorage` and `TeeTimeStorage`) provide
 CRUD operations on documents.
 
 #### Network
-The `:core:network` module (found in the `core/network` folder) contains classes, objects, and
+The `:sdk:core:network` module (found in the `sdk/core/network` folder) contains classes, objects, and
 data structures for making http network requests, using the `ktor` networking library.
 
 ## Dependency Injection
 
 The modules that make up the shared KMP SDK use a "do-it-yourself" dependency injection system.
 Gradle modules contain a `*Module` class (for example, `StorageModule` in the
-`:core:storage` module) that is responsible fore creating and providing instances of classes
+`:sdk:core:storage` module) that is responsible fore creating and providing instances of classes
 defined in the module. The `TeeTimeCaddieSdk` creates and uses instances of the `*Module` classes
 to obtain instances and expose them to the consuming android and ios applications.
 
@@ -626,7 +626,7 @@ When asked to address PR feedback, follow this system:
 
 ## Adding a New Feature
 
-1. **Create KMP module** under `/features/`
+1. **Create KMP module** under `/sdk/features/`
 2. **Add to `settings.gradle.kts`**
 3. **Create Repository** in `commonMain`
     - Repository should be defined as an interface (`interface ExampleRepository`) , with a corresponding implementation class named with an "Impl" suffix (`class ExampleRespositoryImpl`).
@@ -642,9 +642,9 @@ When asked to address PR feedback, follow this system:
          }
       }
       ```
-4. **Add Storage classes and Storage Models** if needed in `core/storage`
-5. **Define Data Models** in `core/models`
-6. **Export module from businessLogic**, and expose repositories via `TeeTimeCaddieSdk` class.
+4. **Add Storage classes and Storage Models** if needed in `sdk/core/storage`
+5. **Define Data Models** in `sdk/core/models`
+6. **Export module from sdk**, and expose repositories via `TeeTimeCaddieSdk` class.
 7. **Create Hilt module** in Android app to provide repository
 8. **Create Factory module** in iOS app to provide repository
 9. **Create ViewModels** (Android and iOS)
@@ -654,14 +654,14 @@ When asked to address PR feedback, follow this system:
 ## Working with Shared Code
 
 **Repository Pattern:**
-- Repositories in `features/*/src/commonMain`
+- Repositories in `sdk/features/*/src/commonMain`
 - Constructor injection (dependencies provided by platform DI)
 - Suspend functions for async operations
 - Kotlin Flows for reactive data
 - Integrate EventManager for analytics
 
 **Storage Layer:**
-- Firestore: `core/storage/.../PlayerStorage.kt`, `TeeTimeStorage.kt`
+- Firestore: `sdk/core/storage/.../PlayerStorage.kt`, `TeeTimeStorage.kt`
 - Local: `StorageModule` (expect/actual for platform-specific)
 - Documents (Firestore) vs Models (domain)
 - Mapping functions: `fun Document.asModel(): Model`

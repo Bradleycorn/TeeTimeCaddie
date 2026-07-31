@@ -34,7 +34,7 @@ class RegistrationViewModel {
                 try await authRepo.registerUser(email: email, password: password, name: name)
             } catch {
                 let ex = error.asTeeTimeCaddieError(defaultTitle: AR.strings().reg_error_default_title)
-                print(ex.logMessage)
+                //print(ex.logMessage)
                 registrationError = ex
             }
         }

@@ -5,7 +5,6 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import net.bradball.teetimecaddie.android.feature.auth.login.LoginScreen
 import net.bradball.teetimecaddie.android.feature.auth.registration.RegistrationScreen
-import net.bradball.teetimecaddie.android.feature.auth.welcome.WelcomeScreen
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
 
@@ -26,15 +25,6 @@ data object LoginDestination: TtcNavKey
  */
 @Serializable
 data object RegistrationDestination: TtcNavKey
-
-/**
- * Navigation destination for the Welcome screen.
- *
- * Shown after successful registration to welcome new users and guide them
- * through initial setup or introduce key features.
- */
-@Serializable
-data object WelcomeDestination: TtcNavKey
 
 /**
  * Navigates to the appropriate authentication screen based on user history.
@@ -75,16 +65,6 @@ fun Navigator.navigateToRegistration() {
 }
 
 /**
- * Navigates to the Welcome screen.
- *
- * Adds the screen to the back stack, allowing users to navigate back if needed.
- * This is typically called after successful registration.
- */
-fun Navigator.navigateToWelcome() {
-    navigate(WelcomeDestination)
-}
-
-/**
  * Registers all navigation entries for the Authentication feature.
  *
  * This function defines the navigation graph for the Authentication feature by registering
@@ -97,7 +77,7 @@ fun Navigator.navigateToWelcome() {
  *
  * **New User Flow**:
  * ```kotlin
- * Registration -> Welcome -> Tee Times List
+ * Registration -> Tee Times List
  * ```
  *
  * **Returning User Flow**:
@@ -161,7 +141,7 @@ fun Navigator.navigateToWelcome() {
  * @see WelcomeDestination
  * @see Navigator
  */
-fun EntryProviderScope<NavKey>.authEntries(onLoginClick: ()->Unit, onRegisterClick: ()->Unit, onLoggedIn: ()->Unit, onRegistrationComplete: ()->Unit, onWelcomeClosed: ()->Unit) {
+fun EntryProviderScope<NavKey>.authEntries(onLoginClick: ()->Unit, onRegisterClick: ()->Unit, onLoggedIn: ()->Unit, onRegistrationComplete: ()->Unit) {
     entry<LoginDestination> {
         LoginScreen(onRegisterClick = onRegisterClick, onLoggedIn = onLoggedIn )
     }
@@ -170,7 +150,4 @@ fun EntryProviderScope<NavKey>.authEntries(onLoginClick: ()->Unit, onRegisterCli
         RegistrationScreen(onLoginClick = onLoginClick, onRegistrationComplete = onRegistrationComplete)
     }
 
-    entry<WelcomeDestination> {
-        WelcomeScreen(onClose = onWelcomeClosed)
-    }
 }

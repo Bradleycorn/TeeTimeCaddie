@@ -18,32 +18,4 @@ class RegistrationViewModel @Inject constructor(
     private val eventManager: EventManager
 ): ViewModel() {
 
-    /* VIEW STATE */
-
-    var errorMessage: Int? by mutableStateOf(null)
-        private set
-
-    var isProcessingRegistration by mutableStateOf(false)
-        private set
-
-    var registrationSuccess by mutableStateOf(false)
-        private set
-
-    fun registerUser(email: String, password: String, name: String) {
-        viewModelScope.launch {
-            try {
-                isProcessingRegistration = true
-                authRepo.registerUser(email, password, name)
-                registrationSuccess = true
-            } catch (ex: AuthException) {
-                errorMessage = ex.displayMessage.resourceId
-            } finally {
-                isProcessingRegistration = false
-            }
-        }
-    }
-
-    fun clearError() {
-        errorMessage = null
-    }
 }

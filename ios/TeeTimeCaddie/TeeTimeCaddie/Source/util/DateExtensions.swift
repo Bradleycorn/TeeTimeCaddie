@@ -19,16 +19,3 @@ extension Date {
     }
 }
 
-// MARK: - LocalDate to Date conversion
-extension LocalDate {
-    /// Converts a Kotlin LocalDate to a Swift Date.
-    func toDate() -> Date {
-        let calendar = Calendar.current
-        let components = DateComponents(
-            year: Int(self.year),
-            month: Int(self.month.number),
-            day: Int(self.day)
-        )
-        return calendar.date(from: components) ?? Date()
-    }
-}
