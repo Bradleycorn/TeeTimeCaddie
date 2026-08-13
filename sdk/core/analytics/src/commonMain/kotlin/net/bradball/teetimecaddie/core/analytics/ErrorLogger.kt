@@ -11,8 +11,12 @@ package net.bradball.teetimecaddie.core.analytics
  * Unlike [EventPlugin]s, only one instance of the EventLogger is registered
  * with the [EventManager]. This interface serves as an abstraction to allow
  * us to swap out Event Logging services without having to touch other code.
+ *
+ * Implementations are provided by the platform applications (Android in Kotlin, iOS in Swift)
+ * and passed to the SDK during initialization. The shared code depends only on this interface,
+ * so it carries no dependency on any specific error-logging service.
  */
-internal interface ErrorLogger {
+interface ErrorLogger {
     fun logException(throwable: Throwable)
     fun logMessage(message: String)
 

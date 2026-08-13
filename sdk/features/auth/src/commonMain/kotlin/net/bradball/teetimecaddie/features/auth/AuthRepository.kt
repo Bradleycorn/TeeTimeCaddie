@@ -1,14 +1,8 @@
 package net.bradball.teetimecaddie.features.auth
 
-import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.auth.FirebaseAuthEmailException
-import dev.gitlive.firebase.auth.FirebaseAuthException
-import dev.gitlive.firebase.auth.FirebaseAuthInvalidCredentialsException
-import dev.gitlive.firebase.auth.FirebaseAuthUserCollisionException
-import dev.gitlive.firebase.auth.FirebaseUser
-import dev.gitlive.firebase.auth.auth
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.callbackFlow
 import net.bradbal.teetimecaddie.core.storage.PlayerStorage
 import net.bradbal.teetimecaddie.core.storage.documents.PlayerDocument
 import net.bradbal.teetimecaddie.core.storage.settings.TeeTimeCaddieSettings
@@ -23,39 +17,46 @@ import kotlin.coroutines.cancellation.CancellationException
 class AuthRepository(
     private val eventManager: EventManager,
     private val appSettings: TeeTimeCaddieSettings,
-    private val playerStorage: PlayerStorage
+    private val playerStorage: PlayerStorage,
+    private val authService: AuthService
 ) {
 
     val currentUser: User
-        get() = Firebase.auth.currentUser?.let { fbUser ->
-            User(fbUser.uid, fbUser.displayName ?: String.empty)
-        } ?: User(String.empty, "Anonymous")
-    
+        get() {
+            val userId = authService.currentUserId
+            return if (userId != null) {
+                User(userId, authService.currentUserDisplayName ?: String.empty)
+            } else {
+                User(String.empty, "Anonymous")
+            }
+        }
+
     val isLoggedIn: Boolean
-        get() = Firebase.auth.currentUser != null
+        get() = authService.currentUserId != null
 
     val loginState: Flow<Boolean>
-        get() = Firebase.auth.authStateChanged.map { it != null }
+        get() = callbackFlow {
+            val cancellable = authService.observeAuthState { userId -> trySend(userId != null) }
+            awaitClose { cancellable.cancel() }
+        }
 
     val hasLoggedInOnce: Boolean
-        get()  = appSettings.hasLoggedIn
+        get() = appSettings.hasLoggedIn
 
     @Throws(AuthException::class, CancellationException::class)
     suspend fun login(email: String, password: String) {
-        try {
-            Firebase.auth.signInWithEmailAndPassword(email, password)
-            eventManager.logEvent(AnalyticsEvent.Login)
-        } catch (ex: Exception) {
-            eventManager.logEvent(AnalyticsEvent.FailedLogin(reason = ex.message))
-            throw AuthException(AuthErrors.INVALID_CREDENTIALS, ex)
+        when (val result = authService.signIn(email, password)) {
+            is AuthResult.Success -> eventManager.logEvent(AnalyticsEvent.Login)
+            is AuthResult.Failure -> {
+                eventManager.logEvent(AnalyticsEvent.FailedLogin(reason = result.error.name))
+                throw AuthException(result.error)
+            }
         }
     }
 
     suspend fun refreshAuthentication() {
-        try {
-            Firebase.auth.currentUser?.getIdToken(forceRefresh = true)
-        } catch (ex: Exception) {
-            Firebase.auth.signOut()
+        if (!authService.refreshToken()) {
+            authService.signOut()
         }
     }
 
@@ -71,28 +72,28 @@ class AuthRepository(
             throw AuthException(AuthErrors.NO_NAME)
         }
 
-        try {
-            val user = Firebase.auth.createUserWithEmailAndPassword(email, password).user
-                ?: throw Exception("No user available after registration.")
-
-            user.updateProfile(displayName = name)
-            playerStorage.addPlayer(user.uid, PlayerDocument(name))
-            appSettings.hasLoggedIn = true
-            eventManager.setUserId(user.uid)
-            eventManager.logEvent(AnalyticsEvent.CreateAccount)
+        val result = try {
+            authService.register(email, password)
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (ex: Exception) {
-            val error = when (ex) {
-                is FirebaseAuthUserCollisionException -> AuthErrors.USER_EXISTS
-                is FirebaseAuthInvalidCredentialsException -> AuthErrors.INVALID_EMAIL
-                is FirebaseAuthEmailException -> AuthErrors.INVALID_EMAIL
-                is FirebaseAuthException -> AuthErrors.REG_DEFAULT
-                else -> {
-                    eventManager.logException(ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "register"))
-                    AuthErrors.UNKNOWN
-                }
+            eventManager.logException(ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "register"))
+            eventManager.logEvent(AnalyticsEvent.FailedRegistration(AuthErrors.UNKNOWN.name))
+            throw AuthException(AuthErrors.UNKNOWN, ex)
+        }
+
+        when (result) {
+            is AuthResult.Failure -> {
+                eventManager.logEvent(AnalyticsEvent.FailedRegistration(result.error.name))
+                throw AuthException(result.error)
             }
-            eventManager.logEvent(AnalyticsEvent.FailedRegistration(error.name))
-            throw AuthException(error, ex)
+            is AuthResult.Success -> {
+                authService.updateDisplayName(name)
+                playerStorage.addPlayer(result.userId, PlayerDocument(name))
+                appSettings.hasLoggedIn = true
+                eventManager.setUserId(result.userId)
+                eventManager.logEvent(AnalyticsEvent.CreateAccount)
+            }
         }
     }
 }

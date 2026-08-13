@@ -1,8 +1,6 @@
 package net.bradball.teetimecaddie.core.analytics
 
 import co.touchlab.kermit.Logger
-import net.bradball.teetimecaddie.core.analytics.firebase.FirebaseErrorLogger
-import net.bradball.teetimecaddie.core.analytics.firebase.FirebaseTransactionLogger
 import net.bradball.teetimecaddie.core.extensions.empty
 import kotlin.native.HiddenFromObjC
 import kotlin.native.HidesFromObjC
@@ -100,11 +98,9 @@ import kotlin.reflect.KClass
  * @property errorLogger The logger used for recording errors and debug messages
  * @property transactionLogger The logger used for performance monitoring
  */
-class EventManager internal constructor(
-    private val errorLogger: ErrorLogger = FirebaseErrorLogger(),
-    private val transactionLogger: TransactionLogger = FirebaseTransactionLogger()) {
-
-    constructor(): this(FirebaseErrorLogger(), FirebaseTransactionLogger())
+class EventManager(
+    private val errorLogger: ErrorLogger = NoOpErrorLogger(),
+    private val transactionLogger: TransactionLogger = NoOpTransactionLogger()) {
 
     companion object {
         const val STATE_KEY_LOCATION_ERROR = "location-error"

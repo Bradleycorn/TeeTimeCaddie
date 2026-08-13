@@ -21,7 +21,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines)
-            implementation(libs.firebase.mpp.auth)
             implementation(libs.kermit.core)
             api(libs.mokoresources.api)
             implementation(project(":sdk:core:extensions"))
@@ -52,9 +51,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-}
-dependencies {
-    implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
 }
 
 multiplatformResources {

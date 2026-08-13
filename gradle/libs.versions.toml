@@ -16,12 +16,9 @@ androidx-splashscreen = "1.2.0"
 androidx-test-espresso = "3.7.0"
 androidx-test-junit = "1.3.0"
 
-crashkios = "0.9.0"
-
 firebase-bom = "34.7.0"
 firebase-crashlytics-plugin = "3.0.6"
 firebase-performance-plugin = "2.0.2"
-firebase-mpp-sdk = "2.4.0"
 
 google-services = "4.4.4"
 
@@ -44,6 +41,8 @@ ktor="3.3.3"
 moko-resources="0.25.2"
 
 multiplatform-settings="1.3.0"
+
+nsexceptionkt="1.0.5"
 
 skie="0.10.8"
 
@@ -75,20 +74,13 @@ androidx-splashscreen = { module="androidx.core:core-splashscreen", version.ref=
 androidx-test-espresso = { module="androidx.test.espresso:espresso-core", version.ref="androidx-test-espresso" }
 androidx-test-junit = { module="androidx.test.ext:junit", version.ref="androidx-test-junit" }
 
-crashkios = { module="co.touchlab.crashkios:crashlytics", version.ref="crashkios"}
-
 firebase-bom = { module="com.google.firebase:firebase-bom", version.ref="firebase-bom"}
 firebase-analytics = { module="com.google.firebase:firebase-analytics" }
 firebase-auth = { module="com.google.firebase:firebase-auth" }
 firebase-config = { module="com.google.firebase:firebase-config" }
+firebase-firestore = { module="com.google.firebase:firebase-firestore" }
 firebase-crashlytics = { module="com.google.firebase:firebase-crashlytics" }
 firebase-performance = { module="com.google.firebase:firebase-perf" }
-
-firebase-mpp-config = { module="dev.gitlive:firebase-config", version.ref="firebase-mpp-sdk"}
-firebase-mpp-auth = { module="dev.gitlive:firebase-auth", version.ref="firebase-mpp-sdk"}
-firebase-mpp-crashlytics = { module="dev.gitlive:firebase-crashlytics", version.ref="firebase-mpp-sdk"}
-firebase-mpp-firestore = { module="dev.gitlive:firebase-firestore", version.ref="firebase-mpp-sdk"}
-firebase-mpp-performance = { module="dev.gitlive:firebase-perf", version.ref="firebase-mpp-sdk"}
 
 firebase-plugins-crashlytics = { module="com.google.firebase:firebase-crashlytics-gradle", version.ref="firebase-crashlytics-plugin" }
 firebase-plugins-performance = { module="com.google.firebase:perf-plugin", version.ref="firebase-performance-plugin"}
@@ -119,6 +111,8 @@ mokoresources-api = { module="dev.icerock.moko:resources", version.ref="moko-res
 mokoresources-test = { module="dev.icerock.moko:resources-test", version.ref="moko-resources"}
 
 multiplatform-settings = { module="com.russhwolf:multiplatform-settings", version.ref="multiplatform-settings"}
+
+nexceptionkt = { module="com.rickclephas.kmp:nsexception-kt-core", version.ref="nsexceptionkt" }
 
 [bundles]
 accompanist = [
@@ -155,6 +149,7 @@ firebase = [
     "firebase-auth",
     "firebase-config",
     "firebase-crashlytics",
+    "firebase-firestore",
     "firebase-performance"
 ]
 

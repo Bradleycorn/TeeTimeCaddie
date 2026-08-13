@@ -29,6 +29,7 @@ kotlin {
             export(project(":sdk:features:auth"))
             export(project(":sdk:features:teetimes"))
             export(libs.mokoresources.api)
+            export(libs.nexceptionkt)
         }
     }
 
@@ -41,10 +42,7 @@ kotlin {
             api(project(":sdk:features:auth"))
             api(project(":sdk:features:teetimes"))
             implementation(project(":sdk:core:storage"))
-            implementation(libs.crashkios)
             implementation(libs.multiplatform.settings)
-            implementation(libs.firebase.mpp.auth)
-            implementation(libs.firebase.mpp.firestore)
         }
 
         commonTest.dependencies {
@@ -53,6 +51,10 @@ kotlin {
 
         androidMain {
             kotlin.srcDir("build/generated/moko/androidMain/src")
+        }
+
+        appleMain.dependencies {
+            api(libs.nexceptionkt)
         }
     }
 }
