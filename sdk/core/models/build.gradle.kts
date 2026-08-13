@@ -20,7 +20,6 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.crashkios)
             implementation(libs.kotlinx.datetime)
             api(libs.mokoresources.api)
             implementation(project(":sdk:core:analytics"))

@@ -41,10 +41,7 @@ kotlin {
             api(project(":sdk:features:auth"))
             api(project(":sdk:features:teetimes"))
             implementation(project(":sdk:core:storage"))
-            implementation(libs.crashkios)
             implementation(libs.multiplatform.settings)
-            implementation(libs.firebase.mpp.auth)
-            implementation(libs.firebase.mpp.firestore)
         }
 
         commonTest.dependencies {

@@ -26,7 +26,6 @@ kotlin {
         }
 
         commonMain.dependencies {
-            implementation(libs.crashkios)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.bundles.ktor.common)
             implementation(libs.kermit.core)

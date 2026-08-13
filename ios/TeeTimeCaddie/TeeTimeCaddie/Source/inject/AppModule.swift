@@ -10,15 +10,22 @@ final class AppModule: SharedContainer {
     var teeTimeCaddieSdk: Factory<TeeTimeCaddieSdk> {
         self {
             if (!TeeTimeCaddieSdk.companion.isInitialized) {
-                TeeTimeCaddieSdk.companion.initialize(useLocalResources: IS_DEBUG_BUILD)
+                TeeTimeCaddieSdk.companion.initialize(
+                    firestoreClient: FirebaseFirestoreClient(useEmulator: IS_DEBUG_BUILD),
+                    authService: FirebaseAuthService(useEmulator: IS_DEBUG_BUILD),
+                    errorLogger: FirebaseErrorLogger(),
+                    transactionLogger: FirebaseTransactionLogger()
+                )
             }
             return TeeTimeCaddieSdk.companion.getInstance()
         }.singleton
     }
-    
+
     var eventManager: Factory<EventManager> {
         self {
-            EventManager().also { e in
+            // Use the single EventManager owned by the SDK (the one its repositories log to),
+            // rather than a separate instance, and register the app's analytics plugin on it.
+            self.teeTimeCaddieSdk().eventManager.also { e in
                 e.registerPlugin(eventPlugin: FirebaseEventPlugin())
             }
         }.singleton

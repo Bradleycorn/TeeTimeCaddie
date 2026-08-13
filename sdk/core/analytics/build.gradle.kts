@@ -27,10 +27,6 @@ kotlin {
 
 
         commonMain.dependencies {
-            implementation(libs.crashkios)
-            implementation(libs.firebase.mpp.config)
-            implementation(libs.firebase.mpp.crashlytics)
-            implementation(libs.firebase.mpp.performance)
             implementation(libs.kermit.core)
             implementation(libs.kotlinx.serialization.core)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-properties:1.9.0")

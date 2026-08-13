@@ -26,13 +26,11 @@ kotlin {
         }
 
         commonMain.dependencies {
-            implementation(libs.crashkios)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.kotlinx.coroutines)
             implementation(libs.kotlinx.datetime)
             implementation(libs.kermit.core)
             implementation(libs.multiplatform.settings)
-            implementation(libs.firebase.mpp.firestore)
             implementation(project(":sdk:core:models"))
         }
         commonTest.dependencies {
