@@ -29,6 +29,7 @@ kotlin {
             export(project(":sdk:features:auth"))
             export(project(":sdk:features:teetimes"))
             export(libs.mokoresources.api)
+            export(libs.nexceptionkt)
         }
     }
 
@@ -50,6 +51,10 @@ kotlin {
 
         androidMain {
             kotlin.srcDir("build/generated/moko/androidMain/src")
+        }
+
+        appleMain.dependencies {
+            api(libs.nexceptionkt)
         }
     }
 }

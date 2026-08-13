@@ -13,6 +13,7 @@
 		0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B4582AE755550043D4B2 /* FirebasePerformance */; };
 		022684722DEA104A0053A48A /* AppInitializers in Frameworks */ = {isa = PBXBuildFile; productRef = 022684712DEA104A0053A48A /* AppInitializers */; };
 		0228D9752A63219500E82209 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9742A63219500E82209 /* Factory */; };
+		02566C41302E32B000ECC462 /* NSExceptionKtCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 02566C40302E32B000ECC462 /* NSExceptionKtCrashlytics */; };
 		0296EB53301D398700840B06 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 0296EB52301D398700840B06 /* FirebaseFirestore */; };
 		02FF81512F096D2E007ACD28 /* ThemeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 02FF81502F096D2E007ACD28 /* ThemeUI */; };
 /* End PBXBuildFile section */
@@ -89,6 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				02566C41302E32B000ECC462 /* NSExceptionKtCrashlytics in Frameworks */,
 				0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */,
 				022684722DEA104A0053A48A /* AppInitializers in Frameworks */,
 				0228D9752A63219500E82209 /* Factory in Frameworks */,
@@ -175,6 +177,7 @@
 				022684712DEA104A0053A48A /* AppInitializers */,
 				02FF81502F096D2E007ACD28 /* ThemeUI */,
 				0296EB52301D398700840B06 /* FirebaseFirestore */,
+				02566C40302E32B000ECC462 /* NSExceptionKtCrashlytics */,
 			);
 			productName = TeeTimeCaddie;
 			productReference = 02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */;
@@ -256,6 +259,7 @@
 				0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				022684702DEA104A0053A48A /* XCRemoteSwiftPackageReference "SwiftAppInitializers" */,
 				02FF814F2F096D2E007ACD28 /* XCRemoteSwiftPackageReference "ThemeUI" */,
+				02566C3F302E32B000ECC462 /* XCRemoteSwiftPackageReference "NSExceptionKt" */,
 			);
 			productRefGroup = 02BA11622A195E0000BF0416 /* Products */;
 			projectDirPath = "";
@@ -695,6 +699,14 @@
 				version = 2.2.0;
 			};
 		};
+		02566C3F302E32B000ECC462 /* XCRemoteSwiftPackageReference "NSExceptionKt" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/rickclephas/NSExceptionKt";
+			requirement = {
+				kind = exactVersion;
+				version = "1.0.5-spm-crashlytics";
+			};
+		};
 		02FF814F2F096D2E007ACD28 /* XCRemoteSwiftPackageReference "ThemeUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bradleycorn/ThemeUI";
@@ -735,6 +747,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */;
 			productName = Factory;
+		};
+		02566C40302E32B000ECC462 /* NSExceptionKtCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02566C3F302E32B000ECC462 /* XCRemoteSwiftPackageReference "NSExceptionKt" */;
+			productName = NSExceptionKtCrashlytics;
 		};
 		0296EB52301D398700840B06 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;

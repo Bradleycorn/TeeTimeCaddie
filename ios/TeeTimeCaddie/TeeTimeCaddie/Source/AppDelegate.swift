@@ -11,6 +11,7 @@ import FirebaseCore
 import FirebaseAuth
 import FirebaseAnalytics
 import TeeTimeCaddieKit
+import NSExceptionKtCrashlytics
 
 // Firebase requires us to use an App Delegate, and to disable method swizzing.
 // More Info: https://firebase.google.com/docs/ios/learn-more#swiftui
@@ -27,6 +28,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             }
 
             FirebaseApp.configure() // do this first
+            NSExceptionKt.addReporter(.crashlytics(causedByStrategy: .append))
             // The app provides the platform Firebase-backed loggers; the shared SDK depends only
             // on the logger interfaces, not on Firebase directly.
             TeeTimeCaddieSdk.companion.initialize(
