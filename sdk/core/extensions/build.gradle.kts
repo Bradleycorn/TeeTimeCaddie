@@ -19,8 +19,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.crashkios)
-            implementation(libs.kotlinx.datetime)
+            api(libs.kotlinx.datetime)
         }
 
         commonTest.dependencies {

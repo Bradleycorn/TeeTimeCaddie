@@ -169,6 +169,14 @@ exposes it as an Environment Variable. `TeeTimeCaddieTheme` is the root view for
 allowing all views within the app to obtain the `AppTheme` environment variable to set 
 colors and shapes. 
 
+The shape scale is declared explicitly in `TeeTimeCaddieTheme.swift` (`ttcShapes`) with the same five
+slots and values as Android's `TtcShapes` — `extraSmall` 4, `small` 8, `medium` 12, `large` 16,
+`extraLarge` 28. Read shapes as `theme.shapes.*`; never hard-code a corner radius. Because a
+`ButtonStyle` cannot read `@EnvironmentObject` in `makeBody`, the owning view resolves the shape and
+passes it in as a stored property — the same way colors already reach `TtcPillButtonStyle` and
+friends. `theme.shapes.*` is an `AnyShape` and therefore not `InsettableShape`, so use `.stroke()` at
+double width with `.clipShape()` applied after the overlay in place of `.strokeBorder`.
+
 Note: While the `ThemeUI` framework provides typography theming, it is not used in this application.
 Instead it uses standard, built in SwiftUI typography elements.
 

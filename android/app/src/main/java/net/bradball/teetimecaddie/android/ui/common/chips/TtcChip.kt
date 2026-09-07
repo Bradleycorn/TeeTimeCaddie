@@ -22,21 +22,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 
 /**
  * A chip from the Fairway Morning design system.
  *
- * Renders a compact, 8dp-rounded pill whose *color carries meaning*: [TtcChipColor.Primary] (green),
- * [TtcChipColor.Secondary] (gold), [TtcChipColor.Tertiary] (sky) and the default [TtcChipColor.Neutral]
- * (ambient). [TtcChipVariant.Filled] (the default) is the container-filled status/identity badge (e.g.
+ * Renders a compact, 8dp-rounded pill whose *color carries meaning*: [TtcColorRole.Primary] (green,
+ * the organizer), [TtcColorRole.Secondary] (gold, pending), [TtcColorRole.Tertiary] (sky, confirmed),
+ * [TtcColorRole.Error] (declined / can't play) and the default [TtcColorRole.Neutral] (ambient).
+ * [TtcChipVariant.Filled] (the default) is the container-filled status/identity badge (e.g.
  * "Confirmed", "Organizer", "3/4 filled"); [TtcChipVariant.Outlined] is the transparent, bordered
  * "suggestion" treatment. It is a static badge by default; pass [onClick] to make it tappable.
  *
  * @param text The chip label.
  * @param modifier Modifier for the chip.
- * @param color The [TtcChipColor] role. Defaults to [TtcChipColor.Neutral].
+ * @param color The [TtcColorRole] role. Defaults to [TtcColorRole.Neutral].
  * @param size The [TtcChipSize]. Defaults to [TtcChipSize.Medium].
  * @param variant The [TtcChipVariant] surface treatment. Defaults to [TtcChipVariant.Filled].
  * @param icon Optional leading [TtcIcons] icon.
@@ -46,7 +48,7 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 fun TtcChip(
     text: String,
     modifier: Modifier = Modifier,
-    color: TtcChipColor = TtcChipColor.Neutral,
+    color: TtcColorRole = TtcColorRole.Neutral,
     size: TtcChipSize = TtcChipSize.Medium,
     variant: TtcChipVariant = TtcChipVariant.Filled,
     icon: TtcIcons? = null,
@@ -95,14 +97,15 @@ private fun TtcChipPreview() {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TtcChip(text = "Confirmed", color = TtcChipColor.Tertiary, icon = TtcIcons.ADD)
-                    TtcChip(text = "Pending", color = TtcChipColor.Secondary, icon = TtcIcons.ADD)
-                    TtcChip(text = "Organizer", color = TtcChipColor.Primary, icon = TtcIcons.ADD)
+                    TtcChip(text = "Confirmed", color = TtcColorRole.Tertiary, icon = TtcIcons.ADD)
+                    TtcChip(text = "Pending", color = TtcColorRole.Secondary, icon = TtcIcons.ADD)
+                    TtcChip(text = "Organizer", color = TtcColorRole.Primary, icon = TtcIcons.ADD)
+                    TtcChip(text = "Declined", color = TtcColorRole.Error, icon = TtcIcons.ADD)
                     TtcChip(text = "3/4 filled")
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TtcChip(text = "Confirmed", color = TtcChipColor.Tertiary, size = TtcChipSize.Small)
-                    TtcChip(text = "Pending", color = TtcChipColor.Secondary, size = TtcChipSize.Small)
+                    TtcChip(text = "Confirmed", color = TtcColorRole.Tertiary, size = TtcChipSize.Small)
+                    TtcChip(text = "Pending", color = TtcColorRole.Secondary, size = TtcChipSize.Small)
                     TtcChip(text = "1/4 filled", size = TtcChipSize.Small)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -111,11 +114,12 @@ private fun TtcChipPreview() {
                     TtcChip(text = "Torrey Pines", variant = TtcChipVariant.Outlined)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TtcChip(text = "Primary", color = TtcChipColor.Primary, variant = TtcChipVariant.Outlined)
-                    TtcChip(text = "Secondary", color = TtcChipColor.Secondary, variant = TtcChipVariant.Outlined)
-                    TtcChip(text = "Tertiary", color = TtcChipColor.Tertiary, variant = TtcChipVariant.Outlined)
+                    TtcChip(text = "Primary", color = TtcColorRole.Primary, variant = TtcChipVariant.Outlined)
+                    TtcChip(text = "Secondary", color = TtcColorRole.Secondary, variant = TtcChipVariant.Outlined)
+                    TtcChip(text = "Tertiary", color = TtcColorRole.Tertiary, variant = TtcChipVariant.Outlined)
+                    TtcChip(text = "Declined", color = TtcColorRole.Error, variant = TtcChipVariant.Outlined)
                 }
-                TtcChip(text = "Tappable", color = TtcChipColor.Primary, onClick = {})
+                TtcChip(text = "Tappable", color = TtcColorRole.Primary, onClick = {})
             }
         }
     }

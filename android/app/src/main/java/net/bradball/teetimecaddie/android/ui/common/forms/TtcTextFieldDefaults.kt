@@ -1,7 +1,8 @@
 package net.bradball.teetimecaddie.android.ui.common.forms
 
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -22,10 +23,19 @@ internal object TtcTextFieldDefaults {
     val IconSize = 22.dp
 
     /**
-     * Container shape — top corners rounded to `radius-xs` (4dp), bottom corners square, matching the
-     * Material 3 filled field in the design.
+     * Container shape — top corners rounded to `radius-xs` (the theme's [Shapes.extraSmall], 4dp),
+     * bottom corners squared off, matching the Material 3 filled field in the design.
+     *
+     * The squared bottom is what makes room for the focus/error indicator, so the token is taken for
+     * the top corners only. iOS has no bottom indicator and rounds all four corners at
+     * `shapes.medium` instead — see `TtcTextFieldStyle.shape(_:)`. That divergence is deliberate:
+     * each platform renders its own idiomatic field.
      */
-    val Shape: Shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+    val Shape: Shape
+        @Composable get() = MaterialTheme.shapes.extraSmall.copy(
+            bottomStart = ZeroCornerSize,
+            bottomEnd = ZeroCornerSize,
+        )
 
     /**
      * [TextFieldColors] mapping the Fairway Morning field states onto Material 3 roles:

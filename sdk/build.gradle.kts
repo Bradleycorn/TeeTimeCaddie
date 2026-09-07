@@ -29,10 +29,16 @@ kotlin {
             export(project(":sdk:features:auth"))
             export(project(":sdk:features:teetimes"))
             export(libs.mokoresources.api)
+            export(libs.kotlinx.datetime)
+            export(libs.nsexceptionkt)
         }
     }
 
     sourceSets {
+
+        appleMain.dependencies {
+            api(libs.nsexceptionkt)
+        }
 
         commonMain.dependencies {
             api(project(":sdk:core:analytics"))
@@ -41,10 +47,10 @@ kotlin {
             api(project(":sdk:features:auth"))
             api(project(":sdk:features:teetimes"))
             implementation(project(":sdk:core:storage"))
-            implementation(libs.crashkios)
             implementation(libs.multiplatform.settings)
             implementation(libs.firebase.mpp.auth)
             implementation(libs.firebase.mpp.firestore)
+            api(libs.kotlinx.datetime)
         }
 
         commonTest.dependencies {

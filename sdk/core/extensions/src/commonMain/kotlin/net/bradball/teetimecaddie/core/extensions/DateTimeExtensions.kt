@@ -2,6 +2,7 @@ package net.bradball.teetimecaddie.core.extensions
 
 import kotlinx.datetime.*
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * Converts a LocalDate to a timestamp.
@@ -41,3 +42,25 @@ val LocalTime.formattedTime: String
         val amPm = if (hour < 12) "AM" else "PM"
         return "$displayHour:$displayMinute $amPm"
     }
+
+/**
+ * Converts a timestamp to a LocalDate.
+ * This method interprets the timestamp in the passed in timezone, and returns the calendar
+ * date that the timestamp falls on in that timezone.
+ *
+ * This is the inverse of [toEpochMilliseconds]. Note that the two must be called with the *same*
+ * timezone to round trip: a timestamp created at midnight in one zone can land on the previous or
+ * next calendar day when read in another.
+ *
+ * @param timeZone the TimeZone to use when determining which calendar date the timestamp falls on.
+ *   Defaults to the current system timezone.
+ *
+ * @return The LocalDate that this timestamp (a number of milliseconds from the unix epoch) falls on.
+ */
+@OptIn(ExperimentalTime::class)
+fun Long.toLocalDate(timeZone: TimeZone = TimeZone.currentSystemDefault()): LocalDate {
+    return Instant
+        .fromEpochMilliseconds(this)
+        .toLocalDateTime(timeZone)
+        .date
+}

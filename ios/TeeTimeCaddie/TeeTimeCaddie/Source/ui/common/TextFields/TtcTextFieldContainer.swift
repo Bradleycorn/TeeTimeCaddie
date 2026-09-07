@@ -1,7 +1,7 @@
 import SwiftUI
 import ThemeUI
 
-/// The shared "chrome" for the Fairway Morning text fields: the rounded `surfaceContainer` card, the
+/// The shared "chrome" for the Fairway Morning text fields: the `radius-md`-rounded `surfaceContainer` card, the
 /// static label, an optional leading icon, an optional trailing button, the focus/error border, and
 /// the supporting text row. The actual input control is injected via [input] so that each field only
 /// pays for what it needs — ``TtcTextField`` injects a single `TextField`, while ``TtcPasswordField``
@@ -26,6 +26,7 @@ struct TtcTextFieldContainer<Input: View>: View {
 
     var body: some View {
         let scheme = theme.colorScheme
+        let shape = TtcTextFieldStyle.shape(theme.shapes)
         let hasError = error != nil
         let labelColor = hasError ? scheme.error : (isFocused ? scheme.primary : scheme.onSurfaceVariant)
         let borderColor: Color = hasError ? scheme.error : (isFocused ? scheme.primary : .clear)
@@ -59,12 +60,15 @@ struct TtcTextFieldContainer<Input: View>: View {
             }
             .padding(EdgeInsets(top: 8, leading: 16, bottom: 10, trailing: 16))
             .background(scheme.surfaceContainer)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(borderColor, lineWidth: 2)
+                // `strokeBorder` needs an `InsettableShape`, and the theme's shapes are type-erased
+                // to `AnyShape`. `stroke` centers the line on the path instead, so draw it at double
+                // width and let the trailing `clipShape` remove the outer half — the same 2pt inset
+                // border `strokeBorder(_, lineWidth: 2)` produced.
+                shape.stroke(borderColor, lineWidth: 4)
             }
-            .contentShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(shape)
+            .contentShape(shape)
             .onTapGesture { onActivate() }
 
             TtcTextFieldSupport(error: error, hint: hint)

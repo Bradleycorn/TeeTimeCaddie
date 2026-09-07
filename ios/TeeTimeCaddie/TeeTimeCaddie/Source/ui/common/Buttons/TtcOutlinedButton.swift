@@ -4,7 +4,8 @@ import ThemeUI
 /// An outlined pill button from the Fairway Morning design system.
 ///
 /// By default (`.neutral`) it renders the design's neutral treatment: on-surface text with a subtle
-/// `outline` border. `.primary`, `.secondary` and `.tertiary` tint the text and border to that role.
+/// `outline` border. Every other ``TtcColorRole`` tints both the text and the border to that role —
+/// including `.error`, for a low-emphasis destructive action.
 /// Use [icon] for an optional leading icon, [dense] for tighter padding, and [isLoading] to show an
 /// animated indicator in place of the label (taps are ignored while loading). For a full-width CTA,
 /// apply `.frame(maxWidth: .infinity)`.
@@ -12,7 +13,7 @@ struct TtcOutlinedButton: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let title: String
-    private let color: TtcButtonColor
+    private let color: TtcColorRole
     private let icon: ImageResource?
     private let dense: Bool
     private let isLoading: Bool
@@ -20,7 +21,7 @@ struct TtcOutlinedButton: View {
 
     init(
         _ title: String,
-        color: TtcButtonColor = .neutral,
+        color: TtcColorRole = .neutral,
         icon: ImageResource? = nil,
         dense: Bool = false,
         isLoading: Bool = false,
@@ -42,10 +43,10 @@ struct TtcOutlinedButton: View {
         }
         .buttonStyle(TtcPillButtonStyle(
             background: .clear,
-            foreground: color.outlinedForeground(scheme),
+            foreground: TtcButtonStyle.outlinedForeground(color, scheme),
             disabledBackground: .clear,
             disabledForeground: scheme.onSurfaceVariant,
-            border: color.outlinedBorder(scheme),
+            border: TtcButtonStyle.outlinedBorder(color, scheme),
             disabledBorder: scheme.outlineVariant,
             dense: dense
         ))
@@ -58,6 +59,7 @@ struct TtcOutlinedButton: View {
             TtcOutlinedButton("Invite more") {}
             TtcOutlinedButton("Invite", icon: .Icons.calendarAdd) {}
             TtcOutlinedButton("Primary", color: .primary) {}
+            TtcOutlinedButton("Leave game", color: .error) {}
             TtcOutlinedButton("Create account") {}.frame(maxWidth: .infinity)
             TtcOutlinedButton("Disabled") {}.disabled(true)
             TtcOutlinedButton("Loading", isLoading: true) {}

@@ -14,6 +14,7 @@
 		022684722DEA104A0053A48A /* AppInitializers in Frameworks */ = {isa = PBXBuildFile; productRef = 022684712DEA104A0053A48A /* AppInitializers */; };
 		0228D9752A63219500E82209 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9742A63219500E82209 /* Factory */; };
 		0296EB53301D398700840B06 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 0296EB52301D398700840B06 /* FirebaseFirestore */; };
+		02B42A7E304F13340099573F /* NSExceptionKtCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 02B42A7D304F13340099573F /* NSExceptionKtCrashlytics */; };
 		02FF81512F096D2E007ACD28 /* ThemeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 02FF81502F096D2E007ACD28 /* ThemeUI */; };
 /* End PBXBuildFile section */
 
@@ -89,6 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				02B42A7E304F13340099573F /* NSExceptionKtCrashlytics in Frameworks */,
 				0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */,
 				022684722DEA104A0053A48A /* AppInitializers in Frameworks */,
 				0228D9752A63219500E82209 /* Factory in Frameworks */,
@@ -157,6 +159,7 @@
 				02BA115F2A195E0000BF0416 /* Resources */,
 				02F5312D2A66D7CF00278F17 /* Copy KMP resources */,
 				02A816A12BA37E650068F359 /* Embed Frameworks */,
+				02B42A7B304EFEA70099573F /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -175,6 +178,7 @@
 				022684712DEA104A0053A48A /* AppInitializers */,
 				02FF81502F096D2E007ACD28 /* ThemeUI */,
 				0296EB52301D398700840B06 /* FirebaseFirestore */,
+				02B42A7D304F13340099573F /* NSExceptionKtCrashlytics */,
 			);
 			productName = TeeTimeCaddie;
 			productReference = 02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */;
@@ -256,6 +260,7 @@
 				0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				022684702DEA104A0053A48A /* XCRemoteSwiftPackageReference "SwiftAppInitializers" */,
 				02FF814F2F096D2E007ACD28 /* XCRemoteSwiftPackageReference "ThemeUI" */,
+				02B42A7C304F13340099573F /* XCRemoteSwiftPackageReference "NSExceptionKt" */,
 			);
 			productRefGroup = 02BA11622A195E0000BF0416 /* Products */;
 			projectDirPath = "";
@@ -293,6 +298,30 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		02B42A7B304EFEA70099573F /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib",
+			);
+			name = "Run Script";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
 		02BA118E2A19607400BF0416 /* Compile KMP Framework */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -309,7 +338,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/../..\"\n./gradlew :sdk:embedAndSignAppleFrameworkForXcode";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/../..\"\n./gradlew :sdk:embedAndSignAppleFrameworkForXcode\n";
 		};
 		02F5312D2A66D7CF00278F17 /* Copy KMP resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -490,6 +519,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = Purple600;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"TeeTimeCaddie/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = XDJPMNG2Q7;
 				ENABLE_PREVIEWS = YES;
@@ -695,12 +725,20 @@
 				version = 2.2.0;
 			};
 		};
+		02B42A7C304F13340099573F /* XCRemoteSwiftPackageReference "NSExceptionKt" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/rickclephas/NSExceptionKt";
+			requirement = {
+				kind = exactVersion;
+				version = "1.0.5-spm-crashlytics";
+			};
+		};
 		02FF814F2F096D2E007ACD28 /* XCRemoteSwiftPackageReference "ThemeUI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bradleycorn/ThemeUI";
 			requirement = {
 				kind = exactVersion;
-				version = 1.0.0;
+				version = 1.0.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -740,6 +778,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		02B42A7D304F13340099573F /* NSExceptionKtCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 02B42A7C304F13340099573F /* XCRemoteSwiftPackageReference "NSExceptionKt" */;
+			productName = NSExceptionKtCrashlytics;
 		};
 		02FF81502F096D2E007ACD28 /* ThemeUI */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -105,7 +105,35 @@ fileprivate let ttcDarkColors = darkColorScheme(
 
 fileprivate let ttcTypography = Typography()
 
-fileprivate let ttcShapes = Shapes()
+// =============================================================================
+// Corner shape scale — the single radius vocabulary every Ttc component draws
+// from, read as `theme.shapes.*`. Ported 1:1 from Android's `TtcShapes`
+// (theme/Shape.kt); these are the Fairway Morning `radius-*` tokens.
+//
+// A component names a size, not a radius. Each component's `Ttc*Style` owns the
+// mapping and documents its choice:
+//   extraSmall  radius-xs   (Android's text field, top corners only)
+//   small       radius-sm   chips
+//   medium      radius-md   cards, text fields
+//   large / extraLarge      larger surfaces; iOS sheets keep the system radius
+//
+// These match ThemeUI's own defaults exactly, so declaring them changes nothing
+// today. They are declared anyway: it keeps the scale reviewable beside the
+// Android twin, and pins the app's radii to the design rather than to whatever
+// the package ships next. Not hypothetical — before ThemeUI 1.0.2 the inherited
+// scale was 3 slots at 8/10/12, which put the wrong radius in the semantically
+// correct slot for a card.
+//
+// Buttons are deliberately absent: the design's pill is a capsule, not a
+// radius. See `TtcButtonStyle.shape`.
+// =============================================================================
+fileprivate let ttcShapes = Shapes(
+    extraSmall: RoundedRectangle(cornerRadius: 4),
+    small: RoundedRectangle(cornerRadius: 8),
+    medium: RoundedRectangle(cornerRadius: 12),
+    large: RoundedRectangle(cornerRadius: 16),
+    extraLarge: RoundedRectangle(cornerRadius: 28)
+)
 
 struct TeeTimeCaddieTheme<Content: View>: View {
     private let content: () -> Content

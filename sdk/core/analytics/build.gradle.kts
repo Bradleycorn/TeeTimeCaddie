@@ -27,7 +27,6 @@ kotlin {
 
 
         commonMain.dependencies {
-            implementation(libs.crashkios)
             implementation(libs.firebase.mpp.config)
             implementation(libs.firebase.mpp.crashlytics)
             implementation(libs.firebase.mpp.performance)

@@ -1,6 +1,5 @@
 package net.bradball.teetimecaddie
 
-import co.touchlab.crashkios.crashlytics.enableCrashlytics
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
@@ -46,7 +45,6 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
         internal fun initialize(useLocalResources: Boolean, storageModule: StorageModule) {
             if (instance == null) {
                 instance = TeeTimeCaddieSdk(useLocalResources, storageModule)
-                enableCrashlytics()
             }
         }
     }

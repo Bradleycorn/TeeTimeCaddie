@@ -166,7 +166,7 @@ API for the applications to consume, and keeping implementation concerns private
 - **Kotlinx DateTime** - Cross-platform dates
 - **Kermit** - Multiplatform logging
 - **Multiplatform Settings** - Key-value storage (SharedPreferences/NSUserDefaults)
-- **CrashKiOS** - iOS crash reporting
+- **NSExceptionKt** - iOS crash reporting
 - **Moko Resources** (https://github.com/icerockdev/moko-resources) - Shared resources (strings)
 - **SKIE** (https://github.com/touchlab/SKIE) - Swift/Kotlin interop enhancements (https://skie.touchlab.co/intro)
 
@@ -359,7 +359,9 @@ Both platforms use **Material3 design tokens** with identical color roles and ty
 **Pattern Requirements:**
 - Same color roles (primary, onPrimary, surface, etc.)
 - Same typography scale (displayLarge, headlineMedium, bodySmall, etc.)
-- Same shape definitions (small, medium, large)
+- Same shape scale (extraSmall, small, medium, large, extraLarge), declared explicitly on both
+  platforms with identical values — `TtcShapes` in `android/.../theme/Shape.kt` and `ttcShapes` in
+  `ios/.../ui/theme/TeeTimeCaddieTheme.swift`
 - Centralized theme definitions
 
 **When updating themes:**
@@ -368,6 +370,17 @@ Both platforms use **Material3 design tokens** with identical color roles and ty
 3. Maintain the same semantic color meanings
 4. Android: Update Material3 theme files
 5. iOS: Update ThemeUI configuration
+
+**Never hard-code a corner radius.** A component names a size on the shape scale, resolved through
+`MaterialTheme.shapes.*` (Android) or `theme.shapes.*` (iOS), and each component's `Ttc*Defaults` /
+`Ttc*Style` owns that mapping. The exceptions are shapes that are not radii at all: `CircleShape` /
+`Circle()` for round-by-definition elements (avatars, dots), and the pill button, which is
+`CircleShape` on Android and `.capsule` on iOS.
+
+Note ThemeUI erases its shapes to `AnyShape`, which is not an `InsettableShape` — so `.strokeBorder`
+is unavailable on a themed shape. Draw such a border with `.stroke()` at double the width and apply
+`.clipShape()` *after* the overlay; that clips the outer half and is pixel-identical to
+`strokeBorder` at the intended width.
 
 ### Initialization System Parity
 
@@ -417,239 +430,9 @@ Both platforms follow **MVVM with reactive state**:
 3. Maintain identical user interaction flows
 4. Business logic stays in KMP, UI orchestration in platform layer
 
----
-
-
-# Jira Issue Workflow
-A Jira "Issue" is any Story, Defect, Epic (feature) defined in Jira.
-"Acceptance Criteria" is all of the details and description in a Jira Issue.
-
-Follow all of the Steps in the sections below for EVERY Jira Issue that you implement.
-
-## Before Writing Any Code:
-
-1. Plan the work to be done:
-    1. Read the full Issue, including Acceptance Criteria and Notes.
-    2. Make sure the Issue has proper sub-tasks:
-        - If the Issue already has sub-tasks, read them to understand what to do and how to complete the implementation.
-            - If the sub-tasks are not sufficient to complete the story, follow the rest of these instructions to complete the task list.
-        - If the Issue does not have sub-tasks (or if the tasks aren't enough to fully implement the story):
-            - Add appropriate sub-tasks to the Issue so that you or others can complete the Issue.
-                - Keep sub-tasks fairly high level. Prefer defining 5-10 broad tasks to complete an Issue, instead of 20+ detailed tasks.
-                - Tasks can have a list of steps in the task list if you want to provide detailed instructions for a task. However, this is not optional, not required.
-                - If you need to evaluate the current codebase in order to determine what tasks to create, make sure that you are working with the correct branch, per the instructions in the "Branch Strategy" section of this document.
-2. **CHECKPOINT: Ask the user to check and verify the sub-tasks before continuing.**
-3. Assign the Issue to yourself, and move it to the IN-PROGRESS step/column in Jira.
-4. Ensure that the necessary git branches are setup, according to the "Branch Strategy" and "Workflow for Jira Issue Development" guidelines in the "Working with Github" section of this document.
-    - If there are uncommited changes on the current branch, ask me what to do before continuing.
-
-## Writing Code to Implement the Issue
-
-1. Implement the Issue following all of the guidelines in this file, as well as context provided by other Claude.md files in this project.
-    - Make sure all Acceptance Criteria of the Issue are met.
-    - Commit somewhat frequently to the Issue branch A decent guideline might be to commit the work for each sub-task in the Issue.
-2. Write Unit tests for non-UI code, including all shared KMP code, and View Models in platform code.
-3. Write UI tests for all views and UI code in each platform.
-4. Build and test both platforms.
-    - Note that is is not enough to just build the iOS framework with gradle. Use xcodebuild to build the ios app.
-    - Run unit tests for both platforms and ensure all tests pass.
-    - Run UI tests for both platforms and ensure all tests pass.
-
-## Finishing the Implementation
-1. Once all code is written to meet the Acceptance Criteria of the Issue, and tests are passing, make sure all code is commited to the Issue branch.
-2. Push the Issue branch to the git origin repository.
-3. Create a PR targeting the parent branch (which will usually be the epic/feature branch).
-4. Include a link to the Jira Issue.
-5. In Jira, Transition the Issue to to the IN-REVIEW step/column.
-    - Link the PR to the Issue.
-
-## Important Notes
-- Never commit directly to the `main` or Epic branches unless I explicitly tell you to do so.
-    - If I do tell you to do so, ask me one more time to confirm.
-- Always target PR's back to the branch that the head branch was created from. For a story/defect, this is usually the Epic branch.
-
-# Working with GitHub
-
-The project repository is at `https://github.com/Bradleycorn/TeeTimeCaddie.git` and the GitHub CLI (`gh`) is configured and authenticated.
-
-## Branch Strategy
-
-This project uses a **hierarchical branching strategy** aligned with Jira Epics and Stories, loosely based on Git Flow:
-
-```
-main
- └── epic/TTC-100-user-management (Epic branch)
-      ├── story/TTC-101-login-screen (Story branch)
-      ├── story/TTC-102-profile-screen (Story branch)
-      └── story/TTC-103-settings-screen (Story branch)
-```
-
-**Branch Types:**
-
-1. **Epic Branches** (correspond to Jira Epics):
-    - Created from `main`
-    - Naming: `epic/TTC-XXX-short-description`
-    - Long-lived branches that accumulate story work
-    - Merged back to `main` when the entire Epic is complete (usually manual PR)
-
-2. **Story Branches** (correspond to Jira Stories and Defects):
-    - Created from the Epic/feature branch
-    - Naming: `story/TTC-XXX-short-description`
-    - Short-lived branches for individual stories
-    - Merged back to the Epic/feature branch via PR
-    - Should be focused on a single story's scope
-
-3. **Hotfix Branches** (for urgent fixes):
-    - Created from `main`
-    - Naming: `hotfix/TTC-XXX-short-description`
-    - Merged directly back to `main` via PR
-
-## Workflow for Jira Issue Development
-
-When working on a Jira Story within an Epic:
-
-1. **Before Starting - Check for Epic Branch:**
-    - If there are uncommitted changes on the current branch, ask the user what to do with them before continuing.
-    - Fetch latest branches: `git fetch origin`
-    - Check if the parent Epic branch exists.
-    - **If Epic branch does NOT exist:**
-        - **ALWAYS ask the user before creating it**
-        - Ask which branch should be the base (usually `main`, but may be different)
-        - Example: "This story belongs to Epic TTC-100. Should I create epic/TTC-100-user-management from main?"
-    - **If Epic branch exists:** Proceed with story branch creation from epic branch
-
-2. **Story Branch Creation:**
-    - Check if story branch exists.
-    - **If Story Branch Exists**, switch to it.
-    - **If Story Branch does NOT Exist**, Create story branch from Epic branch: `git checkout -b story/TTC-100-user-management`
-    - Use descriptive branch names that include the Jira key
-
-3. **Making Changes:**
-    - Make code changes following the architecture patterns
-    - Commit frequently with clear, descriptive messages
-
-4. **Creating Story PR (Story → Epic branch):**
-    - Push the story branch to GitHub: `git push -u origin story/TTC-123-login-screen`
-    - Create a pull request targeting the **Epic branch** (not main!)
-    - Use `gh pr create --base epic/TTC-100-user-management`
-    - Include in the PR description:
-        - Link to the Jira story
-        - Summary of changes (what and why)
-        - Test plan or testing notes
-        - Any breaking changes or migration notes
-        - Screenshots for UI changes
-
-5. **After Story PR Approval:**
-    - Merge the story branch into the Epic branch
-    - Delete the story branch after merge
-    - The Epic branch now contains your story's work
-
-**Example Story PR Creation:**
-```bash
-gh pr create \
-  --base epic/TTC-100-user-management \
-  --title "TTC-123: Add login screen" \
-  --body "$(cat <<'EOF'
-## Summary
-Implements login screen with email/password fields and validation.
-
-## Changes
-- Add LoginScreen composable (Android)
-- Add LoginView SwiftUI view (iOS)
-- Add form validation logic
-- Wire up to AuthRepository
-
-## Test Plan
-- [x] Verify validation shows errors for invalid input
-- [x] Test successful login flow
-- [x] Test failed login handling
-- [x] Test on both Android and iOS
-
-## Related Story
-[TTC-123: Add login screen](https://your-jira-instance.atlassian.net/browse/TTC-123)
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-EOF
-)"
-```
-## Handling PR Comments and Reviews
-
-When asked to address PR feedback, follow this system:
-
-**Default Behavior:**
-- **Important:** - Make sure you thoroughly check for, find, and address **ALL** unresolved comments on the PR.
-- If there are no `@claude` mentions in any comments, then address ALL comments in "Request Changes" reviews by default
-- If one or more comments mention `@claude` in "Request Changes" reviews, only address those comments.
-- "Request Changes" reviews = changes that must be made
-- "Comment" reviews = discussion/suggestions that may or may not need action
-
-**Explicit Mentions:**
-- `@claude address these items` - Handle these specific comments
-- `@claude don't fix this` (or similar) - Skip this comment even if in "Request Changes"
-
-**Inferring Comment Intent:**
-- Can generally distinguish between definite changes vs. questions/suggestions based on comment content and tone
-- **Definite changes**: Bug reports, architecture violations, missing error handling, null checks
-- **Questions/Discussion**: "Why...", "Have you considered...", "What happens if..."
-- **Suggestions**: "Could this be simplified...", "Might be clearer if...", "Nit: ..."
-- For "Comment" reviews, use judgment about what clearly needs fixing vs. what's discussion
-- **When uncertain, ask for clarification** - collaboration is key and git makes rollback easy
-
-**Discussion Comments:**
-- When a comment is marked "For discussion:", "Let's discuss:", "Question:", or uses similar exploratory language, do NOT immediately implement changes
-- Instead, **REPLY** to the PR comment directly (using `gh api` or `gh pr comment`) with analysis and thoughts
-    - Don't just add a new comment that references the original, post your reply as a **reply to the original comment** so that we can track the discussion.
-    - Start your reply with "From Claude: ".
-- Wait for the user's response before making any code changes
-- This creates a documented record of architectural decisions in the PR for future reference
-
-**Process for Addressing PR Feedback:**
-1. Fetch PR details: `gh pr view <pr-number>`
-2. Read all "Request Changes" reviews and their comments
-3. Address all comments UNLESS marked with `@claude don't fix` or similar
-4. For "Comment" reviews, use judgment to determine what needs action, but make sure you check for ALL comments.
-5. **Ask for clarification if unsure** - better to ask than guess wrong
-6. After making changes, commit and push updates
-7. Respond to PR comments indicating what was fixed
-
-## Git Workflow Notes
-
-- **Main branch:** `main` - always stable, production-ready code
-- **Epic branches:** Long-lived feature branches aligned with Jira Epics
-- **Story branches:** Short-lived branches for individual stories, merged to Epic branch
-- **Hotfix branches:** Emergency fixes merged directly to `main`
-- **Commit messages:** Use conventional commit format when possible (feat:, fix:, docs:, etc.)
-- **Force push:** Avoid unless absolutely necessary and coordinate with team
-- **Always verify target branch:** Story PRs target Epic branch, not `main`
-
 # Development Guidelines
 
-## Adding a New Feature
 
-1. **Create KMP module** under `/sdk/features/`
-2. **Add to `settings.gradle.kts`**
-3. **Create Repository** in `commonMain`
-    - Repository should be defined as an interface (`interface ExampleRepository`) , with a corresponding implementation class named with an "Impl" suffix (`class ExampleRespositoryImpl`).
-    - The Implementation class should have an internal constructor (`class ExampleRepositoryImpl internal constructor(..): ExampleRepository`), so that it cannot be instantiated from other modules.
-4. **Create a `Module` class** in `commonMain`
-    - It should contain provider methods to obtain an instance of the Repositories defined in the module.
-    - provider methods should return the interface type, and the method should create instances of the implementation class.
-      For example:
-      ```kotlin
-      class ExampleFeatureModule() {
-         fun providesExampleRepository(): ExampleRepository {
-            return ExampleRepositoryImpl()
-         }
-      }
-      ```
-4. **Add Storage classes and Storage Models** if needed in `sdk/core/storage`
-5. **Define Data Models** in `sdk/core/models`
-6. **Export module from sdk**, and expose repositories via `TeeTimeCaddieSdk` class.
-7. **Create Hilt module** in Android app to provide repository
-8. **Create Factory module** in iOS app to provide repository
-9. **Create ViewModels** (Android and iOS)
-10. **Create Compose screens** (Android) and SwiftUI views (iOS)
-11. **Add navigation destinations** and entry providers
 
 ## Working with Shared Code
 
@@ -674,7 +457,6 @@ When asked to address PR feedback, follow this system:
 ## Gradle Properties Notes
 
 - JBR (JetBrains Runtime) from Android Studio required
-- Native caching disabled for iOS targets (required for CrashKiOS)
 - Android sourceSet layout version 2
 - Moko resources static framework warning disabled
 

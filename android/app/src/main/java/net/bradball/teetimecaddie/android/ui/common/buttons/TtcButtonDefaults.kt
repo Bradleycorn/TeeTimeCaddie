@@ -1,35 +1,44 @@
 package net.bradball.teetimecaddie.android.ui.common.buttons
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-
-/**
- * The color role a [TtcButton] or [TtcOutlinedButton] renders with.
- *
- * For a filled [TtcButton], [Primary] is the solid green CTA while [Secondary] and [Tertiary]
- * produce the "tonal" look (a container fill). For a [TtcOutlinedButton], [Neutral] is the default
- * design treatment (on-surface text, outline border) and the other roles tint the text and border.
- *
- * Maps to the Fairway Morning design system roles via the app's Material 3 [MaterialTheme].
- */
-enum class TtcButtonColor {
-    Primary,
-    Secondary,
-    Tertiary,
-    Neutral
-}
+import net.bradball.teetimecaddie.android.theme.TtcColorRole
 
 /**
  * Shared color, padding and sizing values for [TtcButton] and [TtcOutlinedButton], derived from the
  * Fairway Morning "Buttons & actions" spec. Colors always resolve to semantic Material 3 roles.
+ *
+ * Buttons are the highest-emphasis component, and this is the only place a [TtcColorRole] resolves
+ * to a **solid** container tone for a fill: [TtcColorRole.Primary] is the green CTA and
+ * [TtcColorRole.Error] the destructive one. The remaining roles use the softer container tones that
+ * `TtcChipDefaults` and `TtcCardDefaults` use throughout — the design's "tonal" button.
+ *
+ * Note [TtcColorRole.Secondary] is a container fill rather than a solid one even though it sits in
+ * the high-emphasis group. The gold at full strength cannot carry legible content on top of it, so
+ * a solid `secondary` is never paired with a foreground anywhere in the app.
+ * `TtcAvatarDefaults.toneColors` makes the same substitution for the same reason.
  */
 internal object TtcButtonDefaults {
+
+    /**
+     * Button shape — the Fairway Morning pill.
+     *
+     * Deliberately **not** a `MaterialTheme.shapes` token: a pill is fully round at any height, so
+     * [CircleShape] is the value itself rather than a radius on the app's scale (see `theme/Shape.kt`,
+     * which has no pill slot). Because it reads nothing from the theme it stays a plain `val`, unlike
+     * the `Shape` on `TtcCardDefaults` / `TtcChipDefaults` / `TtcTextFieldDefaults`.
+     *
+     * The iOS twin is `TtcButtonStyle.shape`, which is `.capsule` for the same reason.
+     */
+    val Shape: Shape = CircleShape
 
     /** Default (comfortable) content padding — Fairway Morning pill button: 18dp × 10dp. */
     val ContentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp)
@@ -51,24 +60,28 @@ internal object TtcButtonDefaults {
      * neutral treatment (`surfaceContainerHighest` / `onSurfaceVariant`) regardless of [color].
      */
     @Composable
-    fun filledColors(color: TtcButtonColor): ButtonColors {
+    fun filledColors(color: TtcColorRole): ButtonColors {
         val scheme = MaterialTheme.colorScheme
         val container: Color
         val content: Color
         when (color) {
-            TtcButtonColor.Primary -> {
+            TtcColorRole.Primary -> {
                 container = scheme.primary
                 content = scheme.onPrimary
             }
-            TtcButtonColor.Secondary -> {
+            TtcColorRole.Secondary -> {
                 container = scheme.secondaryContainer
                 content = scheme.onSecondaryContainer
             }
-            TtcButtonColor.Tertiary -> {
+            TtcColorRole.Tertiary -> {
                 container = scheme.tertiaryContainer
                 content = scheme.onTertiaryContainer
             }
-            TtcButtonColor.Neutral -> {
+            TtcColorRole.Error -> {
+                container = scheme.error
+                content = scheme.onError
+            }
+            TtcColorRole.Neutral -> {
                 container = scheme.surfaceContainerHighest
                 content = scheme.onSurfaceVariant
             }
@@ -83,19 +96,20 @@ internal object TtcButtonDefaults {
 
     /** The text/content color for an outlined button in the given [color] role. */
     @Composable
-    fun outlinedContentColor(color: TtcButtonColor): Color {
+    fun outlinedContentColor(color: TtcColorRole): Color {
         val scheme = MaterialTheme.colorScheme
         return when (color) {
-            TtcButtonColor.Neutral -> scheme.onSurface
-            TtcButtonColor.Primary -> scheme.primary
-            TtcButtonColor.Secondary -> scheme.secondary
-            TtcButtonColor.Tertiary -> scheme.tertiary
+            TtcColorRole.Primary -> scheme.primary
+            TtcColorRole.Secondary -> scheme.secondary
+            TtcColorRole.Tertiary -> scheme.tertiary
+            TtcColorRole.Error -> scheme.error
+            TtcColorRole.Neutral -> scheme.onSurface
         }
     }
 
     /** Outlined ([TtcOutlinedButton]) content colors for [color] (transparent container). */
     @Composable
-    fun outlinedColors(color: TtcButtonColor): ButtonColors {
+    fun outlinedColors(color: TtcColorRole): ButtonColors {
         val scheme = MaterialTheme.colorScheme
         return ButtonDefaults.outlinedButtonColors(
             contentColor = outlinedContentColor(color),
@@ -104,17 +118,21 @@ internal object TtcButtonDefaults {
     }
 
     /**
-     * The 1dp border for an outlined button. Uses `outline` for the [TtcButtonColor.Neutral]
-     * default, the role color for tinted variants, and `outlineVariant` when disabled.
+     * The 1dp border for an outlined button. Uses `outline` for the [TtcColorRole.Neutral] default,
+     * the role color for tinted variants, and `outlineVariant` when disabled.
      */
     @Composable
-    fun outlinedBorder(color: TtcButtonColor, enabled: Boolean): BorderStroke {
+    fun outlinedBorder(color: TtcColorRole, enabled: Boolean): BorderStroke {
         val scheme = MaterialTheme.colorScheme
-        val borderColor = when {
-            !enabled -> scheme.outlineVariant
-            color == TtcButtonColor.Neutral -> scheme.outline
-            else -> outlinedContentColor(color)
+        val roleBorder = when (color) {
+            TtcColorRole.Primary,
+            TtcColorRole.Secondary,
+            TtcColorRole.Tertiary,
+            TtcColorRole.Error -> outlinedContentColor(color)
+            // Distinct from the neutral *text* color (`onSurface`) — the design's default outlined
+            // button pairs strong text with a subtle border.
+            TtcColorRole.Neutral -> scheme.outline
         }
-        return BorderStroke(1.dp, borderColor)
+        return BorderStroke(1.dp, if (enabled) roleBorder else scheme.outlineVariant)
     }
 }

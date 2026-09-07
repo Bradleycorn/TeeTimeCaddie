@@ -25,7 +25,6 @@ class AuthRepository(
     private val appSettings: TeeTimeCaddieSettings,
     private val playerStorage: PlayerStorage
 ) {
-
     val currentUser: User
         get() = Firebase.auth.currentUser?.let { fbUser ->
             User(fbUser.uid, fbUser.displayName ?: String.empty)
