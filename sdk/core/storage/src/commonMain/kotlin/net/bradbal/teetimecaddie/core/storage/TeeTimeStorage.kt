@@ -1,0 +1,98 @@
+package net.bradbal.teetimecaddie.core.storage
+
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.firestore.CollectionReference
+import dev.gitlive.firebase.firestore.Direction
+import dev.gitlive.firebase.firestore.DocumentSnapshot
+import dev.gitlive.firebase.firestore.QuerySnapshot
+import dev.gitlive.firebase.firestore.firestore
+import dev.gitlive.firebase.firestore.where
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import net.bradbal.teetimecaddie.core.storage.documents.PlayerDocument
+import net.bradbal.teetimecaddie.core.storage.documents.TeeTimeDocument
+
+private const val TEETIME_COLLECTION = "teetimes"
+
+/**
+ * Manage storage of tee times in the database.
+ */
+class TeeTimeStorage {
+    private val store = Firebase.firestore
+
+    private val teeTimesCollection: CollectionReference
+        get() = store.collection(TEETIME_COLLECTION)
+
+
+    /**
+     * Add a Tee Time to the database.
+     *
+     * @param document A [TeeTimeDocument] with information about the tee time to add.
+     *
+     * @return The unique id assigned to the tee time document.
+     */
+    suspend fun addTeeTime(document: TeeTimeDocument): String = teeTimesCollection.add(document).id
+
+    @OptIn(ExperimentalTime::class)
+    suspend fun getTeeTimes(playerId: String): List<TeeTimeDocument> {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        return teeTimesCollection
+            .where("createdBy", playerId)
+            .orderBy("date", Direction.ASCENDING)
+            .get()
+            .documents
+            .deserialize<TeeTimeDocument>(predicate = { doc -> id = doc.id })
+            .filter { it.date >= now }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun teeTimesFlow(playerId: String): Flow<List<TeeTimeDocument>> {
+        return teeTimesCollection
+            .where("createdBy", playerId)
+            .orderBy("date", Direction.ASCENDING)
+            .snapshots(includeMetadataChanges = false)
+            .map { snapshot ->
+                val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                snapshot.documents
+                    .deserialize<TeeTimeDocument>(predicate = { doc -> id = doc.id })
+                    .filter { it.date >= now }
+            }
+    }
+
+    /**
+     * Get a single tee time by ID.
+     *
+     * @param id The unique id of the tee time document.
+     * @return The [TeeTimeDocument] if found, null otherwise.
+     */
+    suspend fun getTeeTime(id: String): TeeTimeDocument? {
+        val doc = teeTimesCollection.document(id).get()
+        return if (doc.exists) {
+            doc.data<TeeTimeDocument>().apply { this.id = doc.id }
+        } else {
+            null
+        }
+    }
+
+    /**
+     * Update an existing tee time in the database.
+     *
+     * @param id The unique id of the tee time document to update.
+     * @param document A [TeeTimeDocument] with the updated information.
+     */
+    suspend fun updateTeeTime(id: String, document: TeeTimeDocument) {
+        teeTimesCollection.document(id).set(document)
+    }
+}
+
+inline fun <reified T : Any> List<DocumentSnapshot>.deserialize(predicate: T.(DocumentSnapshot)->Unit): List<T> {
+    return this.map { document ->
+        document.data<T>().apply {
+            predicate(document)
+        }
+    }
+}

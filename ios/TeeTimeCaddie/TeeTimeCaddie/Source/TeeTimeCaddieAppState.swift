@@ -27,8 +27,8 @@ enum AppUiState {
 }
 
 @MainActor
-class TeeTimeCaddieAppState: ObservableObject {
-    @Published
+@Observable
+class TeeTimeCaddieAppState {
     private(set) var uiState: AppUiState
     
     private let authRepo: AuthRepository

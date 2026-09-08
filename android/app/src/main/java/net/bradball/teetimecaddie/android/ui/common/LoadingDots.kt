@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -91,6 +94,57 @@ fun LoadingDots(type: LoadingIndicatorTypes = LoadingIndicatorTypes.Pulsing, dot
                     delayStart = delay * index,
                     transition = transition,
                     color = dotColor)
+            }
+        }
+    }
+}
+
+
+/**
+ * Wraps button-style [content] and a [LoadingDots] indicator, swapping between them based on
+ * [isLoading]. Uses a custom [Layout] to measure both the content and the indicator, sizing the
+ * result to the larger of the two so the container does NOT change size when toggling the loading
+ * state. Only one of the two is placed (and thus visible) at a time.
+ *
+ * Intended to be used inside a button's content slot (e.g. [net.bradball.teetimecaddie.android.ui.common.buttons.TtcButton]).
+ *
+ * @param isLoading When true, the loading indicator is shown in place of the content.
+ * @param loadingIndicatorType The [LoadingIndicatorTypes] to use for the indicator. Defaults to [LoadingIndicatorTypes.Flashing].
+ * @param content The button content (e.g. an icon and/or text) to show when not loading.
+ */
+@Composable
+fun LoadingIndicator(
+    isLoading: Boolean,
+    loadingIndicatorType: LoadingIndicatorTypes = LoadingIndicatorTypes.Flashing,
+    content: @Composable RowScope.() -> Unit
+) {
+    Layout(
+        content = {
+            // Content is the button content and the loading indicator.
+            Row(modifier = Modifier.layoutId("buttonContent"),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) { content() }
+            LoadingDots(type = loadingIndicatorType, modifier = Modifier.layoutId("loadingIndicator"))
+        }) { measureables, constraints ->
+
+        // Measure both the content and the indicator, with no additional constraints on their size.
+        val contentPlaceable = measureables.first { it.layoutId == "buttonContent" }.measure(constraints)
+        val indicatorPlaceable = measureables.first { it.layoutId == "loadingIndicator" }.measure(constraints)
+
+        // Size the layout to fit the larger of the two placeables so it doesn't resize when toggling.
+        val layoutWidth = contentPlaceable.width.coerceAtLeast(indicatorPlaceable.width)
+        val layoutHeight = contentPlaceable.height.coerceAtLeast(indicatorPlaceable.height)
+
+        layout(layoutWidth, layoutHeight) {
+            // Place EITHER the indicator or the content (but not both), based on the loading state.
+            if (isLoading) {
+                val indicatorX = (layoutWidth - indicatorPlaceable.width) / 2
+                val indicatorY = (layoutHeight - indicatorPlaceable.height) / 2
+                indicatorPlaceable.placeRelative(x = indicatorX, y = indicatorY)
+            } else {
+                val contentX = (layoutWidth - contentPlaceable.width) / 2
+                val contentY = (layoutHeight - contentPlaceable.height) / 2
+                contentPlaceable.placeRelative(x = contentX, y = contentY)
             }
         }
     }

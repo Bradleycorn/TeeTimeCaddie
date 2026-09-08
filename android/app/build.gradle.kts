@@ -6,17 +6,18 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
+    alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.androidx.compose.compiler)
     alias(libs.plugins.hilt)
 }
 
 android {
     namespace = "net.bradball.teetimecaddie.android"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "net.bradball.teetimecaddie.android"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "0.0.1"
 
@@ -48,8 +49,6 @@ android {
         buildConfig = true
     }
 
-    composeOptions { kotlinCompilerExtensionVersion = libs.versions.androidx.compose.compiler.get() }
-
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }
@@ -60,7 +59,6 @@ android {
     }
 
     kotlinOptions {
-//        jvmTarget = "17"
         freeCompilerArgs += listOf(
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi",
@@ -76,7 +74,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":businessLogic"))
+    implementation(project(":sdk"))
 
     // CORE
     implementation(libs.androidx.activity)
@@ -85,6 +83,7 @@ dependencies {
 
     // KOTLIN
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.core)
 
     // ANDROIDX - COMPOSE
     implementation(platform(libs.androidx.compose.bom))
@@ -101,11 +100,9 @@ dependencies {
     // FIREBASE
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
-    //implementation(libs.firebase.ui)
 
     // HILT
     implementation(libs.hilt.android)
-    implementation(libs.material)
     ksp(libs.hilt.ksp)
 
     // TESTING

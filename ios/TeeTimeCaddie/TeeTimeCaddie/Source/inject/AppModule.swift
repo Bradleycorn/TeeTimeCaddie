@@ -1,10 +1,20 @@
 import Foundation
 import Factory
 import TeeTimeCaddieKit
+import Firebase
 
 final class AppModule: SharedContainer {
     static let shared = AppModule()
     var manager = ContainerManager()
+    
+    var teeTimeCaddieSdk: Factory<TeeTimeCaddieSdk> {
+        self {
+            if (!TeeTimeCaddieSdk.companion.isInitialized) {
+                TeeTimeCaddieSdk.companion.initialize(useLocalResources: IS_DEBUG_BUILD)
+            }
+            return TeeTimeCaddieSdk.companion.getInstance()
+        }.singleton
+    }
     
     var eventManager: Factory<EventManager> {
         self {
@@ -15,13 +25,8 @@ final class AppModule: SharedContainer {
     }
     
     
-    var fireabseCrashlytics: Factory<FirebaseCrashlytics> {
-        self { Firebase.shared.crashlytics }
-            .singleton
-    }
-    
-    var firebasePerformance: Factory<FirebasePerformance> {
-        self { Firebase.shared.performance }
+    var fireabseCrashlytics: Factory<Crashlytics> {
+        self { Crashlytics.crashlytics() }
             .singleton
     }
     

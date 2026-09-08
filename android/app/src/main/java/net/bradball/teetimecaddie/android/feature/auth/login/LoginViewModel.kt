@@ -17,31 +17,5 @@ class LoginViewModel @Inject constructor(
     private val authRepo: AuthRepository
 ): ViewModel() {
 
-    var errorMessage: Int? by mutableStateOf(null)
-        private set
 
-    var showLoadingProgress: Boolean by mutableStateOf(false)
-        private set
-
-    var loginSuccess: Boolean by mutableStateOf(false)
-        private set
-
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            try {
-                errorMessage = null
-                showLoadingProgress = true
-                authRepo.login(email, password)
-                loginSuccess = true
-            } catch (ex: AuthException) {
-                errorMessage = ex.displayMessage.resourceId
-            } finally {
-                showLoadingProgress = false
-            }
-        }
-    }
-
-    fun clearError() {
-        errorMessage = null
-    }
 }

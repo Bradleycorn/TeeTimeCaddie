@@ -10,8 +10,10 @@ import SwiftUI
 import FirebaseCore
 import FirebaseAuth
 import FirebaseAnalytics
+import FirebaseCrashlytics
+import FirebasePerformance
+import NSExceptionKtCrashlytics
 import TeeTimeCaddieKit
-import FirebaseAnalyticsSwift
 
 // Firebase requires us to use an App Delegate, and to disable method swizzing.
 // More Info: https://firebase.google.com/docs/ios/learn-more#swiftui
@@ -20,8 +22,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
 
         FirebaseApp.configure() // do this first
+        NSExceptionKt.addReporter(.crashlytics(causedByStrategy: .append))
         TeeTimeCaddieSdk.companion.initialize(useLocalResources: IS_DEBUG_BUILD)
+        
+        // These values persist across app launches, so you can't just comment out
+        // one of these lines to enable/disable. You have to keep the call and change the value.
         Analytics.setAnalyticsCollectionEnabled(!IS_DEBUG_BUILD)
+        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(!IS_DEBUG_BUILD)
+        Performance.sharedInstance().isDataCollectionEnabled = !IS_DEBUG_BUILD
+        Performance.sharedInstance().isInstrumentationEnabled = !IS_DEBUG_BUILD
+
         return true
     }
     

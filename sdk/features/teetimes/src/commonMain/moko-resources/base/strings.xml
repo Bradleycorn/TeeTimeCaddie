@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="tee_times_title">Tee Times</string>
+    <string name="add_tee_time">Add Tee Time</string>
+    <string name="edit_tee_time">Edit Tee Time</string>
+    <string name="empty_tee_times_title">Tee Sheet is Wide Open</string>
+    <string name="empty_tee_times_message">You don\'t have an scheduled tee times.</string>
+
+    <string name="field_label_course_name">Course</string>
+    <string name="field_label_Date">Date</string>
+    <string name="field_Label_Time">Time</string>
+    <string name="field_Label_Players">Number of Players</string>
+    <string name="button_create">Create</string>
+    <string name="button_save">Save</string>
+
+    <!-- Multiple tee times -->
+    <string name="tee_times_section_header">Tee Times</string>
+    <string name="add_time_button">Add Time</string>
+    <string name="players_label">Players</string>
+    <string name="validation_at_least_one_time">At least one tee time is required</string>
+</resources>

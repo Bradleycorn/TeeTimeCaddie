@@ -10,68 +10,40 @@ import ThemeUI
 import TeeTimeCaddieKit
 
 struct TeeTimesListScreen: View {
-    
-    @StateObject
+    let onAddTeeTimeClick: () -> Void
+    let onTeeTimeClick: (String) -> Void
+
+    @State
     private var viewModel = TeeTimesListScreenViewModel()
 
-    @State var showAddTeeTimeSheet: Bool = false
-        
     var body: some View {
-        TeeTimesListContent(uiState: viewModel.uiState)
-            .task { await viewModel.loadTeetimes() }
-            .toolbar {
-                Button(action: { showAddTeeTimeSheet = true }) {
-                    Image(.Icons.calendarAdd)
-                }
-                .enabled(viewModel.addButtonEnabled)
+        Screen(AnalyticsScreen.TeeTimeList(viewName: self.viewName)) {
+            TeeTimesListContent(
+                onTeeTimeClick: { teeTime in onTeeTimeClick(teeTime.id!) }
+            )
+        }
+        .toolbar {
+            Button(action: onAddTeeTimeClick) {
+                Image(.Icons.calendarAdd)
             }
-            .sheet(isPresented: $showAddTeeTimeSheet){
-                TeeTimeEntryScreen(onTeeTimeCreated: { showAddTeeTimeSheet = false })
-                    .presentationDetents([.fraction(0.4)])
-                    .presentationDragIndicator(.visible)
-            }
+        }
     }
 }
 
 fileprivate struct TeeTimesListContent: View {
-    private var uiState: UiState<[TeeTime]>
-    
-    init(uiState: UiState<[TeeTime]>) {
-        self.uiState = uiState
+    private var onTeeTimeClick: (TeeTime) -> Void
+
+    init(onTeeTimeClick: @escaping (TeeTime) -> Void = {_ in}) {
+        self.onTeeTimeClick = onTeeTimeClick
     }
-        
+
     var body: some View {
-        switch uiState {
-            case .Loading:
-                ContentLoadingIndicator()
-
-            case .Empty:
-                EmptyContent(
-                    title: TTR.strings().empty_tee_times_title.desc().localized(),
-                    message: TTR.strings().empty_tee_times_message.desc().localized(),
-                    icon: .teeEmpty)
-
-            case .Content(let list):
-                TeeTimesList(list, onItemTapped: {teeTime in })
-                    .navigationTitle("Tee Times")
-        }
+        Text("Tee Times List")
     }
 }
 
 #Preview("Content") {
     TeeTimeCaddieTheme {
-        TeeTimesListContent(uiState: .Content(TeeTimeKt.previewTeeTimeList))
-    }
-}
-
-#Preview("Loading") {
-    TeeTimeCaddieTheme {
-        TeeTimesListContent(uiState: .Loading)
-    }
-}
-
-#Preview("Empty") {
-    TeeTimeCaddieTheme {
-        TeeTimesListContent(uiState: .Empty)
+        TeeTimesListContent()
     }
 }

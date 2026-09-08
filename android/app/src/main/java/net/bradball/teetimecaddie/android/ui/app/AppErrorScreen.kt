@@ -26,7 +26,7 @@ fun AppErrorScreen(failedState: InitializationState.Failed) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(modifier = Modifier.size(128.dp))
             Icon(
-                TtcIcons.TeeBalStrikethrough,
+                TtcIcons.TEE_STRIKE.painter,
                 contentDescription = "TeeTimeCaddie",
                 modifier = Modifier.size(64.dp)
             )

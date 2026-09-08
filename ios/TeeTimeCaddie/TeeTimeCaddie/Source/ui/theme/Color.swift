@@ -2,212 +2,296 @@ import Foundation
 import SwiftUI
 import ThemeUI
 
+// =============================================================================
+// Fairway Morning — TeeTimeCaddie color system
+//
+// Ported 1:1 from the Android app's Color.kt. Names and ARGB hex values match
+// Android exactly so the two platforms stay in lockstep. ThemeUI's
+// Color(_ hexNumber: Int64) initializer takes a 32-bit ARGB value, identical to
+// Compose's Color(0xAARRGGBB) constructor.
+//
+// Full M3 tonal palettes generated from four brand source colors and two
+// neutral palettes derived from the primary hue at low chroma.
+//
+// Colored palettes include tone 75 for our custom light-mode container
+// overrides on Primary and Tertiary; not part of the standard M3 tone set.
+// =============================================================================
+
 var backgroundColor: Color {
     return Color(UIColor.systemBackground)
 }
 
+// MARK: - Fairway green — primary brand color (source #2E7D5B, HCT tone 47)
+let fairwayGreen0 = Color(0xFF000000)
+let fairwayGreen10 = Color(0xFF002113)
+let fairwayGreen20 = Color(0xFF003824)
+let fairwayGreen30 = Color(0xFF005236)
+let fairwayGreen40 = Color(0xFF176B4B)
+let fairwayGreen50 = Color(0xFF378562)
+let fairwayGreen60 = Color(0xFF529F7B)
+let fairwayGreen70 = Color(0xFF6DBB94)
+let fairwayGreen75 = Color(0xFF7BC8A1)
+let fairwayGreen80 = Color(0xFF88D6AF)
+let fairwayGreen90 = Color(0xFFA4F3CA)
+let fairwayGreen95 = Color(0xFFBEFFDB)
+let fairwayGreen99 = Color(0xFFF4FFF6)
+let fairwayGreen100 = Color(0xFFFFFFFF)
 
-let Red100 = Color(red: 65, green: 14, blue: 11)
-let Red200 = Color(red: 96, green: 20, blue: 16)
-let Red300 = Color(red: 140, green: 29, blue: 24)
-let Red400 = Color(red: 179, green: 38, blue: 30)
-let Red500 = Color(red: 220, green: 54, blue: 46)
-let Red600 = Color(red: 228, green: 105, blue: 98)
-let Red700 = Color(red: 236, green: 146, blue: 142)
-let Red800 = Color(red: 242, green: 184, blue: 181)
-let Red900 = Color(red: 249, green: 222, blue: 220)
-let Red950 = Color(red: 252, green: 238, blue: 238)
-let Red990 = Color(red: 255, green: 251, blue: 249)
+// MARK: - Sun gold — secondary brand color (source #DBAA3C, HCT tone 72)
+let sunGold0 = Color(0xFF000000)
+let sunGold10 = Color(0xFF261900)
+let sunGold20 = Color(0xFF402D00)
+let sunGold30 = Color(0xFF5C4200)
+let sunGold40 = Color(0xFF7A5900)
+let sunGold50 = Color(0xFF997000)
+let sunGold60 = Color(0xFFB7891B)
+let sunGold70 = Color(0xFFD4A436)
+let sunGold75 = Color(0xFFE3B143)
+let sunGold80 = Color(0xFFF2BF4F)
+let sunGold90 = Color(0xFFFFDEA1)
+let sunGold95 = Color(0xFFFFEFD5)
+let sunGold99 = Color(0xFFFFFBFF)
+let sunGold100 = Color(0xFFFFFFFF)
 
-let Neutral0 = Color(red: 0, green: 0, blue: 0)
-let Neutral4 = Color(red: 14, green: 14, blue: 17)
-let Neutral6 = Color(red: 20, green: 19, blue: 23)
-let Neutral10 = Color(red: 28, green: 27, blue: 31)
-let Neutral12 = Color(red: 32, green: 31, blue: 35)
-let Neutral17 = Color(red: 43, green: 41, blue: 45)
-let Neutral20 = Color(red: 49, green: 48, blue: 51)
-let Neutral22 = Color(red: 49, green: 48, blue: 51)
-let Neutral24 = Color(red: 49, green: 48, blue: 51)
-let Neutral30 = Color(red: 72, green: 70, blue: 73)
-let Neutral40 = Color(red: 96, green: 93, blue: 98)
-let Neutral50 = Color(red: 120, green: 117, blue: 121)
-let Neutral60 = Color(red: 147, green: 144, blue: 148)
-let Neutral70 = Color(red: 174, green: 170, blue: 174)
-let Neutral80 = Color(red: 201, green: 197, blue: 202)
-let Neutral87 = Color(red: 221, green: 216, blue: 221)
-let Neutral90 = Color(red: 230, green: 225, blue: 229)
-let Neutral92 = Color(red: 236, green: 231, blue: 236)
-let Neutral94 = Color(red: 241, green: 236, blue: 241)
-let Neutral95 = Color(red: 244, green: 239, blue: 244)
-let Neutral96 = Color(red: 247, green: 242, blue: 247)
-let Neutral98 = Color(red: 253, green: 248, blue: 253)
-let Neutral99 = Color(red: 255, green: 251, blue: 254)
-let Neutral100 = Color(red: 255, green: 255, blue: 255)
+// MARK: - Sky blue — tertiary brand color (source #4A7C95, HCT tone 50)
+let skyBlue0 = Color(0xFF000000)
+let skyBlue10 = Color(0xFF001E2B)
+let skyBlue20 = Color(0xFF003548)
+let skyBlue30 = Color(0xFF124C63)
+let skyBlue40 = Color(0xFF31647C)
+let skyBlue50 = Color(0xFF4B7D96)
+let skyBlue60 = Color(0xFF6597B1)
+let skyBlue70 = Color(0xFF80B2CD)
+let skyBlue75 = Color(0xFF8EBFDB)
+let skyBlue80 = Color(0xFF9BCDE9)
+let skyBlue90 = Color(0xFFC1E8FF)
+let skyBlue95 = Color(0xFFE2F3FF)
+let skyBlue99 = Color(0xFFFBFCFF)
+let skyBlue100 = Color(0xFFFFFFFF)
 
-let NeutralVariant0 = Color(red: 0, green: 0, blue: 0)
-let NeutralVariant10 = Color(red: 29, green: 26, blue: 34)
-let NeutralVariant20 = Color(red: 50, green: 47, blue: 55)
-let NeutralVariant30 = Color(red: 73, green: 69, blue: 79)
-let NeutralVariant40 = Color(red: 96, green: 93, blue: 102)
-let NeutralVariant50 = Color(red: 121, green: 116, blue: 126)
-let NeutralVariant60 = Color(red: 147, green: 143, blue: 153)
-let NeutralVariant70 = Color(red: 174, green: 169, blue: 180)
-let NeutralVariant80 = Color(red: 202, green: 196, blue: 208)
-let NeutralVariant90 = Color(red: 231, green: 224, blue: 236)
-let NeutralVariant95 = Color(red: 245, green: 238, blue: 250)
-let NeutralVariant99 = Color(red: 255, green: 251, blue: 254)
-let NeutralVariant100 = Color(red: 255, green: 255, blue: 255)
+// MARK: - Error red (source #BA1A1A, HCT tone 40)
+let errorRed0 = Color(0xFF000000)
+let errorRed10 = Color(0xFF410002)
+let errorRed20 = Color(0xFF690004)
+let errorRed30 = Color(0xFF930009)
+let errorRed40 = Color(0xFFBA1A1A)
+let errorRed50 = Color(0xFFDE372F)
+let errorRed60 = Color(0xFFFF5449)
+let errorRed70 = Color(0xFFFF897D)
+let errorRed75 = Color(0xFFFF9F94)
+let errorRed80 = Color(0xFFFFB4AB)
+let errorRed90 = Color(0xFFFFDAD5)
+let errorRed95 = Color(0xFFFFEDEA)
+let errorRed99 = Color(0xFFFFFBFF)
+let errorRed100 = Color(0xFFFFFFFF)
 
-let Purple100 = Color(red: 33, green: 0, blue: 93)
-let Purple200 = Color(red: 56, green: 30, blue: 114)
-let Purple300 = Color(red: 79, green: 55, blue: 139)
-let Purple400 = Color(red: 103, green: 80, blue: 164)
-let Purple500 = Color(red: 127, green: 103, blue: 190)
-let Purple600 = Color(red: 154, green: 130, blue: 219)
-let Purple700 = Color(red: 182, green: 157, blue: 248)
-let Purple800 = Color(red: 208, green: 188, blue: 255)
-let Purple900 = Color(red: 234, green: 221, blue: 255)
-let Purple950 = Color(red: 246, green: 237, blue: 255)
-let Purple990 = Color(red: 255, green: 251, blue: 254)
+// MARK: - Neutral — derived from primary hue, chroma 4
+let neutral0 = Color(0xFF000000)
+let neutral4 = Color(0xFF0C0F0D)
+let neutral6 = Color(0xFF111412)
+let neutral10 = Color(0xFF191C1A)
+let neutral12 = Color(0xFF1D201E)
+let neutral17 = Color(0xFF272B28)
+let neutral20 = Color(0xFF2E312F)
+let neutral22 = Color(0xFF323633)
+let neutral24 = Color(0xFF373A37)
+let neutral30 = Color(0xFF444845)
+let neutral40 = Color(0xFF5C5F5C)
+let neutral50 = Color(0xFF757874)
+let neutral60 = Color(0xFF8F918E)
+let neutral70 = Color(0xFFA9ACA8)
+let neutral80 = Color(0xFFC5C7C3)
+let neutral87 = Color(0xFFD8DBD7)
+let neutral90 = Color(0xFFE1E3DF)
+let neutral92 = Color(0xFFE7E9E5)
+let neutral94 = Color(0xFFECEEEA)
+let neutral95 = Color(0xFFEFF1ED)
+let neutral96 = Color(0xFFF2F4F0)
+let neutral98 = Color(0xFFF8FAF6)
+let neutral99 = Color(0xFFFBFDF8)
+let neutral100 = Color(0xFFFFFFFF)
 
-let PurpleGray100 = Color(red: 29, green: 25, blue: 43)
-let PurpleGray200 = Color(red: 51, green: 45, blue: 65)
-let PurpleGray300 = Color(red: 74, green: 68, blue: 88)
-let PurpleGray400 = Color(red: 98, green: 91, blue: 113)
-let PurpleGray500 = Color(red: 122, green: 114, blue: 137)
-let PurpleGray600 = Color(red: 149, green: 141, blue: 165)
-let PurpleGray700 = Color(red: 176, green: 167, blue: 192)
-let PurpleGray800 = Color(red: 204, green: 194, blue: 220)
-let PurpleGray900 = Color(red: 232, green: 222, blue: 248)
-let PurpleGray950 = Color(red: 246, green: 237, blue: 255)
-let PurpleGray990 = Color(red: 255, green: 251, blue: 254)
+// MARK: - Neutral variant — derived from primary hue, chroma 8
+let neutralVariant0 = Color(0xFF000000)
+let neutralVariant4 = Color(0xFF08100C)
+let neutralVariant6 = Color(0xFF0D1511)
+let neutralVariant10 = Color(0xFF151D19)
+let neutralVariant12 = Color(0xFF19211D)
+let neutralVariant17 = Color(0xFF232C27)
+let neutralVariant20 = Color(0xFF2A322D)
+let neutralVariant22 = Color(0xFF2E3731)
+let neutralVariant24 = Color(0xFF333B36)
+let neutralVariant30 = Color(0xFF404943)
+let neutralVariant40 = Color(0xFF58605A)
+let neutralVariant50 = Color(0xFF707973)
+let neutralVariant60 = Color(0xFF8A938C)
+let neutralVariant70 = Color(0xFFA4ADA6)
+let neutralVariant80 = Color(0xFFC0C9C1)
+let neutralVariant87 = Color(0xFFD3DCD4)
+let neutralVariant90 = Color(0xFFDCE5DD)
+let neutralVariant92 = Color(0xFFE1EBE2)
+let neutralVariant94 = Color(0xFFE7F0E8)
+let neutralVariant95 = Color(0xFFEAF3EB)
+let neutralVariant96 = Color(0xFFEDF6EE)
+let neutralVariant98 = Color(0xFFF3FCF3)
+let neutralVariant99 = Color(0xFFF5FFF6)
+let neutralVariant100 = Color(0xFFFFFFFF)
 
-let Plum100 = Color(red: 49, green: 17, blue: 29)
-let Plum200 = Color(red: 73, green: 37, blue: 50)
-let Plum300 = Color(red: 99, green: 59, blue: 72)
-let Plum400 = Color(red: 125, green: 82, blue: 96)
-let Plum500 = Color(red: 152, green: 105, blue: 119)
-let Plum600 = Color(red: 181, green: 131, blue: 146)
-let Plum700 = Color(red: 210, green: 157, blue: 172)
-let Plum800 = Color(red: 239, green: 184, blue: 200)
-let Plum900 = Color(red: 255, green: 216, blue: 228)
-let Plum950 = Color(red: 255, green: 236, blue: 241)
-let Plum990 = Color(red: 255, green: 251, blue: 250)
 
-
-#Preview("Purple") {
-    VStack {
-        ColorPreview(Purple100, name: "100")
-        ColorPreview(Purple200, name: "200")
-        ColorPreview(Purple300, name: "300")
-        ColorPreview(Purple400, name: "400")
-        ColorPreview(Purple500, name: "500")
-        ColorPreview(Purple600, name: "600")
-        ColorPreview(Purple700, name: "700")
-        ColorPreview(Purple800, name: "800")
-        ColorPreview(Purple900, name: "900")
-        ColorPreview(Purple950, name: "950")
-        ColorPreview(Purple990, name: "990")
+#Preview("Fairway Green") {
+    HStack(spacing: 50) {
+        VStack {
+            ColorPreview(fairwayGreen0, name: "0")
+            ColorPreview(fairwayGreen10, name: "10")
+            ColorPreview(fairwayGreen20, name: "20")
+            ColorPreview(fairwayGreen30, name: "30")
+            ColorPreview(fairwayGreen40, name: "40")
+            ColorPreview(fairwayGreen50, name: "50")
+            ColorPreview(fairwayGreen60, name: "60")
+        }
+        VStack {
+            ColorPreview(fairwayGreen70, name: "70")
+            ColorPreview(fairwayGreen75, name: "75")
+            ColorPreview(fairwayGreen80, name: "80")
+            ColorPreview(fairwayGreen90, name: "90")
+            ColorPreview(fairwayGreen95, name: "95")
+            ColorPreview(fairwayGreen99, name: "99")
+            ColorPreview(fairwayGreen100, name: "100")
+        }
     }
-
 }
 
-#Preview("PurpleGray") {
-    VStack {
-        ColorPreview(PurpleGray100, name: "100")
-        ColorPreview(PurpleGray200, name: "200")
-        ColorPreview(PurpleGray300, name: "300")
-        ColorPreview(PurpleGray400, name: "400")
-        ColorPreview(PurpleGray500, name: "500")
-        ColorPreview(PurpleGray600, name: "600")
-        ColorPreview(PurpleGray700, name: "700")
-        ColorPreview(PurpleGray800, name: "800")
-        ColorPreview(PurpleGray900, name: "900")
-        ColorPreview(PurpleGray950, name: "950")
-        ColorPreview(PurpleGray990, name: "990")
+#Preview("Sun Gold") {
+    HStack(spacing: 50) {
+        VStack {
+            ColorPreview(sunGold0, name: "0")
+            ColorPreview(sunGold10, name: "10")
+            ColorPreview(sunGold20, name: "20")
+            ColorPreview(sunGold30, name: "30")
+            ColorPreview(sunGold40, name: "40")
+            ColorPreview(sunGold50, name: "50")
+            ColorPreview(sunGold60, name: "60")
+        }
+        VStack {
+            ColorPreview(sunGold70, name: "70")
+            ColorPreview(sunGold75, name: "75")
+            ColorPreview(sunGold80, name: "80")
+            ColorPreview(sunGold90, name: "90")
+            ColorPreview(sunGold95, name: "95")
+            ColorPreview(sunGold99, name: "99")
+            ColorPreview(sunGold100, name: "100")
+        }
     }
 }
 
-
-#Preview("Plum") {
-    VStack {
-        ColorPreview(Plum100, name: "100")
-        ColorPreview(Plum200, name: "200")
-        ColorPreview(Plum300, name: "300")
-        ColorPreview(Plum400, name: "400")
-        ColorPreview(Plum500, name: "500")
-        ColorPreview(Plum600, name: "600")
-        ColorPreview(Plum700, name: "700")
-        ColorPreview(Plum800, name: "800")
-        ColorPreview(Plum900, name: "900")
-        ColorPreview(Plum950, name: "950")
-        ColorPreview(Plum990, name: "990")
+#Preview("Sky Blue") {
+    HStack(spacing: 50) {
+        VStack {
+            ColorPreview(skyBlue0, name: "0")
+            ColorPreview(skyBlue10, name: "10")
+            ColorPreview(skyBlue20, name: "20")
+            ColorPreview(skyBlue30, name: "30")
+            ColorPreview(skyBlue40, name: "40")
+            ColorPreview(skyBlue50, name: "50")
+            ColorPreview(skyBlue60, name: "60")
+        }
+        VStack {
+            ColorPreview(skyBlue70, name: "70")
+            ColorPreview(skyBlue75, name: "75")
+            ColorPreview(skyBlue80, name: "80")
+            ColorPreview(skyBlue90, name: "90")
+            ColorPreview(skyBlue95, name: "95")
+            ColorPreview(skyBlue99, name: "99")
+            ColorPreview(skyBlue100, name: "100")
+        }
     }
 }
 
-#Preview("Red") {
-    VStack {
-        ColorPreview(Red100, name: "100")
-        ColorPreview(Red200, name: "200")
-        ColorPreview(Red300, name: "300")
-        ColorPreview(Red400, name: "400")
-        ColorPreview(Red500, name: "500")
-        ColorPreview(Red600, name: "600")
-        ColorPreview(Red700, name: "700")
-        ColorPreview(Red800, name: "800")
-        ColorPreview(Red900, name: "900")
-        ColorPreview(Red950, name: "950")
-        ColorPreview(Red990, name: "990")
+#Preview("Error Red") {
+    HStack(spacing: 50) {
+        VStack {
+            ColorPreview(errorRed0, name: "0")
+            ColorPreview(errorRed10, name: "10")
+            ColorPreview(errorRed20, name: "20")
+            ColorPreview(errorRed30, name: "30")
+            ColorPreview(errorRed40, name: "40")
+            ColorPreview(errorRed50, name: "50")
+            ColorPreview(errorRed60, name: "60")
+        }
+        VStack {
+            ColorPreview(errorRed70, name: "70")
+            ColorPreview(errorRed75, name: "75")
+            ColorPreview(errorRed80, name: "80")
+            ColorPreview(errorRed90, name: "90")
+            ColorPreview(errorRed95, name: "95")
+            ColorPreview(errorRed99, name: "99")
+            ColorPreview(errorRed100, name: "100")
+        }
     }
 }
 
 #Preview("Neutral") {
     HStack(spacing: 50) {
         VStack {
-            ColorPreview(Neutral0, name: "0")
-            ColorPreview(Neutral4, name: "4")
-            ColorPreview(Neutral6, name: "6")
-            ColorPreview(Neutral10, name: "10")
-            ColorPreview(Neutral12, name: "12")
-            ColorPreview(Neutral17, name: "17")
-            ColorPreview(Neutral20, name: "20")
-            ColorPreview(Neutral22, name: "22")
-            ColorPreview(Neutral24, name: "24")
-            ColorPreview(Neutral30, name: "30")
-            ColorPreview(Neutral40, name: "40")
-            ColorPreview(Neutral50, name: "50")
+            ColorPreview(neutral0, name: "0")
+            ColorPreview(neutral4, name: "4")
+            ColorPreview(neutral6, name: "6")
+            ColorPreview(neutral10, name: "10")
+            ColorPreview(neutral12, name: "12")
+            ColorPreview(neutral17, name: "17")
+            ColorPreview(neutral20, name: "20")
+            ColorPreview(neutral22, name: "22")
+            ColorPreview(neutral24, name: "24")
+            ColorPreview(neutral30, name: "30")
+            ColorPreview(neutral40, name: "40")
+            ColorPreview(neutral50, name: "50")
         }
         VStack {
-            ColorPreview(Neutral60, name: "60")
-            ColorPreview(Neutral70, name: "70")
-            ColorPreview(Neutral80, name: "80")
-            ColorPreview(Neutral87, name: "87")
-            ColorPreview(Neutral90, name: "90")
-            ColorPreview(Neutral92, name: "92")
-            ColorPreview(Neutral94, name: "94")
-            ColorPreview(Neutral95, name: "95")
-            ColorPreview(Neutral96, name: "96")
-            ColorPreview(Neutral98, name: "98")
-            ColorPreview(Neutral99, name: "99")
-            ColorPreview(Neutral100, name: "100")
+            ColorPreview(neutral60, name: "60")
+            ColorPreview(neutral70, name: "70")
+            ColorPreview(neutral80, name: "80")
+            ColorPreview(neutral87, name: "87")
+            ColorPreview(neutral90, name: "90")
+            ColorPreview(neutral92, name: "92")
+            ColorPreview(neutral94, name: "94")
+            ColorPreview(neutral95, name: "95")
+            ColorPreview(neutral96, name: "96")
+            ColorPreview(neutral98, name: "98")
+            ColorPreview(neutral99, name: "99")
+            ColorPreview(neutral100, name: "100")
         }
     }
 }
 
 #Preview("Neutral Variant") {
-    VStack {
-        ColorPreview(NeutralVariant0, name: "0")
-        ColorPreview(NeutralVariant10, name: "10")
-        ColorPreview(NeutralVariant20, name: "20")
-        ColorPreview(NeutralVariant30, name: "30")
-        ColorPreview(NeutralVariant40, name: "40")
-        ColorPreview(NeutralVariant50, name: "50")
-        ColorPreview(NeutralVariant60, name: "60")
-        ColorPreview(NeutralVariant70, name: "70")
-        ColorPreview(NeutralVariant80, name: "80")
-        ColorPreview(NeutralVariant90, name: "90")
-        ColorPreview(NeutralVariant95, name: "95")
-        ColorPreview(NeutralVariant99, name: "99")
-        ColorPreview(NeutralVariant100, name: "100")
+    HStack(spacing: 50) {
+        VStack {
+            ColorPreview(neutralVariant0, name: "0")
+            ColorPreview(neutralVariant4, name: "4")
+            ColorPreview(neutralVariant6, name: "6")
+            ColorPreview(neutralVariant10, name: "10")
+            ColorPreview(neutralVariant12, name: "12")
+            ColorPreview(neutralVariant17, name: "17")
+            ColorPreview(neutralVariant20, name: "20")
+            ColorPreview(neutralVariant22, name: "22")
+            ColorPreview(neutralVariant24, name: "24")
+            ColorPreview(neutralVariant30, name: "30")
+            ColorPreview(neutralVariant40, name: "40")
+            ColorPreview(neutralVariant50, name: "50")
+        }
+        VStack {
+            ColorPreview(neutralVariant60, name: "60")
+            ColorPreview(neutralVariant70, name: "70")
+            ColorPreview(neutralVariant80, name: "80")
+            ColorPreview(neutralVariant87, name: "87")
+            ColorPreview(neutralVariant90, name: "90")
+            ColorPreview(neutralVariant92, name: "92")
+            ColorPreview(neutralVariant94, name: "94")
+            ColorPreview(neutralVariant95, name: "95")
+            ColorPreview(neutralVariant96, name: "96")
+            ColorPreview(neutralVariant98, name: "98")
+            ColorPreview(neutralVariant99, name: "99")
+            ColorPreview(neutralVariant100, name: "100")
+        }
     }
 }

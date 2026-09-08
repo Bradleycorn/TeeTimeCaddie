@@ -12,20 +12,17 @@ enum AuthError: LocalizedError {
     case RegistrationError
 }
 
-@MainActor
-class RegistrationViewModel: ObservableObject {
-    init(authRepo: AuthRepository, eventManager: EventManager) {
-        self.authRepo = authRepo
-        self.eventManager = eventManager
-    }
-    
+@Observable
+class RegistrationViewModel {
+
     private let authRepo: AuthRepository
-    private let eventManager: EventManager
-    
-    @Published
+
+    init(authRepo: AuthRepository) {
+        self.authRepo = authRepo
+    }
+
     private(set) var processingRegistration = false
-    
-    @Published
+
     var registrationError: TeeTimeCaddieError? = nil
     
     func registerUser(email: String, password: String, name: String) {
@@ -37,7 +34,7 @@ class RegistrationViewModel: ObservableObject {
                 try await authRepo.registerUser(email: email, password: password, name: name)
             } catch {
                 let ex = error.asTeeTimeCaddieError(defaultTitle: AR.strings().reg_error_default_title)
-                print(ex.logMessage)
+                //print(ex.logMessage)
                 registrationError = ex
             }
         }
