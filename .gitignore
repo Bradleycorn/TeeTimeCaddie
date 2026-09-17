@@ -24,3 +24,5 @@ Package.resolved
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+# Claude Code machine-local settings
+.claude/settings.local.json
