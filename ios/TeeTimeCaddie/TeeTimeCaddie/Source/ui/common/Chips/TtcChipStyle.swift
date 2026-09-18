@@ -75,7 +75,7 @@ enum TtcChipStyle {
 /// same chrome serves both the filled and outlined chips, interactive or static.
 struct TtcChipLabel: View {
     let text: String
-    let icon: ImageResource?
+    let icon: ImageSource?
     let size: TtcChipSize
     let background: Color
     let foreground: Color

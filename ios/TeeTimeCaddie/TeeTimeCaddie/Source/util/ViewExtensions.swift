@@ -11,7 +11,7 @@ extension Label where Title == Text, Icon == Image {
     /// - Parameters:
     ///   - title: The Text view to display
     ///   - source: An ImageSource that defines the image to load
-    init(_ title: String, icon: ImageResource) {
+    init(_ title: String, icon: ImageSource) {
         self.init {
             Text(title)
         } icon: {

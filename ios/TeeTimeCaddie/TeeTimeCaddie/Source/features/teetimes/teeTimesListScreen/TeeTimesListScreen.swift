@@ -24,7 +24,7 @@ struct TeeTimesListScreen: View {
         }
         .toolbar {
             Button(action: onAddTeeTimeClick) {
-                Image(.Icons.calendarAdd)
+                Image(.symbol(.calendarAdd))
             }
         }
     }

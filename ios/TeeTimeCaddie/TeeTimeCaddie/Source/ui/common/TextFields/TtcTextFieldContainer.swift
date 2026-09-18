@@ -12,12 +12,12 @@ struct TtcTextFieldContainer<Input: View>: View {
     @Environment(\.isEnabled) private var isEnabled: Bool
 
     let label: String
-    var leadingIcon: ImageResource? = nil
+    var leadingIcon: ImageSource? = nil
     var hint: String? = nil
     var error: String? = nil
     /// Whether the injected input currently holds focus (owned by the caller's `@FocusState`).
     let isFocused: Bool
-    var trailingIcon: ImageResource? = nil
+    var trailingIcon: ImageSource? = nil
     var onTrailingTap: (() -> Void)? = nil
     var trailingAccessibilityLabel: String? = nil
     /// Called when the card chrome (padding/label) is tapped, so the caller can focus its control.
@@ -143,7 +143,7 @@ fileprivate struct TtcTextFieldSupport: View {
     TeeTimeCaddieTheme {
         TtcTextFieldContainer(
             label: "Email",
-            leadingIcon: .Icons.calendar,
+            leadingIcon: .symbol(.calendar),
             hint: "A sample of the shared field chrome.",
             isFocused: false,
             onActivate: {}

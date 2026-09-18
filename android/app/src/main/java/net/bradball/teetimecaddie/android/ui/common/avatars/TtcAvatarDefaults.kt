@@ -74,7 +74,7 @@ internal object TtcAvatarDefaults {
 
     /** The glyph shown inside a [TtcAvatarPlaceholder]. */
     fun placeholderIcon(placeholder: TtcAvatarPlaceholder): TtcIcons = when (placeholder) {
-        TtcAvatarPlaceholder.Guest -> TtcIcons.PERSON
+        TtcAvatarPlaceholder.Guest -> TtcIcons.PERSON_OUTLINE
         TtcAvatarPlaceholder.Empty -> TtcIcons.ADD
     }
 }

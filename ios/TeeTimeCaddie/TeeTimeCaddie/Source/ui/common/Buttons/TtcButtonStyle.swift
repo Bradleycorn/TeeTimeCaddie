@@ -117,7 +117,7 @@ struct TtcPillButtonStyle: ButtonStyle {
 /// button's foreground color.
 struct TtcButtonLabel: View {
     let title: String
-    let icon: ImageResource?
+    let icon: ImageSource?
 
     var body: some View {
         HStack(spacing: 8) {

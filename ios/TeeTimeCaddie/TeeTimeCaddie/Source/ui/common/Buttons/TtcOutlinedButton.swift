@@ -14,7 +14,7 @@ struct TtcOutlinedButton: View {
 
     private let title: String
     private let color: TtcColorRole
-    private let icon: ImageResource?
+    private let icon: ImageSource?
     private let dense: Bool
     private let isLoading: Bool
     private let action: () -> Void
@@ -22,7 +22,7 @@ struct TtcOutlinedButton: View {
     init(
         _ title: String,
         color: TtcColorRole = .neutral,
-        icon: ImageResource? = nil,
+        icon: ImageSource? = nil,
         dense: Bool = false,
         isLoading: Bool = false,
         action: @escaping () -> Void
@@ -57,7 +57,7 @@ struct TtcOutlinedButton: View {
     TeeTimeCaddieTheme {
         VStack(alignment: .leading, spacing: 12) {
             TtcOutlinedButton("Invite more") {}
-            TtcOutlinedButton("Invite", icon: .Icons.calendarAdd) {}
+            TtcOutlinedButton("Invite", icon: .symbol(.calendarAdd)) {}
             TtcOutlinedButton("Primary", color: .primary) {}
             TtcOutlinedButton("Leave game", color: .error) {}
             TtcOutlinedButton("Create account") {}.frame(maxWidth: .infinity)

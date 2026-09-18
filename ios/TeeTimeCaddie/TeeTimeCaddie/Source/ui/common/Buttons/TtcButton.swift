@@ -13,7 +13,7 @@ struct TtcButton: View {
 
     private let title: String
     private let color: TtcColorRole
-    private let icon: ImageResource?
+    private let icon: ImageSource?
     private let dense: Bool
     private let isLoading: Bool
     private let action: () -> Void
@@ -21,7 +21,7 @@ struct TtcButton: View {
     init(
         _ title: String,
         color: TtcColorRole = .primary,
-        icon: ImageResource? = nil,
+        icon: ImageSource? = nil,
         dense: Bool = false,
         isLoading: Bool = false,
         action: @escaping () -> Void
@@ -59,8 +59,8 @@ struct TtcButton: View {
             TtcButton("Book") {}
             TtcButton("Manage", color: .secondary) {}
             TtcButton("Delete tee time", color: .error) {}
-            TtcButton("Add tee time", icon: .Icons.calendarAdd) {}
-            TtcButton("New", icon: .Icons.calendarAdd, dense: true) {}
+            TtcButton("Add tee time", icon: .symbol(.calendarAdd)) {}
+            TtcButton("New", icon: .symbol(.calendarAdd), dense: true) {}
             TtcButton("Sign in") {}.frame(maxWidth: .infinity)
             TtcButton("Disabled") {}.disabled(true)
             TtcButton("Loading", isLoading: true) {}
@@ -75,7 +75,7 @@ struct TtcButton: View {
             TtcButton("Book") {}
             TtcButton("Manage", color: .secondary) {}
             TtcButton("Delete tee time", color: .error) {}
-            TtcButton("Add tee time", icon: .Icons.calendarAdd) {}
+            TtcButton("Add tee time", icon: .symbol(.calendarAdd)) {}
             TtcButton("Disabled") {}.disabled(true)
             TtcButton("Loading", isLoading: true) {}
         }

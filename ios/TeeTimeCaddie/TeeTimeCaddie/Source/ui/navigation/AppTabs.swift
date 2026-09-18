@@ -41,9 +41,9 @@ enum AppTabs: @MainActor TtcNavKey, Hashable {
     /// The icon to display in the tab bar for this tab.
     ///
     /// Uses either SF Symbols or custom assets depending on the tab.
-    var icon: ImageResource {
+    var icon: ImageSource {
         switch self {
-        case .teeTimes: return .icon
+        case .teeTimes: return .asset(.icon)
         }
     }
     

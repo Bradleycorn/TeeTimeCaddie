@@ -17,7 +17,7 @@ struct TtcTextField: View {
 
     private let label: String
     @Binding private var text: String
-    private let leadingIcon: ImageResource?
+    private let leadingIcon: ImageSource?
     private let placeholder: String?
     private let hint: String?
     private let error: String?
@@ -29,7 +29,7 @@ struct TtcTextField: View {
     init(
         _ label: String,
         text: Binding<String>,
-        leadingIcon: ImageResource? = nil,
+        leadingIcon: ImageSource? = nil,
         placeholder: String? = nil,
         hint: String? = nil,
         error: String? = nil,
@@ -100,7 +100,7 @@ fileprivate struct TtcTextFieldPreviews: View {
             TtcTextField(
                 "Email",
                 text: $email,
-                leadingIcon: .Icons.calendar,
+                leadingIcon: .symbol(.calendar),
                 placeholder: "you@golf.app",
                 keyboardType: .emailAddress
             )
