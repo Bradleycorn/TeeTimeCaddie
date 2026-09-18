@@ -13,6 +13,7 @@
 		0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 0219B4582AE755550043D4B2 /* FirebasePerformance */; };
 		022684722DEA104A0053A48A /* AppInitializers in Frameworks */ = {isa = PBXBuildFile; productRef = 022684712DEA104A0053A48A /* AppInitializers */; };
 		0228D9752A63219500E82209 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = 0228D9742A63219500E82209 /* Factory */; };
+		026A3F6A305C75910093C21B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 026A3F69305C75910093C21B /* FirebaseStorage */; };
 		0296EB53301D398700840B06 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 0296EB52301D398700840B06 /* FirebaseFirestore */; };
 		02B42A7E304F13340099573F /* NSExceptionKtCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 02B42A7D304F13340099573F /* NSExceptionKtCrashlytics */; };
 		02FF81512F096D2E007ACD28 /* ThemeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 02FF81502F096D2E007ACD28 /* ThemeUI */; };
@@ -93,6 +94,7 @@
 				02B42A7E304F13340099573F /* NSExceptionKtCrashlytics in Frameworks */,
 				0219B4592AE755550043D4B2 /* FirebasePerformance in Frameworks */,
 				022684722DEA104A0053A48A /* AppInitializers in Frameworks */,
+				026A3F6A305C75910093C21B /* FirebaseStorage in Frameworks */,
 				0228D9752A63219500E82209 /* Factory in Frameworks */,
 				0219B44D2AE755550043D4B2 /* FirebaseAnalytics in Frameworks */,
 				02FF81512F096D2E007ACD28 /* ThemeUI in Frameworks */,
@@ -179,6 +181,7 @@
 				02FF81502F096D2E007ACD28 /* ThemeUI */,
 				0296EB52301D398700840B06 /* FirebaseFirestore */,
 				02B42A7D304F13340099573F /* NSExceptionKtCrashlytics */,
+				026A3F69305C75910093C21B /* FirebaseStorage */,
 			);
 			productName = TeeTimeCaddie;
 			productReference = 02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */;
@@ -773,6 +776,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0228D9732A63219400E82209 /* XCRemoteSwiftPackageReference "Factory" */;
 			productName = Factory;
+		};
+		026A3F69305C75910093C21B /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0219B44B2AE755550043D4B2 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
 		};
 		0296EB52301D398700840B06 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
