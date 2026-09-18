@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <!--
+      Player profile errors.
+
+      A phone number that is already registered is NOT an authentication failure — it is a profile
+      constraint — so it lives here rather than in the auth feature's error strings.
+    -->
+    <string name="player_error_title">We couldn\'t save your profile</string>
+
+    <string name="player_error_phone_in_use_title">That phone number is already in use</string>
+    <string name="player_error_phone_in_use_message">Looks like you already have a TeeTimeCaddie account. Sign in instead — we\'ll keep your invitations together.</string>
+    <string name="player_error_phone_in_use_recovery">Sign in instead</string>
+    <!-- Shown on the mobile number field itself, at the same time as the message block above. -->
+    <string name="player_error_phone_in_use_inline">Already linked to another account</string>
+
+    <string name="player_error_invalid_phone_message">Enter a 10-digit mobile number.</string>
+    <string name="player_error_invalid_phone_inline">Enter a 10-digit mobile number</string>
+
+    <string name="player_error_no_name_message">Enter your name so your foursome can recognize you.</string>
+
+    <string name="player_error_save_failed_title">We couldn\'t finish setting up your account</string>
+    <string name="player_error_save_failed_message">Your sign-in is ready, but we couldn\'t save your profile.</string>
+    <string name="player_error_save_failed_recovery">Try again.</string>
+
+    <string name="player_error_photo_upload_failed_title">We couldn\'t upload that photo</string>
+    <string name="player_error_photo_upload_failed_message">Your photo didn\'t make it to the clubhouse.</string>
+    <string name="player_error_photo_upload_failed_recovery">Try again, or continue without a photo.</string>
+</resources>

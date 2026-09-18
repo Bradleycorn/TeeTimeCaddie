@@ -53,7 +53,7 @@ package net.bradball.teetimecaddie.core.analytics
  * @see EventManager.logPerformanceAttribute
  * @see EventManager.removePerformanceAttribute
  */
-internal interface TransactionLogger {
+interface TransactionLogger {
 
     companion object { }
 

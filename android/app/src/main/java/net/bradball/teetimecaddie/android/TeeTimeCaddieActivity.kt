@@ -58,7 +58,7 @@ class TeeTimeCaddieActivity : ComponentActivity() {
 
         setContent {
             val showApp by viewModel.showApp.collectAsStateWithLifecycle()
-            val appState = rememberTeeTimeCaddieAppState(appInitializers = viewModel.appInitializers, authRepository = viewModel.authRepo)
+            val appState = rememberTeeTimeCaddieAppState(appInitializers = viewModel.appInitializers, sessionManager = viewModel.sessionManager)
             val systemUiController = rememberSystemUiController()
 
             DisposableEffect(key1 = systemUiController) {

@@ -100,10 +100,16 @@ import kotlin.reflect.KClass
  * @property errorLogger The logger used for recording errors and debug messages
  * @property transactionLogger The logger used for performance monitoring
  */
-class EventManager internal constructor(
-    private val errorLogger: ErrorLogger = FirebaseErrorLogger(),
-    private val transactionLogger: TransactionLogger = FirebaseTransactionLogger()) {
+class EventManager(
+    private val errorLogger: ErrorLogger,
+    private val transactionLogger: TransactionLogger) {
 
+    /**
+     * The normal, Firebase-backed event manager.
+     *
+     * Kept as an explicit constructor rather than default arguments: Kotlin default values do not
+     * produce a no-argument initializer in Swift, so `EventManager()` would stop compiling on iOS.
+     */
     constructor(): this(FirebaseErrorLogger(), FirebaseTransactionLogger())
 
     companion object {

@@ -12,32 +12,35 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.android.initializers.AppInitializers
 import net.bradball.teetimecaddie.android.initializers.InitializationState
-import net.bradball.teetimecaddie.features.auth.AuthRepository
+import kotlinx.coroutines.flow.map
+import net.bradball.teetimecaddie.session.SessionManager
+import net.bradball.teetimecaddie.session.SessionState
 
 @Composable
 fun rememberTeeTimeCaddieAppState(
     appInitializers: AppInitializers,
-    authRepository: AuthRepository,
+    sessionManager: SessionManager,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): TeeTimeCaddieAppState {
-    return remember(coroutineScope, appInitializers, authRepository) {
-        TeeTimeCaddieAppState(coroutineScope, appInitializers, authRepository)
+    return remember(coroutineScope, appInitializers, sessionManager) {
+        TeeTimeCaddieAppState(coroutineScope, appInitializers, sessionManager)
     }
 }
 
 class TeeTimeCaddieAppState(
     coroutineScope: CoroutineScope,
     appInitializers: AppInitializers,
-    private val authRepository: AuthRepository
+    private val sessionManager: SessionManager
 ) {
-    val hasLoggedInOnce: Boolean
-        get() = authRepository.hasLoggedInOnce
-
-    val isLoggedIn = authRepository.loginState
+    // Transitional: TTC-79 replaces this boolean with a branch on SessionState, which is what
+    // distinguishes "signed out" from "signed in but no profile yet". Until then the shell only
+    // needs to know whether to show auth.
+    val isLoggedIn = sessionManager.sessionState
+        .map { it is SessionState.SignedIn }
         .stateIn(
             scope = coroutineScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = authRepository.isLoggedIn
+            initialValue = sessionManager.initialSessionState is SessionState.SignedIn
         )
 
     val appInitStatus = appInitializers.state
