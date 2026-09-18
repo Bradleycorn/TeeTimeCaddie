@@ -35,7 +35,7 @@ fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
 
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) {
-            navigator.navigateToAuthentication(appState.hasLoggedInOnce)
+            navigator.navigateToLogin()
         }
     }
 

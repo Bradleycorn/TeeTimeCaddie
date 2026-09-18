@@ -10,5 +10,17 @@ final class AuthModule: SharedContainer {
         self { AppModule.shared.teeTimeCaddieSdk().provideAuthRepository() }
             .singleton
     }
+
+    var playerRepository: Factory<PlayerRepository> {
+        self { AppModule.shared.teeTimeCaddieSdk().providePlayerRepository() }
+            .singleton
+    }
+
+    /// The SDK holds this as a lazy singleton, so `.singleton` here mirrors Hilt rather than being
+    /// what guarantees a single `sessionState` flow.
+    var sessionManager: Factory<SessionManager> {
+        self { AppModule.shared.teeTimeCaddieSdk().sessionManager }
+            .singleton
+    }
      
 }

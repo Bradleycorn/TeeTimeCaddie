@@ -16,7 +16,7 @@ struct LoginScreen: View {
     }
 
     @State
-    private var viewModel = LoginViewModel(authRepo: AuthModule.shared.authRepository())
+    private var viewModel = LoginViewModel()
 
     private let onRegisterClick: ()->Void
 

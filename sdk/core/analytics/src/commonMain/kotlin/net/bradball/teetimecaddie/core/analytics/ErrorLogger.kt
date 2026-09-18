@@ -12,7 +12,7 @@ package net.bradball.teetimecaddie.core.analytics
  * with the [EventManager]. This interface serves as an abstraction to allow
  * us to swap out Event Logging services without having to touch other code.
  */
-internal interface ErrorLogger {
+interface ErrorLogger {
     fun logException(throwable: Throwable)
     fun logMessage(message: String)
 

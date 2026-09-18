@@ -32,4 +32,34 @@
 
     <string name="login_error_title">Not Logged In</string>
     <string name="login_error_message">Invalid email or password.</string>
+
+    <!-- ==== Error taxonomy (TTC-77) ==== -->
+
+    <!-- Generic title for auth failures that have no more specific one. -->
+    <string name="auth_error_title">Something went wrong</string>
+
+    <!--
+      Sign-in failure. Deliberately says nothing about WHICH half was wrong: with Firebase email
+      enumeration protection enabled, "no such account" and "wrong password" are indistinguishable,
+      and disclosing either would be the leak the protection exists to prevent.
+    -->
+    <string name="login_error_invalid_credentials_title">That email and password don\'t match</string>
+    <string name="login_error_invalid_credentials_message">Check them and try again, or create a new account.</string>
+
+    <!-- Sign-up rejected because the address already has an account. %s is the email address. -->
+    <string name="reg_error_email_in_use_title">That email is already in use</string>
+    <string name="reg_error_email_in_use_message">An account with %s already exists. Sign in instead?</string>
+    <string name="reg_error_email_in_use_recovery">Sign in instead</string>
+
+    <string name="auth_error_account_disabled_title">This account has been disabled</string>
+    <string name="auth_error_account_disabled_message">Get in touch with support to sort it out.</string>
+
+    <string name="auth_error_too_many_attempts_title">Too many attempts</string>
+    <string name="auth_error_too_many_attempts_message">Wait a few minutes and try again.</string>
+
+    <string name="auth_error_network_title">No connection</string>
+    <string name="auth_error_network_message">Check your connection and try again.</string>
+
+    <string name="auth_error_session_expired_title">You have been signed out</string>
+    <string name="auth_error_session_expired_message">Sign in again to pick up where you left off.</string>
 </resources>

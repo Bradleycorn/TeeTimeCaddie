@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.android.initializers.AppInitializers
 import net.bradball.teetimecaddie.android.initializers.InitializationState
 import net.bradball.teetimecaddie.core.analytics.EventManager
-import net.bradball.teetimecaddie.features.auth.AuthRepository
+import net.bradball.teetimecaddie.session.SessionManager
 import javax.inject.Inject
 
 @HiltViewModel
 class TeeTimeCaddieActivityViewModel @Inject constructor(
     val appInitializers: AppInitializers,
-    val authRepo: AuthRepository,
+    val sessionManager: SessionManager,
     val eventManager: EventManager
 ): ViewModel() {
 

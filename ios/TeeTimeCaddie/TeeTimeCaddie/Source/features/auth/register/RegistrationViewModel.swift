@@ -8,35 +8,17 @@
 import Foundation
 import TeeTimeCaddieKit
 
-enum AuthError: LocalizedError {
-    case RegistrationError
-}
-
+/// Placeholder until TTC-82 builds the create-account screen.
+///
+/// Its previous `registerUser(email:password:name:)` called an `AuthRepository` method that no
+/// longer exists — sign-up is now two-phase and runs through `SessionManager`. Nothing called it
+/// (the screens are still stubs), so it is removed here rather than half-ported.
 @Observable
 class RegistrationViewModel {
 
-    private let authRepo: AuthRepository
+    private let sessionManager: SessionManager
 
-    init(authRepo: AuthRepository) {
-        self.authRepo = authRepo
-    }
-
-    private(set) var processingRegistration = false
-
-    var registrationError: TeeTimeCaddieError? = nil
-    
-    func registerUser(email: String, password: String, name: String) {
-        Task {
-            processingRegistration = true
-            defer { processingRegistration = false }
-            
-            do {
-                try await authRepo.registerUser(email: email, password: password, name: name)
-            } catch {
-                let ex = error.asTeeTimeCaddieError(defaultTitle: AR.strings().reg_error_default_title)
-                //print(ex.logMessage)
-                registrationError = ex
-            }
-        }
+    init(sessionManager: SessionManager = AuthModule.shared.sessionManager()) {
+        self.sessionManager = sessionManager
     }
 }

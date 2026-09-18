@@ -27,7 +27,6 @@ kotlin {
             implementation(project(":sdk:core:extensions"))
             implementation(project(":sdk:core:analytics"))
             implementation(project(":sdk:core:models"))
-            implementation(project(":sdk:core:storage"))
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
