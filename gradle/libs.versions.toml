@@ -87,6 +87,7 @@ firebase-mpp-auth = { module="dev.gitlive:firebase-auth", version.ref="firebase-
 firebase-mpp-crashlytics = { module="dev.gitlive:firebase-crashlytics", version.ref="firebase-mpp-sdk"}
 firebase-mpp-firestore = { module="dev.gitlive:firebase-firestore", version.ref="firebase-mpp-sdk"}
 firebase-mpp-performance = { module="dev.gitlive:firebase-perf", version.ref="firebase-mpp-sdk"}
+firebase-mpp-storage = { module="dev.gitlive:firebase-storage", version.ref="firebase-mpp-sdk"}
 
 firebase-plugins-crashlytics = { module="com.google.firebase:firebase-crashlytics-gradle", version.ref="firebase-crashlytics-plugin" }
 firebase-plugins-performance = { module="com.google.firebase:perf-plugin", version.ref="firebase-performance-plugin"}

@@ -75,7 +75,9 @@ class AuthRepository(
                 ?: throw Exception("No user available after registration.")
 
             user.updateProfile(displayName = name)
-            playerStorage.addPlayer(user.uid, PlayerDocument(name))
+            // Transitional: this whole method is replaced in TTC-77, which captures the phone
+            // number in a second step. Until then there is no phone to record.
+            playerStorage.addPlayer(user.uid, PlayerDocument(name = name, email = email, phone = ""))
             appSettings.hasLoggedIn = true
             eventManager.setUserId(user.uid)
             eventManager.logEvent(AnalyticsEvent.CreateAccount)
