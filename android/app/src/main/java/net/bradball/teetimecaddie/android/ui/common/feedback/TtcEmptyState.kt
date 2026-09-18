@@ -163,7 +163,7 @@ private fun TtcEmptyStateVariantsPreview() {
                 // Medallion + title, no supporting copy.
                 TtcEmptyState(
                     title = "No players yet",
-                    icon = TtcIcons.PERSON,
+                    icon = TtcIcons.TEE_CLOCK,
                 )
             }
         }

@@ -47,7 +47,7 @@ struct TtcPasswordField: View {
             hint: hint,
             error: error,
             isFocused: focusedField != nil,
-            trailingIcon: revealed ? .Icons.eyeSlash : .Icons.eye,
+            trailingIcon: revealed ? .symbol(.eyeSlash) : .symbol(.eye),
             onTrailingTap: { revealed.toggle() },
             trailingAccessibilityLabel:
                 AR.strings().content_description_password_toggle.desc().localized(),

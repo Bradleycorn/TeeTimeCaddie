@@ -31,14 +31,14 @@ struct TtcEmptyState<ExtraContent: View>: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let title: String
-    private let icon: ImageResource?
+    private let icon: ImageSource?
     private let description: String?
     private let extraContent: ExtraContent
 
     /// An empty state with trailing content — usually the recovery action.
     init(
         title: String,
-        icon: ImageResource? = nil,
+        icon: ImageSource? = nil,
         description: String? = nil,
         @ViewBuilder extraContent: () -> ExtraContent
     ) {
@@ -83,13 +83,13 @@ struct TtcEmptyState<ExtraContent: View>: View {
 
 extension TtcEmptyState where ExtraContent == EmptyView {
     /// An empty state with no trailing action.
-    init(title: String, icon: ImageResource? = nil, description: String? = nil) {
+    init(title: String, icon: ImageSource? = nil, description: String? = nil) {
         self.init(title: title, icon: icon, description: description) { EmptyView() }
     }
 }
 
 fileprivate struct TtcEmptyStateMedallion: View {
-    let icon: ImageResource
+    let icon: ImageSource
     let scheme: ThemeColors
 
     var body: some View {
@@ -134,11 +134,11 @@ private struct TtcEmptyStatePreviewContent: View {
         // The design's composition: the empty state centered in the whole content area.
         TtcEmptyState(
             title: "No games yet",
-            icon: .teeEmpty,
+            icon: .asset(.teeEmpty),
             description: "Booked a tee time? Turn it into a game so your foursome lives somewhere "
                 + "other than a text thread."
         ) {
-            TtcButton("Create a game", icon: .Icons.calendarAdd) {}
+            TtcButton("Create a game", icon: .symbol(.calendarAdd)) {}
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -153,7 +153,7 @@ private struct TtcEmptyStateVariantsPreviewContent: View {
                 description: "You don't have any scheduled tee times."
             )
             // Medallion + title, no supporting copy.
-            TtcEmptyState(title: "Nothing on the calendar", icon: .Icons.calendar)
+            TtcEmptyState(title: "Nothing on the calendar", icon: .symbol(.calendar))
         }
         .padding(.vertical, 32)
     }

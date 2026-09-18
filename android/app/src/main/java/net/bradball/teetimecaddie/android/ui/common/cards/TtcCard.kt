@@ -128,7 +128,7 @@ private fun PreviewListRow(primary: String, secondary: String? = null) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            painter = TtcIcons.PERSON.painter,
+            painter = TtcIcons.PERSON_OUTLINE.painter,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(22.dp),

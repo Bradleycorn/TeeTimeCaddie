@@ -16,7 +16,7 @@ struct TtcChip: View {
     private let color: TtcColorRole
     private let size: TtcChipSize
     private let variant: TtcChipVariant
-    private let icon: ImageResource?
+    private let icon: ImageSource?
     private let onClick: (() -> Void)?
 
     init(
@@ -24,7 +24,7 @@ struct TtcChip: View {
         color: TtcColorRole = .neutral,
         size: TtcChipSize = .medium,
         variant: TtcChipVariant = .filled,
-        icon: ImageResource? = nil,
+        icon: ImageSource? = nil,
         onClick: (() -> Void)? = nil
     ) {
         self.text = text
@@ -73,17 +73,17 @@ struct TtcChip: View {
     TeeTimeCaddieTheme {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
-                TtcChip("Primary", color: .primary, icon: .Icons.calendar)
-                TtcChip("Secondary", color: .secondary, icon: .Icons.calendar)
-                TtcChip("Tertiary", color: .tertiary, icon: .Icons.calendar)
-                TtcChip("Declined", color: .error, icon: .Icons.calendar)
-                TtcChip("Neutral", icon: .Icons.calendar)
+                TtcChip("Primary", color: .primary, icon: .symbol(.calendar))
+                TtcChip("Secondary", color: .secondary, icon: .symbol(.calendar))
+                TtcChip("Tertiary", color: .tertiary, icon: .symbol(.calendar))
+                TtcChip("Declined", color: .error, icon: .symbol(.calendar))
+                TtcChip("Neutral", icon: .symbol(.calendar))
             }
             VStack(alignment: .leading, spacing: 8) {
-                TtcChip("Primary Small", color: .primary, size: .small, icon: .Icons.calendar)
-                TtcChip("Secondary Small", color: .secondary, size: .small, icon: .Icons.calendar)
-                TtcChip("Tertiary Small", color: .tertiary, size: .small, icon: .Icons.calendar)
-                TtcChip("Neutral Small", size: .small, icon: .Icons.calendar)
+                TtcChip("Primary Small", color: .primary, size: .small, icon: .symbol(.calendar))
+                TtcChip("Secondary Small", color: .secondary, size: .small, icon: .symbol(.calendar))
+                TtcChip("Tertiary Small", color: .tertiary, size: .small, icon:.symbol(.calendar))
+                TtcChip("Neutral Small", size: .small, icon: .symbol(.calendar))
             }
         }
         HStack(alignment: .top, spacing: 12) {
