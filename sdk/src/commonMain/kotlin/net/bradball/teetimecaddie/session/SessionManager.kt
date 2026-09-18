@@ -7,11 +7,13 @@ import kotlinx.coroutines.flow.map
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.Player
+import net.bradball.teetimecaddie.core.models.TtcResult
+import net.bradball.teetimecaddie.core.models.map
 import net.bradball.teetimecaddie.features.auth.AuthErrors
 import net.bradball.teetimecaddie.features.auth.AuthException
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.players.PlayerRepository
-import kotlin.coroutines.cancellation.CancellationException
+import net.bradball.teetimecaddie.features.players.isNotFound
 
 /**
  * Joins authentication to player profiles.
@@ -21,7 +23,11 @@ import kotlin.coroutines.cancellation.CancellationException
  * is the same business logic written twice.
  *
  * Also owns the two-phase sign-up, because neither half can run it alone: [startSignUp] creates the
- * account (auth) and [completeSignUp] saves the profile (players).
+ * account (auth) and [completeSignUp] saves the profile (players). [completeSignUp] is also why a
+ * single [TtcResult] error type earns its keep — it can fail for an authentication reason *or* a
+ * profile reason.
+ *
+ * **Nothing here throws.**
  */
 class SessionManager(
     private val authRepository: AuthRepository,
@@ -57,15 +63,26 @@ class SessionManager(
     /**
      * Sign in.
      *
-     * @return [SessionState.SignedIn] normally, or [SessionState.ProfileIncomplete] for someone
-     *   whose sign-up was interrupted before their profile was saved.
+     * Succeeds with [SessionState.SignedIn] normally, or [SessionState.ProfileIncomplete] for
+     * someone whose sign-up was interrupted before their profile was saved.
      */
-    @Throws(AuthException::class, CancellationException::class)
-    suspend fun signIn(email: String, password: String): SessionState {
-        val user = authRepository.signIn(email, password)
-        val player = playerRepository.getPlayer(user.id)
-        return player?.let { SessionState.SignedIn(it) }
-            ?: SessionState.ProfileIncomplete(user.id, user.email)
+    suspend fun signIn(email: String, password: String): TtcResult<SessionState> {
+        val user = when (val result = authRepository.signIn(email, password)) {
+            is TtcResult.Failure -> return result
+            is TtcResult.Success -> result.data
+        }
+
+        // NOT_FOUND means the sign-up never finished: resume the profile step. Any *other*
+        // failure is a real read error, and is reported — routing to the profile step on a network
+        // blip would invite the person to re-enter details over a profile that already exists.
+        return when (val profile = playerRepository.getPlayer(user.id)) {
+            is TtcResult.Success -> TtcResult.Success(SessionState.SignedIn(profile.data))
+            is TtcResult.Failure -> if (profile.isNotFound) {
+                TtcResult.Success(SessionState.ProfileIncomplete(user.id, user.email))
+            } else {
+                profile
+            }
+        }
     }
 
     /**
@@ -74,39 +91,41 @@ class SessionManager(
      * Rejects an address that is already in use, which is what lets the credentials screen show
      * that before asking for a name and phone number.
      */
-    @Throws(AuthException::class, CancellationException::class)
-    suspend fun startSignUp(email: String, password: String): SessionState.ProfileIncomplete {
-        val user = authRepository.createAccount(email, password)
-        return SessionState.ProfileIncomplete(user.id, user.email)
-    }
+    suspend fun startSignUp(email: String, password: String): TtcResult<SessionState.ProfileIncomplete> =
+        authRepository.createAccount(email, password)
+            .map { SessionState.ProfileIncomplete(it.id, it.email) }
 
     /**
      * Step two of sign-up: save the profile.
      *
      * @param photo JPEG bytes for the avatar, already downscaled by the caller, or null.
-     * @throws AuthException [AuthErrors.SESSION_EXPIRED] if the account vanished between the steps.
      */
-    @Throws(Exception::class, CancellationException::class)
-    suspend fun completeSignUp(name: String, phone: String, photo: ByteArray? = null): Player {
-        val user = authRepository.currentUser ?: throw AuthException(AuthErrors.SESSION_EXPIRED)
+    suspend fun completeSignUp(name: String, phone: String, photo: ByteArray? = null): TtcResult<Player> {
+        val user = authRepository.currentUser
+            ?: return TtcResult.Failure(AuthException(AuthErrors.SESSION_EXPIRED))
 
-        val player = playerRepository.createPlayer(
-            playerId = user.id,
-            name = name,
-            email = user.email,
-            phone = phone,
-            photo = photo
-        )
+        val player = when (
+            val result = playerRepository.createPlayer(
+                playerId = user.id,
+                name = name,
+                email = user.email,
+                phone = phone,
+                photo = photo
+            )
+        ) {
+            is TtcResult.Failure -> return result
+            is TtcResult.Success -> result.data
+        }
 
-        // Best-effort: the Firebase Auth record's display name is a convenience, not a source of
-        // truth, so failing to update it must not fail a sign-up that has already been saved.
-        runCatching { authRepository.updateDisplayName(player.name) }
+        // Best-effort, and already non-throwing: the Firebase Auth record's display name is a
+        // convenience, not a source of truth, so it must not fail a sign-up already saved.
+        authRepository.updateDisplayName(player.name)
 
         // Only now is the account real, so only now is it counted.
         eventManager.setUserId(user.id)
         eventManager.logEvent(AnalyticsEvent.CreateAccount)
 
-        return player
+        return TtcResult.Success(player)
     }
 
     /**
@@ -119,9 +138,15 @@ class SessionManager(
      */
     suspend fun abandonSignUp(reason: String? = null) {
         val user = authRepository.currentUser
-        if (user != null && playerRepository.getPlayer(user.id) == null) {
-            runCatching { authRepository.deleteCurrentUser() }
-            eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
+        if (user != null) {
+            // Delete only on NOT_FOUND — positive evidence that there is no profile. A read that
+            // merely *failed* is not proof of absence, and acting on it would delete a real
+            // account because the network blipped.
+            val profile = playerRepository.getPlayer(user.id)
+            if (profile is TtcResult.Failure && profile.isNotFound) {
+                authRepository.deleteCurrentUser()
+                eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
+            }
         }
         authRepository.signOut()
     }

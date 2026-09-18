@@ -6,12 +6,12 @@ import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.NoOpErrorLogger
 import net.bradball.teetimecaddie.core.analytics.NoOpTransactionLogger
 import net.bradball.teetimecaddie.core.models.Player
+import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.auth.AuthErrors
 import net.bradball.teetimecaddie.features.auth.AuthException
 import net.bradball.teetimecaddie.features.auth.AuthUser
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -79,10 +79,11 @@ class SessionManagerTest {
     @Test
     fun signIn_returnsSignedInForAProvisionedAccount() = runTest {
         val auth = FakeAuthRepository()
-        auth.signInResult = Result.success(AuthUser(dana.id, dana.email))
+        auth.signInResult = TtcResult.Success(AuthUser(dana.id, dana.email))
 
-        val state = manager(auth, FakePlayerRepository(dana)).signIn(dana.email, "fairway")
+        val result = manager(auth, FakePlayerRepository(dana)).signIn(dana.email, "fairway")
 
+        val state = assertIs<TtcResult.Success<SessionState>>(result).data
         assertIs<SessionState.SignedIn>(state)
         assertEquals(dana, state.player)
     }
@@ -92,10 +93,11 @@ class SessionManagerTest {
     @Test
     fun signIn_returnsProfileIncompleteWhenTheAccountHasNoProfile() = runTest {
         val auth = FakeAuthRepository()
-        auth.signInResult = Result.success(AuthUser("user-2", "half@golf.app"))
+        auth.signInResult = TtcResult.Success(AuthUser("user-2", "half@golf.app"))
 
-        val state = manager(auth).signIn("half@golf.app", "fairway")
+        val result = manager(auth).signIn("half@golf.app", "fairway")
 
+        val state = assertIs<TtcResult.Success<SessionState>>(result).data
         assertIs<SessionState.ProfileIncomplete>(state)
         assertEquals("user-2", state.userId)
     }
@@ -103,12 +105,12 @@ class SessionManagerTest {
     @Test
     fun signIn_propagatesTheAuthFailure() = runTest {
         val auth = FakeAuthRepository()
-        auth.signInResult = Result.failure(AuthException(AuthErrors.INVALID_CREDENTIALS))
+        auth.signInResult = TtcResult.Failure(AuthException(AuthErrors.INVALID_CREDENTIALS))
 
-        val thrown = assertFailsWith<AuthException> {
-            manager(auth).signIn("dana@golf.app", "wrong")
-        }
-        assertEquals(AuthErrors.INVALID_CREDENTIALS, thrown.error)
+        val result = manager(auth).signIn("dana@golf.app", "wrong")
+
+        val error = assertIs<TtcResult.Failure>(result).error
+        assertEquals(AuthErrors.INVALID_CREDENTIALS, assertIs<AuthException>(error).error)
     }
 
     // ── completeSignUp ──────────────────────────────────────────────────────────
@@ -118,20 +120,21 @@ class SessionManagerTest {
         val auth = FakeAuthRepository(AuthUser("user-3", "new@golf.app"))
         val players = FakePlayerRepository()
 
-        val player = manager(auth, players).completeSignUp("Sam Pruitt", "5025551234")
+        val result = manager(auth, players).completeSignUp("Sam Pruitt", "5025551234")
 
+        val player = assertIs<TtcResult.Success<net.bradball.teetimecaddie.core.models.Player>>(result).data
         assertEquals("Sam Pruitt", player.name)
         assertEquals("new@golf.app", player.email, "email comes from the auth record, not the form")
-        assertEquals(player, players.getPlayer("user-3"))
+        assertEquals(player, players.getPlayer("user-3").getOrNull())
         assertEquals(listOf("Sam Pruitt"), auth.displayNameUpdates)
     }
 
     @Test
     fun completeSignUp_failsWhenTheSessionWentAway() = runTest {
-        val thrown = assertFailsWith<AuthException> {
-            manager().completeSignUp("Sam Pruitt", "5025551234")
-        }
-        assertEquals(AuthErrors.SESSION_EXPIRED, thrown.error)
+        val result = manager().completeSignUp("Sam Pruitt", "5025551234")
+
+        val error = assertIs<TtcResult.Failure>(result).error
+        assertEquals(AuthErrors.SESSION_EXPIRED, assertIs<AuthException>(error).error)
     }
 
     // ── abandonSignUp ───────────────────────────────────────────────────────────
@@ -164,12 +167,52 @@ class SessionManagerTest {
     @Test
     fun abandonSignUp_stillSignsOutWhenDeletionIsRefused() = runTest {
         val auth = FakeAuthRepository(AuthUser("user-5", "stale@golf.app"))
-        auth.deleteShouldFail = true
+        auth.deleteSucceeds = false
 
         manager(auth).abandonSignUp()
 
         assertEquals(1, auth.deleteCount)
         assertEquals(1, auth.signOutCount)
+    }
+
+    // A failed profile read is not evidence that the profile is absent. Conflating the two here
+    // would delete a real account, which is exactly what the guard exists to prevent.
+    @Test
+    fun abandonSignUp_doesNotDeleteWhenTheProfileReadFails() = runTest {
+        val auth = FakeAuthRepository(AuthUser(dana.id, dana.email))
+        val players = FakePlayerRepository(dana)
+        players.readFailure = readFailure()
+
+        manager(auth, players).abandonSignUp()
+
+        assertEquals(0, auth.deleteCount, "a failed read must never be treated as 'no profile'")
+        assertEquals(1, auth.signOutCount)
+    }
+
+    // Same distinction on the sign-in path: routing to the profile step on a network blip would
+    // invite someone to re-enter details over a profile that already exists.
+    @Test
+    fun signIn_reportsAFailedProfileReadInsteadOfRoutingToTheProfileStep() = runTest {
+        val auth = FakeAuthRepository()
+        auth.signInResult = TtcResult.Success(AuthUser(dana.id, dana.email))
+        val players = FakePlayerRepository(dana)
+        players.readFailure = readFailure()
+
+        val result = manager(auth, players).signIn(dana.email, "fairway")
+
+        assertIs<TtcResult.Failure>(result)
+    }
+
+    @Test
+    fun completeSignUp_propagatesAProfileFailure() = runTest {
+        val auth = FakeAuthRepository(AuthUser("user-6", "new@golf.app"))
+        val players = FakePlayerRepository()
+        players.createFailure = phoneInUseFailure()
+
+        val result = manager(auth, players).completeSignUp("Sam Pruitt", "5551234567")
+
+        assertIs<TtcResult.Failure>(result)
+        assertTrue(auth.displayNameUpdates.isEmpty(), "nothing should be synced after a failure")
     }
 
     @Test

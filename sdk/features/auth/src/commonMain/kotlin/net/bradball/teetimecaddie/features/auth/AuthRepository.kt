@@ -8,6 +8,7 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.isValidEmail
+import net.bradball.teetimecaddie.core.models.TtcResult
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -20,6 +21,9 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * Nothing here knows what a "session" is in the app's sense either. Joining a signed-in user to
  * their profile is `SessionManager`'s job.
+ *
+ * **Nothing here throws.** Failures come back as [TtcResult.Failure] carrying an [AuthException],
+ * because Kotlin exceptions cross into Swift badly. See [TtcResult].
  */
 interface AuthRepository {
 
@@ -29,8 +33,7 @@ interface AuthRepository {
     /** Emits on every sign-in and sign-out, starting with the current value. */
     val authChanges: Flow<AuthUser?>
 
-    @Throws(AuthException::class, CancellationException::class)
-    suspend fun signIn(email: String, password: String): AuthUser
+    suspend fun signIn(email: String, password: String): TtcResult<AuthUser>
 
     /**
      * Create the Firebase Auth account.
@@ -44,24 +47,27 @@ interface AuthRepository {
      * user with no profile. `SessionManager` models that as a first-class state rather than
      * hiding it.
      */
-    @Throws(AuthException::class, CancellationException::class)
-    suspend fun createAccount(email: String, password: String): AuthUser
+    suspend fun createAccount(email: String, password: String): TtcResult<AuthUser>
 
     suspend fun signOut()
 
     /**
      * Delete the signed-in account. Used to clean up a sign-up the person abandoned.
      *
-     * Fails for a session Firebase considers stale, which it will for an account created long
-     * enough ago to need re-authentication. Callers should treat failure as non-fatal.
+     * @return false if there was no account to delete, or Firebase refused — which it does for a
+     *   session old enough to need re-authentication. Callers treat that as non-fatal, so this
+     *   reports rather than fails.
      */
-    @Throws(AuthException::class, CancellationException::class)
-    suspend fun deleteCurrentUser()
+    suspend fun deleteCurrentUser(): Boolean
 
     /** Force a token refresh, signing out if the session is no longer valid. */
     suspend fun refreshAuthentication()
 
-    /** Keep the Firebase Auth record's display name in step with the player's profile. */
+    /**
+     * Keep the Firebase Auth record's display name in step with the player's profile.
+     *
+     * Best-effort: the auth record's name is a convenience, not a source of truth.
+     */
     suspend fun updateDisplayName(name: String)
 }
 
@@ -75,25 +81,20 @@ class AuthRepositoryImpl(
     override val authChanges: Flow<AuthUser?>
         get() = Firebase.auth.authStateChanged.map { it?.toAuthUser() }
 
-    override suspend fun signIn(email: String, password: String): AuthUser {
+    override suspend fun signIn(email: String, password: String): TtcResult<AuthUser> {
         if (!email.isValidEmail) {
-            throw AuthException(AuthErrors.INVALID_EMAIL)
+            return TtcResult.Failure(AuthException(AuthErrors.INVALID_EMAIL))
         }
 
         val user = try {
             Firebase.auth.signInWithEmailAndPassword(email, password).user
                 ?: throw IllegalStateException("No user available after a successful sign in.")
         } catch (ex: CancellationException) {
+            // Cancellation is control flow, not a failure — let it propagate so the calling
+            // coroutine unwinds normally instead of being reported as a sign-in error.
             throw ex
         } catch (ex: Exception) {
-            val error = signInErrorFor(ex.firebaseAuthErrorCode())
-            if (error == AuthErrors.UNKNOWN) {
-                eventManager.logException(
-                    ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "sign_in")
-                )
-            }
-            eventManager.logEvent(AnalyticsEvent.FailedLogin(reason = error.name))
-            throw AuthException(error, listOf(email), ex)
+            return TtcResult.Failure(authFailure(ex, ::signInErrorFor, "sign_in", email))
         }
 
         // Both of these were missing before: sign-in recorded neither the user id nor the event,
@@ -101,18 +102,18 @@ class AuthRepositoryImpl(
         eventManager.setUserId(user.uid)
         eventManager.logEvent(AnalyticsEvent.Login)
 
-        return user.toAuthUser()
+        return TtcResult.Success(user.toAuthUser())
     }
 
-    override suspend fun createAccount(email: String, password: String): AuthUser {
+    override suspend fun createAccount(email: String, password: String): TtcResult<AuthUser> {
         // Validate locally first, so a password Firebase would reject never creates an account.
         if (!email.isValidEmail) {
             eventManager.logEvent(AnalyticsEvent.FailedRegistration(AuthErrors.INVALID_EMAIL.name))
-            throw AuthException(AuthErrors.INVALID_EMAIL)
+            return TtcResult.Failure(AuthException(AuthErrors.INVALID_EMAIL))
         }
         if (!password.isStrongEnough) {
             eventManager.logEvent(AnalyticsEvent.FailedRegistration(AuthErrors.WEAK_PASSWORD.name))
-            throw AuthException(AuthErrors.WEAK_PASSWORD)
+            return TtcResult.Failure(AuthException(AuthErrors.WEAK_PASSWORD))
         }
 
         val user = try {
@@ -121,21 +122,14 @@ class AuthRepositoryImpl(
         } catch (ex: CancellationException) {
             throw ex
         } catch (ex: Exception) {
-            val error = createAccountErrorFor(ex.firebaseAuthErrorCode())
-            if (error == AuthErrors.UNKNOWN) {
-                eventManager.logException(
-                    ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "create_account")
-                )
-            }
-            eventManager.logEvent(AnalyticsEvent.FailedRegistration(error.name))
-            throw AuthException(error, listOf(email), ex)
+            return TtcResult.Failure(authFailure(ex, ::createAccountErrorFor, "create_account", email))
         }
 
         // Note what is NOT logged here: the account is not real until it has a profile, so
         // CreateAccount and setUserId wait for SessionManager.completeSignUp.
         eventManager.logEvent(AnalyticsEvent.CreateAccountStarted)
 
-        return user.toAuthUser()
+        return TtcResult.Success(user.toAuthUser())
     }
 
     override suspend fun signOut() {
@@ -143,14 +137,18 @@ class AuthRepositoryImpl(
         eventManager.logEvent(AnalyticsEvent.SignOut)
     }
 
-    override suspend fun deleteCurrentUser() {
-        val user = Firebase.auth.currentUser ?: throw AuthException(AuthErrors.SESSION_EXPIRED)
-        try {
+    override suspend fun deleteCurrentUser(): Boolean {
+        val user = Firebase.auth.currentUser ?: return false
+        return try {
             user.delete()
+            true
         } catch (ex: CancellationException) {
             throw ex
         } catch (ex: Exception) {
-            throw AuthException(signInErrorFor(ex.firebaseAuthErrorCode()), cause = ex)
+            eventManager.logException(
+                ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "delete_user")
+            )
+            false
         }
     }
 
@@ -165,7 +163,37 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun updateDisplayName(name: String) {
-        Firebase.auth.currentUser?.updateProfile(displayName = name)
+        try {
+            Firebase.auth.currentUser?.updateProfile(displayName = name)
+        } catch (ex: CancellationException) {
+            throw ex
+        } catch (ex: Exception) {
+            eventManager.logException(
+                ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "update_display_name")
+            )
+        }
+    }
+
+    /** Map a thrown Firebase error to the [AuthException] that is handed back as a value. */
+    private fun authFailure(
+        ex: Exception,
+        mapper: (String?) -> AuthErrors,
+        action: String,
+        email: String
+    ): AuthException {
+        val error = mapper(ex.firebaseAuthErrorCode())
+        if (error == AuthErrors.UNKNOWN) {
+            eventManager.logException(
+                ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to action)
+            )
+        }
+        val event = if (action == "sign_in") {
+            AnalyticsEvent.FailedLogin(reason = error.name)
+        } else {
+            AnalyticsEvent.FailedRegistration(reason = error.name)
+        }
+        eventManager.logEvent(event)
+        return AuthException(error, listOf(email), ex)
     }
 }
 

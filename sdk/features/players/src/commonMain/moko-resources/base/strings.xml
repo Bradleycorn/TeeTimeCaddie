@@ -14,6 +14,9 @@
     <!-- Shown on the mobile number field itself, at the same time as the message block above. -->
     <string name="player_error_phone_in_use_inline">Already linked to another account</string>
 
+    <!-- Absence, not a malfunction. Rarely surfaced: callers usually branch on the case itself. -->
+    <string name="player_error_not_found_message">We couldn\'t find that player.</string>
+
     <string name="player_error_invalid_phone_message">Enter a 10-digit mobile number.</string>
     <string name="player_error_invalid_phone_inline">Enter a 10-digit mobile number</string>
 
