@@ -1,5 +1,7 @@
 package net.bradball.teetimecaddie.features.players
 
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.bradbal.teetimecaddie.core.storage.PlayerPhotoStorage
@@ -11,7 +13,6 @@ import net.bradball.teetimecaddie.core.extensions.isValidPhoneNumber
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.TtcResult
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Player profiles: the name, phone number and avatar behind an account.
@@ -127,9 +128,8 @@ class PlayerRepositoryImpl(
         val photoUrl = if (photo != null) {
             try {
                 playerPhotoStorage.uploadAvatar(playerId, photo)
-            } catch (ex: CancellationException) {
-                throw ex
             } catch (ex: Exception) {
+                currentCoroutineContext().ensureActive()
                 eventManager.logException(
                     ex, LoggableExceptionTypes.PLAYERS, hashMapOf("action" to "upload_avatar")
                 )
@@ -174,11 +174,12 @@ class PlayerRepositoryImpl(
      * The storage layer still throws — it wraps Firestore — so this is the boundary where those
      * exceptions stop and become values.
      */
-    private inline fun <T : Any> runStorage(action: String, block: () -> T): TtcResult<T> = try {
+    private suspend inline fun <T : Any> runStorage(action: String, block: () -> T): TtcResult<T> = try {
         TtcResult.Success(block())
-    } catch (ex: CancellationException) {
-        throw ex
     } catch (ex: Exception) {
+        // Re-throws if this coroutine was cancelled, so cancellation is not swallowed into a
+        // Failure. See the note in AuthRepository for why this beats catching the type.
+        currentCoroutineContext().ensureActive()
         eventManager.logException(ex, LoggableExceptionTypes.PLAYERS, hashMapOf("action" to action))
         TtcResult.Failure(PlayerException(PlayerErrors.SAVE_FAILED, cause = ex))
     }
@@ -188,12 +189,11 @@ class PlayerRepositoryImpl(
      * [PlayerErrors.NOT_FOUND], which is distinct from the [PlayerErrors.SAVE_FAILED] a thrown
      * storage error produces. Keeping those apart is the whole point.
      */
-    private inline fun <T : Any> runStorageOrNotFound(action: String, block: () -> T?): TtcResult<T> = try {
+    private suspend inline fun <T : Any> runStorageOrNotFound(action: String, block: () -> T?): TtcResult<T> = try {
         block()?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(PlayerException(PlayerErrors.NOT_FOUND))
-    } catch (ex: CancellationException) {
-        throw ex
     } catch (ex: Exception) {
+        currentCoroutineContext().ensureActive()
         eventManager.logException(ex, LoggableExceptionTypes.PLAYERS, hashMapOf("action" to action))
         TtcResult.Failure(PlayerException(PlayerErrors.SAVE_FAILED, cause = ex))
     }

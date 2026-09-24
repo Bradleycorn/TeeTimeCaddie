@@ -2,6 +2,8 @@ package net.bradball.teetimecaddie.features.auth
 
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
@@ -9,7 +11,7 @@ import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.isValidEmail
 import net.bradball.teetimecaddie.core.models.TtcResult
-import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.coroutineContext
 
 /**
  * Credentials and sessions. Knows about Firebase Auth and nothing else.
@@ -89,11 +91,12 @@ class AuthRepositoryImpl(
         val user = try {
             Firebase.auth.signInWithEmailAndPassword(email, password).user
                 ?: throw IllegalStateException("No user available after a successful sign in.")
-        } catch (ex: CancellationException) {
-            // Cancellation is control flow, not a failure — let it propagate so the calling
-            // coroutine unwinds normally instead of being reported as a sign-in error.
-            throw ex
         } catch (ex: Exception) {
+            // Re-throws if THIS coroutine was cancelled, so cancellation keeps propagating instead
+            // of being swallowed into a Failure. Better than catching CancellationException by
+            // type: that can also arrive from a child scope while this coroutine is alive and
+            // well, in which case it is a genuine failure and should be reported as one.
+            currentCoroutineContext().ensureActive()
             return TtcResult.Failure(authFailure(ex, ::signInErrorFor, "sign_in", email))
         }
 
@@ -119,9 +122,8 @@ class AuthRepositoryImpl(
         val user = try {
             Firebase.auth.createUserWithEmailAndPassword(email, password).user
                 ?: throw IllegalStateException("No user available after a successful registration.")
-        } catch (ex: CancellationException) {
-            throw ex
         } catch (ex: Exception) {
+            currentCoroutineContext().ensureActive()
             return TtcResult.Failure(authFailure(ex, ::createAccountErrorFor, "create_account", email))
         }
 
@@ -142,9 +144,8 @@ class AuthRepositoryImpl(
         return try {
             user.delete()
             true
-        } catch (ex: CancellationException) {
-            throw ex
         } catch (ex: Exception) {
+            currentCoroutineContext().ensureActive()
             eventManager.logException(
                 ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "delete_user")
             )
@@ -155,9 +156,8 @@ class AuthRepositoryImpl(
     override suspend fun refreshAuthentication() {
         try {
             Firebase.auth.currentUser?.getIdToken(forceRefresh = true)
-        } catch (ex: CancellationException) {
-            throw ex
         } catch (ex: Exception) {
+            currentCoroutineContext().ensureActive()
             Firebase.auth.signOut()
         }
     }
@@ -165,9 +165,8 @@ class AuthRepositoryImpl(
     override suspend fun updateDisplayName(name: String) {
         try {
             Firebase.auth.currentUser?.updateProfile(displayName = name)
-        } catch (ex: CancellationException) {
-            throw ex
         } catch (ex: Exception) {
+            currentCoroutineContext().ensureActive()
             eventManager.logException(
                 ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "update_display_name")
             )

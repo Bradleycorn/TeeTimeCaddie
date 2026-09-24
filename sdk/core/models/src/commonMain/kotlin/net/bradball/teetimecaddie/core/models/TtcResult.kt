@@ -56,21 +56,3 @@ inline fun <T : Any, R : Any> TtcResult<T>.map(transform: (T) -> R): TtcResult<R
     is TtcResult.Success -> TtcResult.Success(transform(data))
     is TtcResult.Failure -> this
 }
-
-/** Chain another fallible operation onto a successful value. */
-inline fun <T : Any, R : Any> TtcResult<T>.flatMap(transform: (T) -> TtcResult<R>): TtcResult<R> = when (this) {
-    is TtcResult.Success -> transform(data)
-    is TtcResult.Failure -> this
-}
-
-/** Run [block] on success. Returns this, so calls can be chained. */
-inline fun <T : Any> TtcResult<T>.onSuccess(block: (T) -> Unit): TtcResult<T> {
-    if (this is TtcResult.Success) block(data)
-    return this
-}
-
-/** Run [block] on failure. Returns this, so calls can be chained. */
-inline fun <T : Any> TtcResult<T>.onFailure(block: (TeeTimeCaddieException) -> Unit): TtcResult<T> {
-    if (this is TtcResult.Failure) block(error)
-    return this
-}
