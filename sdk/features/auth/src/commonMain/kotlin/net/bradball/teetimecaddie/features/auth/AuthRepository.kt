@@ -97,7 +97,7 @@ class AuthRepositoryImpl(
             // type: that can also arrive from a child scope while this coroutine is alive and
             // well, in which case it is a genuine failure and should be reported as one.
             currentCoroutineContext().ensureActive()
-            return TtcResult.Failure(authFailure(ex, ::signInErrorFor, "sign_in", email))
+            return TtcResult.Failure(authFailure(ex, AuthErrors::fromSignInErrorCode, "sign_in", email))
         }
 
         // Both of these were missing before: sign-in recorded neither the user id nor the event,
@@ -124,7 +124,7 @@ class AuthRepositoryImpl(
                 ?: throw IllegalStateException("No user available after a successful registration.")
         } catch (ex: Exception) {
             currentCoroutineContext().ensureActive()
-            return TtcResult.Failure(authFailure(ex, ::createAccountErrorFor, "create_account", email))
+            return TtcResult.Failure(authFailure(ex, AuthErrors::fromCreateAccountErrorCode, "create_account", email))
         }
 
         // Note what is NOT logged here: the account is not real until it has a profile, so

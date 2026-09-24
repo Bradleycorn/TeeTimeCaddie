@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
  * GitLive discards the error object and keeps only its description. Both have to land on the same
  * [AuthErrors].
  */
-class AuthErrorMappingTest {
+class AuthErrorsTest {
 
     @Test
     fun signIn_mapsBothPlatformsCodesIdentically() {
@@ -22,8 +22,8 @@ class AuthErrorMappingTest {
         )
         pairs.forEach { (android, ios) ->
             assertEquals(
-                signInErrorFor(android),
-                signInErrorFor(ios),
+                AuthErrors.fromSignInErrorCode(android),
+                AuthErrors.fromSignInErrorCode(ios),
                 "$android and $ios should map to the same error"
             )
         }
@@ -46,7 +46,7 @@ class AuthErrorMappingTest {
         ).forEach { code ->
             assertEquals(
                 AuthErrors.INVALID_CREDENTIALS,
-                signInErrorFor(code),
+                AuthErrors.fromSignInErrorCode(code),
                 "$code must not be distinguishable from any other credential failure"
             )
         }
@@ -54,18 +54,18 @@ class AuthErrorMappingTest {
 
     @Test
     fun signIn_fallsBackToUnknownForAnythingUnrecognized() {
-        assertEquals(AuthErrors.UNKNOWN, signInErrorFor(null))
-        assertEquals(AuthErrors.UNKNOWN, signInErrorFor(""))
-        assertEquals(AuthErrors.UNKNOWN, signInErrorFor("ERROR_SOMETHING_NEW"))
-        assertEquals(AuthErrors.UNKNOWN, signInErrorFor("99999"))
+        assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromSignInErrorCode(null))
+        assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromSignInErrorCode(""))
+        assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromSignInErrorCode("ERROR_SOMETHING_NEW"))
+        assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromSignInErrorCode("99999"))
     }
 
     // Sign-up is the one endpoint that still reports a taken address under email enumeration
     // protection. AC 3 — rejecting an in-use email before the profile step — depends on it.
     @Test
     fun createAccount_reportsAnEmailAlreadyInUse() {
-        assertEquals(AuthErrors.EMAIL_IN_USE, createAccountErrorFor("ERROR_EMAIL_ALREADY_IN_USE"))
-        assertEquals(AuthErrors.EMAIL_IN_USE, createAccountErrorFor("17007"))
+        assertEquals(AuthErrors.EMAIL_IN_USE, AuthErrors.fromCreateAccountErrorCode("ERROR_EMAIL_ALREADY_IN_USE"))
+        assertEquals(AuthErrors.EMAIL_IN_USE, AuthErrors.fromCreateAccountErrorCode("17007"))
     }
 
     @Test
@@ -78,8 +78,8 @@ class AuthErrorMappingTest {
         )
         pairs.forEach { (android, ios) ->
             assertEquals(
-                createAccountErrorFor(android),
-                createAccountErrorFor(ios),
+                AuthErrors.fromCreateAccountErrorCode(android),
+                AuthErrors.fromCreateAccountErrorCode(ios),
                 "$android and $ios should map to the same error"
             )
         }
@@ -87,7 +87,7 @@ class AuthErrorMappingTest {
 
     @Test
     fun createAccount_fallsBackToUnknownForAnythingUnrecognized() {
-        assertEquals(AuthErrors.UNKNOWN, createAccountErrorFor(null))
-        assertEquals(AuthErrors.UNKNOWN, createAccountErrorFor("ERROR_SOMETHING_NEW"))
+        assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromCreateAccountErrorCode(null))
+        assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromCreateAccountErrorCode("ERROR_SOMETHING_NEW"))
     }
 }

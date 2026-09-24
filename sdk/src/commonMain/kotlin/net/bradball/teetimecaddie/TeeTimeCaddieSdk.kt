@@ -23,9 +23,9 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
     // of the SDK. That matters most for `sessionManager`: two instances would mean two independent
     // sessionState flows, and an app shell observing the wrong one would simply never update.
     // Making it structural here means a misconfigured DI in either app cannot reintroduce the bug.
-    private val authRepository: AuthRepository by lazy { AuthRepositoryImpl(eventManager) }
+    val authRepository: AuthRepository by lazy { AuthRepositoryImpl(eventManager) }
 
-    private val playerRepository: PlayerRepository by lazy {
+    val playerRepository: PlayerRepository by lazy {
         PlayerRepositoryImpl(
             eventManager,
             storageModule.providePlayerStorage(),
@@ -33,19 +33,13 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
         )
     }
 
-    private val teeTimesRepository: TeeTimesRepository by lazy {
+    val teeTimesRepository: TeeTimesRepository by lazy {
         TeeTimesRepository(eventManager, storageModule.provideTeeTimeStorage())
     }
 
     val sessionManager: SessionManager by lazy {
         SessionManager(authRepository, playerRepository, eventManager)
     }
-
-    fun provideAuthRepository(): AuthRepository = authRepository
-
-    fun providePlayerRepository(): PlayerRepository = playerRepository
-
-    fun provideTeeTimesRepository(): TeeTimesRepository = teeTimesRepository
 
     init {
         if (useLocalResources) {

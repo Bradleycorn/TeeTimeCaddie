@@ -17,13 +17,13 @@ class AuthModule {
     @Provides
     @Singleton
     fun provideAuthRepository(): AuthRepository {
-       return TeeTimeCaddieSdk.getInstance().provideAuthRepository()
+       return TeeTimeCaddieSdk.getInstance().authRepository
     }
 
     @Provides
     @Singleton
     fun providePlayerRepository(): PlayerRepository {
-        return TeeTimeCaddieSdk.getInstance().providePlayerRepository()
+        return TeeTimeCaddieSdk.getInstance().playerRepository
     }
 
     /**
