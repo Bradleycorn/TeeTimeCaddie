@@ -11,7 +11,7 @@ import net.bradball.teetimecaddie.features.auth.AuthUser
 import net.bradball.teetimecaddie.features.players.PlayerErrors
 import net.bradball.teetimecaddie.features.players.PlayerException
 import net.bradball.teetimecaddie.features.players.PlayerRepository
-import net.bradball.teetimecaddie.features.players.isNotFound
+
 
 /**
  * Hand-written fakes for [SessionManager]'s two collaborators.
@@ -92,7 +92,11 @@ class FakePlayerRepository(
     override suspend fun isPhoneInUse(phone: String, excludingPlayerId: String?): TtcResult<Boolean> =
         when (val owner = findPlayerByPhone(phone)) {
             is TtcResult.Success -> TtcResult.Success(owner.data.id != excludingPlayerId)
-            is TtcResult.Failure -> if (owner.isNotFound) TtcResult.Success(false) else owner
+            is TtcResult.Failure -> if ((owner.error as? PlayerException)?.isNotFound == true) {
+                TtcResult.Success(false)
+            } else {
+                owner
+            }
         }
 
     override suspend fun createPlayer(

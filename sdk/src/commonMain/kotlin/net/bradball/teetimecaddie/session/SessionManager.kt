@@ -13,7 +13,7 @@ import net.bradball.teetimecaddie.features.auth.AuthErrors
 import net.bradball.teetimecaddie.features.auth.AuthException
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.players.PlayerRepository
-import net.bradball.teetimecaddie.features.players.isNotFound
+import net.bradball.teetimecaddie.features.players.PlayerException
 
 /**
  * Joins authentication to player profiles.
@@ -77,7 +77,7 @@ class SessionManager(
         // blip would invite the person to re-enter details over a profile that already exists.
         return when (val profile = playerRepository.getPlayer(user.id)) {
             is TtcResult.Success -> TtcResult.Success(SessionState.SignedIn(profile.data))
-            is TtcResult.Failure -> if (profile.isNotFound) {
+            is TtcResult.Failure -> if ((profile.error as? PlayerException)?.isNotFound == true) {
                 TtcResult.Success(SessionState.ProfileIncomplete(user.id, user.email))
             } else {
                 profile
@@ -121,8 +121,8 @@ class SessionManager(
         // convenience, not a source of truth, so it must not fail a sign-up already saved.
         authRepository.updateDisplayName(player.name)
 
-        // Only now is the account real, so only now is it counted.
-        eventManager.setUserId(user.id)
+        // The user id was already set when the account was created, so the profile step's own
+        // analytics are attributed. Only the completion event waits for the profile to exist.
         eventManager.logEvent(AnalyticsEvent.CreateAccount)
 
         return TtcResult.Success(player)
@@ -143,7 +143,7 @@ class SessionManager(
             // merely *failed* is not proof of absence, and acting on it would delete a real
             // account because the network blipped.
             val profile = playerRepository.getPlayer(user.id)
-            if (profile is TtcResult.Failure && profile.isNotFound) {
+            if (profile is TtcResult.Failure && (profile.error as? PlayerException)?.isNotFound == true) {
                 authRepository.deleteCurrentUser()
                 eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
             }

@@ -95,7 +95,7 @@ class PlayerRepositoryImpl(
         when (val owner = findPlayerByPhone(phone)) {
             is TtcResult.Success -> TtcResult.Success(owner.data.id != excludingPlayerId)
             // Nobody owns it: that is an answer, not a problem.
-            is TtcResult.Failure -> if (owner.isNotFound) {
+            is TtcResult.Failure -> if ((owner.error as? PlayerException)?.isNotFound == true) {
                 TtcResult.Success(false)
             } else {
                 owner
@@ -199,6 +199,3 @@ class PlayerRepositoryImpl(
     }
 }
 
-/** True when this failure is specifically [PlayerErrors.NOT_FOUND] — absence, not a malfunction. */
-val TtcResult.Failure.isNotFound: Boolean
-    get() = (error as? PlayerException)?.error == PlayerErrors.NOT_FOUND

@@ -17,7 +17,7 @@ import net.bradball.teetimecaddie.session.SessionManager
 
 class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private val storageModule: StorageModule) {
 
-    val eventManager: EventManager by lazy { EventManager() }
+    val eventManager: EventManager by lazy { EventManager.getInstance() }
 
     // Held as lazy vals rather than built per call, so there is exactly one of each for the life
     // of the SDK. That matters most for `sessionManager`: two instances would mean two independent

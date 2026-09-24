@@ -127,8 +127,15 @@ class AuthRepositoryImpl(
             return TtcResult.Failure(authFailure(ex, AuthErrors::fromCreateAccountErrorCode, "create_account", email))
         }
 
-        // Note what is NOT logged here: the account is not real until it has a profile, so
-        // CreateAccount and setUserId wait for SessionManager.completeSignUp.
+        // Attribute from here on. The person is authenticated the moment the account exists, and
+        // everything logged during the profile step — PHONE_IN_USE, PHOTO_UPLOAD_FAILED,
+        // AbandonedRegistration — belongs to them. That step is where sign-up drop-off happens,
+        // so it is the window most worth attributing.
+        eventManager.setUserId(user.uid)
+
+        // The CreateAccount *event* still waits for the profile: the account is not real as a
+        // product concept until it has one, and CreateAccountStarted -> CreateAccount is what
+        // measures completion of the second step.
         eventManager.logEvent(AnalyticsEvent.CreateAccountStarted)
 
         return TtcResult.Success(user.toAuthUser())

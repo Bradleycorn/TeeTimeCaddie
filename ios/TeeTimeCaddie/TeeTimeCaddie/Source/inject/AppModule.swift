@@ -18,7 +18,10 @@ final class AppModule: SharedContainer {
     
     var eventManager: Factory<EventManager> {
         self {
-            EventManager().also { e in
+            // The SDK's own instance, not a new one. Every repository and SessionManager logs
+            // through `sdk.eventManager`; building a second manager here left that one with no
+            // plugins, so repository-level events and errors were silently dropped on iOS.
+            self.teeTimeCaddieSdk().eventManager.also { e in
                 e.registerPlugin(eventPlugin: FirebaseEventPlugin())
             }
         }.singleton

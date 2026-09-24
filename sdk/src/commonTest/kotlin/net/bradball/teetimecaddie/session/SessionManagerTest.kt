@@ -3,8 +3,6 @@ package net.bradball.teetimecaddie.session
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import net.bradball.teetimecaddie.core.analytics.EventManager
-import net.bradball.teetimecaddie.core.analytics.NoOpErrorLogger
-import net.bradball.teetimecaddie.core.analytics.NoOpTransactionLogger
 import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.auth.AuthErrors
@@ -27,7 +25,7 @@ class SessionManagerTest {
     private fun manager(
         auth: FakeAuthRepository = FakeAuthRepository(),
         players: FakePlayerRepository = FakePlayerRepository()
-    ) = SessionManager(auth, players, EventManager(NoOpErrorLogger, NoOpTransactionLogger))
+    ) = SessionManager(auth, players, EventManager.getInstance(enableLogging = false))
 
     // ── sessionState ────────────────────────────────────────────────────────────
 
