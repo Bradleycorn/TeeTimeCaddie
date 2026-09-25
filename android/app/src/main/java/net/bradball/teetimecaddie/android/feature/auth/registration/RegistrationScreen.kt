@@ -15,7 +15,7 @@ fun RegistrationScreen(
     onRegistrationComplete: ()->Unit,
     viewModel: RegistrationViewModel = hiltViewModel()) {
 
-    Screen(AnalyticsScreen.Registration("RegistrationScreen")) {
+    Screen(AnalyticsScreen.ProfileSetup("RegistrationScreen")) {
         RegistrationContent()
     }
 }

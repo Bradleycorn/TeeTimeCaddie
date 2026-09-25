@@ -15,7 +15,7 @@ fun LoginScreen(
     onLoggedIn: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()) {
 
-    Screen(AnalyticsScreen.Login("LoginScreen")) {
+    Screen(AnalyticsScreen.Credentials("LoginScreen")) {
         LoginContent()
     }
 }

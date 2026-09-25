@@ -26,4 +26,15 @@
     <string name="player_error_photo_upload_failed_title">We couldn\'t upload that photo</string>
     <string name="player_error_photo_upload_failed_message">Your photo didn\'t make it to the clubhouse.</string>
     <string name="player_error_photo_upload_failed_recovery">Try again, or continue without a photo.</string>
+
+    <!-- ==== Profile fields and screen (TTC-78) ==== -->
+    <string name="field_label_full_name">Full name</string>
+    <string name="field_label_mobile">Mobile number</string>
+    <string name="mobile_hint">We use this so your friends can find you when they make a foursome.</string>
+
+    <string name="photo_caption_empty">Add a photo (optional)</string>
+    <string name="photo_caption_added">Photo added · tap to change</string>
+
+    <string name="profile_title">Profile</string>
+    <string name="profile_sign_out_button">Sign out</string>
 </resources>

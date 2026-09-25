@@ -15,7 +15,7 @@ struct RegistrationScreen: View {
     private var viewModel = RegistrationViewModel()
 
     var body: some View {
-        Screen(.Registration(viewName: self.viewName)) {
+        Screen(.ProfileSetup(viewName: self.viewName)) {
             RegistrationContent(onLoginClick: onLoginClick)
         }
     }
