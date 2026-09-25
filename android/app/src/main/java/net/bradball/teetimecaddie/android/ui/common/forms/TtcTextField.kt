@@ -14,6 +14,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -47,6 +50,10 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  * @param onTrailingClick Invoked when the trailing icon is tapped (ignored when [trailingIcon] is null).
  * @param trailingContentDescription Accessibility description for the trailing icon.
  * @param keyboardOptions Software-keyboard configuration (type, capitalization, IME action, …).
+ *   Prefer the presets on [TtcTextFieldDefaults] — they carry the no-autocapitalise /
+ *   no-autocorrect rules the design requires.
+ * @param keyboardActions What the IME action buttons do, e.g. moving focus on Next or submitting
+ *   on Done.
  */
 @Composable
 fun TtcTextField(
@@ -64,6 +71,7 @@ fun TtcTextField(
     onTrailingClick: (() -> Unit)? = null,
     trailingContentDescription: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     TextField(
         value = value,
@@ -99,20 +107,36 @@ fun TtcTextField(
         shape = TtcTextFieldDefaults.Shape,
         colors = TtcTextFieldDefaults.colors(),
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
     )
 }
 
 /**
  * Builds the supporting-text slot: the [error] message (when set) otherwise the [hint], or null when
- * neither is present. The error message inherits the error color from [TtcTextFieldDefaults.colors].
+ * neither is present.
  *
- * Note: the Fairway Morning error row includes a small leading error glyph. `TtcIcons` has no error
- * icon yet (and the full Material Icons library is intentionally not imported), so the glyph is
- * omitted for now — see the plan's follow-ups.
+ * The error row carries a small leading glyph, which is the one place this component departs from
+ * a stock M3 field — Material's supporting text has no icon. The design shows one, and the glyph
+ * was only ever omitted because `TtcIcons` had no error entry. Both the icon and the text inherit
+ * the error color from [TtcTextFieldDefaults.colors].
  */
 private fun supportingText(error: String?, hint: String?): (@Composable () -> Unit)? {
-    val text = error ?: hint ?: return null
-    return { Text(text) }
+    if (error != null) {
+        return {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(TtcTextFieldDefaults.SupportingIconSpacing),
+            ) {
+                Icon(
+                    painter = TtcIcons.ERROR.painter,
+                    contentDescription = null,
+                    modifier = Modifier.size(TtcTextFieldDefaults.SupportingIconSize),
+                )
+                Text(error)
+            }
+        }
+    }
+    return hint?.let { { Text(it) } }
 }
 
 @Preview(name = "Light", showBackground = true)

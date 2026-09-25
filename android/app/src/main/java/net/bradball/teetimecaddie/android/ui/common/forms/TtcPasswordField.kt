@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -46,6 +47,8 @@ fun TtcPasswordField(
     hint: String? = null,
     error: String? = null,
     enabled: Boolean = true,
+    keyboardOptions: KeyboardOptions = TtcTextFieldDefaults.PasswordKeyboardOptions,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     var revealed by remember { mutableStateOf(false) }
 
@@ -58,7 +61,8 @@ fun TtcPasswordField(
         error = error,
         enabled = enabled,
         secure = !revealed,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         trailingIcon = if (revealed) TtcIcons.VISIBILITY_OFF else TtcIcons.VISIBILITY,
         onTrailingClick = { revealed = !revealed },
         trailingContentDescription =

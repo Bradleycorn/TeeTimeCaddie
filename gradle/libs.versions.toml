@@ -3,6 +3,8 @@ accompanist = "0.36.0"
 
 agp = "8.13.2"
 
+coil = "3.4.0"
+
 androidx-activity = "1.12.2"
 androidx-compose-bom = "2025.12.01" #1.10.0
 androidx-core = "1.17.0"
@@ -68,6 +70,9 @@ androidx-lifecycle-runtime = { module="androidx.lifecycle:lifecycle-runtime-ktx"
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "androidx-navigation3-core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "androidx-navigation3-core" }
 androidx-navigation3-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-navigation3-viewmodel" }
+
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 androidx-hilt-viewmodel = { group = "androidx.hilt", name = "hilt-lifecycle-viewmodel-compose", version.ref = "androidx-hilt-viewmodel" }
 androidx-navigation-compose = { module="androidx.navigation:navigation-compose", version.ref="androidx-navigation-compose"}
 androidx-navigation-hilt = { module="androidx.hilt:hilt-navigation-compose", version.ref="androidx-navigation-hilt"}
@@ -150,6 +155,11 @@ compose = [
     "androidx-navigation3-ui",
     "androidx-navigation3-viewmodel",
     "androidx-hilt-viewmodel"
+]
+
+coil = [
+    "coil-compose",
+    "coil-network-okhttp"
 ]
 
 firebase = [

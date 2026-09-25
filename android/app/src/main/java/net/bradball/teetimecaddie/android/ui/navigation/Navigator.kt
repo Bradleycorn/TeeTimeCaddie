@@ -249,6 +249,17 @@ class Navigator(startDestination: TopLevelDestination) {
         .toMutableMap()
 
     /**
+     * Returns the back stack for [destination], creating it if it is missing.
+     *
+     * Every read of [topLevelStacks] goes through here. A plain lookup would be a latent crash:
+     * [topLevelStacks] is replaced wholesale when a saved [Navigator] is restored, so state written
+     * by a build that had fewer tabs restores a map with no entry for a tab added since. Seeding the
+     * stack on demand makes adding a top-level destination safe without a state migration.
+     */
+    private fun stackFor(destination: TopLevelDestination): SnapshotStateList<TtcNavKey> =
+        topLevelStacks.getOrPut(destination) { mutableStateListOf(destination.destination) }
+
+    /**
      * Currently selected top-level destination.
      */
     var selectedTopLevelDestination by mutableStateOf(startDestination)
@@ -258,11 +269,7 @@ class Navigator(startDestination: TopLevelDestination) {
      * Current back stack for the selected top-level destination.
      */
     val backStack: SnapshotStateList<NavKey> = mutableStateListOf<NavKey>()
-        .apply {
-            val initialEntries = topLevelStacks[startDestination]
-                ?: throw IllegalStateException("$startDestination was not found in $topLevelDestinations")
-            addAll(initialEntries)
-        }
+        .apply { addAll(stackFor(startDestination)) }
 
     val currentDestination: NavKey?
         get() = backStack.lastOrNull()
@@ -270,7 +277,7 @@ class Navigator(startDestination: TopLevelDestination) {
     private fun updateBackStack() =
         backStack.apply {
             clear()
-            addAll(topLevelStacks[selectedTopLevelDestination]!!)
+            addAll(stackFor(selectedTopLevelDestination))
         }
 
     /**
@@ -296,8 +303,7 @@ class Navigator(startDestination: TopLevelDestination) {
 
 
         if (destination is TopLevelDestination) {
-            val newStack = topLevelStacks[destination]
-                ?: throw IllegalArgumentException("Cannot switch to backstack $destination. It does not exist in the list of top level destinations.")
+            val newStack = stackFor(destination)
 
             if (clearBackStack) {
                 newStack.clear()
@@ -306,10 +312,11 @@ class Navigator(startDestination: TopLevelDestination) {
 
             selectedTopLevelDestination = destination
         } else {
+            val currentStack = stackFor(selectedTopLevelDestination)
             if (clearBackStack) {
-                topLevelStacks[selectedTopLevelDestination]?.clear()
+                currentStack.clear()
             }
-            topLevelStacks[selectedTopLevelDestination]?.add(destination)
+            currentStack.add(destination)
         }
 
         updateBackStack()
@@ -319,7 +326,7 @@ class Navigator(startDestination: TopLevelDestination) {
      * Goes back to the previous destination in the current top-level stack.
      */
     fun goBack() {
-        topLevelStacks[selectedTopLevelDestination]?.removeLastOrNull()
+        stackFor(selectedTopLevelDestination).removeLastOrNull()
         updateBackStack()
     }
 

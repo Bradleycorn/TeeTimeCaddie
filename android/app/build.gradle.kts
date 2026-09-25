@@ -91,6 +91,9 @@ dependencies {
     implementation(libs.bundles.accompanist)
     debugImplementation(libs.bundles.android.debug)
 
+    // IMAGE LOADING
+    implementation(libs.bundles.coil)
+
     // ANDROIDX - LIFECYCLE
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.runtimeCompose)

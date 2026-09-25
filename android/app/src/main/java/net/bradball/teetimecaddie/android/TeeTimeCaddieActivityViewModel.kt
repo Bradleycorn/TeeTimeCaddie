@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.android.initializers.AppInitializers
 import net.bradball.teetimecaddie.android.initializers.InitializationState
+import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.session.SessionManager
 import javax.inject.Inject
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class TeeTimeCaddieActivityViewModel @Inject constructor(
     val appInitializers: AppInitializers,
     val sessionManager: SessionManager,
-    val eventManager: EventManager
+    val eventManager: EventManager,
+    val messenger: TtcMessenger
 ): ViewModel() {
 
     /**

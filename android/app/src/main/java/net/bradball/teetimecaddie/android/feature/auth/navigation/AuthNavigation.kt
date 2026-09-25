@@ -5,149 +5,55 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import net.bradball.teetimecaddie.android.feature.auth.login.LoginScreen
 import net.bradball.teetimecaddie.android.feature.auth.registration.RegistrationScreen
-import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
+import net.bradball.teetimecaddie.session.SessionState
 
 /**
- * Navigation destination for the Login screen.
+ * Navigation destination for the credentials screen.
  *
- * Allows existing users to authenticate with their email and password.
- * This screen is shown when the user has previously logged in.
+ * One screen serves both signing in and starting a new account: the person types an email and a
+ * password, then chooses which of the two they meant. There is no separate "sign up" form.
  */
 @Serializable
-data object LoginDestination: TtcNavKey
+data object LoginDestination : TtcNavKey
 
 /**
- * Navigation destination for the Registration screen.
+ * Navigation destination for the profile step of creating an account.
  *
- * Allows new users to create an account by providing their information.
- * This screen is shown for first-time users who haven't logged in before.
+ * Reached once the Firebase account exists, so the session is already authenticated and the app is
+ * in [SessionState.ProfileIncomplete].
+ *
+ * The key carries the **email only** — never the password. A nav key is `Hashable`, serialized into
+ * saved state and written to disk; a password has no business in it. The email is here because the
+ * screen displays it, and because it is what a restored `ProfileIncomplete` session has to hand.
  */
 @Serializable
-data object RegistrationDestination: TtcNavKey
+data class RegistrationDestination(val email: String) : TtcNavKey
 
 /**
- * Navigates to the appropriate authentication screen based on user history.
+ * Registers the navigation entries for the Authentication feature.
  *
- * This function implements smart routing to provide a better user experience:
- * - Existing users (who have logged in before) go directly to the Login screen
- * - New users go to the Registration screen first
+ * These entries are hosted by `AuthNavDisplay`, **not** by the tabbed `TtcNavDisplay`. Auth is not
+ * a destination the signed-in app can navigate to: `TeeTimeCaddieApp` branches on `SessionState`,
+ * so the whole auth tree exists only while there is no complete session, and disappears the moment
+ * there is one.
  *
- * @param hasLoggedInOnce True if the user has successfully logged in at least once before.
- *                        This is typically stored in app preferences or settings.
+ * That branch is also why there are no `onLoggedIn` / `onRegistrationComplete` callbacks. Success
+ * is not a navigation event — it is a change of `SessionState`, observed above this subtree.
+ *
+ * @param onCreateAccount Invoked with the typed email once the account exists, to move to the
+ *   profile step.
+ * @param onBack Invoked to leave the profile step and return to the credentials screen.
  */
-fun Navigator.navigateToAuthentication(hasLoggedInOnce: Boolean) {
-    when {
-        hasLoggedInOnce -> navigateToLogin()
-        else -> navigateToRegistration()
-    }
-}
-
-/**
- * Navigates to the Login screen.
- *
- * Clears the entire back stack to prevent users from navigating back to
- * the previous screen (typically used when the user's session has expired
- * or they've been logged out).
- */
-fun Navigator.navigateToLogin() {
-    navigate(LoginDestination, clearBackStack = true)
-}
-
-/**
- * Navigates to the Registration screen.
- *
- * Clears the entire back stack to ensure a clean navigation state for new users.
- * Users cannot navigate back from registration to any previous screens.
- */
-fun Navigator.navigateToRegistration() {
-    navigate(RegistrationDestination, clearBackStack = true)
-}
-
-/**
- * Registers all navigation entries for the Authentication feature.
- *
- * This function defines the navigation graph for the Authentication feature by registering
- * all screen composables and wiring up their navigation callbacks. The auth flow supports
- * multiple paths through the screens depending on user actions.
- *
- * ## Authentication Flow
- *
- * The authentication flow can follow different paths:
- *
- * **New User Flow**:
- * ```kotlin
- * Registration -> Tee Times List
- * ```
- *
- * **Returning User Flow**:
- * ```kotlin
- * Login -> Tee Times List
- * ```
- *
- * **User Switching Flow**:
- * ```kotlin
- * Registration -> Login -> Tee Times List
- * ```
- *
- * ## Navigation Callback Pattern
- *
- * Navigation callbacks are defined in [TtcNavDisplay] and passed to this function, which then
- * passes them to individual screen composables. Screens never receive the Navigator directly:
- *
- * ```kotlin
- * // In TtcNavDisplay
- * authEntries(
- *     onLoginClick = navigator::navigateToLogin,
- *     onRegisterClick = navigator::navigateToRegistration,
- *     onLoggedIn = { navigator.navigateToTeeTimesList(true) },
- *     onRegistrationComplete = navigator::navigateToWelcome,
- *     onWelcomeClosed = { navigator.navigateToTeeTimesList(true) }
- * )
- * ```
- *
- * This approach:
- * - Keeps screens decoupled from the navigation system
- * - Centralizes all navigation logic in the navigation files
- * - Makes screens testable without mocking navigation
- * - Allows screens to be reused in different contexts
- *
- * ## Usage
- *
- * This function is called from [TtcNavDisplay] during app initialization alongside
- * other feature entry definitions:
- *
- * ```kotlin
- * entryProvider = entryProvider {
- *     authEntries(
- *         onLoginClick = navigator::navigateToLogin,
- *         onRegisterClick = navigator::navigateToRegistration,
- *         onLoggedIn = { navigator.navigateToTeeTimesList(true) },
- *         onRegistrationComplete = navigator::navigateToWelcome,
- *         onWelcomeClosed = { navigator.navigateToTeeTimesList(true) }
- *     )
- *     teeTimesEntries(navigator)
- * }
- * ```
- *
- * @param onLoginClick Callback invoked when the user wants to switch from registration to login.
- * @param onRegisterClick Callback invoked when the user wants to switch from login to registration.
- * @param onLoggedIn Callback invoked after successful login, typically navigates to the main app.
- * @param onRegistrationComplete Callback invoked after successful registration, typically shows welcome screen.
- * @param onWelcomeClosed Callback invoked when the user dismisses the welcome screen, navigates to main app.
- *
- * @see LoginDestination
- * @see RegistrationDestination
- * @see WelcomeDestination
- * @see Navigator
- */
-fun EntryProviderScope<NavKey>.authEntries(onLoginClick: ()->Unit, onRegisterClick: ()->Unit, onLoggedIn: ()->Unit, onRegistrationComplete: ()->Unit) {
+fun EntryProviderScope<NavKey>.authEntries(
+    onCreateAccount: (email: String) -> Unit,
+    onBack: () -> Unit,
+) {
     entry<LoginDestination> {
-        LoginScreen(onRegisterClick = onRegisterClick, onLoggedIn = onLoggedIn )
+        LoginScreen(onCreateAccount = onCreateAccount)
     }
 
-    entry<RegistrationDestination> {
-        RegistrationScreen(onLoginClick = onLoginClick, onRegistrationComplete = onRegistrationComplete)
+    entry<RegistrationDestination> { destination ->
+        RegistrationScreen(email = destination.email, onBack = onBack)
     }
-
 }
