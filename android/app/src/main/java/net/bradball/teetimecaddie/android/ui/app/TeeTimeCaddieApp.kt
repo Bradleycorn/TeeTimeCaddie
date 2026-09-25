@@ -10,9 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
@@ -47,12 +48,15 @@ fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
 
     val showLoadingScrim = initStatus == InitializationState.Pending || sessionState is SessionState.Loading
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
 
-    LaunchedEffect(appState.messages, context) {
+    // Read through rememberUpdatedState so the collector is keyed on the flow alone: re-subscribing
+    // on every configuration change would drop a message emitted mid-rotation.
+    val resources by rememberUpdatedState(LocalResources.current)
+
+    LaunchedEffect(appState.messages) {
         appState.messages.collect { message ->
             snackbarHostState.showSnackbar(
-                message = context.getString(message.text.resourceId, *message.args.toTypedArray()),
+                message = resources.getString(message.text.resourceId, *message.args.toTypedArray()),
                 duration = SnackbarDuration.Short,
             )
         }
