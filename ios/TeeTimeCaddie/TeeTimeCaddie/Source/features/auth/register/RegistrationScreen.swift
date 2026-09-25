@@ -12,10 +12,10 @@ struct RegistrationScreen: View {
     }
 
     @State
-    private var viewModel = RegistrationViewModel(authRepo: AuthModule.shared.authRepository())
+    private var viewModel = RegistrationViewModel()
 
     var body: some View {
-        Screen(.Registration(viewName: self.viewName)) {
+        Screen(.ProfileSetup(viewName: self.viewName)) {
             RegistrationContent(onLoginClick: onLoginClick)
         }
     }

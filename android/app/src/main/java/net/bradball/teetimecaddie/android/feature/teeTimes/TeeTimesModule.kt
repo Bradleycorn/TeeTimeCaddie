@@ -17,6 +17,6 @@ class TeeTimesModule {
     @Provides
     @Singleton
     fun provideTeeTimesRepository(): TeeTimesRepository {
-        return TeeTimeCaddieSdk.getInstance().provideTeeTimesRepository()
+        return TeeTimeCaddieSdk.getInstance().teeTimesRepository
     }
 }

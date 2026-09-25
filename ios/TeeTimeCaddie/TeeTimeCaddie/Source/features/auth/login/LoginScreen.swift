@@ -16,12 +16,12 @@ struct LoginScreen: View {
     }
 
     @State
-    private var viewModel = LoginViewModel(authRepo: AuthModule.shared.authRepository())
+    private var viewModel = LoginViewModel()
 
     private let onRegisterClick: ()->Void
 
     var body: some View {
-        Screen(AnalyticsScreen.Login(viewName: self.viewName)) {
+        Screen(AnalyticsScreen.Credentials(viewName: self.viewName)) {
             LoginContent()
         }
     }

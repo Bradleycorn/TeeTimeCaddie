@@ -57,11 +57,14 @@ sealed class AnalyticsScreen(val name: String, val viewName: String, val paramet
     /** Represents no screen. Use this for screens that should not be logged as screen views. */
     object None: AnalyticsScreen("", viewName = "")
 
-    /** The user registration screen */
-    class Registration(viewName: String): AnalyticsScreen(name = "Registration", viewName)
+    /** The combined email + password screen that starts both sign-in and sign-up. */
+    class Credentials(viewName: String): AnalyticsScreen(name = "Credentials", viewName)
 
-    /** The user login screen */
-    class Login(viewName: String): AnalyticsScreen(name = "Login", viewName)
+    /** Step two of sign-up: name, phone number and an optional photo. */
+    class ProfileSetup(viewName: String): AnalyticsScreen(name = "ProfileSetup", viewName)
+
+    /** The signed-in person's own profile tab. */
+    class Profile(viewName: String): AnalyticsScreen(name = "Profile", viewName)
 
     /** The list view showing available tee times */
     class TeeTimeList(viewName: String): AnalyticsScreen(name = "TeeTimeList", viewName)

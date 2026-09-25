@@ -99,7 +99,7 @@ fileprivate struct TeeTimeCaddieView: View {
         .task { await appState.observeAuthState() }
         .onChange(of: scenePhase) { _, newPhase in
             if (newPhase == .active) {
-                Task { try? await AuthModule.shared.authRepository().refreshAuthentication() }
+                Task { try? await AuthModule.shared.sessionManager().refreshSession() }
             }
         }
         .animation(.default, value: appState.uiState)
