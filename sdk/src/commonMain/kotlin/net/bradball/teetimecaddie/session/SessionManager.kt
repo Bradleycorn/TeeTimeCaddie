@@ -13,7 +13,7 @@ import net.bradball.teetimecaddie.features.auth.AuthErrors
 import net.bradball.teetimecaddie.features.auth.AuthException
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.players.PlayerRepository
-import net.bradball.teetimecaddie.features.players.PlayerException
+import net.bradball.teetimecaddie.core.models.TtcLookup
 
 /**
  * Joins authentication to player profiles.
@@ -72,15 +72,20 @@ class SessionManager(
             is TtcResult.Success -> result.data
         }
 
-        // NOT_FOUND means the sign-up never finished: resume the profile step. Any *other*
-        // failure is a real read error, and is reported — routing to the profile step on a network
-        // blip would invite the person to re-enter details over a profile that already exists.
+        // No profile means the sign-up never finished: resume the profile step. A read that
+        // *failed* is reported instead — routing to the profile step on a network blip would
+        // invite the person to re-enter details over a profile that already exists.
         return when (val profile = playerRepository.getPlayer(user.id)) {
-            is TtcResult.Success -> TtcResult.Success(SessionState.SignedIn(profile.data))
-            is TtcResult.Failure -> if ((profile.error as? PlayerException)?.isNotFound == true) {
-                TtcResult.Success(SessionState.ProfileIncomplete(user.id, user.email))
-            } else {
-                profile
+            is TtcLookup.Failure -> TtcResult.Failure(profile.error)
+            is TtcLookup.Success -> {
+                val player = profile.data
+                TtcResult.Success(
+                    if (player != null) {
+                        SessionState.SignedIn(player)
+                    } else {
+                        SessionState.ProfileIncomplete(user.id, user.email)
+                    }
+                )
             }
         }
     }
@@ -139,11 +144,11 @@ class SessionManager(
     suspend fun abandonSignUp(reason: String? = null) {
         val user = authRepository.currentUser
         if (user != null) {
-            // Delete only on NOT_FOUND — positive evidence that there is no profile. A read that
-            // merely *failed* is not proof of absence, and acting on it would delete a real
-            // account because the network blipped.
+            // Delete only on a successful read that found nothing — positive evidence there is no
+            // profile. A read that merely *failed* is not proof of absence, and acting on it would
+            // delete a real account because the network blipped.
             val profile = playerRepository.getPlayer(user.id)
-            if (profile is TtcResult.Failure && (profile.error as? PlayerException)?.isNotFound == true) {
+            if (profile is TtcLookup.Success && profile.data == null) {
                 authRepository.deleteCurrentUser()
                 eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
             }

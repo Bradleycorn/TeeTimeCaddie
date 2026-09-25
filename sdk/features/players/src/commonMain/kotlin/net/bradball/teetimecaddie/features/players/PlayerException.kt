@@ -21,15 +21,6 @@ class PlayerException(
     override val recoverySuggestion: StringResource? = error.recovery
     val inlineMessage: StringResource? = error.inlineMessage
 
-    /**
-     * True when this is [PlayerErrors.NOT_FOUND] — absence, not a malfunction.
-     *
-     * Deliberately a member here rather than an extension on `TtcResult.Failure`: only a player
-     * read can produce it, and putting it on the generic failure type offered it on every result
-     * in the SDK.
-     */
-    val isNotFound: Boolean
-        get() = error == PlayerErrors.NOT_FOUND
     override val loggableType: LoggableExceptionTypes = LoggableExceptionTypes.PLAYERS
     override val logInfo: HashMap<String, Any?> = hashMapOf("error" to error.name)
 }

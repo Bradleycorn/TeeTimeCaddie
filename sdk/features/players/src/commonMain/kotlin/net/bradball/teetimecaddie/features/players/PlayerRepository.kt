@@ -12,6 +12,7 @@ import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.isValidPhoneNumber
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.models.Player
+import net.bradball.teetimecaddie.core.models.TtcLookup
 import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
@@ -35,18 +36,19 @@ interface PlayerRepository {
     /**
      * Read a player once.
      *
-     * Fails with [PlayerErrors.NOT_FOUND] when the player has no profile yet — a normal outcome,
-     * kept distinct from a read that actually failed.
+     * A [TtcLookup], because having no profile yet is a normal answer — and it stays distinct from
+     * a read that failed.
      */
-    suspend fun getPlayer(playerId: String): TtcResult<Player>
+    suspend fun getPlayer(playerId: String): TtcLookup<Player>
 
     /**
      * Find the player who owns a phone number.
      *
-     * Accepts any way of writing the number; it is normalized before the lookup. Fails with
-     * [PlayerErrors.NOT_FOUND] when the number is not in use.
+     * Accepts any way of writing the number; it is normalized before the lookup. Finding nobody
+     * is a normal answer — TTC-69 and TTC-73 branch on it to tell app users from invitees the
+     * organizer manages by hand.
      */
-    suspend fun findPlayerByPhone(phone: String): TtcResult<Player>
+    suspend fun findPlayerByPhone(phone: String): TtcLookup<Player>
 
     /**
      * Whether a phone number already belongs to someone.
@@ -83,22 +85,21 @@ class PlayerRepositoryImpl(
     override fun playerFlow(playerId: String): Flow<Player?> =
         playerStorage.playerFlow(playerId).map { it?.toModel() }
 
-    override suspend fun getPlayer(playerId: String): TtcResult<Player> =
-        runStorageOrNotFound("get_player") { playerStorage.getPlayer(playerId)?.toModel() }
+    override suspend fun getPlayer(playerId: String): TtcLookup<Player> =
+        runLookup("get_player") { playerStorage.getPlayer(playerId)?.toModel() }
 
-    override suspend fun findPlayerByPhone(phone: String): TtcResult<Player> =
-        runStorageOrNotFound("find_player_by_phone") {
+    override suspend fun findPlayerByPhone(phone: String): TtcLookup<Player> =
+        runLookup("find_player_by_phone") {
             playerStorage.findPlayerByPhone(phone.toPhoneDigits())?.toModel()
         }
 
+    // A computed answer rather than a read, so this is a TtcResult: it is never "absent".
     override suspend fun isPhoneInUse(phone: String, excludingPlayerId: String?): TtcResult<Boolean> =
         when (val owner = findPlayerByPhone(phone)) {
-            is TtcResult.Success -> TtcResult.Success(owner.data.id != excludingPlayerId)
-            // Nobody owns it: that is an answer, not a problem.
-            is TtcResult.Failure -> if ((owner.error as? PlayerException)?.isNotFound == true) {
-                TtcResult.Success(false)
-            } else {
-                owner
+            is TtcLookup.Failure -> TtcResult.Failure(owner.error)
+            is TtcLookup.Success -> {
+                val existing = owner.data
+                TtcResult.Success(existing != null && existing.id != excludingPlayerId)
             }
         }
 
@@ -185,17 +186,15 @@ class PlayerRepositoryImpl(
     }
 
     /**
-     * Same, for reads that can legitimately come back empty: a null becomes
-     * [PlayerErrors.NOT_FOUND], which is distinct from the [PlayerErrors.SAVE_FAILED] a thrown
-     * storage error produces. Keeping those apart is the whole point.
+     * Same, for reads that can legitimately come back empty. A null payload means "found nothing";
+     * a thrown storage error still becomes a [Failure]. Keeping those apart is the whole point.
      */
-    private suspend inline fun <T : Any> runStorageOrNotFound(action: String, block: () -> T?): TtcResult<T> = try {
-        block()?.let { TtcResult.Success(it) }
-            ?: TtcResult.Failure(PlayerException(PlayerErrors.NOT_FOUND))
+    private suspend inline fun <T : Any> runLookup(action: String, block: () -> T?): TtcLookup<T> = try {
+        TtcLookup.Success(block())
     } catch (ex: Exception) {
         currentCoroutineContext().ensureActive()
         eventManager.logException(ex, LoggableExceptionTypes.PLAYERS, hashMapOf("action" to action))
-        TtcResult.Failure(PlayerException(PlayerErrors.SAVE_FAILED, cause = ex))
+        TtcLookup.Failure(PlayerException(PlayerErrors.SAVE_FAILED, cause = ex))
     }
 }
 

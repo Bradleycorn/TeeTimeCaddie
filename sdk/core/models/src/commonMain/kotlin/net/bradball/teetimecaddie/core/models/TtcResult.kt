@@ -29,10 +29,8 @@ import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
  * against the generated header, not assumed.)
  *
  * The cost is that an operation cannot express "succeeded, and there is nothing there" as a null
- * payload. That turns out to be an improvement: absence gets its own error case — see
- * `PlayerErrors.NOT_FOUND` — which forces callers to tell it apart from a read that *failed*.
- * Conflating those two is how you end up deleting an account because a network blip looked like
- * "this person has no profile".
+ * payload — which is exactly what [TtcLookup] is for. A method returning this type is promising a
+ * value on success; one that may legitimately find nothing returns [TtcLookup] instead.
  */
 sealed class TtcResult<out T : Any> {
 

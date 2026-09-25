@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import net.bradball.teetimecaddie.core.models.Player
+import net.bradball.teetimecaddie.core.models.TtcLookup
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
 import net.bradball.teetimecaddie.features.auth.AuthRepository
@@ -79,23 +80,19 @@ class FakePlayerRepository(
 
     override fun playerFlow(playerId: String): Flow<Player?> = store.map { it[playerId] }
 
-    override suspend fun getPlayer(playerId: String): TtcResult<Player> =
-        readFailure?.let { TtcResult.Failure(it) }
-            ?: store.value[playerId]?.let { TtcResult.Success(it) }
-            ?: TtcResult.Failure(PlayerException(PlayerErrors.NOT_FOUND))
+    override suspend fun getPlayer(playerId: String): TtcLookup<Player> =
+        readFailure?.let { TtcLookup.Failure(it) } ?: TtcLookup.Success(store.value[playerId])
 
-    override suspend fun findPlayerByPhone(phone: String): TtcResult<Player> =
-        readFailure?.let { TtcResult.Failure(it) }
-            ?: store.value.values.firstOrNull { it.phone == phone }?.let { TtcResult.Success(it) }
-            ?: TtcResult.Failure(PlayerException(PlayerErrors.NOT_FOUND))
+    override suspend fun findPlayerByPhone(phone: String): TtcLookup<Player> =
+        readFailure?.let { TtcLookup.Failure(it) }
+            ?: TtcLookup.Success(store.value.values.firstOrNull { it.phone == phone })
 
     override suspend fun isPhoneInUse(phone: String, excludingPlayerId: String?): TtcResult<Boolean> =
         when (val owner = findPlayerByPhone(phone)) {
-            is TtcResult.Success -> TtcResult.Success(owner.data.id != excludingPlayerId)
-            is TtcResult.Failure -> if ((owner.error as? PlayerException)?.isNotFound == true) {
-                TtcResult.Success(false)
-            } else {
-                owner
+            is TtcLookup.Failure -> TtcResult.Failure(owner.error)
+            is TtcLookup.Success -> {
+                val existing = owner.data
+                TtcResult.Success(existing != null && existing.id != excludingPlayerId)
             }
         }
 
@@ -119,8 +116,8 @@ class FakePlayerRepository(
 }
 
 /**
- * A failure that is emphatically NOT [PlayerErrors.NOT_FOUND] — used to prove that a read which
- * genuinely failed is never mistaken for a profile that simply does not exist.
+ * A read that genuinely failed — as opposed to one that succeeded and found nothing. Used to prove
+ * the two are never conflated.
  */
 fun readFailure() = PlayerException(PlayerErrors.SAVE_FAILED)
 

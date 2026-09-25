@@ -26,18 +26,6 @@ enum class PlayerErrors(
         PR.strings.player_error_phone_in_use_inline
     ),
 
-    /**
-     * No player with that id or phone number.
-     *
-     * Absence, not a malfunction — it is how "this account has no profile yet" is reported. It is
-     * a distinct case precisely so callers cannot confuse it with a read that failed; treating the
-     * two alike would, for instance, delete an account because the network blipped.
-     */
-    NOT_FOUND(
-        PR.strings.player_error_title,
-        PR.strings.player_error_not_found_message
-    ),
-
     INVALID_PHONE(
         PR.strings.player_error_title,
         PR.strings.player_error_invalid_phone_message,
