@@ -9,7 +9,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import net.bradball.teetimecaddie.android.feature.auth.navigation.LoginDestination
-import net.bradball.teetimecaddie.android.feature.auth.navigation.RegistrationDestination
+import net.bradball.teetimecaddie.android.feature.auth.navigation.CreateAccountDestination
 import net.bradball.teetimecaddie.android.feature.auth.navigation.authEntries
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.session.SessionState
@@ -38,7 +38,7 @@ fun AuthNavDisplay(sessionState: SessionState, modifier: Modifier = Modifier) {
         onBack = { popAuth(backStack) },
         entryProvider = entryProvider {
             authEntries(
-                onCreateAccount = { email -> backStack.add(RegistrationDestination(email)) },
+                onCreateAccount = { email -> backStack.add(CreateAccountDestination(email)) },
                 onBack = { popAuth(backStack) },
             )
         },
@@ -63,7 +63,7 @@ fun AuthNavDisplay(sessionState: SessionState, modifier: Modifier = Modifier) {
 private fun initialAuthStack(sessionState: SessionState): Array<NavKey> =
     when (sessionState) {
         is SessionState.ProfileIncomplete ->
-            arrayOf(LoginDestination, RegistrationDestination(sessionState.email))
+            arrayOf(LoginDestination, CreateAccountDestination(sessionState.email))
 
         else -> arrayOf(LoginDestination)
     }

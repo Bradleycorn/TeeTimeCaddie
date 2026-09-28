@@ -1,4 +1,4 @@
-package net.bradball.teetimecaddie.android.feature.auth.registration
+package net.bradball.teetimecaddie.android.feature.auth.createAccount
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,18 +26,18 @@ import net.bradball.teetimecaddie.features.auth.AR
  * assisted injection so the ViewModel owns it.
  */
 @Composable
-fun RegistrationScreen(
+fun CreateAccountScreen(
     email: String,
     onBack: () -> Unit,
-    viewModel: RegistrationViewModel = hiltViewModel(),
+    viewModel: CreateAccountViewModel = hiltViewModel(),
 ) {
-    Screen(AnalyticsScreen.ProfileSetup("RegistrationScreen")) {
-        RegistrationContent(email = email, onBack = onBack)
+    Screen(AnalyticsScreen.ProfileSetup("CreateAccountScreen")) {
+        CreateAccountContent(email = email, onBack = onBack)
     }
 }
 
 @Composable
-private fun RegistrationContent(
+private fun CreateAccountContent(
     email: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -67,8 +67,8 @@ private fun RegistrationContent(
 
 @Preview(name = "Light")
 @Composable
-private fun RegistrationContentPreview() {
+private fun CreateAccountContentPreview() {
     MyApplicationTheme {
-        RegistrationContent(email = "dana@example.com", onBack = {})
+        CreateAccountContent(email = "dana@example.com", onBack = {})
     }
 }

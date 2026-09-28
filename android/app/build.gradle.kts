@@ -91,14 +91,14 @@ dependencies {
     implementation(libs.bundles.accompanist)
     debugImplementation(libs.bundles.android.debug)
 
-    // IMAGE LOADING
-    implementation(libs.bundles.coil)
-
     // ANDROIDX - LIFECYCLE
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.lifecycle.viewModelCompose)
     implementation(libs.androidx.lifecycle.process)
+
+    // COIL - IMAGE LOADING
+    implementation(libs.bundles.coil)
 
     // FIREBASE
     implementation(platform(libs.firebase.bom))

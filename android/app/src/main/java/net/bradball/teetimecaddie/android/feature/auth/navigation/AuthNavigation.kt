@@ -3,8 +3,8 @@ package net.bradball.teetimecaddie.android.feature.auth.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import net.bradball.teetimecaddie.android.feature.auth.createAccount.CreateAccountScreen
 import net.bradball.teetimecaddie.android.feature.auth.login.LoginScreen
-import net.bradball.teetimecaddie.android.feature.auth.registration.RegistrationScreen
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
 import net.bradball.teetimecaddie.session.SessionState
 
@@ -28,7 +28,7 @@ data object LoginDestination : TtcNavKey
  * screen displays it, and because it is what a restored `ProfileIncomplete` session has to hand.
  */
 @Serializable
-data class RegistrationDestination(val email: String) : TtcNavKey
+data class CreateAccountDestination(val email: String) : TtcNavKey
 
 /**
  * Registers the navigation entries for the Authentication feature.
@@ -38,8 +38,8 @@ data class RegistrationDestination(val email: String) : TtcNavKey
  * so the whole auth tree exists only while there is no complete session, and disappears the moment
  * there is one.
  *
- * That branch is also why there are no `onLoggedIn` / `onRegistrationComplete` callbacks. Success
- * is not a navigation event — it is a change of `SessionState`, observed above this subtree.
+ * That branch is also why there are no `onLoggedIn` / `onAccountCreated` callbacks. Success is not
+ * a navigation event — it is a change of `SessionState`, observed above this subtree.
  *
  * @param onCreateAccount Invoked with the typed email once the account exists, to move to the
  *   profile step.
@@ -53,7 +53,7 @@ fun EntryProviderScope<NavKey>.authEntries(
         LoginScreen(onCreateAccount = onCreateAccount)
     }
 
-    entry<RegistrationDestination> { destination ->
-        RegistrationScreen(email = destination.email, onBack = onBack)
+    entry<CreateAccountDestination> { destination ->
+        CreateAccountScreen(email = destination.email, onBack = onBack)
     }
 }

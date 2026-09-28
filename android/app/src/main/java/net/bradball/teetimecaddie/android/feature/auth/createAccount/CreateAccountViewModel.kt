@@ -1,4 +1,4 @@
-package net.bradball.teetimecaddie.android.feature.auth.registration
+package net.bradball.teetimecaddie.android.feature.auth.createAccount
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +13,7 @@ import net.bradball.teetimecaddie.features.auth.AuthRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class RegistrationViewModel @Inject constructor(
+class CreateAccountViewModel @Inject constructor(
     private val authRepo: AuthRepository,
     private val eventManager: EventManager
 ): ViewModel() {
