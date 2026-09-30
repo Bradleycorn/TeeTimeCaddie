@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import net.bradball.teetimecaddie.android.feature.auth.createAccount.CreateAccountScreen
 import net.bradball.teetimecaddie.android.feature.auth.login.LoginScreen
+import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
 import net.bradball.teetimecaddie.session.SessionState
 
@@ -31,9 +32,21 @@ data object LoginDestination : TtcNavKey
 data class CreateAccountDestination(val email: String) : TtcNavKey
 
 /**
+ * Navigates to the profile step of creating an account.
+ *
+ * Pushes rather than replaces, so going back returns to the credentials screen with the typed email
+ * still in it.
+ *
+ * @param email The address the account was created with, shown on the profile step.
+ */
+fun Navigator.navigateToCreateAccount(email: String) {
+    navigate(CreateAccountDestination(email))
+}
+
+/**
  * Registers the navigation entries for the Authentication feature.
  *
- * These entries are hosted by `AuthNavDisplay`, **not** by the tabbed `TtcNavDisplay`. Auth is not
+ * These entries are hosted by `AuthNavDisplay`, **not** by the tabbed `NavBarNavDisplay`. Auth is not
  * a destination the signed-in app can navigate to: `TeeTimeCaddieApp` branches on `SessionState`,
  * so the whole auth tree exists only while there is no complete session, and disappears the moment
  * there is one.
