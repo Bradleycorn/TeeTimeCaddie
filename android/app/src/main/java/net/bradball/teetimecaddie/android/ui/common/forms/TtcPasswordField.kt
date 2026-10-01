@@ -34,6 +34,8 @@ import net.bradball.teetimecaddie.features.auth.AR
  * @param onValueChange Invoked with the new text on each edit.
  * @param modifier Modifier for the field.
  * @param label The floating field label. Defaults to the shared "Password" string.
+ * @param leadingIcon The icon at the start of the field. Defaults to the lock, which is what
+ *   every password field in the design shows; pass null for one that should go without.
  * @param hint Optional supporting/helper text (hidden when [error] is set).
  * @param error Optional error message. When non-null the field renders in its error state.
  * @param enabled Whether the field is enabled.
@@ -47,6 +49,7 @@ fun TtcPasswordField(
     hint: String? = null,
     error: String? = null,
     enabled: Boolean = true,
+    leadingIcon: TtcIcons? = TtcIcons.LOCK,
     keyboardOptions: KeyboardOptions = TtcTextFieldDefaults.PasswordKeyboardOptions,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
@@ -57,6 +60,7 @@ fun TtcPasswordField(
         onValueChange = onValueChange,
         label = label,
         modifier = modifier,
+        leadingIcon = leadingIcon,
         hint = hint,
         error = error,
         enabled = enabled,

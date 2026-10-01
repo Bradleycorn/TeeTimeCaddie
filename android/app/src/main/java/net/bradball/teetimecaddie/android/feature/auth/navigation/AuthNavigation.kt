@@ -3,7 +3,10 @@ package net.bradball.teetimecaddie.android.feature.auth.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import androidx.hilt.navigation.compose.hiltViewModel
 import net.bradball.teetimecaddie.android.feature.auth.createAccount.CreateAccountScreen
+import net.bradball.teetimecaddie.android.feature.auth.createAccount.CreateAccountViewModel
+import net.bradball.teetimecaddie.android.feature.auth.createAccount.CreateAccountViewModelFactory
 import net.bradball.teetimecaddie.android.feature.auth.login.LoginScreen
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
@@ -67,6 +70,11 @@ fun EntryProviderScope<NavKey>.authEntries(
     }
 
     entry<CreateAccountDestination> { destination ->
-        CreateAccountScreen(email = destination.email, onBack = onBack)
+        // Assisted injection: navigation3's type-safe keys don't populate a SavedStateHandle, so
+        // the email reaches the ViewModel through its factory rather than through saved state.
+        val viewModel = hiltViewModel<CreateAccountViewModel, CreateAccountViewModelFactory> { factory ->
+            factory.create(destination.email)
+        }
+        CreateAccountScreen(viewModel = viewModel, onBack = onBack)
     }
 }

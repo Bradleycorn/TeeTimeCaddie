@@ -44,6 +44,8 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  * @param hint Optional supporting/helper text shown beneath the field (hidden when [error] is set).
  * @param error Optional error message. When non-null the field renders in its error state.
  * @param enabled Whether the field is enabled.
+ * @param visualTransformation Reshapes how the value is *drawn* without changing it — the phone
+ *   field's grouping, for instance. Ignored when [secure] is true, which owns this slot.
  * @param secure When true, the input is masked (e.g. for a password). See [TtcPasswordField], which
  *   wraps this field to add a reveal toggle.
  * @param trailingIcon Optional trailing [TtcIcons] icon rendered as a tappable [IconButton].
@@ -67,6 +69,7 @@ fun TtcTextField(
     error: String? = null,
     enabled: Boolean = true,
     secure: Boolean = false,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: TtcIcons? = null,
     onTrailingClick: (() -> Unit)? = null,
     trailingContentDescription: String? = null,
@@ -102,7 +105,7 @@ fun TtcTextField(
         },
         supportingText = supportingText(error = error, hint = hint),
         isError = error != null,
-        visualTransformation = if (secure) PasswordVisualTransformation() else VisualTransformation.None,
+        visualTransformation = if (secure) PasswordVisualTransformation() else visualTransformation,
         singleLine = true,
         shape = TtcTextFieldDefaults.Shape,
         colors = TtcTextFieldDefaults.colors(),

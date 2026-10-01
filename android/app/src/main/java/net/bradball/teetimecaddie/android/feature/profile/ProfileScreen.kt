@@ -1,10 +1,16 @@
 package net.bradball.teetimecaddie.android.feature.profile
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -12,35 +18,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
+import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarDefaults
+import net.bradball.teetimecaddie.android.ui.common.avatars.rememberTtcImagePainter
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcOutlinedButton
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
+import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.players.PR
 
 /**
- * Placeholder profile screen.
+ * The Profile tab: who you are, and the way out.
  *
- * It carries only what the app shell needs to be exercised end to end — the player's name and a
- * working sign-out. TTC-80 replaces the body with the designed avatar / name / email / phone
- * layout.
+ * Read-only by design. There is deliberately **no settings list and no version line** — editing a
+ * profile is its own story, and the design gives this screen nothing else to do.
  */
 @Composable
 fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val player = (uiState as? ProfileUiState.Content)?.player
 
     Screen(AnalyticsScreen.Profile("ProfileScreen")) {
         ProfileContent(
             uiState = uiState,
+            photo = rememberTtcImagePainter(player?.photoUrl),
             onSignOut = viewModel::signOut,
         )
     }
@@ -49,6 +63,7 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
 @Composable
 private fun ProfileContent(
     uiState: ProfileUiState,
+    photo: Painter?,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -56,45 +71,101 @@ private fun ProfileContent(
         modifier = modifier,
         topBar = { TtcCenteredTopAppBar(stringResource(PR.strings.profile_title.resourceId)) },
     ) { contentPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        ) {
-            when (uiState) {
-                ProfileUiState.Loading -> Text("Loading profile…")
-                is ProfileUiState.Content -> Text(
+        when (uiState) {
+            ProfileUiState.Loading -> Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding)
+            ) {
+                ContentLoadingIndicator()
+            }
+
+            is ProfileUiState.Content -> Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(ProfileDefaults.Padding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(ProfileDefaults.Spacing),
+            ) {
+                // The initial is the fallback, not a placeholder: rememberTtcImagePainter returns
+                // null until a photo has actually loaded, so a broken URL degrades to the letter
+                // rather than to a hole.
+                if (photo != null) {
+                    TtcAvatar(photo = photo, size = TtcAvatarDefaults.PickerSize)
+                } else {
+                    TtcAvatar(
+                        initials = uiState.player.initial,
+                        size = TtcAvatarDefaults.PickerSize,
+                    )
+                }
+
+                Text(
                     text = uiState.player.name,
                     style = MaterialTheme.typography.headlineSmall,
                 )
-            }
 
-            TtcOutlinedButton(
-                text = stringResource(PR.strings.profile_sign_out_button.resourceId),
-                icon = TtcIcons.LOGOUT,
-                color = TtcColorRole.Error,
-                onClick = onSignOut,
-            )
+                ProfileDetailRow(icon = TtcIcons.EMAIL, value = uiState.player.email)
+                ProfileDetailRow(icon = TtcIcons.PHONE, value = uiState.player.formattedPhone)
+
+                TtcOutlinedButton(
+                    text = stringResource(PR.strings.profile_sign_out_button.resourceId),
+                    onClick = onSignOut,
+                    modifier = Modifier.padding(top = ProfileDefaults.SignOutSpacing),
+                    color = TtcColorRole.Error,
+                    icon = TtcIcons.LOGOUT,
+                )
+            }
         }
     }
 }
 
-@Preview(name = "Light")
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun ProfileContentPreview() {
-    MyApplicationTheme {
-        ProfileContent(uiState = ProfileUiState.Content(previewPlayer), onSignOut = {})
+private fun ProfileDetailRow(icon: TtcIcons, value: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(ProfileDefaults.RowSpacing),
+    ) {
+        Icon(
+            painter = icon.painter,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(ProfileDefaults.RowIconSize),
+        )
+        Text(text = value, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
-@Preview(name = "Loading")
+private object ProfileDefaults {
+    val Padding = 24.dp
+    val Spacing = 16.dp
+    val RowSpacing = 12.dp
+    val RowIconSize = 20.dp
+    val SignOutSpacing = 16.dp
+}
+
+@ScreenPreviews
 @Composable
-private fun ProfileContentLoadingPreview() {
+private fun ProfileContentPhotoPreview() {
     MyApplicationTheme {
-        ProfileContent(uiState = ProfileUiState.Loading, onSignOut = {})
+        ProfileContent(
+            uiState = ProfileUiState.Content(previewPlayer),
+            photo = ColorPainter(MaterialTheme.colorScheme.tertiaryContainer),
+            onSignOut = {},
+        )
+    }
+}
+
+@ScreenPreviews
+@Composable
+private fun ProfileContentInitialPreview() {
+    MyApplicationTheme {
+        ProfileContent(
+            uiState = ProfileUiState.Content(previewPlayer.copy(photoUrl = null)),
+            photo = null,
+            onSignOut = {},
+        )
     }
 }

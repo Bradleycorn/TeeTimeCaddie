@@ -50,6 +50,13 @@
     <string name="auth_error_session_expired_message">Sign in again to pick up where you left off.</string>
 
     <!-- ==== Credentials screen (TTC-78) ==== -->
+
+    <!--
+      The wordmark under the brand lockup. Spelled to match auth_legal_footer below, which is the
+      only other place our own name appears in UI copy.
+    -->
+    <string name="auth_brand_name">TeeTimeCaddie</string>
+
     <string name="auth_tagline">Tee times, your foursome, one tap.</string>
     <string name="auth_sign_in_button">Sign in</string>
     <string name="auth_create_account_button">Create account</string>

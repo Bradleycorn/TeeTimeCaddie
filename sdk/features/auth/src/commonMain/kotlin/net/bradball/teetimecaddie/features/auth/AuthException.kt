@@ -16,7 +16,7 @@ import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
  */
 class AuthException(
     val error: AuthErrors,
-    val messageArgs: List<String> = emptyList(),
+    override val messageArgs: List<String> = emptyList(),
     cause: Exception? = null
 ): Exception(cause), TeeTimeCaddieException {
     override val title: StringResource = error.title

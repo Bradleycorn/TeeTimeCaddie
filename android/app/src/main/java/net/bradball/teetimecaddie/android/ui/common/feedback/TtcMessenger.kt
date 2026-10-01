@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.android.ui.common.feedback
 
 import dev.icerock.moko.resources.StringResource
+import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -44,5 +45,16 @@ class TtcMessenger @Inject constructor() {
 
     fun show(text: StringResource, vararg args: String) {
         show(TtcMessage(text, args.toList()))
+    }
+
+    /**
+     * Shows a failure in its own words.
+     *
+     * The catch-all for failures no screen draws a designed treatment for. Without it, mapping
+     * "the cases the design covers" would silently swallow every other one — a weak password or a
+     * dropped connection would look like the button simply did nothing.
+     */
+    fun show(error: TeeTimeCaddieException) {
+        show(TtcMessage(error.displayMessage, error.messageArgs))
     }
 }

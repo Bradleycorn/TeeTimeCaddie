@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.Player
+import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.session.SessionManager
 import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
@@ -27,6 +29,7 @@ sealed interface ProfileUiState {
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val sessionManager: SessionManager,
+    private val messenger: TtcMessenger,
 ) : ViewModel() {
 
     val uiState: StateFlow<ProfileUiState> = sessionManager.sessionState
@@ -44,7 +47,12 @@ class ProfileViewModel @Inject constructor(
      * becomes `SignedOut`.
      */
     fun signOut() {
-        viewModelScope.launch { sessionManager.signOut() }
+        viewModelScope.launch {
+            sessionManager.signOut()
+            // Through the messenger, not local state: signing out replaces the whole tab tree, so
+            // this ViewModel is gone before anything here could show a confirmation.
+            messenger.show(AR.strings.auth_toast_signed_out)
+        }
     }
 
     private fun SessionState.toUiState(): ProfileUiState = when (this) {
