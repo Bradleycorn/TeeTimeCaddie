@@ -1,5 +1,7 @@
 package net.bradball.teetimecaddie.session
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -28,11 +30,16 @@ import net.bradball.teetimecaddie.core.models.TtcLookup
  * profile reason.
  *
  * **Nothing here throws.**
+ *
+ * @param externalScope A scope that outlives any screen, for work that must finish even though the
+ *   thing that asked for it is gone. Only [abandonSignUp] uses it; everything else is `suspend` and
+ *   runs in its caller's scope, because its caller is waiting on the answer.
  */
 class SessionManager(
     private val authRepository: AuthRepository,
     private val playerRepository: PlayerRepository,
-    private val eventManager: EventManager
+    private val eventManager: EventManager,
+    private val externalScope: CoroutineScope
 ) {
 
     /**
@@ -140,20 +147,33 @@ class SessionManager(
      * "Sign in instead" tap — and can never delete a provisioned account. Deletion is best-effort:
      * Firebase refuses it for a session old enough to need re-authentication, and an orphaned auth
      * user is harmless because the app resumes at [SessionState.ProfileIncomplete] anyway.
+     *
+     * **The one method here that is not `suspend`.** Every caller abandons sign-up by *leaving* —
+     * a back press, a tap that goes elsewhere — and that same act destroys whatever was waiting on
+     * the call. Run in a caller's scope, the cleanup would be cancelled partway through: the
+     * account deleted but never signed out, or neither. So this launches in [externalScope] and
+     * returns immediately.
+     *
+     * Deliberately launched *here* rather than by each app. The lifetime this work needs is a
+     * property of the work, not of whoever happens to trigger it, and leaving it to callers means
+     * every screen on every platform has to rediscover that. Nothing is reported back for the same
+     * reason — callers have already moved on, and [sessionState] tells them when it lands.
      */
-    suspend fun abandonSignUp(reason: String? = null) {
-        val user = authRepository.currentUser
-        if (user != null) {
-            // Delete only on a successful read that found nothing — positive evidence there is no
-            // profile. A read that merely *failed* is not proof of absence, and acting on it would
-            // delete a real account because the network blipped.
-            val profile = playerRepository.getPlayer(user.id)
-            if (profile is TtcLookup.Success && profile.data == null) {
-                authRepository.deleteCurrentUser()
-                eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
+    fun abandonSignUp(reason: String? = null) {
+        externalScope.launch {
+            val user = authRepository.currentUser
+            if (user != null) {
+                // Delete only on a successful read that found nothing — positive evidence there is
+                // no profile. A read that merely *failed* is not proof of absence, and acting on it
+                // would delete a real account because the network blipped.
+                val profile = playerRepository.getPlayer(user.id)
+                if (profile is TtcLookup.Success && profile.data == null) {
+                    authRepository.deleteCurrentUser()
+                    eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
+                }
             }
+            authRepository.signOut()
         }
-        authRepository.signOut()
     }
 
     suspend fun signOut() = authRepository.signOut()

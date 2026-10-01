@@ -1,6 +1,8 @@
 package net.bradball.teetimecaddie.session
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.Player
@@ -13,6 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class) // advanceUntilIdle
 class SessionManagerTest {
 
     private val dana = Player(
@@ -22,10 +25,15 @@ class SessionManagerTest {
         phone = "5550101010"
     )
 
-    private fun manager(
+    /**
+     * Built on the test's own scope, so [SessionManager.abandonSignUp] — the one method that
+     * launches rather than suspends — runs under the test scheduler and can be driven with
+     * `advanceUntilIdle()`.
+     */
+    private fun TestScope.manager(
         auth: FakeAuthRepository = FakeAuthRepository(),
         players: FakePlayerRepository = FakePlayerRepository()
-    ) = SessionManager(auth, players, EventManager.getInstance(enableLogging = false))
+    ) = SessionManager(auth, players, EventManager.getInstance(enableLogging = false), this)
 
     // ── sessionState ────────────────────────────────────────────────────────────
 
@@ -65,7 +73,7 @@ class SessionManagerTest {
     // Seeding with SignedOut when a session exists is what causes the cold-start flash of the
     // credentials screen, so the distinction matters.
     @Test
-    fun initialSessionState_isLoadingWhenASessionExistsAndSignedOutOtherwise() {
+    fun initialSessionState_isLoadingWhenASessionExistsAndSignedOutOtherwise() = runTest {
         assertEquals(SessionState.SignedOut, manager().initialSessionState)
 
         val withUser = manager(auth = FakeAuthRepository(AuthUser(dana.id, dana.email)))
@@ -142,6 +150,7 @@ class SessionManagerTest {
         val auth = FakeAuthRepository(AuthUser("user-4", "abandoned@golf.app"))
 
         manager(auth).abandonSignUp()
+        advanceUntilIdle()
 
         assertEquals(1, auth.deleteCount)
         assertEquals(1, auth.signOutCount)
@@ -155,6 +164,7 @@ class SessionManagerTest {
         val auth = FakeAuthRepository(AuthUser(dana.id, dana.email))
 
         manager(auth, FakePlayerRepository(dana)).abandonSignUp()
+        advanceUntilIdle()
 
         assertEquals(0, auth.deleteCount, "a player with a profile must never be deleted")
         assertEquals(1, auth.signOutCount)
@@ -168,6 +178,7 @@ class SessionManagerTest {
         auth.deleteSucceeds = false
 
         manager(auth).abandonSignUp()
+        advanceUntilIdle()
 
         assertEquals(1, auth.deleteCount)
         assertEquals(1, auth.signOutCount)
@@ -182,6 +193,7 @@ class SessionManagerTest {
         players.readFailure = readFailure()
 
         manager(auth, players).abandonSignUp()
+        advanceUntilIdle()
 
         assertEquals(0, auth.deleteCount, "a failed read must never be treated as 'no profile'")
         assertEquals(1, auth.signOutCount)
@@ -218,6 +230,7 @@ class SessionManagerTest {
         val auth = FakeAuthRepository()
 
         manager(auth).abandonSignUp()
+        advanceUntilIdle()
 
         assertEquals(0, auth.deleteCount)
         assertTrue(auth.signOutCount == 1)

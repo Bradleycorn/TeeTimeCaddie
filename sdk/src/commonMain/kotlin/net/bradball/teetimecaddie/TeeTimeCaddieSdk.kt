@@ -13,6 +13,9 @@ import net.bradball.teetimecaddie.features.auth.AuthRepositoryImpl
 import net.bradball.teetimecaddie.features.players.PlayerRepository
 import net.bradball.teetimecaddie.features.players.PlayerRepositoryImpl
 import net.bradball.teetimecaddie.features.teetimes.TeeTimesRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import net.bradball.teetimecaddie.session.SessionManager
 
 class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private val storageModule: StorageModule) {
@@ -38,8 +41,20 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
     }
 
     val sessionManager: SessionManager by lazy {
-        SessionManager(authRepository, playerRepository, eventManager)
+        SessionManager(authRepository, playerRepository, eventManager, sdkScope)
     }
+
+    /**
+     * A scope for SDK work that has to outlive whatever asked for it.
+     *
+     * Created here because the SDK is already the thing with process lifetime, so both apps get the
+     * same guarantee without either of them having to arrange it. [SupervisorJob] so one failed job
+     * cannot cancel the scope and silently disable the rest.
+     *
+     * Not exposed: callers get the behaviour through the method that needs it
+     * ([SessionManager.abandonSignUp]), not a scope to launch their own work in.
+     */
+    private val sdkScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     init {
         if (useLocalResources) {

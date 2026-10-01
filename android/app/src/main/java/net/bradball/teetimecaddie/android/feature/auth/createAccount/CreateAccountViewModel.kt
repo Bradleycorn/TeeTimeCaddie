@@ -8,13 +8,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.icerock.moko.resources.StringResource
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.bradball.teetimecaddie.android.di.ApplicationScope
 import net.bradball.teetimecaddie.android.feature.auth.common.AuthMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.extensions.PHONE_NUMBER_LENGTH
@@ -54,7 +52,6 @@ class CreateAccountViewModel @AssistedInject constructor(
     private val sessionManager: SessionManager,
     private val photoReader: ProfilePhotoReader,
     private val messenger: TtcMessenger,
-    @param:ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateAccountUiState(email = email))
@@ -133,13 +130,12 @@ class CreateAccountViewModel @AssistedInject constructor(
     /**
      * Abandons sign-up, deleting the account that has no profile.
      *
-     * Runs in [applicationScope], **not** `viewModelScope`. The back press that calls this is the
-     * same event that pops this screen and clears its ViewModel, so `viewModelScope` would cancel
-     * the cleanup partway through — leaving an account with no profile and a session that still
-     * thinks it is signing up.
+     * Not launched here, and not `suspend`: [SessionManager.abandonSignUp] owns the scope this runs
+     * in, precisely because the back press that calls it is the same event that clears this
+     * ViewModel. Returns immediately; the screen is free to pop.
      */
     fun abandonSignUp(reason: String = ABANDON_BACK) {
-        applicationScope.launch { sessionManager.abandonSignUp(reason) }
+        sessionManager.abandonSignUp(reason)
     }
 
     /**

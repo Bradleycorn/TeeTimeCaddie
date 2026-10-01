@@ -6,9 +6,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import net.bradball.teetimecaddie.TeeTimeCaddieSdk
 import net.bradball.teetimecaddie.android.analytics.FirebaseEventPlugin
 import net.bradball.teetimecaddie.core.analytics.EventManager
@@ -30,17 +27,6 @@ open class AppModule {
     open fun provideEventManager(): EventManager = TeeTimeCaddieSdk.getInstance().eventManager.apply {
         registerPlugin(FirebaseEventPlugin())
     }
-
-    /**
-     * A scope that outlives every screen. See [ApplicationScope] for when that is the right tool.
-     *
-     * [SupervisorJob] so one failed job cannot cancel the scope and quietly disable the rest.
-     */
-    @Provides
-    @Singleton
-    @ApplicationScope
-    open fun provideApplicationScope(): CoroutineScope =
-        CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     @Provides
     open fun providesFirebaseCrashlytics(): FirebaseCrashlytics = FirebaseCrashlytics.getInstance()
