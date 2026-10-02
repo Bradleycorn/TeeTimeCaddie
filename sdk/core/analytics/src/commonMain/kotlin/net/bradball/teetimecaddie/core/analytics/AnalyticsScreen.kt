@@ -60,8 +60,14 @@ sealed class AnalyticsScreen(val name: String, val viewName: String, val paramet
     /** The combined email + password screen that starts both sign-in and sign-up. */
     class Credentials(viewName: String): AnalyticsScreen(name = "Credentials", viewName)
 
-    /** Step two of sign-up: name, phone number and an optional photo. */
-    class ProfileSetup(viewName: String): AnalyticsScreen(name = "ProfileSetup", viewName)
+    /**
+     * Step two of sign-up: name, phone number and an optional photo.
+     *
+     * Named for the screen, not the step — `CreateAccountScreen` / `CreateAccountScreen.swift`.
+     * Distinct from [AnalyticsEvent.CreateAccount], which fires once the profile is saved; this
+     * one logs the screen being looked at.
+     */
+    class CreateAccount(viewName: String): AnalyticsScreen(name = "CreateAccount", viewName)
 
     /** The signed-in person's own profile tab. */
     class Profile(viewName: String): AnalyticsScreen(name = "Profile", viewName)

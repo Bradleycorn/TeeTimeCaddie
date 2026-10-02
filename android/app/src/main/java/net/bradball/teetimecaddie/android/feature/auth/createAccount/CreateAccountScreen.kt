@@ -82,7 +82,7 @@ fun CreateAccountScreen(
 
     BackHandler(onBack = leave)
 
-    Screen(AnalyticsScreen.ProfileSetup("CreateAccountScreen")) {
+    Screen(AnalyticsScreen.CreateAccount("CreateAccountScreen")) {
         CreateAccountContent(
             uiState = uiState,
             photo = rememberTtcImagePainter(uiState.photo),
