@@ -85,7 +85,7 @@ fun CreateAccountScreen(
     Screen(AnalyticsScreen.CreateAccount("CreateAccountScreen")) {
         CreateAccountContent(
             uiState = uiState,
-            photo = rememberTtcImagePainter(uiState.photo),
+            photoPainter = rememberTtcImagePainter(uiState.photo),
             onNameChange = viewModel::onNameChange,
             onPhoneChange = viewModel::onPhoneChange,
             onPickPhoto = {
@@ -100,10 +100,16 @@ fun CreateAccountScreen(
     }
 }
 
+/**
+ * @param photoPainter The picked photo, once it has loaded. Distinct from
+ *   [CreateAccountUiState.photo], which is the `Uri` that was picked: the two differ while the
+ *   image is still loading, which is why the picker draws this and the caption reads the state.
+ *   Loading happens in the caller so this stays previewable without a network loader.
+ */
 @Composable
 private fun CreateAccountContent(
     uiState: CreateAccountUiState,
-    photo: Painter?,
+    photoPainter: Painter?,
     onNameChange: (String) -> Unit,
     onPhoneChange: (String) -> Unit,
     onPickPhoto: () -> Unit,
@@ -166,7 +172,7 @@ private fun CreateAccountContent(
 
             TtcPhotoPicker(
                 onClick = onPickPhoto,
-                photo = photo,
+                photo = photoPainter,
             )
 
             Text(
@@ -237,7 +243,7 @@ private fun CreateAccountContentPreview() {
     MyApplicationTheme {
         CreateAccountContent(
             uiState = CreateAccountUiState(email = "dana@example.com"),
-            photo = null,
+            photoPainter = null,
             onNameChange = {}, onPhoneChange = {}, onPickPhoto = {},
             onSubmit = {}, onMessageAction = {}, onBack = {},
         )
@@ -255,7 +261,7 @@ private fun CreateAccountContentPhotoPreview() {
                 phoneDigits = "5025551234",
                 photo = Uri.EMPTY,
             ),
-            photo = ColorPainter(MaterialTheme.colorScheme.tertiaryContainer),
+            photoPainter = ColorPainter(MaterialTheme.colorScheme.tertiaryContainer),
             onNameChange = {}, onPhoneChange = {}, onPickPhoto = {},
             onSubmit = {}, onMessageAction = {}, onBack = {},
         )
@@ -275,7 +281,7 @@ private fun CreateAccountContentPhoneInUsePreview() {
                 phoneError = PR.strings.player_error_phone_in_use_inline,
                 message = AuthMessage.PhoneInUse,
             ),
-            photo = null,
+            photoPainter = null,
             onNameChange = {}, onPhoneChange = {}, onPickPhoto = {},
             onSubmit = {}, onMessageAction = {}, onBack = {},
         )

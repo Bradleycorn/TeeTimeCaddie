@@ -54,16 +54,20 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
     Screen(AnalyticsScreen.Profile("ProfileScreen")) {
         ProfileContent(
             uiState = uiState,
-            photo = rememberTtcImagePainter(player?.photoUrl),
+            photoPainter = rememberTtcImagePainter(player?.photoUrl),
             onSignOut = viewModel::signOut,
         )
     }
 }
 
+/**
+ * @param photoPainter The player's avatar, once it has loaded. Loading happens in the caller so
+ *   this stays previewable without a network loader; `null` means fall back to the initial.
+ */
 @Composable
 private fun ProfileContent(
     uiState: ProfileUiState,
-    photo: Painter?,
+    photoPainter: Painter?,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -92,8 +96,8 @@ private fun ProfileContent(
                 // The initial is the fallback, not a placeholder: rememberTtcImagePainter returns
                 // null until a photo has actually loaded, so a broken URL degrades to the letter
                 // rather than to a hole.
-                if (photo != null) {
-                    TtcAvatar(photo = photo, size = TtcAvatarDefaults.PickerSize)
+                if (photoPainter != null) {
+                    TtcAvatar(photo = photoPainter, size = TtcAvatarDefaults.PickerSize)
                 } else {
                     TtcAvatar(
                         initials = uiState.player.initial,
@@ -152,7 +156,7 @@ private fun ProfileContentPhotoPreview() {
     MyApplicationTheme {
         ProfileContent(
             uiState = ProfileUiState.Content(previewPlayer),
-            photo = ColorPainter(MaterialTheme.colorScheme.tertiaryContainer),
+            photoPainter = ColorPainter(MaterialTheme.colorScheme.tertiaryContainer),
             onSignOut = {},
         )
     }
@@ -164,7 +168,7 @@ private fun ProfileContentInitialPreview() {
     MyApplicationTheme {
         ProfileContent(
             uiState = ProfileUiState.Content(previewPlayer.copy(photoUrl = null)),
-            photo = null,
+            photoPainter = null,
             onSignOut = {},
         )
     }
