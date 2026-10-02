@@ -57,8 +57,14 @@ sealed class AnalyticsScreen(val name: String, val viewName: String, val paramet
     /** Represents no screen. Use this for screens that should not be logged as screen views. */
     object None: AnalyticsScreen("", viewName = "")
 
-    /** The combined email + password screen that starts both sign-in and sign-up. */
-    class Credentials(viewName: String): AnalyticsScreen(name = "Credentials", viewName)
+    /**
+     * The combined email + password screen that starts both sign-in and sign-up.
+     *
+     * Named for the screen, not the step — `LoginScreen` / `LoginScreen.swift`. Distinct from
+     * [AnalyticsEvent.Login], which fires on a successful sign-in; this one logs the screen being
+     * looked at, whichever of the two buttons is eventually tapped.
+     */
+    class Login(viewName: String): AnalyticsScreen(name = "Login", viewName)
 
     /**
      * Step two of sign-up: name, phone number and an optional photo.

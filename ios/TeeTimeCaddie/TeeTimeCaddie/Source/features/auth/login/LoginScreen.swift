@@ -21,7 +21,7 @@ struct LoginScreen: View {
     private let onRegisterClick: ()->Void
 
     var body: some View {
-        Screen(AnalyticsScreen.Credentials(viewName: self.viewName)) {
+        Screen(AnalyticsScreen.Login(viewName: self.viewName)) {
             LoginContent()
         }
     }

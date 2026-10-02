@@ -69,7 +69,7 @@ fun LoginScreen(
         }
     }
 
-    Screen(AnalyticsScreen.Credentials("LoginScreen")) {
+    Screen(AnalyticsScreen.Login("LoginScreen")) {
         LoginContent(
             uiState = uiState,
             onEmailChange = viewModel::onEmailChange,

@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.max
+import androidx.core.graphics.scale
 
 /**
  * Turns a photo the person picked into JPEG bytes small enough to upload.
@@ -74,11 +75,9 @@ class ProfilePhotoReader @Inject constructor(
         if (decodedSize <= MAX_DIMENSION) return decoded
 
         val scale = MAX_DIMENSION.toFloat() / decodedSize
-        val scaled = Bitmap.createScaledBitmap(
-            decoded,
+        val scaled = decoded.scale(
             (decoded.width * scale).toInt().coerceAtLeast(1),
             (decoded.height * scale).toInt().coerceAtLeast(1),
-            true,
         )
         if (scaled !== decoded) decoded.recycle()
         return scaled
