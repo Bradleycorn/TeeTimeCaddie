@@ -107,8 +107,8 @@ class LoginViewModel @Inject constructor(
                     // Nothing navigates: TeeTimeCaddieApp swaps the tree when SessionState changes.
                     // The greeting is routed through the messenger because this ViewModel is about
                     // to be destroyed by that swap.
-                    (result.data as? SessionState.SignedIn)?.let { signedIn ->
-                        messenger.show(AR.strings.auth_toast_welcome_back, signedIn.player.firstName)
+                    (result.data as? SessionState.SignedIn)?.let { user ->
+                        messenger.show(AR.strings.auth_toast_welcome_back, user.player.firstName)
                     }
                     _uiState.update { it.copy(isSubmitting = false) }
                 }
@@ -118,7 +118,7 @@ class LoginViewModel @Inject constructor(
                 // don't match" about it would be a lie.
                 is TtcResult.Failure -> report(
                     error = result.error,
-                    block = if (result.error.isInvalidCredentials) AuthMessage.SignInFailed else null,
+                    message = if (result.error.isInvalidCredentials) AuthMessage.SignInFailed else null,
                 )
             }
         }
@@ -145,7 +145,7 @@ class LoginViewModel @Inject constructor(
 
                 is TtcResult.Failure -> report(
                     error = result.error,
-                    block = if (result.error.isEmailInUse) AuthMessage.EmailInUse(state.email) else null,
+                    message = if (result.error.isEmailInUse) AuthMessage.EmailInUse(state.email) else null,
                 )
             }
         }
@@ -164,13 +164,13 @@ class LoginViewModel @Inject constructor(
     /**
      * Ends a submission and says what went wrong.
      *
-     * A failure the design draws a [block] for is shown on the screen, where it persists until the
+     * A failure the design draws a [message] for is shown on the screen, where it persists until the
      * person edits a field. Everything else goes to the snackbar in its own words — the design has
      * no banner for it, and showing nothing at all would read as the button not working.
      */
-    private fun report(error: TeeTimeCaddieException, block: AuthMessage?) {
-        if (block == null) messenger.show(error)
-        _uiState.update { it.copy(isSubmitting = false, message = block) }
+    private fun report(error: TeeTimeCaddieException, message: AuthMessage?) {
+        if (message == null) messenger.show(error)
+        _uiState.update { it.copy(isSubmitting = false, message = message) }
     }
 
     private val TeeTimeCaddieException.isInvalidCredentials: Boolean
