@@ -71,37 +71,103 @@ struct TeeTimeCaddieApp: App {
 ///
 /// ## UI States
 ///
-/// The view switches between three main states based on ``AppUiState``:
-/// - `.REGISTRATION`: Shows the registration flow for new users
-/// - `.LOGIN`: Shows the login screen for returning users
-/// - `.APP`: Shows the main application content with navigation
+/// **Auth and the tabs are alternatives, not destinations.** The view branches on `SessionState`
+/// rather than navigating to a login screen, so there is no route by which a signed-out person's
+/// tab backstacks survive underneath the credentials screen. The Android twin, `TeeTimeCaddieApp`,
+/// makes the same decision for the same reason.
 ///
-/// - SeeAlso: ``TeeTimeCaddieApp``, ``TeeTimeCaddieAppState``, ``AppUiState``
+/// - `.signedIn`: the tabbed app
+/// - `.signedOut` / `.profileIncomplete`: the auth flow — a Firebase account with no profile yet
+///   still belongs to sign-up, not to the tabs
+/// - `.loading`: nothing, briefly, while a persisted session is restored
+///
+/// - SeeAlso: ``TeeTimeCaddieApp``, ``TeeTimeCaddieAppState``, ``AuthNavigationStack``
 fileprivate struct TeeTimeCaddieView: View {
     @State private var appState = TeeTimeCaddieAppState()
     @State private var navigator = Navigator()
+
+    /// Applied once, at the root — above the auth/tabs branch, because the view that knows "you are
+    /// signed in" is destroyed by the very change that signing in triggers.
+    @State private var toastPresenter = TtcToastPresenter()
+
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         TeeTimeCaddieTheme {
-            switch(appState.uiState) {
-                case .APP:
-                    //TODO: When we need to have tabs, switch to AppTabView here.
-                    TabNavStack(for: .teeTimes, navigator)
-                case .LOGIN:
-                    LoginScreen(onRegisterClick: { appState.setUiState(to: .REGISTRATION) })
-                        .transition(.move(edge: .trailing))
-                case .REGISTRATION:
-                    RegistrationScreen(onLoginClick: { appState.setUiState(to: .LOGIN) })
-                        .transition(.move(edge: .trailing))
+            Group {
+                switch onEnum(of: appState.sessionState) {
+                case .signedIn:
+                    AppTabView(navigator)
+                case .signedOut, .profileIncomplete:
+                    AuthNavigationStack(sessionState: appState.sessionState) {
+                        appState.abandonSignUp()
+                    }
+                    .transition(.move(edge: .trailing))
+                case .loading:
+                    // Seeded only when a session probably exists, so this is a frame or two.
+                    ContentLoadingIndicator()
+                }
             }
+            .ttcToast(toastPresenter)
         }
-        .task { await appState.observeAuthState() }
+        .task { await appState.observeSessionState() }
         .onChange(of: scenePhase) { _, newPhase in
             if (newPhase == .active) {
-                Task { try? await AuthModule.shared.sessionManager().refreshSession() }
+                Task { await appState.refreshSession() }
             }
         }
-        .animation(.default, value: appState.uiState)
+        .animation(.default, value: appState.sessionState)
+    }
+}
+
+/// The auth flow's own `NavigationStack`.
+///
+/// Separate from ``Navigator`` on purpose: auth is the alternative to the app, not a section of it,
+/// and keeping its stack apart is what stops signing out from leaving a credentials screen stacked
+/// on a stale tee-times history. The Android twin is `AuthNavDisplay`.
+fileprivate struct AuthNavigationStack: View {
+    let sessionState: SessionState
+    let onAbandonSignUp: () -> Void
+
+    @State private var path: [AuthDestinations] = []
+
+    /// The email typed on the credentials screen.
+    ///
+    /// Owned here rather than by `LoginScreen`, so popping back from the profile step restores it
+    /// even though the screen below was torn down. The Android twin gets this from the nav entry's
+    /// own `ViewModelStore`; SwiftUI has no equivalent, so the container holds it.
+    @State private var email = ""
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            LoginScreen(onCreateAccount: { typedEmail in
+                email = typedEmail
+                path.append(.createAccount(email: typedEmail))
+            })
+            .navigationDestination(for: AuthDestinations.self) { destination in
+                switch destination {
+                case .login:
+                    LoginScreen(onCreateAccount: { _ in })
+                case .createAccount(let email):
+                    CreateAccountScreen(email: email, onBack: pop)
+                        .navigationTitle(AR.strings().create_account_title.desc().localized())
+                        .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+        }
+        // A restored half-finished sign-up resumes at the profile step rather than at the
+        // credentials screen, with the credentials screen still underneath to go back to.
+        .onAppear {
+            if case .profileIncomplete(let incomplete) = onEnum(of: sessionState), path.isEmpty {
+                email = incomplete.email
+                path = [.createAccount(email: incomplete.email)]
+            }
+        }
+    }
+
+    /// Leaves the profile step, abandoning the half-made account on the way out.
+    private func pop() {
+        onAbandonSignUp()
+        if !path.isEmpty { path.removeLast() }
     }
 }

@@ -4,6 +4,7 @@
 //  Created by Bradley Ball on 8/29/25.
 //
 import SwiftUI
+import TeeTimeCaddieKit
 
 /// Represents the top-level tabs in the application's tab bar interface.
 ///
@@ -34,23 +35,34 @@ import SwiftUI
 /// // Tab switching is handled by Navigator
 /// navigator.navigate(to: AppTabs.races)
 /// ```
-enum AppTabs: @MainActor TtcNavKey, Hashable {
-    
+enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
+
+    /// The games list — the app's home tab.
+    ///
+    /// Labelled "Games" while the case name, feature folder, SDK module and Android twin are all
+    /// still `teeTimes`/`teetimes`. Renaming that hierarchy to match the label is its own change.
     case teeTimes
-        
+
+    /// The signed-in player's own profile.
+    case profile
+
     /// The icon to display in the tab bar for this tab.
     ///
     /// Uses either SF Symbols or custom assets depending on the tab.
     var icon: ImageSource {
         switch self {
+        // The brand mark, not a golf glyph — matching the design, and the Android twin.
         case .teeTimes: return .asset(.icon)
+        // Always filled; it does not swap to the outlined variant when unselected.
+        case .profile: return .symbol(.personFill)
         }
     }
     
     /// The text label to display in the tab bar for this tab.
     var iconText: String {
         switch self {
-        case .teeTimes: return "Tee Times"
+        case .teeTimes: return TTR.strings().games_title.desc().localized()
+        case .profile: return PR.strings().profile_title.desc().localized()
         }
     }
         
@@ -74,6 +86,8 @@ enum AppTabs: @MainActor TtcNavKey, Hashable {
         switch self {
         case .teeTimes:
             TeeTimesDestinations.teeTimesList.destinationView(navigator)
+        case .profile:
+            ProfileDestinations.profile.destinationView(navigator)
         }
     }
 }

@@ -113,7 +113,7 @@ struct TtcTextFieldInputStyle: ViewModifier {
 
 /// The supporting-text row beneath a field: the [error] message when set (with a leading error glyph,
 /// in the `error` color), otherwise the [hint] (in `onSurfaceVariant`). Renders nothing when both are
-/// absent. Uses the SF Symbol `exclamationmark.circle.fill`; a custom error asset is a later follow-up.
+/// absent. The glyph comes from ``SfSymbol`` so no component here reaches for a raw symbol string.
 fileprivate struct TtcTextFieldSupport: View {
     @EnvironmentObject private var theme: AppTheme
     let error: String?
@@ -123,7 +123,7 @@ fileprivate struct TtcTextFieldSupport: View {
         let scheme = theme.colorScheme
         if let error, !error.isEmpty {
             HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.circle.fill")
+                Image(.symbol(.exclamationmarkCircleFill))
                     .font(.system(size: 12))
                 Text(error)
                     .font(.caption)

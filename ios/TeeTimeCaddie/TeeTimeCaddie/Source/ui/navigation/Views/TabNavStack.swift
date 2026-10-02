@@ -66,6 +66,8 @@ struct TabNavStack: View {
                     switch key.wrapped {
                     case let navKey as TeeTimesDestinations:
                         navKey.destinationView(navigator)
+                    case let navKey as ProfileDestinations:
+                        navKey.destinationView(navigator)
                     default:
                         fatalError("Unhandled navigation key: \(key)")
                     }

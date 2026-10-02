@@ -23,7 +23,10 @@ import SwiftUI
 /// ## Navigation Integration
 /// State for the TabView is provided by the passed in `Navigator`.
 struct AppTabView: View {
-    
+
+    /// The tab bar's glyph size, matching UIKit's own.
+    private static let iconSize: CGFloat = 24
+
     /// The Navigator instance that manages navigation state and tab switching
     @State private var navigator: Navigator
     
@@ -40,7 +43,15 @@ struct AppTabView: View {
                 
                     // Display normal tab content with navigation stack
                     TabNavStack(for: tab, navigator)
-                    .tabItem { Label(tab.iconText, icon: tab.icon) }
+                    .tabItem {
+                        // The icon arrives already sized — `.tabItem` discards SwiftUI
+                        // modifiers on it. See `ImageSource.tabBarImage(size:)`.
+                        Label {
+                            Text(tab.iconText)
+                        } icon: {
+                            tab.icon.tabBarImage(size: AppTabView.iconSize)
+                        }
+                    }
 
                 // Note: Tabs with disabled features (result == .featureDisabled) are not rendered,
                 // effectively hiding them from the tab bar

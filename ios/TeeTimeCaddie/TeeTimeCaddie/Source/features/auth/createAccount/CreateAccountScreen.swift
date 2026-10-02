@@ -2,43 +2,41 @@ import SwiftUI
 import ThemeUI
 import TeeTimeCaddieKit
 
+/// Placeholder profile step of account creation.
+///
+/// TTC-82 replaces the body with the name / mobile / photo form. Until then it only has to prove
+/// the shell routes correctly.
+struct CreateAccountScreen: View {
+    private let email: String
+    private let onBack: () -> Void
 
+    @State private var viewModel = CreateAccountViewModel()
 
-struct RegistrationScreen: View {
-    private let onLoginClick: ()->Void
-
-    init(onLoginClick: @escaping () -> Void = {}) {
-        self.onLoginClick = onLoginClick
+    init(email: String, onBack: @escaping () -> Void = {}) {
+        self.email = email
+        self.onBack = onBack
     }
-
-    @State
-    private var viewModel = RegistrationViewModel()
 
     var body: some View {
         Screen(.CreateAccount(viewName: self.viewName)) {
-            RegistrationContent(onLoginClick: onLoginClick)
+            CreateAccountContent(email: email)
         }
     }
 }
 
-fileprivate struct RegistrationContent: View {
-
-    private let onLoginClick: ()->Void
-
-    init(onLoginClick: @escaping ()->Void = {}) {
-        self.onLoginClick = onLoginClick
-    }
+fileprivate struct CreateAccountContent: View {
+    let email: String
 
     var body: some View {
-        Text("Registration Placeholder")
+        VStack(spacing: 8) {
+            Text("Profile Setup Placeholder")
+            Text(email)
+        }
     }
 }
 
-
-struct RegistrationScreen_Previews: PreviewProvider {
-    static var previews: some View {
-        TeeTimeCaddieTheme {
-            RegistrationContent()
-        }
+#Preview {
+    TeeTimeCaddieTheme {
+        CreateAccountContent(email: "dana@example.com")
     }
 }
