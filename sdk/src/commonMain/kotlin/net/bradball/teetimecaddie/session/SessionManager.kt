@@ -31,11 +31,16 @@ import net.bradball.teetimecaddie.core.models.TtcLookup
  *
  * **Nothing here throws.**
  *
+ * The constructor is `internal`: apps get the one instance from `TeeTimeCaddieSdk.sessionManager`,
+ * and constructing a second would mean a second [sessionState] flow for an app shell to observe the
+ * wrong one of. It also keeps [CoroutineScope] out of the exported Swift API, where it is noise
+ * nothing on that side can use.
+ *
  * @param externalScope A scope that outlives any screen, for work that must finish even though the
  *   thing that asked for it is gone. Only [abandonSignUp] uses it; everything else is `suspend` and
  *   runs in its caller's scope, because its caller is waiting on the answer.
  */
-class SessionManager(
+class SessionManager internal constructor(
     private val authRepository: AuthRepository,
     private val playerRepository: PlayerRepository,
     private val eventManager: EventManager,
