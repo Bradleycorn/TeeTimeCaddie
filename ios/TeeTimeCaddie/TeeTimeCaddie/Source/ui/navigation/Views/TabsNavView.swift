@@ -31,15 +31,13 @@ struct TabsNavView: View {
     /// The tab bar's glyph size, matching UIKit's own.
     private static let iconSize: CGFloat = 24
 
-    /// The Navigator instance that manages navigation state and tab switching
-    @State private var navigator: Navigator
-    
-    /// Creates a new TabsNavView with the specified Navigator instance.
+    /// The TabNavigator that manages navigation state and tab switching.
     ///
-    /// - Parameter navigator: The Navigator that manages tab state and navigation
-    init(_ navigator: Navigator) {
-        self.navigator = navigator
-    }
+    /// Created here rather than passed in from the root. Where it is owned decides how long the tab
+    /// stacks live: owned here, signing out discards them, instead of leaving a signed-out player's
+    /// Games history waiting behind the credentials screen. The Android twin, `NavBarNavDisplay`,
+    /// does the same.
+    @State private var navigator = TabNavigator()
         
     var body: some View {
         TabView(selection: $navigator.currentTab) {

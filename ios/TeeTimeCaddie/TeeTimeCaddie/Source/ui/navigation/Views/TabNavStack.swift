@@ -40,7 +40,7 @@ import SwiftUI
 /// ```
 struct TabNavStack: View {
     /// The Navigator instance that manages navigation state
-    private let navigator: Navigator
+    private let navigator: TabNavigator
     
     /// The specific tab this NavigationStack represents
     private let tab: AppTabs
@@ -49,8 +49,8 @@ struct TabNavStack: View {
     ///
     /// - Parameters:
     ///   - tab: The tab this NavigationStack will represent
-    ///   - navigator: The Navigator instance managing navigation state
-    init(for tab: AppTabs, _ navigator: Navigator,) {
+    ///   - navigator: The TabNavigator instance managing navigation state
+    init(for tab: AppTabs, _ navigator: TabNavigator) {
         self.navigator = navigator
         self.tab = tab
     }

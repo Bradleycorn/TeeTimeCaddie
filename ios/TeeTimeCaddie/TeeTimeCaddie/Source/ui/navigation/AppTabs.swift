@@ -82,7 +82,7 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     /// - Returns: The configured root view for this tab
     @MainActor
     @ViewBuilder
-    func destinationView(_ navigator: Navigator) -> some View {
+    func destinationView(_ navigator: any Navigator) -> some View {
         switch self {
         case .teeTimes:
             TeeTimesDestinations.teeTimesList.destinationView(navigator)

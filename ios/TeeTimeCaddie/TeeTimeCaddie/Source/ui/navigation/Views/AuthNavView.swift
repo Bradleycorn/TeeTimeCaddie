@@ -6,62 +6,57 @@
 import SwiftUI
 import TeeTimeCaddieKit
 
-/// Top-level navigation for the **signed-out** app: the auth flow's own `NavigationStack`.
+/// Top-level navigation for the **signed-out** app: the auth flow's `NavigationStack`.
 ///
 /// The counterpart to ``TabsNavView``. `TeeTimeCaddieView` picks between the two by branching on
 /// `SessionState` — they are alternatives, never destinations of one another, which is what stops
 /// signing out from leaving a credentials screen stacked on a stale tee-times history.
 ///
-/// Deliberately *not* driven by ``Navigator``: auth is not a section of the app the way Games and
-/// Profile are, so it keeps its own stack rather than borrowing a tab's. The Android twin is
-/// `AuthNavDisplay`.
+/// Driven by a ``BasicNavigator`` rather than a ``TabNavigator``: auth is not a section of the app
+/// the way Games and Profile are, so it keeps its own stack instead of borrowing a tab's. Routing is
+/// otherwise identical to ``TabNavStack``, so a feature does not care which one is hosting it. The
+/// Android twin is `AuthNavDisplay`.
 struct AuthNavView: View {
 
-    /// The current session. Read once, on appearance, to seed the stack.
-    let sessionState: SessionState
+    /// The current session. Read once, to seed the stack.
+    private let sessionState: SessionState
 
-    @State private var path: [AuthDestinations] = []
+    /// Created here rather than passed in, so the stack lives exactly as long as this view does —
+    /// signing in discards it instead of leaving a half-finished sign-up behind the tabs.
+    @State private var navigator: BasicNavigator
 
-    /// The email typed on the credentials screen.
-    ///
-    /// Owned here rather than by ``LoginScreen``, so popping back from the profile step restores it
-    /// even though the screen below was torn down. The Android twin gets this from the nav entry's
-    /// own `ViewModelStore`; SwiftUI has no equivalent, so the container holds it.
-    @State private var email = ""
+    init(sessionState: SessionState) {
+        self.sessionState = sessionState
+        self.navigator = BasicNavigator(Self.initialStack(for: sessionState))
+    }
 
+    // The typed email needs no holding here: a NavigationStack's root view stays alive while
+    // destinations are pushed above it, so LoginScreen's own state survives a push and pop. The
+    // Android twin gets the same from the nav entry's ViewModelStore.
     var body: some View {
-        NavigationStack(path: $path) {
-            LoginScreen(onCreateAccount: { typedEmail in
-                email = typedEmail
-                path.append(.createAccount(email: typedEmail))
-            })
-            .navigationDestination(for: AuthDestinations.self) { destination in
-                switch destination {
-                case .login:
-                    LoginScreen(onCreateAccount: { _ in })
-                case .createAccount(let email):
-                    // No cleanup callback: the screen's own back-navigation handler owns that, so
-                    // it runs for the system back button and the swipe gesture too — neither of
-                    // which passes through here.
-                    CreateAccountScreen(email: email, onBack: pop)
-                        .navigationTitle(AR.strings().create_account_title.desc().localized())
-                        .navigationBarTitleDisplayMode(.inline)
+        NavigationStack(path: $navigator.backstack) {
+            AuthDestinations.login.destinationView(navigator)
+                .navigationDestination(for: AnyTtcNavKey.self) { key in
+                    switch key.wrapped {
+                    case let navKey as AuthDestinations:
+                        navKey.destinationView(navigator)
+                    default:
+                        fatalError("Unhandled navigation key: \(key)")
+                    }
                 }
-            }
-        }
-        // A restored half-finished sign-up resumes at the profile step rather than at the
-        // credentials screen, with the credentials screen still underneath to go back to.
-        .onAppear {
-            if case .profileIncomplete(let incomplete) = onEnum(of: sessionState), path.isEmpty {
-                email = incomplete.email
-                path = [.createAccount(email: incomplete.email)]
-            }
         }
     }
 
-    /// Pops the stack. Cleanup is the popped screen's own business.
-    private func pop() {
-        if !path.isEmpty { path.removeLast() }
+    /// What the stack starts with.
+    ///
+    /// A restored `SessionState.ProfileIncomplete` — someone who force-quit mid-sign-up — resumes at
+    /// the profile step rather than the credentials screen. The credentials screen is **not** seeded
+    /// beneath it: it is this stack's root already, so abandoning has somewhere to land.
+    private static func initialStack(for sessionState: SessionState) -> [any TtcNavKey] {
+        if case .profileIncomplete(let incomplete) = onEnum(of: sessionState) {
+            return [AuthDestinations.createAccount(email: incomplete.email)]
+        }
+        return []
     }
 }
 

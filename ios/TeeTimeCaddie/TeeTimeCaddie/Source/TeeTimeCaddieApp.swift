@@ -87,7 +87,6 @@ struct TeeTimeCaddieApp: App {
 /// - SeeAlso: ``TeeTimeCaddieApp``, ``TeeTimeCaddieAppState``, ``AuthNavView``, ``TabsNavView``
 fileprivate struct TeeTimeCaddieView: View {
     @State private var appState = TeeTimeCaddieAppState()
-    @State private var navigator = Navigator()
 
     /// Applied once, at the root — above the auth/tabs branch, because the view that knows "you are
     /// signed in" is destroyed by the very change that signing in triggers.
@@ -100,7 +99,7 @@ fileprivate struct TeeTimeCaddieView: View {
             Group {
                 switch onEnum(of: appState.sessionState) {
                 case .signedIn:
-                    TabsNavView(navigator)
+                    TabsNavView()
                 case .signedOut, .profileIncomplete:
                     AuthNavView(sessionState: appState.sessionState)
                         .transition(.move(edge: .trailing))

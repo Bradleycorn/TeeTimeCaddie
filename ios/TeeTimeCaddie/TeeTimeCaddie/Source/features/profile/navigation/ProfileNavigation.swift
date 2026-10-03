@@ -14,7 +14,7 @@ enum ProfileDestinations: @MainActor TtcNavKey {
     case profile
 
     @ViewBuilder
-    func destinationView(_ navigator: Navigator) -> some View {
+    func destinationView(_ navigator: any Navigator) -> some View {
         switch self {
         case .profile:
             // Signing out is deliberately not a navigation callback: SessionManager is what
