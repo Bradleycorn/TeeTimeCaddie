@@ -76,12 +76,15 @@ struct TeeTimeCaddieApp: App {
 /// tab backstacks survive underneath the credentials screen. The Android twin, `TeeTimeCaddieApp`,
 /// makes the same decision for the same reason.
 ///
+/// Each branch's top-level navigation lives in its own file beside the other, in
+/// `ui/navigation/Views`: ``AuthNavView`` and ``TabsNavView``.
+///
 /// - `.signedIn`: the tabbed app
 /// - `.signedOut` / `.profileIncomplete`: the auth flow — a Firebase account with no profile yet
 ///   still belongs to sign-up, not to the tabs
 /// - `.loading`: nothing, briefly, while a persisted session is restored
 ///
-/// - SeeAlso: ``TeeTimeCaddieApp``, ``TeeTimeCaddieAppState``, ``AuthNavigationStack``
+/// - SeeAlso: ``TeeTimeCaddieApp``, ``TeeTimeCaddieAppState``, ``AuthNavView``, ``TabsNavView``
 fileprivate struct TeeTimeCaddieView: View {
     @State private var appState = TeeTimeCaddieAppState()
     @State private var navigator = Navigator()
@@ -97,9 +100,9 @@ fileprivate struct TeeTimeCaddieView: View {
             Group {
                 switch onEnum(of: appState.sessionState) {
                 case .signedIn:
-                    AppTabView(navigator)
+                    TabsNavView(navigator)
                 case .signedOut, .profileIncomplete:
-                    AuthNavigationStack(sessionState: appState.sessionState)
+                    AuthNavView(sessionState: appState.sessionState)
                         .transition(.move(edge: .trailing))
                 case .loading:
                     // Seeded only when a session probably exists, so this is a frame or two.
@@ -115,58 +118,5 @@ fileprivate struct TeeTimeCaddieView: View {
             }
         }
         .animation(.default, value: appState.sessionState)
-    }
-}
-
-/// The auth flow's own `NavigationStack`.
-///
-/// Separate from ``Navigator`` on purpose: auth is the alternative to the app, not a section of it,
-/// and keeping its stack apart is what stops signing out from leaving a credentials screen stacked
-/// on a stale tee-times history. The Android twin is `AuthNavDisplay`.
-fileprivate struct AuthNavigationStack: View {
-    let sessionState: SessionState
-
-    @State private var path: [AuthDestinations] = []
-
-    /// The email typed on the credentials screen.
-    ///
-    /// Owned here rather than by `LoginScreen`, so popping back from the profile step restores it
-    /// even though the screen below was torn down. The Android twin gets this from the nav entry's
-    /// own `ViewModelStore`; SwiftUI has no equivalent, so the container holds it.
-    @State private var email = ""
-
-    var body: some View {
-        NavigationStack(path: $path) {
-            LoginScreen(onCreateAccount: { typedEmail in
-                email = typedEmail
-                path.append(.createAccount(email: typedEmail))
-            })
-            .navigationDestination(for: AuthDestinations.self) { destination in
-                switch destination {
-                case .login:
-                    LoginScreen(onCreateAccount: { _ in })
-                case .createAccount(let email):
-                    // No cleanup callback: the screen's own back-navigation handler owns that, so
-                    // it runs for the system back button and the swipe gesture too — neither of
-                    // which passes through here.
-                    CreateAccountScreen(email: email, onBack: pop)
-                        .navigationTitle(AR.strings().create_account_title.desc().localized())
-                        .navigationBarTitleDisplayMode(.inline)
-                }
-            }
-        }
-        // A restored half-finished sign-up resumes at the profile step rather than at the
-        // credentials screen, with the credentials screen still underneath to go back to.
-        .onAppear {
-            if case .profileIncomplete(let incomplete) = onEnum(of: sessionState), path.isEmpty {
-                email = incomplete.email
-                path = [.createAccount(email: incomplete.email)]
-            }
-        }
-    }
-
-    /// Pops the stack. Cleanup is the popped screen's own business.
-    private func pop() {
-        if !path.isEmpty { path.removeLast() }
     }
 }

@@ -26,7 +26,7 @@ import SwiftUI
 /// navigation histories in each tab without affecting other tabs.
 ///
 /// ## Usage
-/// TabNavStack is used internally by AppTabView to create navigation stacks:
+/// TabNavStack is used internally by TabsNavView to create navigation stacks:
 /// ```swift
 /// TabNavStack(for: .races, navigator)
 /// ```

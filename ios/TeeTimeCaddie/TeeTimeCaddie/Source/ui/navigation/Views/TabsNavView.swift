@@ -1,14 +1,14 @@
 //
-//  AppTabView.swift
+//  TabsNavView.swift
 //  Native-iOS
 //
 //  Created by Bradley Ball on 9/14/25.
 //
 import SwiftUI
 
-/// The main tab interface for the application that displays enabled tabs and handles authentication.
+/// Top-level navigation for the **signed-in** app: the tab bar and a stack per tab.
 ///
-/// `AppTabView` creates the bottom tab bar interface.
+/// `TabsNavView` creates the bottom tab bar interface.
 ///
 /// ## Authentication Handling
 /// When a tab requires authentication and the user is not logged in:
@@ -22,7 +22,11 @@ import SwiftUI
 ///
 /// ## Navigation Integration
 /// State for the TabView is provided by the passed in `Navigator`.
-struct AppTabView: View {
+///
+/// The counterpart for the signed-out half is ``AuthNavView``. `TeeTimeCaddieView` picks between
+/// the two by branching on `SessionState` — they are alternatives, never destinations of one
+/// another. The Android twin is `NavBarNavDisplay`.
+struct TabsNavView: View {
 
     /// The tab bar's glyph size, matching UIKit's own.
     private static let iconSize: CGFloat = 24
@@ -30,7 +34,7 @@ struct AppTabView: View {
     /// The Navigator instance that manages navigation state and tab switching
     @State private var navigator: Navigator
     
-    /// Creates a new AppTabView with the specified Navigator instance.
+    /// Creates a new TabsNavView with the specified Navigator instance.
     ///
     /// - Parameter navigator: The Navigator that manages tab state and navigation
     init(_ navigator: Navigator) {
@@ -49,7 +53,7 @@ struct AppTabView: View {
                         Label {
                             Text(tab.iconText)
                         } icon: {
-                            tab.icon.tabBarImage(size: AppTabView.iconSize)
+                            tab.icon.tabBarImage(size: TabsNavView.iconSize)
                         }
                     }
 
