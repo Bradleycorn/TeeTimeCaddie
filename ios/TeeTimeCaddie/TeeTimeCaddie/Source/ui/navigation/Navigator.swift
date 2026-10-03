@@ -67,8 +67,11 @@ class Navigator {
     /// Unique identifier for this Navigator instance
     var instanceId: Int
 
-    /// All available tabs in the top level TabView
-    let tabs: [AppTabs] = [.teeTimes]
+    /// All available tabs in the top level TabView, in bar order.
+    ///
+    /// Derived from the enum so adding a tab is one edit in ``AppTabs``, not two — a hand-kept list
+    /// is how a tab ends up with a backstack but no tab bar entry, or the reverse.
+    let tabs: [AppTabs] = AppTabs.allCases
 
     /// The currently selected tab.
     /// Use this as a binding for the TabView's selection.

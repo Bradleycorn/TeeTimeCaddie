@@ -8,44 +8,36 @@
 import Foundation
 import TeeTimeCaddieKit
 
-
-enum AppUiState {
-    case REGISTRATION
-    case LOGIN
-    case APP
-    
-    static func fromLoginState(_ isLoggedIn: Bool, hasLoggedInOnce: Bool) -> AppUiState {
-        print("Is logged in: \(isLoggedIn)")
-        if (isLoggedIn) {
-            return .APP
-        } else if (hasLoggedInOnce) {
-            return .LOGIN
-        } else {
-            return .REGISTRATION
-        }
-    }
-}
-
+/// What the root view renders, derived from the SDK's `SessionState`.
+///
+/// There is deliberately no app-specific UI-state enum between the two any more. `SessionState` is
+/// the integration contract — **route on it, never on "is there a Firebase user"** — and a parallel
+/// enum here could only ever drift from it or lose the distinction it exists to make.
 @MainActor
 @Observable
 class TeeTimeCaddieAppState {
-    private(set) var uiState: AppUiState
-    
-    private let authRepo: AuthRepository
-    
-    init(authRepo: AuthRepository = AuthModule.shared.authRepository()) {
-        self.authRepo = authRepo
-        self.uiState = AppUiState.fromLoginState(authRepo.isLoggedIn, hasLoggedInOnce: authRepo.hasLoggedInOnce)
+
+    /// The current session.
+    ///
+    /// Seeded from `initialSessionState` rather than `.Loading` so a cold start with no persisted
+    /// session goes straight to the credentials screen instead of flashing a loading state first.
+    private(set) var sessionState: SessionState
+
+    private let sessionManager: SessionManager
+
+    init(sessionManager: SessionManager = AuthModule.shared.sessionManager()) {
+        self.sessionManager = sessionManager
+        self.sessionState = sessionManager.initialSessionState
     }
-    
-    func observeAuthState() async {
-        for await isLoggedIn in authRepo.loginState {
-            uiState = AppUiState.fromLoginState(isLoggedIn.boolValue, hasLoggedInOnce: authRepo.hasLoggedInOnce)
+
+    func observeSessionState() async {
+        for await state in sessionManager.sessionState {
+            sessionState = state
         }
     }
-    
-    func setUiState(to newState: AppUiState) {
-        if (uiState != newState) { uiState = newState }
 
+    /// Re-validate the session, e.g. when the app returns to the foreground.
+    func refreshSession() async {
+        try? await sessionManager.refreshSession()
     }
 }

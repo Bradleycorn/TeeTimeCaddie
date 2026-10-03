@@ -10,43 +10,44 @@ import SwiftUI
 import ThemeUI
 import TeeTimeCaddieKit
 
+/// Placeholder credentials screen.
+///
+/// TTC-82 replaces the body with the brand lockup, fields, message block and legal footer.
 struct LoginScreen: View {
-    init(onRegisterClick: @escaping ()->Void = {}) {
-        self.onRegisterClick = onRegisterClick
+    @State private var viewModel = LoginViewModel()
+
+    private let onCreateAccount: (String) -> Void
+
+    init(onCreateAccount: @escaping (String) -> Void = { _ in }) {
+        self.onCreateAccount = onCreateAccount
     }
-
-    @State
-    private var viewModel = LoginViewModel(authRepo: AuthModule.shared.authRepository())
-
-    private let onRegisterClick: ()->Void
 
     var body: some View {
         Screen(AnalyticsScreen.Login(viewName: self.viewName)) {
-            LoginContent()
+            LoginContent(onCreateAccount: { onCreateAccount(placeholderEmail) })
         }
     }
+
+    private var placeholderEmail: String { "placeholder@example.com" }
 }
 
 fileprivate struct LoginContent: View {
-    private let onRegisterClick: ()->Void
-
-    init(
-        onRegisterClick: @escaping ()->Void = {}
-    ) {
-        self.onRegisterClick = onRegisterClick
-    }
-
+    let onCreateAccount: () -> Void
 
     var body: some View {
-        Text("Login Placeholder")
+        VStack(spacing: 16) {
+            Text("Credentials Screen Placeholder")
+            TtcOutlinedButton(
+                AR.strings().auth_create_account_button.desc().localized(),
+                action: onCreateAccount
+            )
+        }
     }
 }
 
-struct LoginPreview: PreviewProvider {
-    static var previews: some View {
-        TeeTimeCaddieTheme {
-            LoginContent()
-        }
+#Preview {
+    TeeTimeCaddieTheme {
+        LoginContent(onCreateAccount: {})
     }
 }
 

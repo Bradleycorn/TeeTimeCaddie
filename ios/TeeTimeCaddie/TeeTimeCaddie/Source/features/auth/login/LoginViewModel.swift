@@ -9,12 +9,12 @@ import Foundation
 import SwiftUI
 import TeeTimeCaddieKit
 
+/// Placeholder until TTC-82 builds the credentials screen.
 @Observable
 class LoginViewModel {
-    private let authRepo: AuthRepository
-    
-    init(authRepo: AuthRepository) {
-        self.authRepo = authRepo
+    private let sessionManager: SessionManager
+
+    init(sessionManager: SessionManager = AuthModule.shared.sessionManager()) {
+        self.sessionManager = sessionManager
     }
-   
 }

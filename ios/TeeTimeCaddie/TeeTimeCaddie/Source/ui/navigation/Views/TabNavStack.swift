@@ -26,7 +26,7 @@ import SwiftUI
 /// navigation histories in each tab without affecting other tabs.
 ///
 /// ## Usage
-/// TabNavStack is used internally by AppTabView to create navigation stacks:
+/// TabNavStack is used internally by TabsNavView to create navigation stacks:
 /// ```swift
 /// TabNavStack(for: .races, navigator)
 /// ```
@@ -65,6 +65,8 @@ struct TabNavStack: View {
                     // This switch statement must be updated when adding new destination types
                     switch key.wrapped {
                     case let navKey as TeeTimesDestinations:
+                        navKey.destinationView(navigator)
+                    case let navKey as ProfileDestinations:
                         navKey.destinationView(navigator)
                     default:
                         fatalError("Unhandled navigation key: \(key)")

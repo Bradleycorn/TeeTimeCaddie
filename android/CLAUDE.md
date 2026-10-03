@@ -134,9 +134,27 @@ as the `di/InitializersModule.kt` file.
 
 ## Navigation
 
-This app uses the compose Navigation3 library for navigation, and navigation is orchestrated
-by the `Navigator` class (`ui/navigation/Navigator.kt`) and the `TtcNavDisplay` composable
-(`ui/app/TeeTimeCaddieApp.kt`).
+This app uses the compose Navigation3 library for navigation, orchestrated by the `Navigator`
+interface (`ui/navigation/Navigator.kt`).
+
+There are two navigation contexts, one per branch of `TeeTimeCaddieApp`, and an implementation
+for each:
+
+- `NavBarNavigator` (`ui/navigation/NavBarNavigator.kt`) keeps a stack **per** `TopLevelDestination`,
+  so switching tabs preserves where you were in each. It backs `NavBarNavDisplay`
+  (`ui/app/NavBarNavDisplay.kt`), the tabbed signed-in app.
+- `BasicNavigator` (`ui/navigation/BasicNavigator.kt`) keeps a single stack, for a flow with no tab
+  bar. It backs `AuthNavDisplay` (`ui/app/AuthNavDisplay.kt`), the signed-out auth flow.
+
+**Write feature navigation extensions against the `Navigator` interface, not an implementation** —
+`fun Navigator.navigateToAddTeeTime()`, never `fun NavBarNavigator.navigateToAddTeeTime()`. A
+feature written that way can be hosted in either context without changes, and there is only one
+navigation architecture to learn.
+
+Each display composable creates its own navigator with `rememberNavBarNavigator` /
+`rememberBasicNavigator` rather than receiving one. That is deliberate: where the navigator is
+remembered decides how long its stacks live, and creating it inside the branch is what discards a
+signed-out player's Games history instead of leaving it behind the credentials screen.
 
 ### Passing Navigation Parameters to ViewModels
 

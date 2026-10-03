@@ -57,11 +57,26 @@ sealed class AnalyticsScreen(val name: String, val viewName: String, val paramet
     /** Represents no screen. Use this for screens that should not be logged as screen views. */
     object None: AnalyticsScreen("", viewName = "")
 
-    /** The user registration screen */
-    class Registration(viewName: String): AnalyticsScreen(name = "Registration", viewName)
-
-    /** The user login screen */
+    /**
+     * The combined email + password screen that starts both sign-in and sign-up.
+     *
+     * Named for the screen, not the step — `LoginScreen` / `LoginScreen.swift`. Distinct from
+     * [AnalyticsEvent.Login], which fires on a successful sign-in; this one logs the screen being
+     * looked at, whichever of the two buttons is eventually tapped.
+     */
     class Login(viewName: String): AnalyticsScreen(name = "Login", viewName)
+
+    /**
+     * Step two of sign-up: name, phone number and an optional photo.
+     *
+     * Named for the screen, not the step — `CreateAccountScreen` / `CreateAccountScreen.swift`.
+     * Distinct from [AnalyticsEvent.CreateAccount], which fires once the profile is saved; this
+     * one logs the screen being looked at.
+     */
+    class CreateAccount(viewName: String): AnalyticsScreen(name = "CreateAccount", viewName)
+
+    /** The signed-in person's own profile tab. */
+    class Profile(viewName: String): AnalyticsScreen(name = "Profile", viewName)
 
     /** The list view showing available tee times */
     class TeeTimeList(viewName: String): AnalyticsScreen(name = "TeeTimeList", viewName)

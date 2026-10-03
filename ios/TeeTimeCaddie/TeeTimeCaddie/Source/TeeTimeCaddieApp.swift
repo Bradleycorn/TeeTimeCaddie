@@ -71,37 +71,52 @@ struct TeeTimeCaddieApp: App {
 ///
 /// ## UI States
 ///
-/// The view switches between three main states based on ``AppUiState``:
-/// - `.REGISTRATION`: Shows the registration flow for new users
-/// - `.LOGIN`: Shows the login screen for returning users
-/// - `.APP`: Shows the main application content with navigation
+/// **Auth and the tabs are alternatives, not destinations.** The view branches on `SessionState`
+/// rather than navigating to a login screen, so there is no route by which a signed-out person's
+/// tab backstacks survive underneath the credentials screen. The Android twin, `TeeTimeCaddieApp`,
+/// makes the same decision for the same reason.
 ///
-/// - SeeAlso: ``TeeTimeCaddieApp``, ``TeeTimeCaddieAppState``, ``AppUiState``
+/// Each branch's top-level navigation lives in its own file beside the other, in
+/// `ui/navigation/Views`: ``AuthNavView`` and ``TabsNavView``.
+///
+/// - `.signedIn`: the tabbed app
+/// - `.signedOut` / `.profileIncomplete`: the auth flow — a Firebase account with no profile yet
+///   still belongs to sign-up, not to the tabs
+/// - `.loading`: nothing, briefly, while a persisted session is restored
+///
+/// - SeeAlso: ``TeeTimeCaddieApp``, ``TeeTimeCaddieAppState``, ``AuthNavView``, ``TabsNavView``
 fileprivate struct TeeTimeCaddieView: View {
     @State private var appState = TeeTimeCaddieAppState()
     @State private var navigator = Navigator()
+
+    /// Applied once, at the root — above the auth/tabs branch, because the view that knows "you are
+    /// signed in" is destroyed by the very change that signing in triggers.
+    @State private var toastPresenter = TtcToastPresenter()
+
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         TeeTimeCaddieTheme {
-            switch(appState.uiState) {
-                case .APP:
-                    //TODO: When we need to have tabs, switch to AppTabView here.
-                    TabNavStack(for: .teeTimes, navigator)
-                case .LOGIN:
-                    LoginScreen(onRegisterClick: { appState.setUiState(to: .REGISTRATION) })
+            Group {
+                switch onEnum(of: appState.sessionState) {
+                case .signedIn:
+                    TabsNavView(navigator)
+                case .signedOut, .profileIncomplete:
+                    AuthNavView(sessionState: appState.sessionState)
                         .transition(.move(edge: .trailing))
-                case .REGISTRATION:
-                    RegistrationScreen(onLoginClick: { appState.setUiState(to: .LOGIN) })
-                        .transition(.move(edge: .trailing))
+                case .loading:
+                    // Seeded only when a session probably exists, so this is a frame or two.
+                    ContentLoadingIndicator()
+                }
             }
+            .ttcToast(toastPresenter)
         }
-        .task { await appState.observeAuthState() }
+        .task { await appState.observeSessionState() }
         .onChange(of: scenePhase) { _, newPhase in
             if (newPhase == .active) {
-                Task { try? await AuthModule.shared.authRepository().refreshAuthentication() }
+                Task { await appState.refreshSession() }
             }
         }
-        .animation(.default, value: appState.uiState)
+        .animation(.default, value: appState.sessionState)
     }
 }

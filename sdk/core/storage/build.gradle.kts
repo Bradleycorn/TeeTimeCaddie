@@ -32,6 +32,7 @@ kotlin {
             implementation(libs.kermit.core)
             implementation(libs.multiplatform.settings)
             implementation(libs.firebase.mpp.firestore)
+            implementation(libs.firebase.mpp.storage)
             implementation(project(":sdk:core:models"))
         }
         commonTest.dependencies {

@@ -7,7 +7,7 @@ final class TeeTimesModule: SharedContainer {
     var manager = ContainerManager()
         
     var teeTimesRepository: Factory<TeeTimesRepository> {
-        self {  AppModule.shared.teeTimeCaddieSdk().provideTeeTimesRepository() }
+        self {  AppModule.shared.teeTimeCaddieSdk().teeTimesRepository }
             .singleton
     }
      

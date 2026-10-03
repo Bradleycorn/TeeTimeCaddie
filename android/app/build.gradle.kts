@@ -97,6 +97,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewModelCompose)
     implementation(libs.androidx.lifecycle.process)
 
+    // COIL - IMAGE LOADING
+    implementation(libs.bundles.coil)
+
     // FIREBASE
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)

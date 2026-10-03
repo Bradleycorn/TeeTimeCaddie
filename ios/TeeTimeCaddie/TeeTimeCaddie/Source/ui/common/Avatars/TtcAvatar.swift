@@ -87,7 +87,7 @@ fileprivate struct TtcAvatarPlaceholderView: View {
         Circle()
             .strokeBorder(scheme.outlineVariant, style: TtcAvatarStyle.dashedStroke())
             .overlay {
-                Image(systemName: TtcAvatarStyle.placeholderSymbol(placeholder))
+                Image(TtcAvatarStyle.placeholderIcon(placeholder))
                     .font(.system(size: TtcAvatarStyle.iconSize(size)))
                     .foregroundStyle(scheme.onSurfaceVariant)
             }
