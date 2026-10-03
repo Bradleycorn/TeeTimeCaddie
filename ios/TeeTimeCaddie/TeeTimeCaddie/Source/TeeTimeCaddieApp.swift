@@ -99,10 +99,8 @@ fileprivate struct TeeTimeCaddieView: View {
                 case .signedIn:
                     AppTabView(navigator)
                 case .signedOut, .profileIncomplete:
-                    AuthNavigationStack(sessionState: appState.sessionState) {
-                        appState.abandonSignUp()
-                    }
-                    .transition(.move(edge: .trailing))
+                    AuthNavigationStack(sessionState: appState.sessionState)
+                        .transition(.move(edge: .trailing))
                 case .loading:
                     // Seeded only when a session probably exists, so this is a frame or two.
                     ContentLoadingIndicator()
@@ -127,7 +125,6 @@ fileprivate struct TeeTimeCaddieView: View {
 /// on a stale tee-times history. The Android twin is `AuthNavDisplay`.
 fileprivate struct AuthNavigationStack: View {
     let sessionState: SessionState
-    let onAbandonSignUp: () -> Void
 
     @State private var path: [AuthDestinations] = []
 
@@ -149,6 +146,9 @@ fileprivate struct AuthNavigationStack: View {
                 case .login:
                     LoginScreen(onCreateAccount: { _ in })
                 case .createAccount(let email):
+                    // No cleanup callback: the screen's own back-navigation handler owns that, so
+                    // it runs for the system back button and the swipe gesture too — neither of
+                    // which passes through here.
                     CreateAccountScreen(email: email, onBack: pop)
                         .navigationTitle(AR.strings().create_account_title.desc().localized())
                         .navigationBarTitleDisplayMode(.inline)
@@ -165,9 +165,8 @@ fileprivate struct AuthNavigationStack: View {
         }
     }
 
-    /// Leaves the profile step, abandoning the half-made account on the way out.
+    /// Pops the stack. Cleanup is the popped screen's own business.
     private func pop() {
-        onAbandonSignUp()
         if !path.isEmpty { path.removeLast() }
     }
 }

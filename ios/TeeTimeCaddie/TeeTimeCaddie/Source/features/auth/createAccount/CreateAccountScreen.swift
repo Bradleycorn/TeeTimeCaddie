@@ -21,6 +21,10 @@ struct CreateAccountScreen: View {
         Screen(.CreateAccount(viewName: self.viewName)) {
             CreateAccountContent(email: email)
         }
+        // Every way out of this screen deletes the half-made account: the back button, the swipe
+        // gesture, and `onBack` when a future "Sign in instead" pops programmatically. Centralised
+        // here so no exit path can forget.
+        .backNavigationHandler { viewModel.abandonSignUp() }
     }
 }
 

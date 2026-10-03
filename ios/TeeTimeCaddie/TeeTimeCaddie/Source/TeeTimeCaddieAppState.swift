@@ -40,12 +40,4 @@ class TeeTimeCaddieAppState {
     func refreshSession() async {
         try? await sessionManager.refreshSession()
     }
-
-    /// Abandons a sign-up that never got a profile.
-    ///
-    /// Not `async` and nothing is awaited: `SessionManager` launches this in a scope that outlives
-    /// the view, precisely because the back press that triggers it is what tears the view down.
-    func abandonSignUp() {
-        sessionManager.abandonSignUp(reason: "back")
-    }
 }
