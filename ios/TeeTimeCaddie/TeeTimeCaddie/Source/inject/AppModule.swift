@@ -29,6 +29,18 @@ final class AppModule: SharedContainer {
     }
     
     
+    /// The app-wide toast presenter.
+    ///
+    /// A singleton rather than something read from the SwiftUI environment, so a ViewModel can take
+    /// it as a plain dependency. The messages it carries outlive the screens that produce them —
+    /// "Welcome back, Dana" is emitted by a ViewModel that signing in immediately destroys — so it
+    /// has to be owned above the view tree. The Android twin is the Hilt `@Singleton TtcMessenger`.
+    @MainActor
+    var toastPresenter: Factory<TtcToastPresenter> {
+        self { TtcToastPresenter() }
+            .singleton
+    }
+
     var fireabseCrashlytics: Factory<Crashlytics> {
         self { Crashlytics.crashlytics() }
             .singleton

@@ -90,7 +90,10 @@ fileprivate struct TeeTimeCaddieView: View {
 
     /// Applied once, at the root — above the auth/tabs branch, because the view that knows "you are
     /// signed in" is destroyed by the very change that signing in triggers.
-    @State private var toastPresenter = TtcToastPresenter()
+    ///
+    /// The same instance ViewModels resolve from `AppModule`, so a message shown from a ViewModel
+    /// reaches this host.
+    private let toastPresenter = AppModule.shared.toastPresenter()
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -101,9 +104,8 @@ fileprivate struct TeeTimeCaddieView: View {
                 case .signedIn:
                     TabsNavView()
                 case .signedOut, .profileIncomplete:
-                    TabsNavView()
-//                    AuthNavView(sessionState: appState.sessionState)
-//                        .transition(.move(edge: .trailing))
+                    AuthNavView(sessionState: appState.sessionState)
+                        .transition(.move(edge: .trailing))
                 case .loading:
                     // Seeded only when a session probably exists, so this is a frame or two.
                     ContentLoadingIndicator()
