@@ -60,6 +60,9 @@ kotlin {
             implementation(libs.multiplatform.settings)
             implementation(libs.firebase.mpp.auth)
             implementation(libs.firebase.mpp.firestore)
+            // Only so the init block can point Storage at the emulator; the actual avatar
+            // reads and writes live in :sdk:core:storage.
+            implementation(libs.firebase.mpp.storage)
             api(libs.kotlinx.datetime)
         }
 

@@ -3,6 +3,7 @@ package net.bradball.teetimecaddie
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
+import dev.gitlive.firebase.storage.storage
 import net.bradbal.teetimecaddie.core.storage.StorageModule
 import net.bradbal.teetimecaddie.core.storage.providePlayerPhotoStorage
 import net.bradbal.teetimecaddie.core.storage.providePlayerStorage
@@ -65,6 +66,10 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
                 persistenceEnabled = false,
                 sslEnabled = false 
             )
+            // Avatars are the only thing we put in Cloud Storage, and they were going to the real
+            // bucket in debug builds because this line was missing — the emulator suite was only
+            // ever wired up for auth and firestore.
+            Firebase.storage.useEmulator(FirebaseConfig.debugHost, FirebaseConfig.storageDebugPort)
         }
     }
 
