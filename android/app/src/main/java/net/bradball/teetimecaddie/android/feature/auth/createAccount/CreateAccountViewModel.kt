@@ -8,11 +8,13 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.icerock.moko.resources.StringResource
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.bradball.teetimecaddie.android.feature.auth.common.AuthMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.extensions.PHONE_NUMBER_LENGTH
@@ -85,6 +87,16 @@ class CreateAccountViewModel @AssistedInject constructor(
     }
 
     /**
+     * Clears the picked photo.
+     *
+     * The photo is optional, so having chosen one has to be undoable. Tapping a disc that already
+     * holds a photo removes it — the Swift twin is `CreateAccountViewModel.removePhoto`.
+     */
+    fun removePhoto() {
+        _uiState.update { it.copy(photo = null) }
+    }
+
+    /**
      * Saves the profile, completing sign-up.
      *
      * Success navigates nowhere: the resulting `SessionState.SignedIn` swaps the whole tree. The
@@ -103,19 +115,26 @@ class CreateAccountViewModel @AssistedInject constructor(
                 messenger.show(PlayerException(PlayerErrors.PHOTO_UPLOAD_FAILED))
             }
 
-            when (
-                val result = sessionManager.completeSignUp(
-                    name = state.name.trim(),
-                    phone = state.phoneDigits,
-                    photo = photoBytes,
-                )
-            ) {
-                is TtcResult.Success -> {
-                    messenger.show(AR.strings.auth_toast_account_created, result.data.firstName)
-                    _uiState.update { it.copy(isSubmitting = false) }
-                }
+            // NonCancellable: success is what destroys this ViewModel, because the resulting
+            // SignedIn state swaps the whole tree. Without this the greeting is emitted from a
+            // coroutine the swap has already cancelled, and whether it survives is a race — the
+            // same one ProfileViewModel.signOut lost every time. It also means a sign-up that has
+            // reached the network finishes rather than being abandoned half-made.
+            withContext(NonCancellable) {
+                when (
+                    val result = sessionManager.completeSignUp(
+                        name = state.name.trim(),
+                        phone = state.phoneDigits,
+                        photo = photoBytes,
+                    )
+                ) {
+                    is TtcResult.Success -> {
+                        messenger.show(AR.strings.auth_toast_account_created, result.data.firstName)
+                        _uiState.update { it.copy(isSubmitting = false) }
+                    }
 
-                is TtcResult.Failure -> report(result.error)
+                    is TtcResult.Failure -> report(result.error)
+                }
             }
         }
     }

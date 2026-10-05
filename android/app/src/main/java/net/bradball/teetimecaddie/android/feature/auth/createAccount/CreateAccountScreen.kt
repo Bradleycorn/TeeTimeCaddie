@@ -93,6 +93,7 @@ fun CreateAccountScreen(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
             },
+            onRemovePhoto = viewModel::removePhoto,
             onSubmit = viewModel::submit,
             onMessageAction = viewModel::onMessageAction,
             onBack = leave,
@@ -113,6 +114,7 @@ private fun CreateAccountContent(
     onNameChange: (String) -> Unit,
     onPhoneChange: (String) -> Unit,
     onPickPhoto: () -> Unit,
+    onRemovePhoto: () -> Unit,
     onSubmit: () -> Unit,
     onMessageAction: () -> Unit,
     onBack: () -> Unit,
@@ -170,8 +172,11 @@ private fun CreateAccountContent(
                 textAlign = TextAlign.Center,
             )
 
+            // Tapping a disc that already holds a photo removes it; only the empty disc opens the
+            // picker. The branch lives here rather than in TtcPhotoPicker, which stays
+            // presentational, and it mirrors CreateAccountScreen.swift branching on `hasPhoto`.
             TtcPhotoPicker(
-                onClick = onPickPhoto,
+                onClick = if (uiState.photo == null) onPickPhoto else onRemovePhoto,
                 photo = photoPainter,
             )
 
@@ -244,7 +249,7 @@ private fun CreateAccountContentPreview() {
         CreateAccountContent(
             uiState = CreateAccountUiState(email = "dana@example.com"),
             photoPainter = null,
-            onNameChange = {}, onPhoneChange = {}, onPickPhoto = {},
+            onNameChange = {}, onPhoneChange = {}, onPickPhoto = {}, onRemovePhoto = {},
             onSubmit = {}, onMessageAction = {}, onBack = {},
         )
     }
@@ -262,7 +267,7 @@ private fun CreateAccountContentPhotoPreview() {
                 photo = Uri.EMPTY,
             ),
             photoPainter = ColorPainter(MaterialTheme.colorScheme.tertiaryContainer),
-            onNameChange = {}, onPhoneChange = {}, onPickPhoto = {},
+            onNameChange = {}, onPhoneChange = {}, onPickPhoto = {}, onRemovePhoto = {},
             onSubmit = {}, onMessageAction = {}, onBack = {},
         )
     }
@@ -282,7 +287,7 @@ private fun CreateAccountContentPhoneInUsePreview() {
                 message = AuthMessage.PhoneInUse,
             ),
             photoPainter = null,
-            onNameChange = {}, onPhoneChange = {}, onPickPhoto = {},
+            onNameChange = {}, onPhoneChange = {}, onPickPhoto = {}, onRemovePhoto = {},
             onSubmit = {}, onMessageAction = {}, onBack = {},
         )
     }

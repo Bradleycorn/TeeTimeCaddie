@@ -6,8 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.features.auth.AR
@@ -45,13 +47,26 @@ class ProfileViewModel @Inject constructor(
      *
      * Nothing navigates afterwards — `TeeTimeCaddieApp` swaps the whole tree when `SessionState`
      * becomes `SignedOut`.
+     *
+     * [NonCancellable] because that swap is what destroys this ViewModel: the moment `signOut()`
+     * returns, `SessionState` goes `SignedOut`, the tab tree is replaced, and `viewModelScope` is
+     * cancelled — while this coroutine is still suspended. The resumption, and with it the
+     * confirmation, was being dropped every time. Routing through the messenger is not enough on
+     * its own; the emission has to survive the cancellation to reach it.
+     *
+     * An application-scoped `CoroutineScope` would also solve this, but injecting one into a
+     * ViewModel is the thing we deliberately avoided earlier in this story — that is why
+     * `SessionManager` owns the scope for `abandonSignUp`. Sign-out messaging cannot move with it,
+     * because string resources and the messenger are app-layer.
      */
     fun signOut() {
         viewModelScope.launch {
-            sessionManager.signOut()
-            // Through the messenger, not local state: signing out replaces the whole tab tree, so
-            // this ViewModel is gone before anything here could show a confirmation.
-            messenger.show(AR.strings.auth_toast_signed_out)
+            withContext(NonCancellable) {
+                sessionManager.signOut()
+                // Through the messenger, not local state: signing out replaces the whole tab tree,
+                // so this ViewModel is gone before anything here could show a confirmation.
+                messenger.show(AR.strings.auth_toast_signed_out)
+            }
         }
     }
 

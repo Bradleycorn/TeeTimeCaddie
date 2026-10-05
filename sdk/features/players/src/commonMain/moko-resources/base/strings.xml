@@ -33,7 +33,7 @@
     <string name="mobile_hint">We use this so your friends can find you when they make a foursome.</string>
 
     <string name="photo_caption_empty">Add a photo (optional)</string>
-    <string name="photo_caption_added">Photo added · tap to change</string>
+    <string name="photo_caption_added">Photo added · tap to remove</string>
 
     <string name="profile_title">Profile</string>
     <string name="profile_sign_out_button">Sign out</string>
