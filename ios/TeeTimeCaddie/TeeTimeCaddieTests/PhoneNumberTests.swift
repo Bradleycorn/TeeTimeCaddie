@@ -3,7 +3,6 @@
 //  TeeTimeCaddieTests
 //
 
-import SwiftUI
 import XCTest
 @testable import TeeTimeCaddie
 
@@ -63,45 +62,5 @@ final class PhoneNumberTests: XCTestCase {
 
     func testFormattedOfEmptyIsEmpty() {
         XCTAssertEqual(PhoneNumber.formatted(""), "")
-    }
-
-    // MARK: - binding
-
-    /// Typing left to right must land the digits in the order they were typed — the bug Android hit
-    /// by rewriting the field's value instead of only its presentation.
-    func testBindingKeepsDigitsInTypedOrder() {
-        var stored = ""
-        let binding = PhoneNumber.binding(
-            to: Binding(get: { stored }, set: { stored = $0 })
-        )
-
-        for digit in "5025551234" {
-            binding.wrappedValue = binding.wrappedValue + String(digit)
-        }
-
-        XCTAssertEqual(stored, "5025551234")
-        XCTAssertEqual(binding.wrappedValue, "(502) 555-1234")
-    }
-
-    func testBindingStoresDigitsAndShowsFormatted() {
-        var stored = "5025551234"
-        let binding = PhoneNumber.binding(
-            to: Binding(get: { stored }, set: { stored = $0 })
-        )
-
-        XCTAssertEqual(binding.wrappedValue, "(502) 555-1234")
-
-        binding.wrappedValue = "(502) 555-12"
-        XCTAssertEqual(stored, "50255512")
-    }
-
-    func testBindingRefusesMoreThanAFullNumber() {
-        var stored = ""
-        let binding = PhoneNumber.binding(
-            to: Binding(get: { stored }, set: { stored = $0 })
-        )
-
-        binding.wrappedValue = "502555123499"
-        XCTAssertEqual(stored, "5025551234")
     }
 }

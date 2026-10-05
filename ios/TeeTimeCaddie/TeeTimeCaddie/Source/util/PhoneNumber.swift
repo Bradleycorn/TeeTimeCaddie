@@ -62,14 +62,14 @@ enum PhoneNumber {
         return result
     }
 
-    /// A binding that shows a formatted number and stores digits.
+    /// There is deliberately **no `Binding` that formats on `get`**.
     ///
-    /// This is where "digits only, formats as you type, stops at ten" actually happens, so a field
-    /// gets all three by using the binding and nothing else.
-    static func binding(to digits: Binding<String>) -> Binding<String> {
-        Binding(
-            get: { formatted(digits.wrappedValue) },
-            set: { digits.wrappedValue = Self.digits($0) }
-        )
-    }
+    /// It is the obvious design and it does not work: while a `TextField` is being typed into,
+    /// SwiftUI keeps its own buffer and ignores a binding whose `get` returns something other than
+    /// what was typed. Verified on iOS 26.5 — the state and the formatting were both correct, and
+    /// the field still showed raw digits.
+    ///
+    /// Format in the field's own `@State` instead, from `onChange`; `CreateAccountContent` shows
+    /// the shape. Android solves the same problem with a `VisualTransformation`, which separates
+    /// display from value so the two never compete.
 }
