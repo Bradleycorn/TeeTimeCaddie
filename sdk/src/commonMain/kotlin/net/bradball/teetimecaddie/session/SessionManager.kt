@@ -37,8 +37,10 @@ import net.bradball.teetimecaddie.core.models.TtcLookup
  * nothing on that side can use.
  *
  * @param externalScope A scope that outlives any screen, for work that must finish even though the
- *   thing that asked for it is gone. Only [abandonSignUp] uses it; everything else is `suspend` and
- *   runs in its caller's scope, because its caller is waiting on the answer.
+ *   thing that asked for it is gone. Used by [abandonSignUp] and [signOut] — the two calls whose
+ *   caller is not waiting on an answer, and which are triggered by the very thing that destroys
+ *   that caller. Everything else is `suspend` and runs in its caller's scope, because its caller
+ *   needs the result to decide what to show.
  */
 class SessionManager internal constructor(
     private val authRepository: AuthRepository,
@@ -181,7 +183,21 @@ class SessionManager internal constructor(
         }
     }
 
-    suspend fun signOut() = authRepository.signOut()
+    /**
+     * Sign out.
+     *
+     * Not `suspend`, and launched on [externalScope], because signing out is the one call here
+     * whose caller is not waiting on an answer: it returns nothing, it cannot fail in a way anyone
+     * acts on, and the UI reacts to [sessionState] rather than to this returning.
+     *
+     * Making it `suspend` was a trap. The caller is invariably a screen that signing out destroys —
+     * clearing the session swaps the whole view tree — so the awaiting coroutine was cancelled
+     * mid-flight and anything sequenced after it silently never ran. Android's "Signed out"
+     * confirmation was lost that way. Owning the scope here means no caller has to know that.
+     */
+    fun signOut() {
+        externalScope.launch { authRepository.signOut() }
+    }
 
     /** Re-validate the session, e.g. when the app returns to the foreground. */
     suspend fun refreshSession() = authRepository.refreshAuthentication()

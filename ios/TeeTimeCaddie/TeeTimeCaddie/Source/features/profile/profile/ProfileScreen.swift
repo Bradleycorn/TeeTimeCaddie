@@ -18,7 +18,7 @@ struct ProfileScreen: View {
         Screen(.Profile(viewName: self.viewName)) {
             ProfileContent(
                 state: viewModel.uiState,
-                onSignOut: { Task { await viewModel.signOut() } }
+                onSignOut: viewModel.signOut
             )
         }
         .task { await viewModel.observeSession() }

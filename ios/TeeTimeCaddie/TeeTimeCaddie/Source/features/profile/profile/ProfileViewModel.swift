@@ -59,8 +59,11 @@ final class ProfileViewModel {
     /// Nothing navigates afterwards — the root swaps the whole tree when `SessionState` becomes
     /// `SignedOut`. The confirmation goes through the toast presenter because this ViewModel is
     /// destroyed by that swap.
-    func signOut() async {
-        try? await sessionManager.signOut()
+    ///
+    /// Not `async`: `SessionManager.signOut` owns the scope its work runs in, precisely because
+    /// every caller is a screen that signing out destroys.
+    func signOut() {
+        sessionManager.signOut()
         toastPresenter.show(AR.strings().auth_toast_signed_out.localized())
     }
 
