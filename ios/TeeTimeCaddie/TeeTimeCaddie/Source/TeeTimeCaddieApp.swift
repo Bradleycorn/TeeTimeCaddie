@@ -101,8 +101,9 @@ fileprivate struct TeeTimeCaddieView: View {
                 case .signedIn:
                     TabsNavView()
                 case .signedOut, .profileIncomplete:
-                    AuthNavView(sessionState: appState.sessionState)
-                        .transition(.move(edge: .trailing))
+                    TabsNavView()
+//                    AuthNavView(sessionState: appState.sessionState)
+//                        .transition(.move(edge: .trailing))
                 case .loading:
                     // Seeded only when a session probably exists, so this is a frame or two.
                     ContentLoadingIndicator()

@@ -46,13 +46,7 @@ struct TabsNavView: View {
                     // Display normal tab content with navigation stack
                     TabNavStack(for: tab, navigator)
                     .tabItem {
-                        // The icon arrives already sized — `.tabItem` discards SwiftUI
-                        // modifiers on it. See `ImageSource.tabBarImage(size:)`.
-                        Label {
-                            Text(tab.iconText)
-                        } icon: {
-                            tab.icon.tabBarImage(size: TabsNavView.iconSize)
-                        }
+                        Label(tab.iconText, icon: tab.icon)
                     }
 
                 // Note: Tabs with disabled features (result == .featureDisabled) are not rendered,
