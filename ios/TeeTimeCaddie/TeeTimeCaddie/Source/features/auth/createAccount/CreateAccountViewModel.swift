@@ -76,11 +76,11 @@ final class CreateAccountViewModel {
     init(
         email: String,
         sessionManager: SessionManager = AuthModule.shared.sessionManager(),
-        toastPresenter: TtcToastPresenter? = nil
+        toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter()
     ) {
         self.uiState = CreateAccountUiState(email: email)
         self.sessionManager = sessionManager
-        self.toastPresenter = toastPresenter ?? AppModule.shared.toastPresenter()
+        self.toastPresenter = toastPresenter
     }
 
     func onNameChange(_ name: String) {

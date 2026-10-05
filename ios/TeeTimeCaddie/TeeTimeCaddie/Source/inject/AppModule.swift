@@ -35,7 +35,6 @@ final class AppModule: SharedContainer {
     /// it as a plain dependency. The messages it carries outlive the screens that produce them —
     /// "Welcome back, Dana" is emitted by a ViewModel that signing in immediately destroys — so it
     /// has to be owned above the view tree. The Android twin is the Hilt `@Singleton TtcMessenger`.
-    @MainActor
     var toastPresenter: Factory<TtcToastPresenter> {
         self { TtcToastPresenter() }
             .singleton

@@ -23,6 +23,14 @@ final class TtcToastPresenter {
 
     private var dismissal: Task<Void, Never>?
 
+    /// `nonisolated` so this can be built off the main actor.
+    ///
+    /// The class is `@MainActor` because its state is read during view updates, but construction
+    /// touches nothing isolated. Without this, `AppModule.toastPresenter` would have to be
+    /// main-actor isolated too — and default-argument expressions are evaluated in a *nonisolated*
+    /// context, so every ViewModel taking one would need a nullable parameter to work around it.
+    nonisolated init() {}
+
     /// Shows [message], replacing anything already up.
     ///
     /// Named to match Android's `SnackbarHostState.showSnackbar` / `TtcMessenger.show`, so the same
@@ -98,6 +106,9 @@ private struct TtcToastView: View {
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+        // Hug the text vertically. An `.overlay` offers its content the *whole* parent, and the
+        // card's accent rail is a greedy shape — without this the toast grows to fill the screen.
+        .fixedSize(horizontal: false, vertical: true)
         .shadow(radius: 8, y: 2)
         .accessibilityAddTraits(.isStaticText)
     }

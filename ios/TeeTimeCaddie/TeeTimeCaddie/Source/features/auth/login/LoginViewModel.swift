@@ -42,15 +42,12 @@ final class LoginViewModel {
     private let sessionManager: SessionManager
     private let toastPresenter: TtcToastPresenter
 
-    /// - Parameter toastPresenter: Defaults to the app-wide one. Resolved in the body rather than
-    ///   as a default argument because `AppModule.toastPresenter` is main-actor isolated and
-    ///   default-argument expressions are evaluated in a nonisolated context.
     init(
         sessionManager: SessionManager = AuthModule.shared.sessionManager(),
-        toastPresenter: TtcToastPresenter? = nil
+        toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter()
     ) {
         self.sessionManager = sessionManager
-        self.toastPresenter = toastPresenter ?? AppModule.shared.toastPresenter()
+        self.toastPresenter = toastPresenter
     }
 
     /// Editing either field clears the message.

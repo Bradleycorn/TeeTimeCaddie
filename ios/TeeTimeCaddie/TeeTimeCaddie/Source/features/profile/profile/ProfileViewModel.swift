@@ -41,10 +41,10 @@ final class ProfileViewModel {
 
     init(
         sessionManager: SessionManager = AuthModule.shared.sessionManager(),
-        toastPresenter: TtcToastPresenter? = nil
+        toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter()
     ) {
         self.sessionManager = sessionManager
-        self.toastPresenter = toastPresenter ?? AppModule.shared.toastPresenter()
+        self.toastPresenter = toastPresenter
         apply(sessionManager.initialSessionState)
     }
 
