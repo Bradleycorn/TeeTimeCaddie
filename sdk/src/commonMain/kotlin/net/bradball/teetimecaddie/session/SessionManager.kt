@@ -1,11 +1,17 @@
 package net.bradball.teetimecaddie.session
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.Player
@@ -31,16 +37,22 @@ import net.bradball.teetimecaddie.core.models.TtcLookup
  *
  * **Nothing here throws.**
  *
- * The constructor is `internal`: apps get the one instance from `TeeTimeCaddieSdk.sessionManager`,
- * and constructing a second would mean a second [sessionState] flow for an app shell to observe the
- * wrong one of. It also keeps [CoroutineScope] out of the exported Swift API, where it is noise
- * nothing on that side can use.
+ * **Session-changing work runs in [externalScope], never in the caller's.** Both apps swap their
+ * whole view tree when [sessionState] changes, so the screen that signs someone in, finishes their
+ * sign-up, or signs them out is destroyed by its own success — usually while the call is still
+ * running, because Firestore and Firebase Auth report the change before the call returns. Work run
+ * in that screen's scope would be cancelled part-way through. Which steps must survive is a property
+ * of the work, not of whoever triggers it, so this class guarantees it rather than leaving every
+ * screen on every platform to rediscover it.
  *
- * @param externalScope A scope that outlives any screen, for work that must finish even though the
- *   thing that asked for it is gone. Used by [abandonSignUp] and [signOut] — the two calls whose
- *   caller is not waiting on an answer, and which are triggered by the very thing that destroys
- *   that caller. Everything else is `suspend` and runs in its caller's scope, because its caller
- *   needs the result to decide what to show.
+ * The constructor is `internal`: apps get the one instance from `TeeTimeCaddieSdk.sessionManager`,
+ * and constructing a second would mean a second [sessionState] and [sessionEvents] for an app shell
+ * to observe the wrong one of. It also keeps [CoroutineScope] out of the exported Swift API, where
+ * it is noise nothing on that side can use.
+ *
+ * @param externalScope A scope that outlives any screen. Hosts the shared [sessionState], and every
+ *   call that changes the session: the `suspend` ones await their work there (see [nonCancelling])
+ *   and [abandonSignUp] and [signOut] launch into it.
  */
 class SessionManager internal constructor(
     private val authRepository: AuthRepository,
@@ -50,20 +62,21 @@ class SessionManager internal constructor(
 ) {
 
     /**
-     * A synchronous first value for [sessionState], so a cold start never flashes the credentials
-     * screen at someone who is signed in. Apps should use this as the initial value when they
-     * convert [sessionState] into their own observable state.
-     */
-    val initialSessionState: SessionState
-        get() = if (authRepository.currentUser != null) SessionState.Loading else SessionState.SignedOut
-
-    /**
      * The current session, re-emitting on sign-in, sign-out, and any change to the signed-in
      * player's profile — which is what makes a freshly uploaded avatar appear without a refresh.
+     *
+     * One flow, shared by every observer, so the app root and any screen that reads the player
+     * share a single auth listener and a single Firestore listener. Started on the first
+     * subscriber, and kept running after that: the session matters for the life of the process.
+     *
+     * Its initial value is synchronous, so a cold start never flashes the credentials screen at
+     * someone who is signed in: [SessionState.Loading] when Firebase has a persisted user still to
+     * resolve, [SessionState.SignedOut] when it has none. Apps can read [StateFlow.value] for a
+     * first render instead of inventing their own seed.
      */
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val sessionState: Flow<SessionState>
-        get() = authRepository.authChanges.flatMapLatest { user ->
+    val sessionState: StateFlow<SessionState> = authRepository.authChanges
+        .flatMapLatest { user ->
             if (user == null) {
                 flowOf(SessionState.SignedOut)
             } else {
@@ -73,14 +86,40 @@ class SessionManager internal constructor(
                 }
             }
         }
+        .stateIn(
+            scope = externalScope,
+            started = SharingStarted.Lazily,
+            initialValue = if (authRepository.currentUser != null) SessionState.Loading else SessionState.SignedOut
+        )
+
+    private val _sessionEvents = MutableSharedFlow<SessionEvent>(extraBufferCapacity = 4)
+
+    /**
+     * Transitions the person caused — signing in, finishing sign-up, signing out — for the app root
+     * to confirm. See [SessionEvent].
+     *
+     * Not the session: route on [sessionState]. There is no replay, so a collector only hears what
+     * is emitted while it is subscribed; the app root subscribes for the life of the app. Emitted
+     * with `tryEmit` into a buffer, so reporting never holds up the work it reports on.
+     */
+    val sessionEvents: SharedFlow<SessionEvent> = _sessionEvents.asSharedFlow()
 
     /**
      * Sign in.
      *
      * Succeeds with [SessionState.SignedIn] normally, or [SessionState.ProfileIncomplete] for
-     * someone whose sign-up was interrupted before their profile was saved.
+     * someone whose sign-up was interrupted before their profile was saved. Only the first is
+     * reported on [sessionEvents].
      */
-    suspend fun signIn(email: String, password: String): TtcResult<SessionState> {
+    suspend fun signIn(email: String, password: String): TtcResult<SessionState> =
+        nonCancelling {
+            performSignIn(email, password).also { result ->
+                val state = (result as? TtcResult.Success)?.data
+                if (state is SessionState.SignedIn) _sessionEvents.tryEmit(SessionEvent.SignedIn(state.player))
+            }
+        }
+
+    private suspend fun performSignIn(email: String, password: String): TtcResult<SessionState> {
         val user = when (val result = authRepository.signIn(email, password)) {
             is TtcResult.Failure -> return result
             is TtcResult.Success -> result.data
@@ -111,15 +150,28 @@ class SessionManager internal constructor(
      * that before asking for a name and phone number.
      */
     suspend fun startSignUp(email: String, password: String): TtcResult<SessionState.ProfileIncomplete> =
-        authRepository.createAccount(email, password)
-            .map { SessionState.ProfileIncomplete(it.id, it.email) }
+        nonCancelling {
+            authRepository.createAccount(email, password)
+                .map { SessionState.ProfileIncomplete(it.id, it.email) }
+        }
 
     /**
      * Step two of sign-up: save the profile.
      *
+     * The clearest case for [nonCancelling]: saving the profile flips [sessionState] to
+     * [SessionState.SignedIn] the moment the document is written, which destroys the calling screen
+     * while the display-name sync and the `CreateAccount` event are still to run.
+     *
      * @param photo JPEG bytes for the avatar, already downscaled by the caller, or null.
      */
-    suspend fun completeSignUp(name: String, phone: String, photo: ByteArray? = null): TtcResult<Player> {
+    suspend fun completeSignUp(name: String, phone: String, photo: ByteArray? = null): TtcResult<Player> =
+        nonCancelling {
+            performCompleteSignUp(name, phone, photo).also { result ->
+                if (result is TtcResult.Success) _sessionEvents.tryEmit(SessionEvent.AccountCreated(result.data))
+            }
+        }
+
+    private suspend fun performCompleteSignUp(name: String, phone: String, photo: ByteArray?): TtcResult<Player> {
         val user = authRepository.currentUser
             ?: return TtcResult.Failure(AuthException(AuthErrors.SESSION_EXPIRED))
 
@@ -150,33 +202,37 @@ class SessionManager internal constructor(
     /**
      * Abandon a sign-up that never got a profile, deleting the half-made account.
      *
-     * Guarded on the profile's absence, so this can be called from anywhere — a back press, a
-     * "Sign in instead" tap — and can never delete a provisioned account. Deletion is best-effort:
-     * Firebase refuses it for a session old enough to need re-authentication, and an orphaned auth
-     * user is harmless because the app resumes at [SessionState.ProfileIncomplete] anyway.
+     * Safe to call from anywhere, at any time — a back press, a "Sign in instead" tap, a view
+     * disappearing as the tree swaps after sign-up *succeeded*. A provisioned account is left
+     * entirely alone: not deleted, and not signed out. Otherwise the person is signed out, and the
+     * account is deleted only on positive evidence that it has no profile.
      *
-     * **The one method here that is not `suspend`.** Every caller abandons sign-up by *leaving* —
-     * a back press, a tap that goes elsewhere — and that same act destroys whatever was waiting on
-     * the call. Run in a caller's scope, the cleanup would be cancelled partway through: the
-     * account deleted but never signed out, or neither. So this launches in [externalScope] and
-     * returns immediately.
+     * Deletion is best-effort: Firebase refuses it for a session old enough to need
+     * re-authentication, and an orphaned auth user is harmless because the app resumes at
+     * [SessionState.ProfileIncomplete] anyway.
      *
-     * Deliberately launched *here* rather than by each app. The lifetime this work needs is a
-     * property of the work, not of whoever happens to trigger it, and leaving it to callers means
-     * every screen on every platform has to rediscover that. Nothing is reported back for the same
-     * reason — callers have already moved on, and [sessionState] tells them when it lands.
+     * Not `suspend`, and launched on [externalScope]: every caller abandons sign-up by *leaving*,
+     * and that same act destroys whatever was waiting on the call. Nothing is reported back, and
+     * nothing is emitted on [sessionEvents] — callers have already moved on, and [sessionState]
+     * tells the app when it lands.
      */
     fun abandonSignUp(reason: String? = null) {
         externalScope.launch {
             val user = authRepository.currentUser
             if (user != null) {
-                // Delete only on a successful read that found nothing — positive evidence there is
-                // no profile. A read that merely *failed* is not proof of absence, and acting on it
-                // would delete a real account because the network blipped.
-                val profile = playerRepository.getPlayer(user.id)
-                if (profile is TtcLookup.Success && profile.data == null) {
-                    authRepository.deleteCurrentUser()
-                    eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
+                when (val profile = playerRepository.getPlayer(user.id)) {
+                    is TtcLookup.Success -> {
+                        // Already provisioned: this is a screen being torn down after sign-up
+                        // finished, not someone abandoning it.
+                        if (profile.data != null) return@launch
+
+                        authRepository.deleteCurrentUser()
+                        eventManager.logEvent(AnalyticsEvent.AbandonedRegistration(reason))
+                    }
+                    // A read that merely *failed* is not proof of absence, and deleting on it
+                    // would destroy a real account because the network blipped. Still sign out:
+                    // the person asked to leave.
+                    is TtcLookup.Failure -> Unit
                 }
             }
             authRepository.signOut()
@@ -192,13 +248,28 @@ class SessionManager internal constructor(
      *
      * Making it `suspend` was a trap. The caller is invariably a screen that signing out destroys —
      * clearing the session swaps the whole view tree — so the awaiting coroutine was cancelled
-     * mid-flight and anything sequenced after it silently never ran. Android's "Signed out"
-     * confirmation was lost that way. Owning the scope here means no caller has to know that.
+     * mid-flight and anything sequenced after it silently never ran. Owning the scope here means
+     * no caller has to know that. The confirmation is reported on [sessionEvents] for the same
+     * reason: the screen that asked is gone before it could show one.
      */
     fun signOut() {
-        externalScope.launch { authRepository.signOut() }
+        externalScope.launch {
+            authRepository.signOut()
+            _sessionEvents.tryEmit(SessionEvent.SignedOut)
+        }
     }
 
     /** Re-validate the session, e.g. when the app returns to the foreground. */
     suspend fun refreshSession() = authRepository.refreshAuthentication()
+
+    /**
+     * Run session-changing work in [externalScope] and await its result.
+     *
+     * If the caller is cancelled — typically because the work's own effect on [sessionState]
+     * swapped the view tree out from under it — only the *wait* is abandoned. The work runs to
+     * completion, so a sign-up that has written its profile still syncs the display name and logs
+     * its event.
+     */
+    private suspend fun <T> nonCancelling(block: suspend () -> T): T =
+        externalScope.async { block() }.await()
 }

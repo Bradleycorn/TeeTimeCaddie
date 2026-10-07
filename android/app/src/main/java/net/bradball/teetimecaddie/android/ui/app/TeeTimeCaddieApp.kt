@@ -32,8 +32,9 @@ import net.bradball.teetimecaddie.session.SessionState
  * against the same `Navigator` interface, so a feature's navigation looks the same either side of
  * the branch.
  *
- * The snackbar host sits **above** that branch, because the confirmation for "you are signed in" is
- * produced by a screen that signing in immediately destroys. See `TtcMessenger`.
+ * The snackbar host sits **above** that branch, because the screen that signs someone in is
+ * destroyed by the swap, so the confirmation has to come from up here. See `TtcMessenger` and
+ * `TeeTimeCaddieActivityViewModel`.
  */
 @Composable
 fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
@@ -43,8 +44,9 @@ fun TeeTimeCaddieApp(appState: TeeTimeCaddieAppState) {
     val showLoadingScrim = initStatus == InitializationState.Pending || sessionState is SessionState.Loading
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Read through rememberUpdatedState so the collector is keyed on the flow alone: re-subscribing
-    // on every configuration change would drop a message emitted mid-rotation.
+    // Read through rememberUpdatedState so the collector is keyed on the flow alone: restarting it
+    // whenever resources change would cut short the snackbar on screen. A message emitted while the
+    // collector is gone (an activity recreated on rotation) waits in TtcMessenger's channel.
     val resources by rememberUpdatedState(LocalResources.current)
 
     LaunchedEffect(appState.messages) {

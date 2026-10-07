@@ -1,8 +1,10 @@
 package net.bradball.teetimecaddie.session
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.TtcLookup
 import net.bradball.teetimecaddie.core.models.TtcResult
@@ -78,7 +80,18 @@ class FakePlayerRepository(
     /** When set, [createPlayer] fails with it. */
     var createFailure: TeeTimeCaddieException? = null
 
-    override fun playerFlow(playerId: String): Flow<Player?> = store.map { it[playerId] }
+    /**
+     * When set, [createPlayer] waits for it before saving — used to cancel a caller mid-sign-up and
+     * prove the work still finishes.
+     */
+    var createGate: CompletableDeferred<Unit>? = null
+
+    /** How many times [playerFlow] has been collected — used to prove observers share one listener. */
+    var playerFlowSubscriptions = 0
+        private set
+
+    override fun playerFlow(playerId: String): Flow<Player?> =
+        store.map { it[playerId] }.onStart { playerFlowSubscriptions++ }
 
     override suspend fun getPlayer(playerId: String): TtcLookup<Player> =
         readFailure?.let { TtcLookup.Failure(it) } ?: TtcLookup.Success(store.value[playerId])
@@ -103,6 +116,7 @@ class FakePlayerRepository(
         phone: String,
         photo: ByteArray?
     ): TtcResult<Player> {
+        createGate?.await()
         createFailure?.let { return TtcResult.Failure(it) }
         val player = Player(id = playerId, name = name, email = email, phone = phone)
         store.value = store.value + (playerId to player)

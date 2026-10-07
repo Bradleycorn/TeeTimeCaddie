@@ -64,15 +64,6 @@ final class CreateAccountViewModel {
     private let sessionManager: SessionManager
     private let toastPresenter: TtcToastPresenter
 
-    /// Whether sign-up finished successfully.
-    ///
-    /// Guards ``abandonSignUp()`` against the one case where leaving this screen must *not* clean
-    /// up: completing sign-up also removes the screen, because the whole auth tree is replaced once
-    /// `SessionState` becomes `SignedIn`. `SessionManager.abandonSignUp` will not delete a
-    /// provisioned account — but it signs out unconditionally, which would bounce someone straight
-    /// back out of the account they just made.
-    private var didCompleteSignUp = false
-
     init(
         email: String,
         sessionManager: SessionManager = AuthModule.shared.sessionManager(),
@@ -111,9 +102,9 @@ final class CreateAccountViewModel {
 
     /// Saves the profile, completing sign-up.
     ///
-    /// Success navigates nowhere: the resulting `SessionState.SignedIn` swaps the whole tree. The
-    /// greeting goes through the toast presenter for the same reason — this ViewModel does not
-    /// survive it.
+    /// Success navigates nowhere: the resulting `SessionState.SignedIn` swaps the whole tree, and the
+    /// root shows the greeting on `SessionEvent.AccountCreated` — this ViewModel does not survive the
+    /// swap to show it.
     func submit() async {
         guard uiState.canSubmit else { return }
         let state = uiState
@@ -129,11 +120,7 @@ final class CreateAccountViewModel {
             )
 
             switch onEnum(of: result) {
-            case .success(let success):
-                didCompleteSignUp = true
-                toastPresenter.show(
-                    AR.strings().auth_toast_account_created.localized(success.data.firstName)
-                )
+            case .success:
                 uiState.isSubmitting = false
             case .failure(let failure):
                 report(failure.error)
@@ -154,9 +141,10 @@ final class CreateAccountViewModel {
     /// button, the swipe gesture, and a programmatic pop.
     ///
     /// Nothing is awaited — `SessionManager` runs this in a scope that outlives the view, precisely
-    /// because the act that triggers it is what tears the view down.
+    /// because the act that triggers it is what tears the view down. Nor is anything guarded: the
+    /// handler also fires as the tree swaps after sign-up *succeeded*, and `abandonSignUp` leaves a
+    /// provisioned account alone.
     func abandonSignUp() {
-        guard !didCompleteSignUp else { return }
         sessionManager.abandonSignUp(reason: "back")
     }
 

@@ -3,7 +3,6 @@ package net.bradball.teetimecaddie.android.feature.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,17 +11,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.bradball.teetimecaddie.android.feature.auth.common.AuthMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.extensions.isValidEmail
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
-import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.auth.AuthErrors
 import net.bradball.teetimecaddie.features.auth.AuthException
 import net.bradball.teetimecaddie.session.SessionManager
-import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
 
 /**
@@ -104,30 +100,20 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, message = null) }
 
-            // NonCancellable: success is what destroys this ViewModel, because TeeTimeCaddieApp
-            // swaps the tree the moment SessionState changes. Without this the greeting is emitted
-            // from a coroutine that the swap has already cancelled, and whether it survives is a
-            // race. See ProfileViewModel.signOut, which lost that race every time.
-            withContext(NonCancellable) {
-                when (val result = sessionManager.signIn(state.email, state.password)) {
-                    is TtcResult.Success -> {
-                        // Nothing navigates: TeeTimeCaddieApp swaps the tree when SessionState
-                        // changes. The greeting is routed through the messenger because this
-                        // ViewModel is about to be destroyed by that swap.
-                        (result.data as? SessionState.SignedIn)?.let { user ->
-                            messenger.show(AR.strings.auth_toast_welcome_back, user.player.firstName)
-                        }
-                        _uiState.update { it.copy(isSubmitting = false) }
-                    }
+            // Success needs nothing from this screen: TeeTimeCaddieApp swaps the tree when
+            // SessionState changes — usually cancelling this coroutine on the way, which is fine,
+            // because SessionManager finishes the sign-in regardless — and the greeting comes from
+            // the root, on SessionEvent.SignedIn.
+            when (val result = sessionManager.signIn(state.email, state.password)) {
+                is TtcResult.Success -> _uiState.update { it.copy(isSubmitting = false) }
 
-                    // Only a rejected credential gets the designed block. A dropped connection or a
-                    // disabled account is a different problem, and saying "that email and password
-                    // don't match" about it would be a lie.
-                    is TtcResult.Failure -> report(
-                        error = result.error,
-                        message = if (result.error.isInvalidCredentials) AuthMessage.SignInFailed else null,
-                    )
-                }
+                // Only a rejected credential gets the designed block. A dropped connection or a
+                // disabled account is a different problem, and saying "that email and password
+                // don't match" about it would be a lie.
+                is TtcResult.Failure -> report(
+                    error = result.error,
+                    message = if (result.error.isInvalidCredentials) AuthMessage.SignInFailed else null,
+                )
             }
         }
     }

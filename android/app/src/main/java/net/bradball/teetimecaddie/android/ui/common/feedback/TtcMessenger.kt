@@ -2,9 +2,9 @@ package net.bradball.teetimecaddie.android.ui.common.feedback
 
 import dev.icerock.moko.resources.StringResource
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,27 +20,39 @@ data class TtcMessage(
 )
 
 /**
- * An app-scoped channel for the brief confirmations that follow an auth transition — "Welcome
- * back, Dana", "Signed out".
+ * An app-scoped channel for brief messages — a failure in its own words, a warning that the
+ * picked photo could not be read, and the confirmations that follow a session transition
+ * ("Welcome back, Dana", "Signed out").
  *
- * This exists because of *when* those messages are produced. The ViewModel that knows the sign-in
- * succeeded is destroyed by the very navigation that success triggers, so a message emitted from
- * the screen's own scope would be cancelled before anything could show it. Routing through a
- * singleton lets the message outlive the screen that asked for it, and the host sits above the
- * auth/tabs branch in `TeeTimeCaddieApp` so it survives that swap too.
+ * Those confirmations are why this is app-scoped. The screen that signs someone in is destroyed by
+ * the very swap that success triggers, so it cannot show them; `TeeTimeCaddieActivityViewModel`
+ * turns the SDK's `SessionEvent`s into messages here instead. The host sits above the auth/tabs
+ * branch in `TeeTimeCaddieApp` so it survives that swap too.
  *
- * Uses a buffered [MutableSharedFlow] with [tryEmit] so emitting never suspends and never blocks a
- * ViewModel that is about to go away.
+ * A buffered [Channel] rather than a `SharedFlow`, because there is exactly one consumer — the root
+ * snackbar host — and it is briefly *absent*: rotation recreates the activity, and with it the
+ * collector. A `SharedFlow` drops whatever is emitted in that gap; a channel holds it until the new
+ * collector arrives, and still delivers each message once. [trySend] means emitting never suspends
+ * or blocks a ViewModel that is about to go away.
  */
 @Singleton
 class TtcMessenger @Inject constructor() {
 
-    private val _messages = MutableSharedFlow<TtcMessage>(extraBufferCapacity = 4)
+    private val _messages = Channel<TtcMessage>(Channel.BUFFERED)
 
-    val messages: SharedFlow<TtcMessage> = _messages.asSharedFlow()
+    /**
+     * The messages to show, each delivered once.
+     *
+     * Exposed through [receiveAsFlow], never as the channel itself: this is an app-lifetime
+     * singleton, and a consumer holding the `ReceiveChannel` could cancel it — `consumeEach` and
+     * `consumeAsFlow` both do when their collector stops, which rotation does every time — and
+     * silence every message for the rest of the process. A collector cancelled here leaves the
+     * channel open for the next one.
+     */
+    val messages: Flow<TtcMessage> = _messages.receiveAsFlow()
 
     fun show(message: TtcMessage) {
-        _messages.tryEmit(message)
+        _messages.trySend(message)
     }
 
     fun show(text: StringResource, vararg args: String) {

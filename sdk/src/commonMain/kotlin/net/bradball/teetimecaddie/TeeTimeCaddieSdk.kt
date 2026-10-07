@@ -24,9 +24,11 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
     val eventManager: EventManager by lazy { EventManager.getInstance() }
 
     // Held as lazy vals rather than built per call, so there is exactly one of each for the life
-    // of the SDK. That matters most for `sessionManager`: two instances would mean two independent
-    // sessionState flows, and an app shell observing the wrong one would simply never update.
-    // Making it structural here means a misconfigured DI in either app cannot reintroduce the bug.
+    // of the SDK. That matters most for `sessionManager`: it holds the one shared sessionState and
+    // the one sessionEvents stream, and a second instance would mean a second of each — an app shell
+    // observing the wrong one would simply never update, and every instance would open its own
+    // listeners. Making it structural here means a misconfigured DI in either app cannot
+    // reintroduce that.
     val authRepository: AuthRepository by lazy { AuthRepositoryImpl(eventManager) }
 
     val playerRepository: PlayerRepository by lazy {
@@ -52,8 +54,12 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
      * same guarantee without either of them having to arrange it. [SupervisorJob] so one failed job
      * cannot cancel the scope and silently disable the rest.
      *
-     * Not exposed: callers get the behaviour through the method that needs it
-     * ([SessionManager.abandonSignUp]), not a scope to launch their own work in.
+     * It hosts [SessionManager]'s shared session flow, and is what makes every session-changing
+     * call immune to its caller being cancelled — the caller is usually a screen that the change
+     * itself destroys.
+     *
+     * Not exposed: callers get the behaviour through the methods that need it, not a scope to
+     * launch their own work in.
      */
     private val sdkScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

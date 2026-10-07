@@ -14,7 +14,8 @@ sealed class SessionState {
     /**
      * Firebase has not finished restoring a persisted session.
      *
-     * Only ever the seed value, and only when a session probably exists. Without it, a cold start
+     * Only ever the initial value of `SessionManager.sessionState`, and only when a session probably
+     * exists — the flow itself never emits it again. Without it, a cold start
      * shows the credentials screen for a frame before the restored user arrives — which reads as a
      * flash of "signed out" to someone who never signed out.
      */

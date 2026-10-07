@@ -77,15 +77,10 @@ final class LoginViewModel {
         do {
             let result = try await sessionManager.signIn(email: email, password: password)
             switch onEnum(of: result) {
-            case .success(let success):
-                // Nothing navigates: the root swaps the tree when SessionState changes. The
-                // greeting goes through the toast presenter because this ViewModel is about to be
-                // destroyed by that swap.
-                if let signedIn = success.data as? SessionState.SignedIn {
-                    toastPresenter.show(
-                        AR.strings().auth_toast_welcome_back.localized(signedIn.player.firstName)
-                    )
-                }
+            case .success:
+                // Nothing navigates: the root swaps the tree when SessionState changes, and greets
+                // the person itself on `SessionEvent.SignedIn` — this ViewModel does not survive
+                // the swap to do it.
                 uiState.isSubmitting = false
 
             case .failure(let failure):

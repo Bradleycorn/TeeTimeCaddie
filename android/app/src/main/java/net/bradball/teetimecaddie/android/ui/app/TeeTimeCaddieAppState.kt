@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -36,19 +36,13 @@ class TeeTimeCaddieAppState(
     /**
      * What the app shows: the auth flow, the tabs, or neither yet.
      *
-     * `initialValue` comes from [SessionManager.initialSessionState] rather than
-     * [SessionState.Loading] so a cold start with no persisted session goes straight to the
-     * credentials screen instead of flashing a loading state first.
+     * The SDK's own shared flow, as is: its synchronous initial value is already the right first
+     * frame, so there is nothing to seed or convert here.
      */
     val sessionState: StateFlow<SessionState> = sessionManager.sessionState
-        .stateIn(
-            scope = coroutineScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = sessionManager.initialSessionState
-        )
 
     /** Brief confirmations to show, hosted above the auth/tabs branch. See [TtcMessenger]. */
-    val messages: SharedFlow<TtcMessage> = messenger.messages
+    val messages: Flow<TtcMessage> = messenger.messages
 
     val appInitStatus = appInitializers.state
         .stateIn(

@@ -37,15 +37,10 @@ final class ProfileViewModel {
     private(set) var uiState = ProfileUiState()
 
     private let sessionManager: SessionManager
-    private let toastPresenter: TtcToastPresenter
 
-    init(
-        sessionManager: SessionManager = AuthModule.shared.sessionManager(),
-        toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter()
-    ) {
+    init(sessionManager: SessionManager = AuthModule.shared.sessionManager()) {
         self.sessionManager = sessionManager
-        self.toastPresenter = toastPresenter
-        apply(sessionManager.initialSessionState)
+        apply(sessionManager.sessionState.value)
     }
 
     func observeSession() async {
@@ -57,14 +52,13 @@ final class ProfileViewModel {
     /// Signs the player out.
     ///
     /// Nothing navigates afterwards — the root swaps the whole tree when `SessionState` becomes
-    /// `SignedOut`. The confirmation goes through the toast presenter because this ViewModel is
-    /// destroyed by that swap.
+    /// `SignedOut` — and nothing is confirmed from here: the root shows "Signed out" on
+    /// `SessionEvent.SignedOut`, because this ViewModel is destroyed by that swap.
     ///
     /// Not `async`: `SessionManager.signOut` owns the scope its work runs in, precisely because
     /// every caller is a screen that signing out destroys.
     func signOut() {
         sessionManager.signOut()
-        toastPresenter.show(AR.strings().auth_toast_signed_out.localized())
     }
 
     private func apply(_ state: SessionState) {

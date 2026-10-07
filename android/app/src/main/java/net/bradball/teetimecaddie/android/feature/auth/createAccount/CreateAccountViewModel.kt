@@ -8,13 +8,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.icerock.moko.resources.StringResource
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.bradball.teetimecaddie.android.feature.auth.common.AuthMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.extensions.PHONE_NUMBER_LENGTH
@@ -22,7 +20,6 @@ import net.bradball.teetimecaddie.core.extensions.isValidPhoneNumber
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
-import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.players.PlayerErrors
 import net.bradball.teetimecaddie.features.players.PlayerException
 import net.bradball.teetimecaddie.session.SessionManager
@@ -99,8 +96,9 @@ class CreateAccountViewModel @AssistedInject constructor(
     /**
      * Saves the profile, completing sign-up.
      *
-     * Success navigates nowhere: the resulting `SessionState.SignedIn` swaps the whole tree. The
-     * greeting goes through the messenger for the same reason — this ViewModel does not survive it.
+     * Success navigates nowhere: the resulting `SessionState.SignedIn` swaps the whole tree, and the
+     * greeting comes from the root on `SessionEvent.AccountCreated` — this ViewModel does not
+     * survive the swap to show it.
      */
     fun submit() {
         val state = _uiState.value
@@ -115,26 +113,18 @@ class CreateAccountViewModel @AssistedInject constructor(
                 messenger.show(PlayerException(PlayerErrors.PHOTO_UPLOAD_FAILED))
             }
 
-            // NonCancellable: success is what destroys this ViewModel, because the resulting
-            // SignedIn state swaps the whole tree. Without this the greeting is emitted from a
-            // coroutine the swap has already cancelled, and whether it survives is a race — the
-            // same one ProfileViewModel.signOut lost every time. It also means a sign-up that has
-            // reached the network finishes rather than being abandoned half-made.
-            withContext(NonCancellable) {
-                when (
-                    val result = sessionManager.completeSignUp(
-                        name = state.name.trim(),
-                        phone = state.phoneDigits,
-                        photo = photoBytes,
-                    )
-                ) {
-                    is TtcResult.Success -> {
-                        messenger.show(AR.strings.auth_toast_account_created, result.data.firstName)
-                        _uiState.update { it.copy(isSubmitting = false) }
-                    }
-
-                    is TtcResult.Failure -> report(result.error)
-                }
+            // Saving the profile swaps the tree, usually cancelling this coroutine before the call
+            // returns. That is fine: SessionManager finishes the sign-up regardless, and there is
+            // nothing left for this screen to do on success.
+            when (
+                val result = sessionManager.completeSignUp(
+                    name = state.name.trim(),
+                    phone = state.phoneDigits,
+                    photo = photoBytes,
+                )
+            ) {
+                is TtcResult.Success -> _uiState.update { it.copy(isSubmitting = false) }
+                is TtcResult.Failure -> report(result.error)
             }
         }
     }
