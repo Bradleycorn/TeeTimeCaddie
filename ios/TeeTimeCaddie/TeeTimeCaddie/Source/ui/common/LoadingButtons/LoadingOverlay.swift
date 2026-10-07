@@ -24,22 +24,23 @@ extension View {
 }
 
 
-struct LoadingOverlay_Previews: PreviewProvider {
-    struct Content: View {
-        @State var isLoading = false
-        
-        var body: some View {
-            VStack {
-                Text("Click Me")
-                    .onTapGesture {
-                        isLoading.toggle()
-                    }
-                    .loadingOverlay(isLoading: isLoading)
-            }
+fileprivate struct LoadingOverlayPreviews: View {
+    @State private var isLoading = false
+
+    var body: some View {
+        VStack {
+            Text("Click Me")
+                .onTapGesture { isLoading.toggle() }
+                .loadingOverlay(isLoading: isLoading)
         }
     }
-    
-    static var previews: some View {
-        Content()
-    }
+}
+
+#Preview("Light") {
+    LoadingOverlayPreviews()
+}
+
+#Preview("Dark") {
+    LoadingOverlayPreviews()
+        .preferredColorScheme(.dark)
 }

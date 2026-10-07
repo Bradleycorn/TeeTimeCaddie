@@ -90,7 +90,7 @@ private struct TtcAccentCardPreviewContent: View {
                 // multi-line content.
                 TtcAccentCard {
                     HStack(spacing: 6) {
-                        Image(systemName: "envelope.badge.fill")
+                        Image(.symbol(.envelopeFill))
                             .font(.system(size: 14))
                         Text("NEW INVITE").font(.caption.weight(.medium))
                     }

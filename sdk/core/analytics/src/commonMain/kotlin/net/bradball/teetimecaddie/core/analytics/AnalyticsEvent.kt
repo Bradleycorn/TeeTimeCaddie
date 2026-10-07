@@ -71,6 +71,17 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     object CreateAccount: AnalyticsEvent("create_account", EventType.OPERATION)
     @Serializable
     data class FailedRegistration(val reason: String?): AnalyticsEvent("failed_registration", EventType.OPERATION)
+    /**
+     * The Firebase Auth account was created, but the person has not completed their profile yet.
+     * Paired with [CreateAccount] this measures drop-off on the second step of sign-up, which the
+     * two-phase flow makes a real risk.
+     */
+    @Serializable
+    object CreateAccountStarted: AnalyticsEvent("create_account_started", EventType.OPERATION)
+    @Serializable
+    data class AbandonedRegistration(val reason: String? = null): AnalyticsEvent("abandoned_registration", EventType.OPERATION)
+    @Serializable
+    object SignOut: AnalyticsEvent("sign_out", EventType.OPERATION)
     @Serializable
     data class AddTeeTime(val times: Int, val players: Int): AnalyticsEvent("add_tee_time", EventType.OPERATION)
     @Serializable

@@ -3,17 +3,57 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(playerId) {
+      return isSignedIn() && request.auth.uid == playerId;
+    }
+
+    match /players/{playerId} {
+      // Reading a profile you can already name: your own, or a player shown on an invitation.
+      allow get: if isSignedIn();
+
+      // Sign-up's phone-uniqueness check is the only query the app makes against this collection,
+      // and it only ever needs one result.
+      //
+      // Be clear about what this does and does not buy: Firestore rules cannot constrain WHICH
+      // field a query filters on, only its shape. Capping the limit blocks a bulk dump and makes
+      // scraping slow and expensive, but an authenticated attacker can still page through players
+      // one document at a time. Enumeration is mitigated, not eliminated. Closing it properly
+      // means a key-addressed uniqueness collection or a callable function, both out of scope for
+      // TTC-67.
+      allow list: if isSignedIn() && request.query.limit <= 1;
+
+      allow create: if isSelf(playerId)
+        && request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'photoUrl'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        // Digits only, enforced server-side: invitation matching compares these values directly,
+        // so a formatted number written by a future client bug would silently never match.
+        && request.resource.data.phone.matches('^[0-9]{10,15}$')
+        && request.resource.data.email == request.auth.token.email;
+
+      allow update: if isSelf(playerId)
+        && request.resource.data.keys().hasOnly(['name', 'email', 'phone', 'photoUrl'])
+        && request.resource.data.phone.matches('^[0-9]{10,15}$')
+        // The email is the auth record's, not the player's to edit here.
+        && request.resource.data.email == resource.data.email;
+
+      allow delete: if false;
+    }
+
+    match /teetimes/{teeTimeId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+    }
+
+    // Anything not matched above is denied. Previously this block allowed unrestricted read and
+    // write, so every collection needs its own rule from here on.
     match /{document=**} {
-      allow read, write;
+      allow read, write: if false;
     }
   }
 }

@@ -1,8 +1,10 @@
 package net.bradball.teetimecaddie.android.ui.navigation
 
 import androidx.annotation.StringRes
+import net.bradball.teetimecaddie.android.feature.profile.navigation.ProfileDestination
 import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.TeeTimesListDestination
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.features.players.PR
 import net.bradball.teetimecaddie.features.teetimes.TTR
 
 /**
@@ -92,9 +94,29 @@ enum class TopLevelDestination (
     @StringRes val iconTextId: Int,
     val destination: TtcNavKey
 ): TtcNavKey {
+    /**
+     * The games list — the app's home tab.
+     *
+     * The label is "Games" while the enum constant, feature package, SDK module and iOS twin are
+     * all still `teeTimes`/`teetimes`. Renaming that hierarchy to match the label is its own change.
+     *
+     * The icon is the brand mark rather than a golf glyph, matching the design.
+     */
     TEE_TIMES(
-        icon = TtcIcons.TEE_CLOCK,
-        iconTextId = TTR.strings.tee_times_title.resourceId,
+        icon = TtcIcons.TEE,
+        iconTextId = TTR.strings.games_title.resourceId,
         destination = TeeTimesListDestination
+    ),
+
+    /**
+     * The signed-in player's own profile.
+     *
+     * Always the filled `person` glyph — it does not swap to the outlined variant when the tab is
+     * unselected.
+     */
+    PROFILE(
+        icon = TtcIcons.PERSON_FILL,
+        iconTextId = PR.strings.profile_title.resourceId,
+        destination = ProfileDestination
     ),
 }

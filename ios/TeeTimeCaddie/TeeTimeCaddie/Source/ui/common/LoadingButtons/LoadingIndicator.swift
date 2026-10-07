@@ -17,8 +17,8 @@ struct LoadingIndicator: View {
     }
 }
 
-struct LoadingIndicator_Previews: PreviewProvider {
-    static var previews: some View {
+fileprivate struct LoadingIndicatorPreviews: View {
+    var body: some View {
         VStack {
             Spacer()
             LoadingIndicator(.Flashing, dotSize: 12)
@@ -31,4 +31,13 @@ struct LoadingIndicator_Previews: PreviewProvider {
             Spacer()
         }
     }
+}
+
+#Preview("Light") {
+    LoadingIndicatorPreviews()
+}
+
+#Preview("Dark") {
+    LoadingIndicatorPreviews()
+        .preferredColorScheme(.dark)
 }

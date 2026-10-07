@@ -1,12 +1,16 @@
 package net.bradball.teetimecaddie.android.ui.common.forms
 
 import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 /**
@@ -18,6 +22,46 @@ import androidx.compose.ui.unit.dp
  * Mirrors the structure of `TtcButtonDefaults`.
  */
 internal object TtcTextFieldDefaults {
+
+    /**
+     * Email entry: the email keyboard, no auto-capitalisation, no autocorrect, and Next so the
+     * person can move on to the password.
+     *
+     * Living here rather than at each call site is deliberate — the story requires that neither
+     * the email nor the password field capitalises or corrects, and a default cannot be forgotten.
+     */
+    /** The error glyph in the supporting-text row, and its gap from the message. */
+    val SupportingIconSize = 16.dp
+    val SupportingIconSpacing = 4.dp
+
+    val EmailKeyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Email,
+        capitalization = KeyboardCapitalization.None,
+        autoCorrectEnabled = false,
+        imeAction = ImeAction.Next,
+    )
+
+    /** Password entry: password keyboard, no capitalisation or autocorrect, Done to submit. */
+    val PasswordKeyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Password,
+        capitalization = KeyboardCapitalization.None,
+        autoCorrectEnabled = false,
+        imeAction = ImeAction.Done,
+    )
+
+    /** A person's name: capitalise each word, no autocorrect, Next on to the phone number. */
+    val NameKeyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Text,
+        capitalization = KeyboardCapitalization.Words,
+        autoCorrectEnabled = false,
+        imeAction = ImeAction.Next,
+    )
+
+    /** Phone entry: the numeric keypad, Done to submit. */
+    val PhoneKeyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Phone,
+        imeAction = ImeAction.Done,
+    )
 
     /** Leading icon size for text fields (Fairway Morning: 22dp). */
     val IconSize = 22.dp
