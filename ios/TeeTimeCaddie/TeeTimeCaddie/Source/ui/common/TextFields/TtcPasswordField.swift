@@ -22,16 +22,26 @@ struct TtcPasswordField: View {
     @State private var revealed = false
     @FocusState private var focusedField: Field?
 
+    /// An optional externally-owned focus binding.
+    ///
+    /// This field's own focus is an *enum* — it has two controls and tracks which one holds the
+    /// keyboard — while a caller only wants to say "focus the password". So rather than shadowing
+    /// the internal state the way ``TtcTextField`` does, the two are kept in step by the pair of
+    /// `onChange` handlers below.
+    private let focused: FocusState<Bool>.Binding?
+
     init(
         text: Binding<String>,
         label: String = AR.strings().field_label_password.desc().localized(),
         hint: String? = nil,
-        error: String? = nil
+        error: String? = nil,
+        focused: FocusState<Bool>.Binding? = nil
     ) {
         self._text = text
         self.label = label
         self.hint = hint
         self.error = error
+        self.focused = focused
     }
 
     /// The field that should hold focus given the current reveal state.
@@ -70,6 +80,25 @@ struct TtcPasswordField: View {
         // already focused) instead of letting the change drop first responder.
         .onChange(of: revealed) {
             if focusedField != nil { focusedField = activeField }
+        }
+        // Mirror the external Bool onto the internal enum, and back.
+        //
+        // Both directions are **equality-guarded**. Without the guard each handler would write a
+        // value the other observes, and the two would ping-pong: setting the enum fires the first
+        // handler, which sets the Bool, which fires the second, which sets the enum again. The
+        // guards make each write a no-op once the two already agree, so the exchange settles after
+        // one hop.
+        .onChange(of: focusedField) {
+            guard let focused else { return }
+            let hasFocus = focusedField != nil
+            if focused.wrappedValue != hasFocus { focused.wrappedValue = hasFocus }
+        }
+        .onChange(of: focused?.wrappedValue) {
+            guard let focused else { return }
+            let hasFocus = focusedField != nil
+            if focused.wrappedValue != hasFocus {
+                focusedField = focused.wrappedValue ? activeField : nil
+            }
         }
     }
  }

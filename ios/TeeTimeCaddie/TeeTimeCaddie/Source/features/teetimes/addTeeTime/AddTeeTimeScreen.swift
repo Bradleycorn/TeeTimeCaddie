@@ -38,15 +38,14 @@ fileprivate struct AddTeeTimeContent: View {
 
 // MARK: - Previews
 
+// Deliberately AddTeeTimeContent, not AddTeeTimeScreen: the *Screen wrapper builds a ViewModel,
+// which resolves the SDK and kills the preview process.
 #Preview("Empty") {
     TeeTimeCaddieTheme {
         NavigationStack {
-            AddTeeTimeScreen(
-                onBack: {},
-                onTeeTimeCreated: {}
-            )
-            .navigationTitle(TTR.strings().add_tee_time.desc().localized())
-            .navigationBarTitleDisplayMode(.inline)
+            AddTeeTimeContent()
+                .navigationTitle(TTR.strings().add_tee_time.desc().localized())
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

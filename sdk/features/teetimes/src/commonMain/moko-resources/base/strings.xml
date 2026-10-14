@@ -18,4 +18,7 @@
     <string name="add_time_button">Add Time</string>
     <string name="players_label">Players</string>
     <string name="validation_at_least_one_time">At least one tee time is required</string>
+
+    <!-- Tab label. The list screen keeps its own title; this names the tab. -->
+    <string name="games_title">Games</string>
 </resources>

@@ -12,7 +12,7 @@ enum TeeTimesDestinations: @MainActor TtcNavKey {
     case addTeeTime
 
     @ViewBuilder
-    func destinationView(_ navigator: Navigator) -> some View {
+    func destinationView(_ navigator: any Navigator) -> some View {
 
         switch self {
         case .teeTimesList:

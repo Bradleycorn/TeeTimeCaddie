@@ -6,6 +6,7 @@ internal expect object FirebaseConfig {
 internal val FirebaseConfig.deviceDebugHost: String get() = "172.16.38.32" //"192.168.86.42"
 internal val FirebaseConfig.authDebugPort: Int get() = 9099
 internal val FirebaseConfig.firestoreDebugPort: Int get() = 9399
+internal val FirebaseConfig.storageDebugPort: Int get() = 9199
 
 internal val FirebaseConfig.debugHost: String
     get() = emulatorHost

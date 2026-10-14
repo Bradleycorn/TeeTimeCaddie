@@ -1,10 +1,25 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+
+    // Player avatars. One per player, at a deterministic path, so an upload overwrites rather
+    // than accumulating orphaned blobs.
+    match /players/{playerId}/{fileName} {
+      // Public read is deliberate. Avatars are served by their tokenized download URL straight
+      // into AsyncImage (iOS) and Coil (Android), neither of which sends a Firebase ID token — so
+      // requiring auth here would simply break avatar loading. The security is the unguessable
+      // token in the URL, which means an avatar is readable by anyone holding its link.
+      allow read: if true;
+
+      allow write: if request.auth != null
+        && request.auth.uid == playerId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+
+      allow delete: if request.auth != null && request.auth.uid == playerId;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

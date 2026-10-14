@@ -140,8 +140,8 @@ fileprivate struct BouncingDot: View {
     }
 }
 
-struct AnimatedDots_Previews: PreviewProvider {
-    static var previews: some View {
+fileprivate struct AnimatedDotsPreviews: View {
+    var body: some View {
         VStack {
             Spacer()
             AnimatedDots(numberOfDots: 4, type: .Flashing, size: 20)
@@ -155,4 +155,13 @@ struct AnimatedDots_Previews: PreviewProvider {
             Spacer()
         }
     }
+}
+
+#Preview("Light") {
+    AnimatedDotsPreviews()
+}
+
+#Preview("Dark") {
+    AnimatedDotsPreviews()
+        .preferredColorScheme(.dark)
 }

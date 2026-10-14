@@ -13,6 +13,14 @@ class UnknownException: TeeTimeCaddieException {
     let title: StringResource
     let displayMessage: StringResource
     let recoverySuggestion: StringResource?
+
+    /// Always empty: the default messages this stands in for carry no `%s` placeholders.
+    ///
+    /// Declared explicitly because a Kotlin interface's default property getter does *not* survive
+    /// the ObjC export — `TeeTimeCaddieException.messageArgs` has a default in Kotlin, but reaches
+    /// Swift as a required protocol member.
+    let messageArgs: [String] = []
+
     let error: Error
     let logInfo: KotlinMutableDictionary<NSString, AnyObject>
     let loggableType: LoggableExceptionTypes = .interop

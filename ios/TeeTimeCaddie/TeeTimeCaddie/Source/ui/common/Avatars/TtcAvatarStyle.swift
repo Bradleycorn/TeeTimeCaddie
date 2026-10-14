@@ -4,7 +4,7 @@ import ThemeUI
 /// Shared sizing and geometry values for ``TtcAvatar``, ``TtcPlayerStack`` and ``TtcPhotoPicker``,
 /// derived from the Fairway Morning "Avatars & players" spec. (Parallels `TtcChipStyle`.)
 ///
-/// The glyphs use SF Symbols (`person.fill`, `plus`, `camera.fill`, `pencil`) rather than asset
+/// The glyphs come from ``SfSymbol`` via ``ImageSource`` rather than from asset
 /// symbolsets — they're standard system icons, so no custom art is needed.
 ///
 /// An initials avatar is an identity marker, so it takes the **solid** role tone the way a filled
@@ -58,11 +58,17 @@ enum TtcAvatarStyle {
         }
     }
 
-    /// SF Symbol name for a placeholder glyph.
-    static func placeholderSymbol(_ placeholder: TtcAvatarPlaceholder) -> String {
+    /// Gap between the picker's disc and its caption.
+    static let captionSpacing: CGFloat = 8
+
+    /// The glyph for a placeholder avatar.
+    ///
+    /// Returns an ``ImageSource`` rather than a symbol name so callers go through ``Icon``/``Image``
+    /// like everything else, and so a placeholder could become an asset without touching them.
+    static func placeholderIcon(_ placeholder: TtcAvatarPlaceholder) -> ImageSource {
         switch placeholder {
-        case .guest: "person.fill"
-        case .empty: "plus"
+        case .guest: .symbol(.personFill)
+        case .empty: .symbol(.plus)
         }
     }
 }

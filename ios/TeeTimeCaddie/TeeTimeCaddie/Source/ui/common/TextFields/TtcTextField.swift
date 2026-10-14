@@ -13,7 +13,8 @@ import ThemeUI
 /// ``TtcTextFieldContainer``; this field injects a single plain `TextField` as its control. Disabled
 /// state follows the standard SwiftUI idiom — apply `.disabled(true)` at the call site.
 struct TtcTextField: View {
-    @FocusState private var isFocused: Bool
+    /// Focus when the caller does not supply its own. See ``focused``.
+    @FocusState private var internalFocus: Bool
 
     private let label: String
     @Binding private var text: String
@@ -25,6 +26,17 @@ struct TtcTextField: View {
     private let textContentType: UITextContentType?
     private let autocapitalization: TextInputAutocapitalization
     private let autocorrectionDisabled: Bool
+    private let trailingIcon: ImageSource?
+    private let onTrailingTap: (() -> Void)?
+    private let trailingAccessibilityLabel: String?
+
+    /// An optional externally-owned focus binding.
+    ///
+    /// Without it nothing outside the field can focus it, because `@FocusState` is private to the
+    /// view that declares it — which makes "focus the email field on arrival" impossible to express
+    /// from a screen. When supplied it **shadows** the internal state; the field reads whichever one
+    /// is in play rather than trying to keep two in step.
+    private let focused: FocusState<Bool>.Binding?
 
     init(
         _ label: String,
@@ -36,7 +48,11 @@ struct TtcTextField: View {
         keyboardType: UIKeyboardType = .default,
         textContentType: UITextContentType? = nil,
         autocapitalization: TextInputAutocapitalization = .never,
-        autocorrectionDisabled: Bool = true
+        autocorrectionDisabled: Bool = true,
+        trailingIcon: ImageSource? = nil,
+        onTrailingTap: (() -> Void)? = nil,
+        trailingAccessibilityLabel: String? = nil,
+        focused: FocusState<Bool>.Binding? = nil
     ) {
         self.label = label
         self._text = text
@@ -48,6 +64,21 @@ struct TtcTextField: View {
         self.textContentType = textContentType
         self.autocapitalization = autocapitalization
         self.autocorrectionDisabled = autocorrectionDisabled
+        self.trailingIcon = trailingIcon
+        self.onTrailingTap = onTrailingTap
+        self.trailingAccessibilityLabel = trailingAccessibilityLabel
+        self.focused = focused
+    }
+
+    /// Whether the field currently holds focus, from whichever binding is in play.
+    private var isFocused: Bool { focused?.wrappedValue ?? internalFocus }
+
+    private func takeFocus() {
+        if let focused {
+            focused.wrappedValue = true
+        } else {
+            internalFocus = true
+        }
     }
 
     var body: some View {
@@ -57,19 +88,36 @@ struct TtcTextField: View {
             hint: hint,
             error: error,
             isFocused: isFocused,
-            onActivate: { isFocused = true }
+            trailingIcon: trailingIcon,
+            onTrailingTap: onTrailingTap,
+            trailingAccessibilityLabel: trailingAccessibilityLabel,
+            onActivate: takeFocus
         ) {
-            TextField(placeholder ?? "", text: $text)
-                .modifier(
-                    TtcTextFieldInputStyle(
-                        isError: error?.isEmpty == false,
-                        keyboardType: keyboardType,
-                        textContentType: textContentType,
-                        autocapitalization: autocapitalization,
-                        autocorrectionDisabled: autocorrectionDisabled
-                    )
+            input
+        }
+    }
+
+    /// The control itself.
+    ///
+    /// Split out so `.focused` can be applied against whichever binding is in play — the modifier
+    /// takes a concrete binding, so the two cases cannot be collapsed into one expression.
+    @ViewBuilder
+    private var input: some View {
+        let field = TextField(placeholder ?? "", text: $text)
+            .modifier(
+                TtcTextFieldInputStyle(
+                    isError: error?.isEmpty == false,
+                    keyboardType: keyboardType,
+                    textContentType: textContentType,
+                    autocapitalization: autocapitalization,
+                    autocorrectionDisabled: autocorrectionDisabled
                 )
-                .focused($isFocused)
+            )
+
+        if let focused {
+            field.focused(focused)
+        } else {
+            field.focused($internalFocus)
         }
     }
 }
@@ -115,6 +163,14 @@ fileprivate struct TtcTextFieldPreviews: View {
                 text: $phone,
                 error: "Already linked to another account",
                 keyboardType: .phonePad
+            )
+            TtcTextField(
+                "With a trailing action",
+                text: $course,
+                hint: "The trailing icon passthrough, which only TtcPasswordField reached before.",
+                trailingIcon: .symbol(.trash),
+                onTrailingTap: { course = "" },
+                trailingAccessibilityLabel: "Clear"
             )
             TtcTextField("Disabled", text: .constant("Disabled"))
                 .disabled(true)

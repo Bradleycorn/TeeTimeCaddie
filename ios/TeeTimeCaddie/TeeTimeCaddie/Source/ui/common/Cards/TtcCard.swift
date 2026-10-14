@@ -129,7 +129,7 @@ private struct PreviewCardHeader: View {
     var body: some View {
         let scheme = theme.colorScheme
         return HStack(spacing: 10) {
-            Image(systemName: "clock.fill").foregroundStyle(scheme.primary)
+            Image(.symbol(.calendar)).foregroundStyle(scheme.primary)
             Text(title).font(.headline)
             Spacer()
         }
@@ -147,7 +147,7 @@ private struct PreviewListRow: View {
     var body: some View {
         let scheme = theme.colorScheme
         return HStack(spacing: 14) {
-            Image(systemName: "person.fill").foregroundStyle(scheme.onSurfaceVariant)
+            Image(.symbol(.personFill)).foregroundStyle(scheme.onSurfaceVariant)
             VStack(alignment: .leading, spacing: 1) {
                 Text(primary).font(.body)
                 if let secondary {

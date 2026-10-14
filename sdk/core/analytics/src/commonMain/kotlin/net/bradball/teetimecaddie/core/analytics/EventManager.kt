@@ -33,7 +33,7 @@ import kotlin.reflect.KClass
  * analytics plugins:
  *
  * ```kotlin
- * val eventManager = EventManager()
+ * val eventManager = EventManager.getInstance()
  * eventManager.registerPlugin(MyAnalyticsPlugin())
  * eventManager.registerPlugin(AnotherAnalyticsPlugin())
  * ```
@@ -101,12 +101,24 @@ import kotlin.reflect.KClass
  * @property transactionLogger The logger used for performance monitoring
  */
 class EventManager internal constructor(
-    private val errorLogger: ErrorLogger = FirebaseErrorLogger(),
-    private val transactionLogger: TransactionLogger = FirebaseTransactionLogger()) {
-
-    constructor(): this(FirebaseErrorLogger(), FirebaseTransactionLogger())
+    private val errorLogger: ErrorLogger? = null,
+    private val transactionLogger: TransactionLogger? = null) {
 
     companion object {
+        /**
+         * Build an event manager.
+         *
+         * @param enableLogging false gives an instance with no loggers attached, so everything
+         *   logged through it goes nowhere. That is what makes an `EventManager` — and anything
+         *   that takes one — constructible in a plain unit test, where the Firebase loggers would
+         *   otherwise reach `FirebaseCrashlytics` on construction and need a live `FirebaseApp`.
+         */
+        fun getInstance(enableLogging: Boolean = true): EventManager = if (enableLogging) {
+            EventManager(FirebaseErrorLogger(), FirebaseTransactionLogger())
+        } else {
+            EventManager()
+        }
+
         const val STATE_KEY_LOCATION_ERROR = "location-error"
         const val STATE_KEY_LOCATION = "location"
     }
@@ -129,7 +141,7 @@ class EventManager internal constructor(
      * @param name - The name of the transaction stop.
      */
     fun startTransaction(name: String) {
-        transactionLogger.startTransaction(name)
+        transactionLogger?.startTransaction(name)
     }
 
     /**
@@ -143,7 +155,7 @@ class EventManager internal constructor(
      * @param name - The name of the transaction to stop.
      */
     fun stopTransaction(name: String) {
-        transactionLogger.stopTransaction(name)
+        transactionLogger?.stopTransaction(name)
     }
 
 //    /**
@@ -172,7 +184,7 @@ class EventManager internal constructor(
      *   DO NOT PUT PERSONALLY IDENTIFIABLE INFORMATION (PII) IN THIS BUNDLE.
      */
     fun setUserId(userId: String) {
-        errorLogger.setUserId(userId)
+        errorLogger?.setUserId(userId)
         for (eventPlugin in eventPlugins) {
             eventPlugin.setUserId(userId)
         }
@@ -182,21 +194,21 @@ class EventManager internal constructor(
      * Used by the [TransactionLogger] for logging performance related data.
      */
     fun incrementPerformanceEvent(transactionName: String, metricName: String, increment: Long) {
-        transactionLogger.incrementPerformanceEvent(transactionName, metricName, increment)
+        transactionLogger?.incrementPerformanceEvent(transactionName, metricName, increment)
     }
 
     /**
      * Used by the [TransactionLogger] for logging performance related data.
      */
     fun logPerformanceAttribute(transactionName: String, attributeName: String, attribute: String) {
-        transactionLogger.logPerformanceAttribute(transactionName, attributeName, attribute)
+        transactionLogger?.logPerformanceAttribute(transactionName, attributeName, attribute)
     }
 
     /**
      * Used by the [TransactionLogger] for logging performance related data.
      */
     fun removePerformanceAttribute(transactionName: String, attributeName: String) {
-        transactionLogger.removePerformanceAttribute(transactionName, attributeName)
+        transactionLogger?.removePerformanceAttribute(transactionName, attributeName)
     }
 
     /**
@@ -316,7 +328,7 @@ class EventManager internal constructor(
         keys["exception-type"] = errorType.displayName
         recordStateValues(keys)
 
-        errorLogger.logException(throwable)
+        errorLogger?.logException(throwable)
     }
 
     private fun recordStateValues(data: HashMap<String, Any?>?, tag: String? = null) {
@@ -333,7 +345,7 @@ class EventManager internal constructor(
      * @param message - The message to log.
      */
     fun logMessage(message: String) {
-        errorLogger.logMessage(message)
+        errorLogger?.logMessage(message)
     }
 
     /**
@@ -345,7 +357,7 @@ class EventManager internal constructor(
      * @param value - A String with a value for the key
      */
     fun recordStateValue(key: String, value: String) {
-        errorLogger.recordStateValue(key, value)
+        errorLogger?.recordStateValue(key, value)
     }
 
     /**
@@ -357,7 +369,7 @@ class EventManager internal constructor(
      * @param value - A Boolean with a value for the key
      */
     fun recordStateValue(key: String, value: Boolean) {
-        errorLogger.recordStateValue(key, value)
+        errorLogger?.recordStateValue(key, value)
     }
 
     /**
@@ -369,7 +381,7 @@ class EventManager internal constructor(
      * @param value - A Double with a value for the key
      */
     fun recordStateValue(key: String, value: Double) {
-        errorLogger.recordStateValue(key, value)
+        errorLogger?.recordStateValue(key, value)
     }
 
     /**
@@ -381,7 +393,7 @@ class EventManager internal constructor(
      * @param value - An Int with a value for the key
      */
     fun recordStateValue(key: String, value: Int) {
-        errorLogger.recordStateValue(key, value)
+        errorLogger?.recordStateValue(key, value)
     }
 
     /**
@@ -393,7 +405,7 @@ class EventManager internal constructor(
      * @param value - A Float with a value for the key
      */
     fun recordStateValue(key: String, value: Float) {
-        errorLogger.recordStateValue(key, value)
+        errorLogger?.recordStateValue(key, value)
     }
 
     /**
@@ -405,7 +417,7 @@ class EventManager internal constructor(
      * @param value - A Long with a value for the key
      */
     fun recordStateValue(key: String, value: Long) {
-        errorLogger.recordStateValue(key, value)
+        errorLogger?.recordStateValue(key, value)
     }
 
 }

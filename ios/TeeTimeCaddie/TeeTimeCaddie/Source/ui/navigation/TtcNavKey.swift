@@ -32,7 +32,7 @@ import TeeTimeCaddieKit
 /// struct SettingsDestination: TtcNavKey {
 ///     static let shared = SettingsDestination()
 ///
-///     func destinationView(_ navigator: Navigator) -> some View {
+///     func destinationView(_ navigator: any Navigator) -> some View {
 ///         SettingsScreen(onBackClicked: { navigator.pop() })
 ///     }
 /// }
@@ -45,7 +45,7 @@ import TeeTimeCaddieKit
 ///
 ///     var authRequired: Bool { true }
 ///
-///     func destinationView(_ navigator: Navigator) -> some View {
+///     func destinationView(_ navigator: any Navigator) -> some View {
 ///         // Return appropriate view based on case
 ///     }
 /// }
@@ -82,7 +82,7 @@ protocol TtcNavKey: Hashable, Equatable, Identifiable {
     ///
     /// ## Example Implementation
     /// ```swift
-    /// func destinationView(_ navigator: Navigator) -> some View {
+    /// func destinationView(_ navigator: any Navigator) -> some View {
     ///     ProfileScreen(
     ///         onEditClicked: { navigator.navigateToEditProfile() },
     ///         onBackClicked: { navigator.pop() }
@@ -91,7 +91,7 @@ protocol TtcNavKey: Hashable, Equatable, Identifiable {
     /// ```
     @MainActor
     @ViewBuilder
-    func destinationView(_ navigator: Navigator) -> Screen
+    func destinationView(_ navigator: any Navigator) -> Screen
 }
 
 /// Default implementations for optional CdiNavKey properties.

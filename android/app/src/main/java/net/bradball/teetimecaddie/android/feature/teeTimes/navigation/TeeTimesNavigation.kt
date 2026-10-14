@@ -74,7 +74,7 @@ fun Navigator.navigateToAddTeeTime() {
  *
  * ## Usage
  *
- * This function is called from [TtcNavDisplay] during app initialization:
+ * This function is called from [NavBarNavDisplay] during app initialization:
  *
  * ```kotlin
  * entryProvider = entryProvider {
