@@ -96,6 +96,12 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     data class EditTeeTime(val times: Int, val players: Int): AnalyticsEvent("tee_time_edit", EventType.OPERATION)
     @Serializable
     object TeeTimeListItemClick: AnalyticsEvent("tee_time_list_item_click", EventType.CLICK)
+    /** An organizer published a new Game. [slots] is how many players its tee time holds. */
+    @Serializable
+    data class PublishGame(val slots: Int): AnalyticsEvent("publish_game", EventType.OPERATION)
+    /** A Game was tapped on the Games tab, opening its details. */
+    @Serializable
+    object GameListItemClick: AnalyticsEvent("game_list_item_click", EventType.CLICK)
 
 
     @OptIn(ExperimentalSerializationApi::class)

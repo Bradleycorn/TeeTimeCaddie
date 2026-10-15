@@ -5,12 +5,15 @@ import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import dev.gitlive.firebase.storage.storage
 import net.bradbal.teetimecaddie.core.storage.StorageModule
+import net.bradbal.teetimecaddie.core.storage.provideGameStorage
 import net.bradbal.teetimecaddie.core.storage.providePlayerPhotoStorage
 import net.bradbal.teetimecaddie.core.storage.providePlayerStorage
 import net.bradbal.teetimecaddie.core.storage.provideTeeTimeStorage
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.auth.AuthRepositoryImpl
+import net.bradball.teetimecaddie.features.games.GamesRepository
+import net.bradball.teetimecaddie.features.games.GamesRepositoryImpl
 import net.bradball.teetimecaddie.features.players.PlayerRepository
 import net.bradball.teetimecaddie.features.players.PlayerRepositoryImpl
 import net.bradball.teetimecaddie.features.teetimes.TeeTimesRepository
@@ -37,6 +40,10 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
             storageModule.providePlayerStorage(),
             storageModule.providePlayerPhotoStorage()
         )
+    }
+
+    val gamesRepository: GamesRepository by lazy {
+        GamesRepositoryImpl(eventManager, storageModule.provideGameStorage())
     }
 
     val teeTimesRepository: TeeTimesRepository by lazy {

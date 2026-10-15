@@ -44,6 +44,25 @@ val LocalTime.formattedTime: String
     }
 
 /**
+ * Formats a LocalDate as a short weekday, month and day, the way a game's date reads in the app.
+ *
+ * Examples:
+ * - LocalDate(2026, 6, 13) -> "Sat, Jun 13"
+ * - LocalDate(2026, 12, 1) -> "Tue, Dec 1"
+ *
+ * English only, like [formattedTime]. The year is left off on purpose: games are always upcoming,
+ * so it is never ambiguous.
+ *
+ * @return A formatted date string in "EEE, MMM d" format.
+ */
+val LocalDate.formattedDate: String
+    get() {
+        val weekday = dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
+        val monthName = month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
+        return "$weekday, $monthName $day"
+    }
+
+/**
  * Converts a timestamp to a LocalDate.
  * This method interprets the timestamp in the passed in timezone, and returns the calendar
  * date that the timestamp falls on in that timezone.

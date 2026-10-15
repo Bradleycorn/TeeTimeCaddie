@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <!-- Tab label. The list screen shows the brand name as its title; this names the tab. -->
+    <string name="games_title">Games</string>
+
+    <!-- ==== Games tab (TTC-68) ==== -->
+    <string name="games_upcoming_header">Upcoming games</string>
+    <string name="games_empty_title">No games yet</string>
+    <string name="games_empty_message">Booked a tee time? Turn it into a game so your foursome lives somewhere other than a text thread.</string>
+    <string name="games_create_button">Create a game</string>
+    <!-- Spoken label for the + control that opens New game. -->
+    <string name="games_new_game_action">New game</string>
+    <!-- A row's second line: the formatted date, then the tee time. "Sat, Jun 13 · 9:00 AM" -->
+    <string name="games_row_date_time">%1$s · %2$s</string>
+
+    <!-- ==== New game (TTC-68) ==== -->
+    <string name="new_game_title">New game</string>
+    <string name="new_game_section_where_when">Where &amp; when</string>
+    <string name="new_game_field_course">Course</string>
+    <string name="new_game_field_course_placeholder">e.g. Pebble Beach</string>
+    <string name="new_game_field_date">Date</string>
+    <string name="new_game_field_date_placeholder">Pick a date</string>
+    <string name="new_game_field_tee_time">Tee time</string>
+    <string name="new_game_field_tee_time_placeholder">Set tee time</string>
+    <string name="new_game_section_players">How many players</string>
+    <string name="new_game_publish_button">Publish game</string>
+    <!-- Spoken label for the Android ✕ that leaves New game. -->
+    <string name="new_game_close">Close</string>
+
+    <!--
+      Asked before every publish until invitees arrive in TTC-69. The copy is proposed in the
+      story, not drawn in the design.
+    -->
+    <string name="new_game_no_invitees_title">Publish with no invitees?</string>
+    <string name="new_game_no_invitees_message">You haven\'t invited anyone to this game yet.</string>
+    <string name="new_game_no_invitees_keep_editing">Keep editing</string>
+    <string name="new_game_no_invitees_publish_anyway">Publish anyway</string>
+
+    <!-- The confirmation after publishing. The course name is the stored spelling. -->
+    <string name="new_game_published_message">%s game published</string>
+
+    <!-- ==== Game details (TTC-68) ==== -->
+    <string name="game_details_title">Game details</string>
+    <string name="game_details_organizer_chip">You are the organizer</string>
+    <string name="game_details_organizer_label">Organizer</string>
+    <string name="game_details_empty_slot">Empty slot</string>
+    <!-- A tee time's fill count: players, then slots. "1/4 filled" -->
+    <string name="game_details_filled_count">%1$s/%2$s filled</string>
+
+    <!-- ==== Errors ==== -->
+    <string name="game_error_title">We couldn\'t publish your game</string>
+    <string name="game_error_no_course_message">Enter the course you\'re playing.</string>
+    <string name="game_error_invalid_slots_message">A tee time holds between 1 and 4 players.</string>
+    <string name="game_error_publish_failed_message">Your game didn\'t make it to the clubhouse.</string>
+    <string name="game_error_publish_failed_recovery">Try again.</string>
+    <string name="game_error_not_found_title">That game is gone</string>
+    <string name="game_error_not_found_message">We couldn\'t find that game.</string>
+    <string name="game_error_load_failed_title">We couldn\'t load that game</string>
+    <string name="game_error_load_failed_message">Something went wrong reading it.</string>
+    <string name="game_error_load_failed_recovery">Try again.</string>
+</resources>

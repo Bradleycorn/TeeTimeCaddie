@@ -86,4 +86,13 @@ sealed class AnalyticsScreen(val name: String, val viewName: String, val paramet
 
     /** The screen for editing an existing tee time */
     class EditTeeTime(viewName: String): AnalyticsScreen(name = "EditTeeTime", viewName)
+
+    /** The Games tab: the signed-in person's upcoming games, or the empty state. */
+    class Games(viewName: String): AnalyticsScreen(name = "Games", viewName)
+
+    /** The form for creating and publishing a new game. */
+    class NewGame(viewName: String): AnalyticsScreen(name = "NewGame", viewName)
+
+    /** A single game's details. */
+    class GameDetails(viewName: String): AnalyticsScreen(name = "GameDetails", viewName)
 }
