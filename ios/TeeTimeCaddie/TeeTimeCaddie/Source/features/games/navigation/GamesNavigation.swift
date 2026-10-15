@@ -26,7 +26,19 @@ enum GamesDestinations: @MainActor TtcNavKey {
             .toolbar(.hidden, for: .navigationBar)
 
         case .newGame:
-            EmptyView()
+            NewGameScreen(
+                // Back to the Games tab, not on to the new game's details.
+                onPublished: { navigator.pop() }
+            )
+            .navigationTitle(GMR.strings().new_game_title.localized())
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    // Leaves without saving and without asking.
+                    Button(GR.strings().cancel.localized()) { navigator.pop() }
+                }
+            }
 
         case .gameDetails:
             EmptyView()

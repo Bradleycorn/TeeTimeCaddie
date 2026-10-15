@@ -89,8 +89,8 @@ final class FakeGamesRepository: GamesRepository {
         publishRequests.append(PublishRequest(
             organizerId: organizer.id,
             courseName: courseName,
-            date: date.description(),
-            time: time.description(),
+            date: date.description,
+            time: time.description,
             slots: slots
         ))
         if let publishFailure {
