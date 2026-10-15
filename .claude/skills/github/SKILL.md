@@ -5,7 +5,8 @@ description: The TeeTimeCaddie repo's GitHub conventions — the epic/story bran
 
 # Working with GitHub on TeeTimeCaddie
 
-Repo `https://github.com/Bradleycorn/TeeTimeCaddie.git`. `gh` is installed and authenticated.
+`gh` is installed and authenticated, and resolves the repo from the checkout — the `{owner}` and
+`{repo}` placeholders below are filled in by `gh api` itself.
 
 This skill is GitHub only. It assumes you already have the issue's key, summary, and parent epic
 key from Jira.
@@ -14,15 +15,20 @@ key from Jira.
 
 | You are about to | Read |
 |---|---|
-| Start work on an issue — find or create the branch | `references/branching.md` |
-| Push finished code and open the PR | `references/pull-requests.md` |
+| Find or create a branch, update it from its base, or place out-of-scope changes | `references/branching.md` |
+| Open the PR (draft or ready), update its description, or mark it ready | `references/pull-requests.md` |
 | Address review comments or feedback on a PR | `references/pr-feedback.md` |
 
 Read one. They cover different moments and don't overlap.
 
 ## Rules that always apply
 
-- **Commit messages:** Commit frequently (once per Jira sub-task) rather than in one lump at the end.
+- **Commit cadence:** at least one commit per Jira sub-task, and no commit spans two sub-tasks.
+  PR-feedback fixes are separate follow-up commits, keyed to the sub-task that owns the changed
+  code.
+- **Commit message format:** follow the commit-message convention in CLAUDE.md.
+- **Stage only files you changed.** Never `git add -A` or `git add .` — name the files. If
+  `git status` shows changes you didn't make, stop and ask; they are the user's work in progress.
 - **A story PR never targets `main`.** It targets the branch the story was cut from.
 - **Never create an epic branch without asking**, and never assume its base.
 - **Never force-push.**
