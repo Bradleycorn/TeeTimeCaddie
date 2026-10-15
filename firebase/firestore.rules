@@ -12,12 +12,6 @@ rules_version = '2';
 //   - phone: string (required, digits only, 10-15) - matched against invitations
 //   - photoUrl: string (optional) - avatar download URL
 //
-// Collection: teetimes (legacy; removed once the Games feature replaces it)
-// Document ID: auto
-// Fields:
-//   - createdBy: string (required, creator's uid)
-//   - course, date, times - unvalidated legacy shape
-//
 // Collection: courses
 // Document ID: nameKey — the course name normalised for matching (lowercase, single spaces)
 // Fields:
@@ -171,12 +165,6 @@ service cloud.firestore {
         && request.resource.data.email == resource.data.email;
 
       allow delete: if false;
-    }
-
-    match /teetimes/{teeTimeId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
     }
 
     match /courses/{courseKey} {

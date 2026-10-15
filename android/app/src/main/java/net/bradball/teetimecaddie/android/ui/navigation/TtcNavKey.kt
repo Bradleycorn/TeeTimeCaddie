@@ -27,14 +27,7 @@ import androidx.navigation3.runtime.NavKey
  *
  * // Destination with parameters
  * @Serializable
- * data class TeeTimeDetailDestination(val teeTimeId: String): TtcNavKey
- *
- * // Nested destination within a feature
- * @Serializable
- * data class EditTeeTimeDestination(
- *     val teeTimeId: String,
- *     val returnToList: Boolean = false
- * ): TtcNavKey
+ * data class GameDetailsDestination(val gameId: String): TtcNavKey
  * ```
  *
  * ## Types of Destinations
@@ -66,10 +59,10 @@ import androidx.navigation3.runtime.NavKey
  * navigator.navigate(LoginDestination)
  *
  * // Navigate with parameters
- * navigator.navigate(TeeTimeDetailDestination(teeTimeId = "123"))
+ * navigator.navigate(GameDetailsDestination(gameId = "123"))
  *
  * // Navigate and clear back stack
- * navigator.navigate(TeeTimesListDestination, clearBackStack = true)
+ * navigator.navigate(GamesListDestination, clearBackStack = true)
  * ```
  *
  * ## Future Enhancements

@@ -67,7 +67,7 @@ multiplatformResources {
 // GitLive's Firebase modules bake `-framework FirebaseCore` (and friends) into their linker
 // options, but those frameworks only exist inside the iOS app's SPM checkout — so `ld` fails with
 // "framework 'FirebaseCore' not found" for any module that depends on them, directly or
-// transitively. This predates TTC-67: :sdk:features:teetimes has always had it.
+// transitively. This predates TTC-67: the old :sdk:features:teetimes module always had it.
 //
 // The tests in these modules are platform-agnostic Kotlin with no expect/actual, so running them
 // on the JVM gives equivalent coverage. Disabling the iOS test tasks is what keeps `./gradlew

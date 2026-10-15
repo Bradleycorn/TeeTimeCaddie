@@ -9,8 +9,6 @@ expect class StorageModule {
 
 fun StorageModule.providePlayerStorage(): PlayerStorage = PlayerStorage()
 
-fun StorageModule.provideTeeTimeStorage(): TeeTimeStorage = TeeTimeStorage()
-
 fun StorageModule.providePlayerPhotoStorage(): PlayerPhotoStorage = PlayerPhotoStorage()
 
 fun StorageModule.provideGameStorage(): GameStorage = FirestoreGameStorage()

@@ -23,8 +23,8 @@ import SwiftUI
 ///
 /// ```swift
 /// extension Navigator {
-///     func navigateToAddTeeTime() {
-///         navigate(to: TeeTimesDestinations.addTeeTime)
+///     func navigateToNewGame() {
+///         navigate(to: GamesDestinations.newGame)
 ///     }
 /// }
 /// ```

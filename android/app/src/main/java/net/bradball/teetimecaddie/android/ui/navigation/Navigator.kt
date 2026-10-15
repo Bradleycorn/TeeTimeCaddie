@@ -23,8 +23,8 @@ import androidx.navigation3.ui.NavDisplay
  * are declared on `Navigator`, not on an implementation**:
  *
  * ```kotlin
- * fun Navigator.navigateToAddTeeTime() {
- *     navigate(AddTeeTimeDestination)
+ * fun Navigator.navigateToNewGame() {
+ *     navigate(NewGameDestination)
  * }
  * ```
  *
@@ -38,26 +38,26 @@ import androidx.navigation3.ui.NavDisplay
  *
  * ❌ **Incorrect — don't do this:**
  * ```kotlin
- * fun EntryProviderScope<NavKey>.teeTimesEntries(navigator: Navigator) {
- *     entry<TeeTimesListDestination> {
- *         TeeTimesListScreen(navigator = navigator) // ❌ Bad!
+ * fun EntryProviderScope<NavKey>.gamesEntries(navigator: Navigator) {
+ *     entry<GamesListDestination> {
+ *         GamesListScreen(navigator = navigator) // ❌ Bad!
  *     }
  * }
  * ```
  *
  * ✅ **Correct — do this instead:**
  * ```kotlin
- * fun EntryProviderScope<NavKey>.teeTimesEntries(navigator: Navigator) {
- *     entry<TeeTimesListDestination> {
- *         TeeTimesListScreen(
- *             onAddTeeTimeClick = { navigator.navigateToAddTeeTime() } // ✅ Good!
+ * fun EntryProviderScope<NavKey>.gamesEntries(navigator: Navigator) {
+ *     entry<GamesListDestination> {
+ *         GamesListScreen(
+ *             onNewGameClick = { navigator.navigateToNewGame() } // ✅ Good!
  *         )
  *     }
  * }
  *
  * @Composable
- * fun TeeTimesListScreen(
- *     onAddTeeTimeClick: () -> Unit // ✅ Screen only knows about callbacks
+ * fun GamesListScreen(
+ *     onNewGameClick: () -> Unit // ✅ Screen only knows about callbacks
  * ) {
  *     // Screen implementation
  * }
@@ -75,7 +75,7 @@ import androidx.navigation3.ui.NavDisplay
  * - **[TtcNavKey]** — the marker interface every navigation destination implements
  * - **[TopLevelDestination]** — the app's tabs, and the only thing [NavBarNavigator] adds
  * - **NavDisplay** — the Compose component that renders the current destination
- * - **Navigation extensions** — per-feature helpers (`AuthNavigation.kt`, `TeeTimesNavigation.kt`)
+ * - **Navigation extensions** — per-feature helpers (`AuthNavigation.kt`, `GamesNavigation.kt`)
  *
  * ## Defining Destinations
  *

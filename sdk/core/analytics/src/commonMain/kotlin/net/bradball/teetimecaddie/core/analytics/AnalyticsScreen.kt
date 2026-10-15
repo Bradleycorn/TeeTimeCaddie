@@ -78,15 +78,6 @@ sealed class AnalyticsScreen(val name: String, val viewName: String, val paramet
     /** The signed-in person's own profile tab. */
     class Profile(viewName: String): AnalyticsScreen(name = "Profile", viewName)
 
-    /** The list view showing available tee times */
-    class TeeTimeList(viewName: String): AnalyticsScreen(name = "TeeTimeList", viewName)
-
-    /** The screen for adding a new tee time */
-    class AddTeeTime(viewName: String): AnalyticsScreen(name = "AddTeeTime", viewName)
-
-    /** The screen for editing an existing tee time */
-    class EditTeeTime(viewName: String): AnalyticsScreen(name = "EditTeeTime", viewName)
-
     /** The Games tab: the signed-in person's upcoming games, or the empty state. */
     class Games(viewName: String): AnalyticsScreen(name = "Games", viewName)
 

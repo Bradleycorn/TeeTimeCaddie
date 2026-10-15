@@ -82,20 +82,6 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     data class AbandonedRegistration(val reason: String? = null): AnalyticsEvent("abandoned_registration", EventType.OPERATION)
     @Serializable
     object SignOut: AnalyticsEvent("sign_out", EventType.OPERATION)
-    @Serializable
-    data class AddTeeTime(val times: Int, val players: Int): AnalyticsEvent("add_tee_time", EventType.OPERATION)
-    @Serializable
-    object AddTimeClick: AnalyticsEvent("add_time_click", EventType.CLICK)
-    @Serializable
-    object AddTime: AnalyticsEvent("add_time", EventType.OPERATION)
-    @Serializable
-    data class NumberOfPlayersClick(val numberOfPlayers: Int): AnalyticsEvent("number_of_players_click", EventType.CLICK)
-    @Serializable
-    object RemoveTimeClick: AnalyticsEvent("remove_time_click", EventType.CLICK)
-    @Serializable
-    data class EditTeeTime(val times: Int, val players: Int): AnalyticsEvent("tee_time_edit", EventType.OPERATION)
-    @Serializable
-    object TeeTimeListItemClick: AnalyticsEvent("tee_time_list_item_click", EventType.CLICK)
     /** An organizer published a new Game. [slots] is how many players its tee time holds. */
     @Serializable
     data class PublishGame(val slots: Int): AnalyticsEvent("publish_game", EventType.OPERATION)

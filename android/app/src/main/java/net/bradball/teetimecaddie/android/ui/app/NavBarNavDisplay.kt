@@ -9,7 +9,6 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import net.bradball.teetimecaddie.android.feature.games.navigation.gamesEntries
 import net.bradball.teetimecaddie.android.feature.profile.navigation.profileEntries
-import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesEntries
 import net.bradball.teetimecaddie.android.ui.common.navigation.TtcNavigationBar
 import net.bradball.teetimecaddie.android.ui.navigation.NavBarNavigator
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
@@ -54,7 +53,7 @@ import net.bradball.teetimecaddie.android.ui.navigation.rememberNavBarNavigator
  *
  * @see AuthNavDisplay
  * @see NavBarNavigator
- * @see teeTimesEntries
+ * @see gamesEntries
  * @see profileEntries
  */
 @Composable
@@ -68,7 +67,6 @@ fun NavBarNavDisplay(modifier: Modifier = Modifier) {
             onBack = { navigator.goBack() },
             entryProvider = entryProvider {
                 gamesEntries(navigator)
-                teeTimesEntries(navigator)
                 profileEntries(navigator)
             },
             entryDecorators = listOf(

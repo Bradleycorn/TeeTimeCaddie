@@ -13,11 +13,11 @@ import ThemeUI
 ///
 /// ```swift
 /// TtcEmptyState(
-///     title: TTR.strings().empty_tee_times_title.desc().localized(),
+///     title: GMR.strings().games_empty_title.localized(),
 ///     icon: .teeEmpty,
-///     description: TTR.strings().empty_tee_times_message.desc().localized()
+///     description: GMR.strings().games_empty_message.localized()
 /// ) {
-///     TtcButton("Add a tee time", icon: .Icons.calendarAdd) { onAdd() }
+///     TtcButton(GMR.strings().games_create_button.localized(), icon: .symbol(.plus)) { onCreate() }
 /// }
 /// .frame(maxWidth: .infinity, maxHeight: .infinity)
 /// ```

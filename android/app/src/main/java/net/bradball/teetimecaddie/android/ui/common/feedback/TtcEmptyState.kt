@@ -40,11 +40,11 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  * ```
  * Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
  *     TtcEmptyState(
- *         title = stringResource(TTR.strings.empty_tee_times_title.resourceId),
- *         icon = TtcIcons.TEE,
- *         description = stringResource(TTR.strings.empty_tee_times_message.resourceId),
+ *         title = stringResource(GMR.strings.games_empty_title.resourceId),
+ *         icon = TtcIcons.GOLF_COURSE,
+ *         description = stringResource(GMR.strings.games_empty_message.resourceId),
  *     ) {
- *         TtcButton("Add a tee time", onClick = onAdd, icon = TtcIcons.ADD)
+ *         TtcButton("Create a game", onClick = onCreate, icon = TtcIcons.ADD)
  *     }
  * }
  * ```

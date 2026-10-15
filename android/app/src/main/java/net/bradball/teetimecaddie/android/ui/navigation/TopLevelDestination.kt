@@ -17,18 +17,18 @@ import net.bradball.teetimecaddie.features.games.GMR
  *
  * ## Multi-Stack Navigation
  *
- * When a user switches between top-level destinations, their position within each section
- * is preserved. For example:
+ * Each top-level destination keeps its own back stack. Pushed screens hide the navigation bar,
+ * so the player backs out to a tab's root before switching tabs:
  *
  * ```kotlin
- * // User is viewing Tee Times List, then navigates to Add Tee Time
- * navigator.navigateToAddTeeTime()
+ * // On the Games tab, open the New game form; the navigation bar hides
+ * navigator.navigateToNewGame()
  *
- * // User switches to a different top-level destination (when more are added)
+ * // Back on the Games list; the navigation bar shows again
+ * navigator.goBack()
+ *
+ * // Switch tabs
  * navigator.navigate(TopLevelDestination.PROFILE)
- *
- * // User switches back to Tee Times - they're still on Add Tee Time screen
- * navigator.navigate(TopLevelDestination.TEE_TIMES)
  * ```
  *
  * ## Adding New Top-Level Destinations
@@ -67,7 +67,7 @@ import net.bradball.teetimecaddie.features.games.GMR
  *     backStack = navigator.backStack,
  *     onBack = { navigator.goBack() },
  *     entryProvider = entryProvider {
- *         teeTimesEntries(navigator)
+ *         gamesEntries(navigator)
  *         profileEntries(navigator) // Add new entries
  *     }
  * )

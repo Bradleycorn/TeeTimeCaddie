@@ -53,13 +53,13 @@ fun rememberNavBarNavigator(startDestination: TopLevelDestination): NavBarNaviga
 /**
  * A [Navigator] with one back stack **per** [TopLevelDestination] — the tabbed, signed-in app.
  *
- * Switching tabs preserves your position in each: navigate Games → Add Tee Time, switch to Profile,
- * switch back, and Add Tee Time is still there.
+ * Each tab keeps its own back stack. Since pushed screens hide the navigation bar (see
+ * [isAtTopLevel]), a tab switch always starts from a root, and each stack is just that root.
  *
  * ```kotlin
- * navigator.navigateToAddTeeTime()                     // pushes onto the Games stack
+ * navigator.navigateToNewGame()                        // pushes onto the Games stack
  * navigator.navigate(TopLevelDestination.PROFILE)      // switches tab; Games stack is untouched
- * navigator.navigate(TopLevelDestination.TEE_TIMES)    // back on Add Tee Time
+ * navigator.navigate(TopLevelDestination.TEE_TIMES)    // back on the Games stack
  * ```
  *
  * Passing a [TopLevelDestination] to [navigate] switches tabs; passing anything else pushes onto
