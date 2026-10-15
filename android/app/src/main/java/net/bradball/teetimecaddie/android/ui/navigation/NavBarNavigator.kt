@@ -112,6 +112,20 @@ class NavBarNavigator(startDestination: TopLevelDestination) : Navigator {
     override val currentDestination: NavKey?
         get() = backStack.lastOrNull()
 
+    /**
+     * Whether the current destination is a tab's root screen.
+     *
+     * The navigation bar shows only when this is true. Every screen pushed onto a tab — a form, a
+     * details screen — hides it, so the player backs out to the top level before switching tabs.
+     * One rule rather than a per-destination flag: there is nothing to remember to set on a new
+     * destination, and switching tabs never strands a half-finished flow on another tab's stack.
+     *
+     * Reads [backStack], which is snapshot state, so a composable reading this recomposes when it
+     * changes.
+     */
+    val isAtTopLevel: Boolean
+        get() = topLevelDestinations.any { it.destination == currentDestination }
+
     private fun updateBackStack() =
         backStack.apply {
             clear()

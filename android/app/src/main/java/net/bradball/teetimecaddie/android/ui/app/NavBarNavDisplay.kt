@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import net.bradball.teetimecaddie.android.feature.games.navigation.gamesEntries
 import net.bradball.teetimecaddie.android.feature.profile.navigation.profileEntries
 import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.teeTimesEntries
 import net.bradball.teetimecaddie.android.ui.common.navigation.TtcNavigationBar
@@ -18,6 +19,8 @@ import net.bradball.teetimecaddie.android.ui.navigation.rememberNavBarNavigator
 /**
  * The tabbed app: a [NavDisplay] above a [TtcNavigationBar], backed by a [NavBarNavigator].
  *
+ * The bar shows only on a tab's root screen ([NavBarNavigator.isAtTopLevel]).
+ *
  * This is the signed-in half of [TeeTimeCaddieApp]. Auth entries are deliberately absent — auth is
  * not somewhere the signed-in app can navigate to, it is the other branch, hosted by
  * [AuthNavDisplay].
@@ -28,7 +31,7 @@ import net.bradball.teetimecaddie.android.ui.navigation.rememberNavBarNavigator
  *
  * ```kotlin
  * entryProvider = entryProvider {
- *     teeTimesEntries(navigator)
+ *     gamesEntries(navigator)
  *     profileEntries(navigator)
  * }
  * ```
@@ -64,6 +67,7 @@ fun NavBarNavDisplay(modifier: Modifier = Modifier) {
             modifier = Modifier.weight(1F),
             onBack = { navigator.goBack() },
             entryProvider = entryProvider {
+                gamesEntries(navigator)
                 teeTimesEntries(navigator)
                 profileEntries(navigator)
             },
@@ -73,10 +77,13 @@ fun NavBarNavDisplay(modifier: Modifier = Modifier) {
             )
         )
 
-        TtcNavigationBar(
-            destinations = navigator.topLevelDestinations,
-            selected = navigator.selectedTopLevelDestination,
-            onSelect = { navigator.navigate(it) },
-        )
+        // Only on a tab's root screen; anything pushed on top hides it.
+        if (navigator.isAtTopLevel) {
+            TtcNavigationBar(
+                destinations = navigator.topLevelDestinations,
+                selected = navigator.selectedTopLevelDestination,
+                onSelect = { navigator.navigate(it) },
+            )
+        }
     }
 }

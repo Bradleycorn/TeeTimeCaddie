@@ -1,0 +1,6 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24dp" android:tint="#000000" android:viewportHeight="960" android:viewportWidth="960" android:width="24dp">
+    <!-- Material Symbols "arrow_drop_down". The source viewBox starts at y=-960, hence the translate. -->
+    <group android:translateY="960">
+        <path android:fillColor="@android:color/white" android:pathData="M480-360 280-560h400L480-360Z"/>
+    </group>
+</vector>
