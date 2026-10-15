@@ -28,7 +28,7 @@ gh api repos/{owner}/{repo}/issues/<n>/comments \
 way to tell what is still outstanding:
 
 ```bash
-gh api graphql -f owner=Bradleycorn -f repo=TeeTimeCaddie -F pr=<n> -f query='
+gh api graphql -F owner='{owner}' -F repo='{repo}' -F pr=<n> -f query='
 query($owner:String!, $repo:String!, $pr:Int!) {
   repository(owner:$owner, name:$repo) {
     pullRequest(number:$pr) {

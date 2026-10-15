@@ -12,9 +12,42 @@ get notifications of upcoming games, etc.
 The project uses a modular architecture with shared business logic (80-90% code sharing) and 
 platform-specific UI implementations.
 
-**IMPORTANT:** EVERY time I ask you to implement a Jira Issue (Story, Defect, etc), you must
-follow all steps and guidelines in the **Jira Issue Workflow** section below, as well as the
-guidelines in the **Development Workflow** section.
+**IMPORTANT:** EVERY time I ask you to implement a Jira Issue (Story, Defect, etc), use the
+`jira-issue` skill, and follow the **Development Guidelines** section below.
+
+## Jira (TTC)
+
+**Routing.** TTC issues live on the personal site — use the `Atlassian` MCP server, not
+TwinSpires. Site `bradleycorn.atlassian.net`, cloudId `5f936620-68a5-4bc4-93c9-2554f20f6511`.
+The site rejects unbounded JQL; always constrain by project or date
+(`project = TTC AND parent = TTC-66`).
+
+**Custom fields.** Acceptance Criteria = `customfield_10130`, Development Notes =
+`customfield_10131`, both rich text (ADF).
+- Reads omit them: `getJiraIssue` returns them only with `fields: ["*all"]` (add
+  `expand: "names"` to map ids to labels).
+- Writes take ADF only. `contentFormat: "markdown"` is rejected for custom fields; it converts
+  only `description` and comments.
+- An edit replaces the whole field value. There is no append.
+
+**Issue types.** Story, and the sub-task type `Subtask`.
+
+**Assignees.** Brad Ball `5c28e6f1553b6b6604ec4b4e`; "Claude Code"
+`712020:1e0aed79-20e7-4762-86ba-8a980721965e`.
+
+**Transitions.** Story and Subtask share one workflow, and every transition is available from
+any status. Transition by id, not by matching names.
+
+| Transition | Id |
+|---|---|
+| To Do | `11` |
+| In Progress | `21` |
+| IN REVIEW | `2` |
+| Done | `31` |
+
+**Commit messages.** Issue work: `<SUB-TASK KEY> <Imperative summary>`, e.g.
+`TTC-83 Fix the lost auth confirmations` — key, space, no colon. Work outside an issue:
+`chore: <summary>`.
 
 
 ## Project Structure

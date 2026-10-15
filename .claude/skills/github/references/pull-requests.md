@@ -1,6 +1,8 @@
 # Opening the PR
 
-Read this when the code is written and committed.
+Read this when it's time to open a PR — either a ready PR for finished code, or a draft opened
+early so the user can review while work continues (see "Opening it as a draft" below). When to
+open a draft is the caller's decision; this file covers how.
 
 ## 1. Confirm the base branch
 
@@ -39,6 +41,21 @@ The body covers:
 - **Breaking changes / migration notes**, when there are any
 - **Screenshots** for any UI change — both platforms if both changed
 
+### Opening it as a draft
+
+Same steps, with `--draft` added to `gh pr create`. While the PR is a draft:
+
+- **The body is a living checklist** of the issue's sub-tasks — `- [x] TTC-76 …` for done,
+  `- [ ] TTC-77 …` for not yet. Update it as sub-tasks finish (see "Updating the PR body").
+- Push each commit as you go; the PR updates itself.
+
+When all the work is in:
+
+1. Rewrite the body to describe what was actually built — the sections from step 3, not the
+   checklist.
+2. `gh pr ready <n>`
+3. Confirm: `gh pr view <n> --json isDraft,body`
+
 ## 4. Stop
 
 Report the PR URL and the base branch it targets. **Do not merge it and do not delete the
@@ -46,6 +63,19 @@ branch** — that is the user's call, and they will do it themselves after revie
 
 Once they do merge, the story branch is gone; further work on that issue needs a fresh branch off
 the updated base.
+
+## Updating the PR body
+
+Don't use `gh pr edit`. It can hit the same Projects (classic) deprecation error described below
+and exit 0 without changing anything. Patch the PR over REST instead, then re-read it to confirm:
+
+```bash
+gh api --method PATCH repos/{owner}/{repo}/pulls/<n> -F body=@pr-body.md
+gh pr view <n> --json body --jq .body
+```
+
+Write the body to a scratch file first; `-F body=@file` reads it verbatim, which avoids shell
+quoting problems with long markdown.
 
 ## Follow-ups that are not merges
 

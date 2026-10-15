@@ -8,7 +8,7 @@ description: Adds Design Criteria and Development Notes to a TeeTimeCaddie (TTC)
 Story preparation: edits two Jira fields.
 
 - `references/design-project.md` — project ids, file layout, screen-to-story map, fixtures
-- `references/jira-mechanics.md` — cloudId, field ids, ADF rules, verification script
+- `references/writing-the-fields.md` — ADF payload, field shape, verbatim ACs, verification script
 - `references/example-ttc-67.md` — accepted output, plus rejected drafts and why
 
 ## Workflow
@@ -68,7 +68,7 @@ fixtures.
 
 ## Development Notes
 
-`customfield_10131`, developer-facing. Lead with: build from the existing `ui/common` components
+The Development Notes field, developer-facing. Lead with: build from the existing `ui/common` components
 wherever one fits — they carry the design system's colors, type, and shape scale. Then the gaps
 from the component inventory, preferring composition and naming what to compose from (a `TtcCard`
 with an `Error` color role beats a new `TtcBanner`). Leave unknowns as questions.
