@@ -48,3 +48,21 @@ git checkout -b story/TTC-101-login-screen
 
 **Remember the base branch.** The PR must target it, and re-deriving it later is how a story PR
 ends up pointed at `main` by mistake. State it back to the user when you report the new branch.
+
+## Bringing in changes from the base
+
+When the base branch has moved on (for example, the user merged their own work into the epic
+branch), **merge** it into the story branch:
+
+```bash
+git fetch origin
+git merge origin/epic/TTC-100-user-management
+```
+
+Never rebase a branch that has been pushed — that needs a force-push.
+
+## Changes outside the issue's scope
+
+Tooling, skills, CLAUDE.md, and other changes that aren't part of the issue don't go on the story
+branch. Put them on `chore/<short-description>` cut from `main`, with their own PR against `main`.
+That keeps the story PR limited to the feature.
