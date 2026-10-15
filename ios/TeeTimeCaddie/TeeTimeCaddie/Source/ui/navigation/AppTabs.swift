@@ -39,8 +39,8 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
 
     /// The games list — the app's home tab.
     ///
-    /// Labelled "Games" while the case name, feature folder, SDK module and Android twin are all
-    /// still `teeTimes`/`teetimes`. Renaming that hierarchy to match the label is its own change.
+    /// The case is still `teeTimes` while the label, feature folder and SDK module are all
+    /// "games". Renaming the case (and its Android twin) is its own change.
     case teeTimes
 
     /// The signed-in player's own profile.
@@ -61,7 +61,7 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     /// The text label to display in the tab bar for this tab.
     var iconText: String {
         switch self {
-        case .teeTimes: return TTR.strings().games_title.desc().localized()
+        case .teeTimes: return GMR.strings().games_title.localized()
         case .profile: return PR.strings().profile_title.desc().localized()
         }
     }
@@ -85,7 +85,7 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     func destinationView(_ navigator: any Navigator) -> some View {
         switch self {
         case .teeTimes:
-            TeeTimesDestinations.teeTimesList.destinationView(navigator)
+            GamesDestinations.gamesList.destinationView(navigator)
         case .profile:
             ProfileDestinations.profile.destinationView(navigator)
         }

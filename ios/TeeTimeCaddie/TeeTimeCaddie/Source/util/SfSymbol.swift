@@ -6,10 +6,13 @@ enum SfSymbol: String {
     case calendarAdd = "calendar.add"
     case camera = "camera"
     case chevronLeft = "chevron.left"
+    case chevronRight = "chevron.right"
+    case clock = "clock"
     case envelopeBadgePersonCropFill = "envelope.badge.person.crop.fill"
     case exclamationmarkCircleFill = "exclamationmark.circle.fill"
     case eye = "eye"
     case eyeSlash = "eye.slash"
+    case flag = "flag"
     case lockBadgeXmarkFill = "lock.badge.xmark.fill"
     case lockFill = "lock"
     case pencil = "pencil"
@@ -19,6 +22,7 @@ enum SfSymbol: String {
     case phoneBadgeWaveformFill = "phone.badge.waveform.fill"
     case plus = "plus"
     case rectanglePortraitAndArrowRight = "rectangle.portrait.and.arrow.right"
+    case starFill = "star.fill"
     case trash = "trash"
 }
 

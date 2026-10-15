@@ -21,6 +21,10 @@ import SwiftUI
 /// which maps `AnyCdiNavKey` instances to their corresponding views. This is where
 /// new destination types must be added when creating new features.
 ///
+/// ## Tab Bar Visibility
+/// The tab bar shows only on a tab's root view. Every pushed destination hides it, which is the
+/// same rule Android applies through `NavBarNavigator.isAtTopLevel`.
+///
 /// ## Tab Independence
 /// Each TabNavStack operates independently, allowing users to build separate
 /// navigation histories in each tab without affecting other tabs.
@@ -63,14 +67,22 @@ struct TabNavStack: View {
                 .navigationDestination(for: AnyTtcNavKey.self) { key in
                     // Route navigation destinations to their corresponding views
                     // This switch statement must be updated when adding new destination types
-                    switch key.wrapped {
-                    case let navKey as TeeTimesDestinations:
-                        navKey.destinationView(navigator)
-                    case let navKey as ProfileDestinations:
-                        navKey.destinationView(navigator)
-                    default:
-                        fatalError("Unhandled navigation key: \(key)")
+                    Group {
+                        switch key.wrapped {
+                        case let navKey as GamesDestinations:
+                            navKey.destinationView(navigator)
+                        case let navKey as TeeTimesDestinations:
+                            navKey.destinationView(navigator)
+                        case let navKey as ProfileDestinations:
+                            navKey.destinationView(navigator)
+                        default:
+                            fatalError("Unhandled navigation key: \(key)")
+                        }
                     }
+                    // Everything routed here is pushed on top of a tab's root, and the tab bar
+                    // shows only on the root: the player backs out to the top level before
+                    // switching tabs. One rule, applied once, rather than a flag per destination.
+                    .toolbar(.hidden, for: .tabBar)
                 }
         }
     }
