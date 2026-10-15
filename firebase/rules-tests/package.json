@@ -1,0 +1,13 @@
+{
+  "name": "teetimecaddie-rules-tests",
+  "private": true,
+  "description": "Firestore security rules tests. Run from firebase/: firebase emulators:exec --only firestore \"npm --prefix rules-tests test\"",
+  "type": "module",
+  "scripts": {
+    "test": "node --test games.test.js"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.0.0"
+  }
+}
