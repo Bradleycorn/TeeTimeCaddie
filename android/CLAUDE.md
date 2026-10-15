@@ -32,7 +32,8 @@ The app is a thin UI layer over the shared KMP SDK provided by the Kotlin Multip
 ├── analytics/                   - Firebase analytics plugin
 ├── feature/                     - Features container. Each feature should get it's own folder.
 │   ├── auth/                    - Auth screens, VMs, navigation, Hilt module
-│   └── teeTimes/                - Tee times screens, VMs, navigation, Hilt module
+│   ├── games/                   - Games list, New game, Game details, navigation, Hilt module
+│   └── profile/                 - Profile screen, VM, navigation
 ├── ui/
 │   ├── app/                     - Root app composable, app state
 │   ├── common/                  - Shared UI components
@@ -95,7 +96,7 @@ TeeTimeCaddieApp (Composable)
     ↓ (manages app-level state, navigation)
 NavDisplay (androidx.navigation3)
     ↓ (renders screens based on Navigator backStack)
-Feature Screens (Auth, TeeTimes)
+Feature Screens (Auth, Games, Profile)
 ```
 
 ## TeeTimeCaddieSdk
@@ -126,6 +127,14 @@ a navigation destination.
 - **FeatureModules** - Feature Modules (for example, the `AuthModule` (`feature/auth/AuthModule.kt`))
   provide instances of Repositories and other classes related to a specific high level feature.
 
+### Reading the session in a ViewModel
+
+ViewModels that only need to know who is signed in take `StateFlow<@JvmSuppressWildcards SessionState>`
+(provided by `AuthModule`), not `SessionManager`. `SessionManager`'s constructor is internal to the
+SDK, so a ViewModel that takes it can't be unit tested; one that takes the flow can be handed
+`MutableStateFlow(SessionState.SignedIn(previewPlayer))`. Inject `SessionManager` only when the
+ViewModel changes the session (signing in or out, completing sign-up).
+
 ## AppInitializers
 
 AppInitializers is a sophisticated priority-based initializer pattern for startup tasks.
@@ -147,7 +156,7 @@ for each:
   bar. It backs `AuthNavDisplay` (`ui/app/AuthNavDisplay.kt`), the signed-out auth flow.
 
 **Write feature navigation extensions against the `Navigator` interface, not an implementation** —
-`fun Navigator.navigateToAddTeeTime()`, never `fun NavBarNavigator.navigateToAddTeeTime()`. A
+`fun Navigator.navigateToNewGame()`, never `fun NavBarNavigator.navigateToNewGame()`. A
 feature written that way can be hosted in either context without changes, and there is only one
 navigation architecture to learn.
 
@@ -155,6 +164,12 @@ Each display composable creates its own navigator with `rememberNavBarNavigator`
 `rememberBasicNavigator` rather than receiving one. That is deliberate: where the navigator is
 remembered decides how long its stacks live, and creating it inside the branch is what discards a
 signed-out player's Games history instead of leaving it behind the credentials screen.
+
+**The navigation bar shows only on a tab's root screen.** Every destination pushed onto a tab
+(New game, Game details, and so on) hides it, so the player backs out to the top level before
+switching tabs. This is one rule, `NavBarNavigator.isAtTopLevel`, applied in `NavBarNavDisplay`.
+There is no per-destination flag to set; a new destination gets it automatically. The iOS app
+applies the same rule in `TabNavStack`.
 
 ### Passing Navigation Parameters to ViewModels
 
@@ -298,5 +313,23 @@ To display an icon, the enum provides a `painter` property to expose the icon re
 object for use with Image/Icon composables. You can render a TtcIcon like this:
 
 ```kotlin
-Icon(Icons.ADD.painter, contentDescription = "Add Tee Time")
+Icon(TtcIcons.ADD.painter, contentDescription = stringResource(GMR.strings.games_new_game_action.resourceId))
 ```
+
+## Testing
+
+ViewModels have JVM unit tests under `app/src/test` (JUnit 4 + `kotlinx-coroutines-test`):
+
+```bash
+./gradlew :android:app:testDebugUnitTest
+```
+
+- `testing/MainDispatcherRule` swaps `Dispatchers.Main` for a test dispatcher, so `viewModelScope`
+  works off-device.
+- Repositories are faked by hand (for example `feature/games/FakeGamesRepository`). Construct the
+  ViewModel directly with the fake, `EventManager.getInstance(enableLogging = false)`, and a
+  `MutableStateFlow<SessionState>`.
+- To observe a `WhileSubscribed` `StateFlow` or an events `Channel`, collect it in `backgroundScope`
+  with `UnconfinedTestDispatcher(testScheduler)` so the collector runs before the assertion.
+- `testOptions.unitTests.isReturnDefaultValues = true` lets Kermit's `android.os.Process` calls pass
+  in plain JVM tests.
