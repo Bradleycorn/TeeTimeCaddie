@@ -3,7 +3,12 @@ package net.bradball.teetimecaddie.features.games
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.LocalDate
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 import kotlinx.datetime.LocalTime
 import net.bradbal.teetimecaddie.core.storage.documents.CourseDocument
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
@@ -19,8 +24,9 @@ import kotlin.test.assertTrue
 
 class GamesRepositoryTest {
 
-    private val today = LocalDate(2026, 6, 12)
-    private val gameDate = LocalDate(2026, 6, 13)
+    // Relative to the real clock, because upcomingGames only returns games from today on.
+    @OptIn(ExperimentalTime::class)
+    private val gameDate = Clock.System.todayIn(TimeZone.currentSystemDefault()).plus(DatePeriod(days = 1))
     private val teeTime = LocalTime(9, 0)
     private val organizer = previewPlayer
 
@@ -35,7 +41,7 @@ class GamesRepositoryTest {
     }
 
     private fun repository(storage: FakeGameStorage) =
-        GamesRepositoryImpl(eventManager, storage, today = { today })
+        GamesRepositoryImpl(eventManager, storage)
 
     private suspend fun GamesRepositoryImpl.publish(course: String = "Pebble Beach", slots: Int = 4) =
         publishGame(organizer, course, gameDate, teeTime, slots)

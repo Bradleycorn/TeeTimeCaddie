@@ -77,8 +77,7 @@ const val MAX_TEE_TIME_SLOTS = 4
 
 class GamesRepositoryImpl(
     private val eventManager: EventManager,
-    private val gameStorage: GameStorage,
-    private val today: () -> LocalDate = ::systemToday
+    private val gameStorage: GameStorage
 ) : GamesRepository {
 
     override suspend fun publishGame(
@@ -119,7 +118,7 @@ class GamesRepositoryImpl(
     }
 
     override fun upcomingGames(playerId: String): Flow<List<Game>> =
-        gameStorage.gamesFlow(playerId, today())
+        gameStorage.gamesFlow(playerId, systemToday())
             .map { documents -> documents.map { it.toModel() } }
             .catch { ex ->
                 eventManager.logException(
