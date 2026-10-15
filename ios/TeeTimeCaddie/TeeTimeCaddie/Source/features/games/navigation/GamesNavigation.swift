@@ -40,8 +40,10 @@ enum GamesDestinations: @MainActor TtcNavKey {
                 }
             }
 
-        case .gameDetails:
-            EmptyView()
+        case .gameDetails(let id):
+            GameDetailsScreen(gameId: id)
+                .navigationTitle(GMR.strings().game_details_title.localized())
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
