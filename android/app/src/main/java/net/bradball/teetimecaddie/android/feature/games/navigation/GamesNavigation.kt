@@ -1,8 +1,12 @@
 package net.bradball.teetimecaddie.android.feature.games.navigation
 
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
+import net.bradball.teetimecaddie.android.feature.games.gameDetails.GameDetailsScreen
+import net.bradball.teetimecaddie.android.feature.games.gameDetails.GameDetailsViewModel
+import net.bradball.teetimecaddie.android.feature.games.gameDetails.GameDetailsViewModelFactory
 import net.bradball.teetimecaddie.android.feature.games.gamesList.GamesListScreen
 import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameScreen
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
@@ -66,6 +70,16 @@ fun EntryProviderScope<NavKey>.gamesEntries(navigator: Navigator) {
             onClose = { navigator.goBack() },
             // Back to the Games tab, not on to the new game's details.
             onPublished = { navigator.goBack() },
+        )
+    }
+
+    entry<GameDetailsDestination> { destination ->
+        val viewModel = hiltViewModel<GameDetailsViewModel, GameDetailsViewModelFactory> { factory ->
+            factory.create(destination.gameId)
+        }
+        GameDetailsScreen(
+            viewModel = viewModel,
+            onBack = { navigator.goBack() },
         )
     }
 }
