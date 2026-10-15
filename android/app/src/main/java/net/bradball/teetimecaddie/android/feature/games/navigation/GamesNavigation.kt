@@ -4,6 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import net.bradball.teetimecaddie.android.feature.games.gamesList.GamesListScreen
+import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameScreen
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.android.ui.navigation.TopLevelDestination
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
@@ -56,6 +57,15 @@ fun EntryProviderScope<NavKey>.gamesEntries(navigator: Navigator) {
         GamesListScreen(
             onNewGameClick = { navigator.navigateToNewGame() },
             onGameClick = { gameId -> navigator.navigateToGameDetails(gameId) },
+        )
+    }
+
+    entry<NewGameDestination> {
+        NewGameScreen(
+            // Leaves without saving and without asking.
+            onClose = { navigator.goBack() },
+            // Back to the Games tab, not on to the new game's details.
+            onPublished = { navigator.goBack() },
         )
     }
 }
