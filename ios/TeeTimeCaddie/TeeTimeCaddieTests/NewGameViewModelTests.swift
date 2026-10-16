@@ -13,6 +13,7 @@ final class NewGameViewModelTests: XCTestCase {
 
     private var repository: FakeGamesRepository!
     private var toastPresenter: TtcToastPresenter!
+    private var analytics: RecordingEventManager!
     private var viewModel: NewGameViewModel!
 
     private let date = LocalDate(year: 2026, month: 6, day: 13).toDate()
@@ -22,10 +23,12 @@ final class NewGameViewModelTests: XCTestCase {
         super.setUp()
         repository = FakeGamesRepository()
         toastPresenter = TtcToastPresenter()
+        analytics = RecordingEventManager()
         viewModel = NewGameViewModel(
             gamesRepository: repository,
             currentPlayer: { TestData.organizer },
-            toastPresenter: toastPresenter
+            toastPresenter: toastPresenter,
+            eventManager: analytics.eventManager
         )
     }
 
@@ -136,5 +139,36 @@ final class NewGameViewModelTests: XCTestCase {
         XCTAssertEqual(toastPresenter.message, GameErrors.publishFailed.message.localized())
         XCTAssertFalse(viewModel.uiState.isSubmitting)
         XCTAssertEqual(viewModel.uiState.course, "Pebble Beach")
+    }
+
+    // MARK: - Analytics
+
+    func testSelectingSlotsLogsTheCountTapped() {
+        viewModel.onSlotsChange(3)
+
+        XCTAssertEqual(analytics.events, [AnalyticsEvent.PlayerSlotsClick(playerCount: 3)])
+    }
+
+    func testAlertButtonsLogTheResponse() async {
+        fillIn()
+        viewModel.onPublishClick()
+        viewModel.onKeepEditing()
+        viewModel.onPublishClick()
+        await viewModel.onPublishAnyway(onPublished: {})
+
+        XCTAssertEqual(analytics.events, [
+            AnalyticsEvent.NoInvites(response: .keepEditing),
+            AnalyticsEvent.NoInvites(response: .publishAnyway),
+        ])
+    }
+
+    func testDismissingTheAlertWithoutAButtonClosesItButLogsNothing() {
+        fillIn()
+        viewModel.onPublishClick()
+
+        viewModel.onDismissNoInviteeConfirm()
+
+        XCTAssertFalse(viewModel.uiState.showNoInviteeConfirm)
+        XCTAssertTrue(analytics.events.isEmpty)
     }
 }

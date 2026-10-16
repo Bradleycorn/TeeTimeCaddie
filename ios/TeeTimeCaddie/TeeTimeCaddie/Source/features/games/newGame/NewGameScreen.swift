@@ -9,9 +9,13 @@ import TeeTimeCaddieKit
 
 /// The form for creating and publishing a new game.
 struct NewGameScreen: View {
-    let onPublished: () -> Void
+    private let onPublished: () -> Void
 
     @State private var viewModel = NewGameViewModel()
+
+    init(onPublished: @escaping () -> Void) {
+        self.onPublished = onPublished
+    }
 
     var body: some View {
         Screen(.NewGame(viewName: self.viewName)) {
@@ -23,6 +27,7 @@ struct NewGameScreen: View {
                 onSlotsChange: viewModel.onSlotsChange,
                 onPublishClick: viewModel.onPublishClick,
                 onKeepEditing: viewModel.onKeepEditing,
+                onDismissNoInviteeConfirm: viewModel.onDismissNoInviteeConfirm,
                 onPublishAnyway: {
                     Task { await viewModel.onPublishAnyway(onPublished: onPublished) }
                 }
@@ -42,25 +47,43 @@ fileprivate struct NewGameContent: View {
     @State private var showDatePicker = false
     @State private var showTimePicker = false
     @State private var draftDate: Date = .today
-    @State private var draftTime: Date = Self.seedTime
+    @State private var draftTime: Date = NewGameDefaults.seedTime
 
-    let state: NewGameUiState
-    let onCourseChange: (String) -> Void
-    let onDateSelected: (Date) -> Void
-    let onTimeSelected: (Date) -> Void
-    let onSlotsChange: (Int) -> Void
-    let onPublishClick: () -> Void
-    let onKeepEditing: () -> Void
-    let onPublishAnyway: () -> Void
+    private let state: NewGameUiState
+    private let onCourseChange: (String) -> Void
+    private let onDateSelected: (Date) -> Void
+    private let onTimeSelected: (Date) -> Void
+    private let onSlotsChange: (Int) -> Void
+    private let onPublishClick: () -> Void
+    private let onKeepEditing: () -> Void
+    private let onDismissNoInviteeConfirm: () -> Void
+    private let onPublishAnyway: () -> Void
 
-    /// With no time set, the time picker opens at 7:00 AM.
-    private static var seedTime: Date {
-        Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: .today) ?? .today
+    init(
+        state: NewGameUiState,
+        onCourseChange: @escaping (String) -> Void,
+        onDateSelected: @escaping (Date) -> Void,
+        onTimeSelected: @escaping (Date) -> Void,
+        onSlotsChange: @escaping (Int) -> Void,
+        onPublishClick: @escaping () -> Void,
+        onKeepEditing: @escaping () -> Void,
+        onDismissNoInviteeConfirm: @escaping () -> Void,
+        onPublishAnyway: @escaping () -> Void
+    ) {
+        self.state = state
+        self.onCourseChange = onCourseChange
+        self.onDateSelected = onDateSelected
+        self.onTimeSelected = onTimeSelected
+        self.onSlotsChange = onSlotsChange
+        self.onPublishClick = onPublishClick
+        self.onKeepEditing = onKeepEditing
+        self.onDismissNoInviteeConfirm = onDismissNoInviteeConfirm
+        self.onPublishAnyway = onPublishAnyway
     }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Metrics.fieldSpacing) {
+            VStack(alignment: .leading, spacing: NewGameDefaults.fieldSpacing) {
                 SectionLabel(GMR.strings().new_game_section_where_when.localized())
 
                 TtcTextField(
@@ -96,7 +119,7 @@ fileprivate struct NewGameContent: View {
                     placeholder: GMR.strings().new_game_field_tee_time_placeholder.localized(),
                     onActivate: {
                         courseFocused = false
-                        draftTime = state.time ?? Self.seedTime
+                        draftTime = state.time ?? NewGameDefaults.seedTime
                         showTimePicker = true
                     }
                 )
@@ -107,8 +130,8 @@ fileprivate struct NewGameContent: View {
                 SlotSelector(selected: state.slots, onSelect: onSlotsChange)
                     .disabled(state.isSubmitting)
             }
-            .padding(.horizontal, Metrics.horizontalPadding)
-            .padding(.bottom, Metrics.horizontalPadding)
+            .padding(.horizontal, NewGameDefaults.horizontalPadding)
+            .padding(.bottom, NewGameDefaults.horizontalPadding)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(theme.colorScheme.surface)
@@ -121,8 +144,8 @@ fileprivate struct NewGameContent: View {
                 action: onPublishClick
             )
             .disabled(!state.canSubmit)
-            .padding(.horizontal, Metrics.horizontalPadding)
-            .padding(.vertical, Metrics.ctaPadding)
+            .padding(.horizontal, NewGameDefaults.horizontalPadding)
+            .padding(.vertical, NewGameDefaults.ctaPadding)
             .background(.bar)
         }
         .sheet(isPresented: $showDatePicker) {
@@ -152,7 +175,9 @@ fileprivate struct NewGameContent: View {
             GMR.strings().new_game_no_invitees_title.localized(),
             isPresented: Binding(
                 get: { state.showNoInviteeConfirm },
-                set: { isPresented in if !isPresented { onKeepEditing() } }
+                // Fires for every way the alert closes, buttons included, so it only closes it;
+                // the buttons log which one was tapped.
+                set: { isPresented in if !isPresented { onDismissNoInviteeConfirm() } }
             )
         ) {
             Button(GMR.strings().new_game_no_invitees_keep_editing.localized(), role: .cancel) {
@@ -165,17 +190,12 @@ fileprivate struct NewGameContent: View {
             Text(GMR.strings().new_game_no_invitees_message.localized())
         }
     }
-
-    private enum Metrics {
-        static let horizontalPadding: CGFloat = 16
-        static let fieldSpacing: CGFloat = 8
-        static let ctaPadding: CGFloat = 12
-    }
 }
 
 fileprivate struct SectionLabel: View {
     @EnvironmentObject private var theme: AppTheme
-    let text: String
+
+    private let text: String
 
     init(_ text: String) {
         self.text = text
@@ -185,8 +205,8 @@ fileprivate struct SectionLabel: View {
         Text(text.uppercased())
             .font(.caption.weight(.semibold))
             .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-            .padding(.leading, 4)
-            .padding(.top, 12)
+            .padding(.leading, NewGameDefaults.sectionLabelInset)
+            .padding(.top, NewGameDefaults.sectionLabelTopPadding)
     }
 }
 
@@ -194,11 +214,25 @@ fileprivate struct SectionLabel: View {
 fileprivate struct PickerField: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let label: String
-    let icon: ImageSource
-    let value: String?
-    let placeholder: String
-    let onActivate: () -> Void
+    private let label: String
+    private let icon: ImageSource
+    private let value: String?
+    private let placeholder: String
+    private let onActivate: () -> Void
+
+    init(
+        label: String,
+        icon: ImageSource,
+        value: String?,
+        placeholder: String,
+        onActivate: @escaping () -> Void
+    ) {
+        self.label = label
+        self.icon = icon
+        self.value = value
+        self.placeholder = placeholder
+        self.onActivate = onActivate
+    }
 
     var body: some View {
         TtcTextFieldContainer(
@@ -225,17 +259,22 @@ fileprivate struct PickerField: View {
 fileprivate struct SlotSelector: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let selected: Int
-    let onSelect: (Int) -> Void
+    private let selected: Int
+    private let onSelect: (Int) -> Void
+
+    init(selected: Int, onSelect: @escaping (Int) -> Void) {
+        self.selected = selected
+        self.onSelect = onSelect
+    }
 
     var body: some View {
         TtcCard {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: NewGameDefaults.slotLabelSpacing) {
                 Text(GMR.strings().new_game_player_slots_label.localized())
                     .font(.caption)
                     .foregroundStyle(theme.colorScheme.onSurfaceVariant)
 
-                HStack(spacing: 8) {
+                HStack(spacing: NewGameDefaults.slotSpacing) {
                     ForEach(1...NewGameUiState.maxSlots, id: \.self) { slots in
                         if slots == selected {
                             TtcButton(String(slots), fullWidth: true, action: { onSelect(slots) })
@@ -249,12 +288,32 @@ fileprivate struct SlotSelector: View {
     }
 }
 
+/// Spacing, sizes and seeds for the New game form — the twin of `NewGameDefaults` on Android.
+fileprivate enum NewGameDefaults {
+    static let horizontalPadding: CGFloat = 16
+    static let fieldSpacing: CGFloat = 8
+    static let ctaPadding: CGFloat = 12
+    static let sectionLabelInset: CGFloat = 4
+    static let sectionLabelTopPadding: CGFloat = 12
+    static let slotLabelSpacing: CGFloat = 10
+    static let slotSpacing: CGFloat = 8
+
+    /// With no time set, the time picker opens at 7:00 AM.
+    static var seedTime: Date {
+        Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: .today) ?? .today
+    }
+}
+
 // MARK: - Previews
 
 /// Never constructs ``NewGameScreen``: that wrapper builds a ViewModel, which resolves the SDK and
 /// kills the preview process.
 fileprivate struct NewGameContentPreviews: View {
-    let state: NewGameUiState
+    private let state: NewGameUiState
+
+    init(state: NewGameUiState) {
+        self.state = state
+    }
 
     var body: some View {
         NewGameContent(
@@ -265,6 +324,7 @@ fileprivate struct NewGameContentPreviews: View {
             onSlotsChange: { _ in },
             onPublishClick: {},
             onKeepEditing: {},
+            onDismissNoInviteeConfirm: {},
             onPublishAnyway: {}
         )
     }

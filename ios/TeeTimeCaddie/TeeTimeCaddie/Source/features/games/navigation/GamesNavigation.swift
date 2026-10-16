@@ -35,8 +35,12 @@ enum GamesDestinations: @MainActor TtcNavKey {
             .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    // Leaves without saving and without asking.
-                    Button(GR.strings().cancel.localized()) { navigator.pop() }
+                    // Leaves without saving and without asking. Logged here because the toolbar
+                    // lives in the navigation layer, as the iOS CLAUDE.md asks.
+                    Button(GR.strings().cancel.localized()) {
+                        AppModule.shared.eventManager().logEvent(event: AnalyticsEvent.NewGameCancel.shared)
+                        navigator.pop()
+                    }
                 }
             }
 

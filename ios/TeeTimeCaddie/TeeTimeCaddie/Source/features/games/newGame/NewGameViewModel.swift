@@ -49,15 +49,18 @@ final class NewGameViewModel {
     private let gamesRepository: GamesRepository
     private let currentPlayer: () -> Player?
     private let toastPresenter: TtcToastPresenter
+    private let eventManager: EventManager
 
     init(
         gamesRepository: GamesRepository = GamesModule.shared.gamesRepository(),
         currentPlayer: @escaping () -> Player? = GamesModule.shared.currentPlayer(),
-        toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter()
+        toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter(),
+        eventManager: EventManager = AppModule.shared.eventManager()
     ) {
         self.gamesRepository = gamesRepository
         self.currentPlayer = currentPlayer
         self.toastPresenter = toastPresenter
+        self.eventManager = eventManager
     }
 
     func onCourseChange(_ course: String) {
@@ -75,6 +78,7 @@ final class NewGameViewModel {
     }
 
     func onSlotsChange(_ slots: Int) {
+        eventManager.logEvent(event: AnalyticsEvent.PlayerSlotsClick(playerCount: Int32(slots)))
         uiState.slots = slots
     }
 
@@ -86,6 +90,12 @@ final class NewGameViewModel {
 
     /// "Keep editing": close the alert and leave the form exactly as it was.
     func onKeepEditing() {
+        eventManager.logEvent(event: AnalyticsEvent.NoInvites(response: .keepEditing))
+        onDismissNoInviteeConfirm()
+    }
+
+    /// The alert closed. Every way it closes ends here, buttons included, so it logs nothing itself.
+    func onDismissNoInviteeConfirm() {
         uiState.showNoInviteeConfirm = false
     }
 
@@ -93,6 +103,7 @@ final class NewGameViewModel {
     ///
     /// - Parameter onPublished: Called once the game is saved, to leave the form.
     func onPublishAnyway(onPublished: () -> Void) async {
+        eventManager.logEvent(event: AnalyticsEvent.NoInvites(response: .publishAnyway))
         uiState.showNoInviteeConfirm = false
 
         let state = uiState
