@@ -1,7 +1,5 @@
 package net.bradball.teetimecaddie.features.games
 
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -9,14 +7,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
 import net.bradbal.teetimecaddie.core.storage.GameStorage
 import net.bradbal.teetimecaddie.core.storage.documents.CourseDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
+import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
@@ -100,7 +97,7 @@ class GamesRepositoryImpl(
             players = listOf(GamePlayer(playerId = organizer.id, name = organizer.name))
         )
 
-        return runStorage("publish_game", GameErrors.PUBLISH_FAILED) {
+        return tryStorage("publish_game", GameErrors.PUBLISH_FAILED) {
             val game = gameStorage.publishGame(key, newCourse) { course ->
                 GameDocument(
                     organizerId = organizer.id,
@@ -118,7 +115,7 @@ class GamesRepositoryImpl(
     }
 
     override fun upcomingGames(playerId: String): Flow<List<Game>> =
-        gameStorage.gamesFlow(playerId, systemToday())
+        gameStorage.gamesFlow(playerId, LocalDate.today)
             .map { documents -> documents.map { it.toModel() } }
             .catch { ex ->
                 eventManager.logException(
@@ -127,7 +124,7 @@ class GamesRepositoryImpl(
             }
 
     override suspend fun getGame(gameId: String): TtcResult<Game> =
-        runStorage("get_game", GameErrors.LOAD_FAILED) {
+        tryStorage("get_game", GameErrors.LOAD_FAILED) {
             val document = gameStorage.getGame(gameId)
             if (document == null) {
                 TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
@@ -143,7 +140,7 @@ class GamesRepositoryImpl(
      * The storage layer still throws — it wraps Firestore — so this is the boundary where those
      * exceptions stop and become values.
      */
-    private suspend inline fun <T : Any> runStorage(
+    private suspend inline fun <T : Any> tryStorage(
         action: String,
         failure: GameErrors,
         block: () -> TtcResult<T>
@@ -157,6 +154,3 @@ class GamesRepositoryImpl(
         TtcResult.Failure(GameException(failure, cause = ex))
     }
 }
-
-@OptIn(ExperimentalTime::class)
-private fun systemToday(): LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())

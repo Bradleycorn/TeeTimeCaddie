@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.core.extensions
 
 import kotlinx.datetime.*
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -42,6 +43,15 @@ val LocalTime.formattedTime: String
         val amPm = if (hour < 12) "AM" else "PM"
         return "$displayHour:$displayMinute $amPm"
     }
+
+/**
+ * Today's date in the device's current time zone.
+ *
+ * Read fresh on every access, so it is correct after midnight passes.
+ */
+@OptIn(ExperimentalTime::class)
+val LocalDate.Companion.today: LocalDate
+    get() = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
 /**
  * Formats a LocalDate as a short weekday, month and day, the way a game's date reads in the app.

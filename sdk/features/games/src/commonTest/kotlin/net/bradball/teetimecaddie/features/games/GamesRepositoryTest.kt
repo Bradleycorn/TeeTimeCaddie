@@ -3,17 +3,15 @@ package net.bradball.teetimecaddie.features.games
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.TimeZone
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
 import kotlinx.datetime.LocalTime
 import net.bradbal.teetimecaddie.core.storage.documents.CourseDocument
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.EventPlugin
+import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.core.models.previewPlayer
@@ -25,8 +23,7 @@ import kotlin.test.assertTrue
 class GamesRepositoryTest {
 
     // Relative to the real clock, because upcomingGames only returns games from today on.
-    @OptIn(ExperimentalTime::class)
-    private val gameDate = Clock.System.todayIn(TimeZone.currentSystemDefault()).plus(DatePeriod(days = 1))
+    private val gameDate = LocalDate.today.plus(DatePeriod(days = 1))
     private val teeTime = LocalTime(9, 0)
     private val organizer = previewPlayer
 

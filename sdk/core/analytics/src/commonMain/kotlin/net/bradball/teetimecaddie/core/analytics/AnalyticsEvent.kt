@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.core.analytics
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.encodeToMap
@@ -88,10 +89,47 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** A Game was tapped on the Games tab, opening its details. */
     @Serializable
     object GameListItemClick: AnalyticsEvent("game_list_item_click", EventType.CLICK)
+    /** The add control on the Games tab was tapped: the FAB or + button, or the empty state's "Create a game". */
+    @Serializable
+    object AddGameClick: AnalyticsEvent("add_game_click", EventType.CLICK)
+    /** One of the New game screen's player-slot buttons was tapped. [playerCount] is the number tapped. */
+    @Serializable
+    data class PlayerSlotsClick(
+        @SerialName("player_count") val playerCount: Int
+    ): AnalyticsEvent("player_slots_click", EventType.CLICK)
+    /** The date picker was switched between its calendar and typed-entry modes. */
+    @Serializable
+    object DateInputToggle: AnalyticsEvent("date_input_toggle", EventType.CLICK)
+    /** The time picker was switched between its dial and typed-entry modes. */
+    @Serializable
+    object TimeInputToggle: AnalyticsEvent("time_input_toggle", EventType.CLICK)
+    /** The New game screen's back / Cancel button was tapped, leaving without publishing. */
+    @Serializable
+    object NewGameCancel: AnalyticsEvent("new_game_cancel", EventType.CLICK)
+    /** A button on the "Publish with no invitees?" alert was tapped. */
+    @Serializable
+    data class NoInvites(val response: NoInvitesResponse): AnalyticsEvent("no_invites", EventType.CLICK)
+    /** A tab in the bottom tab bar was tapped. */
+    @Serializable
+    data class TabBarClick(val tab: AnalyticsTab): AnalyticsEvent("tab_bar_click", EventType.CLICK)
 
 
     @OptIn(ExperimentalSerializationApi::class)
     val asMap: Map<String, Any> by lazy {
         Properties.encodeToMap(this)
     }
+}
+
+/** Which button closed the "Publish with no invitees?" alert. */
+@Serializable
+enum class NoInvitesResponse {
+    @SerialName("edit") KEEP_EDITING,
+    @SerialName("publish") PUBLISH_ANYWAY,
+}
+
+/** The tabs in the bottom tab bar, as analytics names them. */
+@Serializable
+enum class AnalyticsTab {
+    @SerialName("games") GAMES,
+    @SerialName("profile") PROFILE,
 }
