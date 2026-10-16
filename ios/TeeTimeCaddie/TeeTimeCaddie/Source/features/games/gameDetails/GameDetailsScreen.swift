@@ -120,28 +120,18 @@ fileprivate struct TeeTimeCard: View {
                 .padding(.vertical, GameDetailsDefaults.verticalPadding)
                 .background(theme.colorScheme.surfaceContainerHigh)
 
+                // Every row but the last one carries a divider, across players and empty slots alike.
                 ForEach(Array(teeTime.players.enumerated()), id: \.offset) { index, player in
-                    if index > 0 { RowDivider() }
-                    PlayerSlotRow(player: player)
+                    PlayerSlotRow(
+                        player: player,
+                        showDivider: index < teeTime.players.count - 1 || teeTime.openSlots > 0
+                    )
                 }
                 ForEach(0..<teeTime.openSlots, id: \.self) { index in
-                    if index > 0 || !teeTime.players.isEmpty { RowDivider() }
-                    EmptySlotRow()
+                    EmptySlotRow(showDivider: index < teeTime.openSlots - 1)
                 }
             }
         }
-    }
-}
-
-fileprivate struct RowDivider: View {
-    @EnvironmentObject private var theme: AppTheme
-
-    var body: some View {
-        Rectangle()
-            .fill(theme.colorScheme.outlineVariant)
-            .frame(height: GameDetailsDefaults.dividerThickness)
-            // Lines the divider up with the row text, past the avatar.
-            .padding(.leading, GameDetailsDefaults.dividerInset)
     }
 }
 
@@ -149,18 +139,21 @@ fileprivate struct PlayerSlotRow: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let player: GameSlotUiModel
+    private let showDivider: Bool
 
-    init(player: GameSlotUiModel) {
+    init(player: GameSlotUiModel, showDivider: Bool) {
         self.player = player
+        self.showDivider = showDivider
     }
 
     var body: some View {
-        HStack(spacing: GameDetailsDefaults.rowSpacing) {
+        SlotRow(showDivider: showDivider) {
             TtcAvatar(
                 player.initial,
                 color: player.isOrganizer ? .secondary : .primary,
                 size: GameDetailsDefaults.avatarSize
             )
+        } text: {
             VStack(alignment: .leading, spacing: GameDetailsDefaults.nameStatusSpacing) {
                 Text(player.name)
                     .font(.body.weight(.medium))
@@ -171,26 +164,66 @@ fileprivate struct PlayerSlotRow: View {
                         .foregroundStyle(theme.colorScheme.secondary)
                 }
             }
-            Spacer()
         }
-        .padding(.horizontal, GameDetailsDefaults.horizontalPadding)
-        .padding(.vertical, GameDetailsDefaults.verticalPadding)
     }
 }
 
 fileprivate struct EmptySlotRow: View {
     @EnvironmentObject private var theme: AppTheme
 
+    private let showDivider: Bool
+
+    init(showDivider: Bool) {
+        self.showDivider = showDivider
+    }
+
     var body: some View {
-        HStack(spacing: GameDetailsDefaults.rowSpacing) {
+        SlotRow(showDivider: showDivider) {
             TtcAvatar(placeholder: .empty, size: GameDetailsDefaults.avatarSize)
+        } text: {
             Text(GMR.strings().game_details_empty_slot.localized())
                 .font(.body)
                 .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-            Spacer()
         }
-        .padding(.horizontal, GameDetailsDefaults.horizontalPadding)
-        .padding(.vertical, GameDetailsDefaults.verticalPadding)
+    }
+}
+
+/// The layout every slot row shares: the avatar, then the text with an optional divider beneath it.
+///
+/// The row's vertical padding sits inside the text column rather than on the row, so the divider runs
+/// along the row's bottom edge and starts exactly where the text does, with no inset to keep in sync.
+fileprivate struct SlotRow<Avatar: View, Content: View>: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    private let showDivider: Bool
+    private let avatar: Avatar
+    private let text: Content
+
+    init(
+        showDivider: Bool,
+        @ViewBuilder avatar: () -> Avatar,
+        @ViewBuilder text: () -> Content
+    ) {
+        self.showDivider = showDivider
+        self.avatar = avatar()
+        self.text = text()
+    }
+
+    var body: some View {
+        HStack(spacing: GameDetailsDefaults.rowSpacing) {
+            avatar
+            VStack(spacing: 0) {
+                text
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, GameDetailsDefaults.verticalPadding)
+                    .padding(.trailing, GameDetailsDefaults.horizontalPadding)
+                if showDivider {
+                    // The system divider, tinted to the theme's outline rather than the system separator.
+                    Divider().overlay(theme.colorScheme.outlineVariant)
+                }
+            }
+        }
+        .padding(.leading, GameDetailsDefaults.horizontalPadding)
     }
 }
 
@@ -205,9 +238,6 @@ fileprivate enum GameDetailsDefaults {
     static let rowSpacing: CGFloat = 12
     static let nameStatusSpacing: CGFloat = 1
     static let avatarSize: CGFloat = 36
-    static let dividerThickness: CGFloat = 1
-    /// Lines the dividers up with the row text, past the avatar.
-    static let dividerInset: CGFloat = horizontalPadding + avatarSize + rowSpacing
 }
 
 // MARK: - Previews
