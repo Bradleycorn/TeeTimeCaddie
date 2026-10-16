@@ -16,7 +16,7 @@ import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
 /**
  * The Games tab: the signed-in player's upcoming games, or the empty state.
  *
- * The root of the [TopLevelDestination.TEE_TIMES] stack.
+ * The root of the [TopLevelDestination.GAMES] stack.
  */
 @Serializable
 data object GamesListDestination : TtcNavKey

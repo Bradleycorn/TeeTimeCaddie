@@ -53,7 +53,10 @@ fun GamesListScreen(
     Screen(AnalyticsScreen.Games("GamesListScreen")) {
         GamesListContent(
             uiState = uiState,
-            onNewGameClick = onNewGameClick,
+            onNewGameClick = {
+                viewModel.onAddGameClick()
+                onNewGameClick()
+            },
             onGameClick = { gameId ->
                 viewModel.onGameClick()
                 onGameClick(gameId)

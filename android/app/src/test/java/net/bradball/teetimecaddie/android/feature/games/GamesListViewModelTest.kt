@@ -8,7 +8,8 @@ import kotlinx.coroutines.test.runTest
 import net.bradball.teetimecaddie.android.feature.games.gamesList.GamesListUiState
 import net.bradball.teetimecaddie.android.feature.games.gamesList.GamesListViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
-import net.bradball.teetimecaddie.core.analytics.EventManager
+import net.bradball.teetimecaddie.android.testing.RecordingEventManager
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewGameList
 import net.bradball.teetimecaddie.core.models.previewPlayer
@@ -24,8 +25,10 @@ class GamesListViewModelTest {
 
     private val session = MutableStateFlow<SessionState>(SessionState.SignedIn(previewPlayer))
 
+    private val analytics = RecordingEventManager()
+
     private fun viewModel(repository: FakeGamesRepository) =
-        GamesListViewModel(session, repository, EventManager.getInstance(enableLogging = false))
+        GamesListViewModel(session, repository, analytics.eventManager)
 
     /** Subscribes, as the screen does, so the WhileSubscribed state starts flowing. */
     private fun TestScope.collect(viewModel: GamesListViewModel) {
@@ -71,5 +74,12 @@ class GamesListViewModelTest {
         collect(viewModel)
 
         assertEquals(GamesListUiState.Loading, viewModel.uiState.value)
+    }
+
+    @Test
+    fun addGameClickIsLogged() {
+        viewModel(FakeGamesRepository()).onAddGameClick()
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddGameClick), analytics.events)
     }
 }

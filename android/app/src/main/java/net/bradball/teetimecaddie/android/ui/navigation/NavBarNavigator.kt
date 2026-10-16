@@ -59,7 +59,7 @@ fun rememberNavBarNavigator(startDestination: TopLevelDestination): NavBarNaviga
  * ```kotlin
  * navigator.navigateToNewGame()                        // pushes onto the Games stack
  * navigator.navigate(TopLevelDestination.PROFILE)      // switches tab; Games stack is untouched
- * navigator.navigate(TopLevelDestination.TEE_TIMES)    // back on the Games stack
+ * navigator.navigate(TopLevelDestination.GAMES)    // back on the Games stack
  * ```
  *
  * Passing a [TopLevelDestination] to [navigate] switches tabs; passing anything else pushes onto

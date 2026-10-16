@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import net.bradball.teetimecaddie.android.analytics.LocalEventManager
 import net.bradball.teetimecaddie.android.feature.games.navigation.gamesEntries
 import net.bradball.teetimecaddie.android.feature.profile.navigation.profileEntries
 import net.bradball.teetimecaddie.android.ui.common.navigation.TtcNavigationBar
@@ -14,6 +15,7 @@ import net.bradball.teetimecaddie.android.ui.navigation.NavBarNavigator
 import net.bradball.teetimecaddie.android.ui.navigation.Navigator
 import net.bradball.teetimecaddie.android.ui.navigation.TopLevelDestination
 import net.bradball.teetimecaddie.android.ui.navigation.rememberNavBarNavigator
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 
 /**
  * The tabbed app: a [NavDisplay] above a [TtcNavigationBar], backed by a [NavBarNavigator].
@@ -58,7 +60,8 @@ import net.bradball.teetimecaddie.android.ui.navigation.rememberNavBarNavigator
  */
 @Composable
 fun NavBarNavDisplay(modifier: Modifier = Modifier) {
-    val navigator = rememberNavBarNavigator(TopLevelDestination.TEE_TIMES)
+    val navigator = rememberNavBarNavigator(TopLevelDestination.GAMES)
+    val eventManager = LocalEventManager.current
 
     Column(modifier = modifier) {
         NavDisplay(
@@ -80,7 +83,10 @@ fun NavBarNavDisplay(modifier: Modifier = Modifier) {
             TtcNavigationBar(
                 destinations = navigator.topLevelDestinations,
                 selected = navigator.selectedTopLevelDestination,
-                onSelect = { navigator.navigate(it) },
+                onSelect = { destination ->
+                    eventManager.logEvent(AnalyticsEvent.TabBarClick(destination.analyticsTab))
+                    navigator.navigate(destination)
+                },
             )
         }
     }

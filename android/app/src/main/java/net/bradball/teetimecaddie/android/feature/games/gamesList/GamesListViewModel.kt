@@ -56,6 +56,11 @@ class GamesListViewModel @Inject constructor(
             initialValue = GamesListUiState.Loading
         )
 
+    /** Records a tap on an add control (the FAB or "Create a game"). Navigating is the screen's job. */
+    fun onAddGameClick() {
+        eventManager.logEvent(AnalyticsEvent.AddGameClick)
+    }
+
     /** Records a tap on a game. Navigating to it is the screen's job. */
     fun onGameClick() {
         eventManager.logEvent(AnalyticsEvent.GameListItemClick)

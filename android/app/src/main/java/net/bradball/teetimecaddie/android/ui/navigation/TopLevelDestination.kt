@@ -5,6 +5,7 @@ import net.bradball.teetimecaddie.android.feature.profile.navigation.ProfileDest
 import net.bradball.teetimecaddie.android.feature.games.navigation.GamesListDestination
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.features.players.PR
+import net.bradball.teetimecaddie.core.analytics.AnalyticsTab
 import net.bradball.teetimecaddie.features.games.GMR
 
 /**
@@ -91,6 +92,7 @@ import net.bradball.teetimecaddie.features.games.GMR
  * @property icon The icon to display for this destination in the navigation UI.
  * @property iconTextId String resource ID for the accessibility label and display text.
  * @property destination The initial navigation destination for this top-level section.
+ * @property analyticsTab How analytics names this tab when it is tapped.
  *
  * @see Navigator
  * @see TtcNavKey
@@ -98,20 +100,19 @@ import net.bradball.teetimecaddie.features.games.GMR
 enum class TopLevelDestination (
     val icon: TtcIcons,
     @StringRes val iconTextId: Int,
-    val destination: TtcNavKey
+    val destination: TtcNavKey,
+    val analyticsTab: AnalyticsTab,
 ): TtcNavKey {
     /**
      * The games list — the app's home tab.
      *
-     * The constant is still `TEE_TIMES` while the label, feature package and SDK module are all
-     * "games". Renaming the constant (and its iOS twin) is its own change.
-     *
      * The icon is the brand mark rather than a golf glyph, matching the design.
      */
-    TEE_TIMES(
+    GAMES(
         icon = TtcIcons.TEE,
         iconTextId = GMR.strings.games_title.resourceId,
-        destination = GamesListDestination
+        destination = GamesListDestination,
+        analyticsTab = AnalyticsTab.GAMES,
     ),
 
     /**
@@ -123,6 +124,7 @@ enum class TopLevelDestination (
     PROFILE(
         icon = TtcIcons.PERSON_FILL,
         iconTextId = PR.strings.profile_title.resourceId,
-        destination = ProfileDestination
+        destination = ProfileDestination,
+        analyticsTab = AnalyticsTab.PROFILE,
     ),
 }

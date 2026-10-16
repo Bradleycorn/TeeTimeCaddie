@@ -10,7 +10,7 @@ class NavBarNavigatorTest {
 
     @Test
     fun isAtTopLevel_onEachTabsRoot() {
-        val navigator = NavBarNavigator(TopLevelDestination.TEE_TIMES)
+        val navigator = NavBarNavigator(TopLevelDestination.GAMES)
         assertTrue(navigator.isAtTopLevel)
 
         navigator.navigate(TopLevelDestination.PROFILE)
@@ -19,7 +19,7 @@ class NavBarNavigatorTest {
 
     @Test
     fun isNotAtTopLevel_afterPushingNewGame() {
-        val navigator = NavBarNavigator(TopLevelDestination.TEE_TIMES)
+        val navigator = NavBarNavigator(TopLevelDestination.GAMES)
 
         navigator.navigate(NewGameDestination)
 
@@ -28,7 +28,7 @@ class NavBarNavigatorTest {
 
     @Test
     fun isNotAtTopLevel_afterPushingGameDetails() {
-        val navigator = NavBarNavigator(TopLevelDestination.TEE_TIMES)
+        val navigator = NavBarNavigator(TopLevelDestination.GAMES)
 
         navigator.navigate(GameDetailsDestination("game-1"))
 
@@ -37,7 +37,7 @@ class NavBarNavigatorTest {
 
     @Test
     fun isAtTopLevel_againAfterGoingBack() {
-        val navigator = NavBarNavigator(TopLevelDestination.TEE_TIMES)
+        val navigator = NavBarNavigator(TopLevelDestination.GAMES)
         navigator.navigate(NewGameDestination)
 
         navigator.goBack()
