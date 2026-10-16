@@ -9,16 +9,24 @@ import TeeTimeCaddieKit
 
 /// The Games tab: the signed-in player's upcoming games, or the empty state.
 struct GamesListScreen: View {
-    let onNewGameClick: () -> Void
-    let onGameClick: (String) -> Void
+    private let onNewGameClick: () -> Void
+    private let onGameClick: (String) -> Void
 
     @State private var viewModel = GamesListViewModel()
+
+    init(onNewGameClick: @escaping () -> Void, onGameClick: @escaping (String) -> Void) {
+        self.onNewGameClick = onNewGameClick
+        self.onGameClick = onGameClick
+    }
 
     var body: some View {
         Screen(.Games(viewName: self.viewName)) {
             GamesListContent(
                 state: viewModel.uiState,
-                onNewGameClick: onNewGameClick,
+                onNewGameClick: {
+                    viewModel.onAddGameClick()
+                    onNewGameClick()
+                },
                 onGameClick: { gameId in
                     viewModel.onGameClick()
                     onGameClick(gameId)
@@ -34,9 +42,19 @@ struct GamesListScreen: View {
 fileprivate struct GamesListContent: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let state: GamesListUiState
-    let onNewGameClick: () -> Void
-    let onGameClick: (String) -> Void
+    private let state: GamesListUiState
+    private let onNewGameClick: () -> Void
+    private let onGameClick: (String) -> Void
+
+    init(
+        state: GamesListUiState,
+        onNewGameClick: @escaping () -> Void,
+        onGameClick: @escaping (String) -> Void
+    ) {
+        self.state = state
+        self.onNewGameClick = onNewGameClick
+        self.onGameClick = onGameClick
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -63,17 +81,17 @@ fileprivate struct GamesListContent: View {
 
             case .content(let games):
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: Metrics.spacing) {
+                    LazyVStack(alignment: .leading, spacing: GamesListDefaults.spacing) {
                         Text(GMR.strings().games_upcoming_header.localized())
                             .font(.headline)
-                            .padding(.top, Metrics.headerTopPadding)
+                            .padding(.top, GamesListDefaults.headerTopPadding)
 
                         ForEach(games) { game in
                             GameRow(game: game, onClick: { onGameClick(game.id) })
                         }
                     }
-                    .padding(.horizontal, Metrics.horizontalPadding)
-                    .padding(.bottom, Metrics.horizontalPadding)
+                    .padding(.horizontal, GamesListDefaults.horizontalPadding)
+                    .padding(.bottom, GamesListDefaults.horizontalPadding)
                 }
             }
         }
@@ -90,25 +108,17 @@ fileprivate struct GamesListContent: View {
             Spacer()
 
             Button(action: onNewGameClick) {
-                Image(systemName: SfSymbol.plus.rawValue)
+                Image(SfSymbol.plus)
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(theme.colorScheme.primary)
-                    .frame(width: Metrics.addButtonSize, height: Metrics.addButtonSize)
+                    .frame(width: GamesListDefaults.addButtonSize, height: GamesListDefaults.addButtonSize)
                     .background(theme.colorScheme.surfaceContainerHigh, in: Circle())
             }
             .accessibilityLabel(GMR.strings().games_new_game_action.localized())
         }
-        .padding(.horizontal, Metrics.horizontalPadding)
-        .padding(.top, Metrics.headerTopPadding)
-        .padding(.bottom, Metrics.headerBottomPadding)
-    }
-
-    private enum Metrics {
-        static let horizontalPadding: CGFloat = 16
-        static let spacing: CGFloat = 16
-        static let headerTopPadding: CGFloat = 8
-        static let headerBottomPadding: CGFloat = 12
-        static let addButtonSize: CGFloat = 36
+        .padding(.horizontal, GamesListDefaults.horizontalPadding)
+        .padding(.top, GamesListDefaults.headerTopPadding)
+        .padding(.bottom, GamesListDefaults.headerBottomPadding)
     }
 }
 
@@ -118,12 +128,17 @@ fileprivate struct GamesListContent: View {
 fileprivate struct GameRow: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let game: GameRowUiModel
-    let onClick: () -> Void
+    private let game: GameRowUiModel
+    private let onClick: () -> Void
+
+    init(game: GameRowUiModel, onClick: @escaping () -> Void) {
+        self.game = game
+        self.onClick = onClick
+    }
 
     var body: some View {
         TtcCard(onClick: onClick) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: GamesListDefaults.rowLineSpacing) {
                 Text(game.course)
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(theme.colorScheme.onSurface)
@@ -131,7 +146,7 @@ fileprivate struct GameRow: View {
                 Label {
                     Text(game.dateAndTime)
                 } icon: {
-                    Image(systemName: SfSymbol.clock.rawValue)
+                    Image(SfSymbol.clock)
                 }
                 .font(.subheadline)
                 .foregroundStyle(theme.colorScheme.onSurfaceVariant)
@@ -139,6 +154,16 @@ fileprivate struct GameRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
+}
+
+/// Spacing and sizes for the Games tab — the twin of `GamesListDefaults` on Android.
+fileprivate enum GamesListDefaults {
+    static let horizontalPadding: CGFloat = 16
+    static let spacing: CGFloat = 16
+    static let headerTopPadding: CGFloat = 8
+    static let headerBottomPadding: CGFloat = 12
+    static let addButtonSize: CGFloat = 36
+    static let rowLineSpacing: CGFloat = 4
 }
 
 // MARK: - Previews

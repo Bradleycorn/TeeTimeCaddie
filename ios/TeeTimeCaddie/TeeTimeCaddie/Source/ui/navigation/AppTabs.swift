@@ -38,10 +38,7 @@ import TeeTimeCaddieKit
 enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
 
     /// The games list — the app's home tab.
-    ///
-    /// The case is still `teeTimes` while the label, feature folder and SDK module are all
-    /// "games". Renaming the case (and its Android twin) is its own change.
-    case teeTimes
+    case games
 
     /// The signed-in player's own profile.
     case profile
@@ -52,16 +49,24 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     var icon: ImageSource {
         switch self {
         // The brand mark, not a golf glyph — matching the design, and the Android twin.
-        case .teeTimes: return .asset(.icon)
+        case .games: return .asset(.icon)
         // Always filled; it does not swap to the outlined variant when unselected.
         case .profile: return .symbol(.personFill)
         }
     }
     
+    /// How analytics names this tab when it is tapped.
+    var analyticsTab: AnalyticsTab {
+        switch self {
+        case .games: return .games
+        case .profile: return .profile
+        }
+    }
+
     /// The text label to display in the tab bar for this tab.
     var iconText: String {
         switch self {
-        case .teeTimes: return GMR.strings().games_title.localized()
+        case .games: return GMR.strings().games_title.localized()
         case .profile: return PR.strings().profile_title.desc().localized()
         }
     }
@@ -84,7 +89,7 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     @ViewBuilder
     func destinationView(_ navigator: any Navigator) -> some View {
         switch self {
-        case .teeTimes:
+        case .games:
             GamesDestinations.gamesList.destinationView(navigator)
         case .profile:
             ProfileDestinations.profile.destinationView(navigator)

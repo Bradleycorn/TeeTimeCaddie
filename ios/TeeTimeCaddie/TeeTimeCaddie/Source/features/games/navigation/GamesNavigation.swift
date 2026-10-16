@@ -50,7 +50,7 @@ enum GamesDestinations: @MainActor TtcNavKey {
 
 extension Navigator {
     func navigateToGamesTab(clearBackStack: Bool = false) {
-        self.navigate(to: AppTabs.teeTimes, clearBackStack: clearBackStack)
+        self.navigate(to: AppTabs.games, clearBackStack: clearBackStack)
     }
 
     func navigateToNewGame() {

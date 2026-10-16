@@ -5,6 +5,7 @@
 //  Created by Bradley Ball on 9/14/25.
 //
 import SwiftUI
+import TeeTimeCaddieKit
 
 /// Top-level navigation for the **signed-in** app: the tab bar and a stack per tab.
 ///
@@ -38,9 +39,27 @@ struct TabsNavView: View {
     /// Games history waiting behind the credentials screen. The Android twin, `NavBarNavDisplay`,
     /// does the same.
     @State private var navigator = TabNavigator()
-        
+
+    private let eventManager: EventManager
+
+    init(eventManager: EventManager = AppModule.shared.eventManager()) {
+        self.eventManager = eventManager
+    }
+
+    /// The tab bar's selection, logging each tap. Only a tap goes through this binding: code that
+    /// switches tabs sets `navigator.currentTab` directly, so it isn't counted as a click.
+    private var tabSelection: Binding<AppTabs> {
+        Binding(
+            get: { navigator.currentTab },
+            set: { tab in
+                eventManager.logEvent(event: AnalyticsEvent.TabBarClick(tab: tab.analyticsTab))
+                navigator.currentTab = tab
+            }
+        )
+    }
+
     var body: some View {
-        TabView(selection: $navigator.currentTab) {
+        TabView(selection: tabSelection) {
             ForEach(navigator.tabs, id: \.self) { tab in
                 
                     // Display normal tab content with navigation stack

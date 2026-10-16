@@ -37,4 +37,17 @@ final class GamesListViewModelTests: XCTestCase {
             .content([GameRowUiModel(id: game.id, course: "Pebble Beach", dateAndTime: "Sat, Jun 13 · 9:00 AM")])
         )
     }
+
+    func testAddGameClickIsLogged() {
+        let analytics = RecordingEventManager()
+        let viewModel = GamesListViewModel(
+            gamesRepository: FakeGamesRepository(),
+            currentPlayer: { TestData.organizer },
+            eventManager: analytics.eventManager
+        )
+
+        viewModel.onAddGameClick()
+
+        XCTAssertEqual(analytics.events, [AnalyticsEvent.AddGameClick.shared])
+    }
 }

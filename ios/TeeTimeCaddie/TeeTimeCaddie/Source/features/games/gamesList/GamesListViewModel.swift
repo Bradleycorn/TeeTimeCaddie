@@ -54,6 +54,11 @@ final class GamesListViewModel {
         }
     }
 
+    /// Records a tap on an add control (the + or "Create a game"). Navigating is the screen's job.
+    func onAddGameClick() {
+        eventManager.logEvent(event: AnalyticsEvent.AddGameClick.shared)
+    }
+
     /// Records a tap on a game. Navigating to it is the screen's job.
     func onGameClick() {
         eventManager.logEvent(event: AnalyticsEvent.GameListItemClick.shared)
