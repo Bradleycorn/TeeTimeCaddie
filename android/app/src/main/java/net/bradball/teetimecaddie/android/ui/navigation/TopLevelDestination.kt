@@ -5,7 +5,7 @@ import net.bradball.teetimecaddie.android.feature.profile.navigation.ProfileDest
 import net.bradball.teetimecaddie.android.feature.games.navigation.GamesListDestination
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.features.players.PR
-import net.bradball.teetimecaddie.core.analytics.AnalyticsTab
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.features.games.GMR
 
 /**
@@ -101,7 +101,7 @@ enum class TopLevelDestination (
     val icon: TtcIcons,
     @StringRes val iconTextId: Int,
     val destination: TtcNavKey,
-    val analyticsTab: AnalyticsTab,
+    val analyticsTab: AnalyticsEvent.TabBarClick.Tab,
 ): TtcNavKey {
     /**
      * The games list — the app's home tab.
@@ -112,7 +112,7 @@ enum class TopLevelDestination (
         icon = TtcIcons.TEE,
         iconTextId = GMR.strings.games_title.resourceId,
         destination = GamesListDestination,
-        analyticsTab = AnalyticsTab.GAMES,
+        analyticsTab = AnalyticsEvent.TabBarClick.Tab.GAMES,
     ),
 
     /**
@@ -125,6 +125,6 @@ enum class TopLevelDestination (
         icon = TtcIcons.PERSON_FILL,
         iconTextId = PR.strings.profile_title.resourceId,
         destination = ProfileDestination,
-        analyticsTab = AnalyticsTab.PROFILE,
+        analyticsTab = AnalyticsEvent.TabBarClick.Tab.PROFILE,
     ),
 }

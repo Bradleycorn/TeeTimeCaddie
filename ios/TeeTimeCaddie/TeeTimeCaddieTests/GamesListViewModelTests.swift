@@ -38,7 +38,7 @@ final class GamesListViewModelTests: XCTestCase {
         )
     }
 
-    func testAddGameClickIsLogged() {
+    func testAddGameClickIsLoggedWithItsSource() {
         let analytics = RecordingEventManager()
         let viewModel = GamesListViewModel(
             gamesRepository: FakeGamesRepository(),
@@ -46,8 +46,12 @@ final class GamesListViewModelTests: XCTestCase {
             eventManager: analytics.eventManager
         )
 
-        viewModel.onAddGameClick()
+        viewModel.onAddGameClick(from: .addButton)
+        viewModel.onAddGameClick(from: .emptyList)
 
-        XCTAssertEqual(analytics.events, [AnalyticsEvent.AddGameClick.shared])
+        XCTAssertEqual(analytics.events, [
+            AnalyticsEvent.AddGameClick(source: .addButton),
+            AnalyticsEvent.AddGameClick(source: .emptyList),
+        ])
     }
 }

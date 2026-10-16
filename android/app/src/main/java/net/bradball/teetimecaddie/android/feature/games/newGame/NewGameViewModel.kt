@@ -16,7 +16,6 @@ import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
-import net.bradball.teetimecaddie.core.analytics.NoInvitesResponse
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
@@ -105,7 +104,7 @@ class NewGameViewModel @Inject constructor(
 
     /** "Keep editing": close the alert and leave the form exactly as it was. */
     fun onKeepEditing() {
-        eventManager.logEvent(AnalyticsEvent.NoInvites(NoInvitesResponse.KEEP_EDITING))
+        eventManager.logEvent(AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.KEEP_EDITING))
         onDismissNoInviteeConfirm()
     }
 
@@ -119,7 +118,7 @@ class NewGameViewModel @Inject constructor(
 
     /** "Publish anyway". */
     fun onPublishAnyway() {
-        eventManager.logEvent(AnalyticsEvent.NoInvites(NoInvitesResponse.PUBLISH_ANYWAY))
+        eventManager.logEvent(AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.PUBLISH_ANYWAY))
         _uiState.update { it.copy(showNoInviteeConfirm = false) }
         submit()
     }

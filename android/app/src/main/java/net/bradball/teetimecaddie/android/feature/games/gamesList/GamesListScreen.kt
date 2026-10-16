@@ -34,8 +34,9 @@ import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.extensions.formattedDate
+import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
 import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.previewGameList
@@ -53,8 +54,8 @@ fun GamesListScreen(
     Screen(AnalyticsScreen.Games("GamesListScreen")) {
         GamesListContent(
             uiState = uiState,
-            onNewGameClick = {
-                viewModel.onAddGameClick()
+            onNewGameClick = { source ->
+                viewModel.onAddGameClick(source)
                 onNewGameClick()
             },
             onGameClick = { gameId ->
@@ -69,7 +70,7 @@ fun GamesListScreen(
 @Composable
 private fun GamesListContent(
     uiState: GamesListUiState,
-    onNewGameClick: () -> Unit,
+    onNewGameClick: (AnalyticsEvent.AddGameClick.Source) -> Unit,
     onGameClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -89,7 +90,7 @@ private fun GamesListContent(
         },
         floatingActionButton = {
             // Available in the empty state too, alongside its own "Create a game" button.
-            FloatingActionButton(onClick = onNewGameClick) {
+            FloatingActionButton(onClick = { onNewGameClick(AnalyticsEvent.AddGameClick.Source.ADD_BUTTON) }) {
                 Icon(
                     painter = TtcIcons.ADD.painter,
                     contentDescription = stringResource(GMR.strings.games_new_game_action.resourceId),
@@ -120,7 +121,7 @@ private fun GamesListContent(
                 ) {
                     TtcButton(
                         text = stringResource(GMR.strings.games_create_button.resourceId),
-                        onClick = onNewGameClick,
+                        onClick = { onNewGameClick(AnalyticsEvent.AddGameClick.Source.EMPTY_LIST) },
                         icon = TtcIcons.ADD,
                     )
                 }
@@ -181,7 +182,7 @@ private fun GameRow(game: Game, onClick: () -> Unit, modifier: Modifier = Modifi
             Text(
                 text = stringResource(
                     GMR.strings.games_row_date_time.resourceId,
-                    game.date.formattedDate,
+                    game.date.weekdayMonthDay,
                     game.teeTimes.firstOrNull()?.time?.formattedTime.orEmpty(),
                 ),
                 style = MaterialTheme.typography.bodyMedium,

@@ -40,7 +40,7 @@ import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.extensions.formattedDate
+import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
 import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GamePlayer
@@ -127,7 +127,7 @@ private fun GameDetailsBody(game: Game, isOrganizer: Boolean, modifier: Modifier
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = game.date.formattedDate,
+                text = game.date.weekdayMonthDay,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

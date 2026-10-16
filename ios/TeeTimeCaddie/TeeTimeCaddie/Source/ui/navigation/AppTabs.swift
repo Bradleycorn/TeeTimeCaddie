@@ -56,7 +56,7 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     }
     
     /// How analytics names this tab when it is tapped.
-    var analyticsTab: AnalyticsTab {
+    var analyticsTab: AnalyticsEvent.TabBarClick.TabBarClickTab {
         switch self {
         case .games: return .games
         case .profile: return .profile

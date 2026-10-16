@@ -86,7 +86,7 @@ final class GameDetailsViewModel {
     static func uiModel(for game: Game, viewerId: String?) -> GameDetailsUiModel {
         GameDetailsUiModel(
             course: game.course.name,
-            date: game.date.formattedDate,
+            date: game.date.weekdayMonthDay,
             isOrganizer: viewerId.map { game.isOrganizer(playerId: $0) } ?? false,
             teeTimes: game.teeTimes.map { teeTime in
                 GameTeeTimeUiModel(

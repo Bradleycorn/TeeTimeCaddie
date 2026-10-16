@@ -1,13 +1,10 @@
 package net.bradball.teetimecaddie.core.models
 
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
+import net.bradball.teetimecaddie.core.extensions.today
 
 /**
  * A player holding one of a tee time's slots.
@@ -84,12 +81,11 @@ val previewGameTeeTime = GameTeeTime(
     players = listOf(previewGamePlayer)
 )
 
-@OptIn(ExperimentalTime::class)
 val previewGame = Game(
     id = "previewGame",
     organizerId = previewPlayer.id,
     course = previewCourse,
-    date = Clock.System.todayIn(TimeZone.currentSystemDefault()).plus(DatePeriod(days = 1)),
+    date = LocalDate.today.plus(DatePeriod(days = 1)),
     teeTimes = listOf(previewGameTeeTime)
 )
 

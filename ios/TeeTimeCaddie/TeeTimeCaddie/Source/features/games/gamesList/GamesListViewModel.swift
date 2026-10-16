@@ -55,8 +55,8 @@ final class GamesListViewModel {
     }
 
     /// Records a tap on an add control (the + or "Create a game"). Navigating is the screen's job.
-    func onAddGameClick() {
-        eventManager.logEvent(event: AnalyticsEvent.AddGameClick.shared)
+    func onAddGameClick(from source: AnalyticsEvent.AddGameClick.AddGameClickSource) {
+        eventManager.logEvent(event: AnalyticsEvent.AddGameClick(source: source))
     }
 
     /// Records a tap on a game. Navigating to it is the screen's job.
@@ -72,7 +72,7 @@ final class GamesListViewModel {
                 id: game.id,
                 course: game.course.name,
                 dateAndTime: GMR.strings().games_row_date_time.localized(
-                    game.date.formattedDate,
+                    game.date.weekdayMonthDay,
                     game.teeTimes.first?.time.formattedTime ?? ""
                 )
             )

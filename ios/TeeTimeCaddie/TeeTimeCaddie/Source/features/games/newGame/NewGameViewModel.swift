@@ -69,7 +69,7 @@ final class NewGameViewModel {
 
     func onDateSelected(_ date: Date) {
         uiState.date = date
-        uiState.dateText = date.toLocalDate().formattedDate
+        uiState.dateText = date.toLocalDate().weekdayMonthDay
     }
 
     func onTimeSelected(_ time: Date) {

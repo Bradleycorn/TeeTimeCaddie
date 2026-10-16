@@ -44,12 +44,12 @@ class DateTimeExtensionsTest {
     }
 
     @Test
-    fun formattedDate_readsAsShortWeekdayMonthAndDay() {
-        assertEquals("Sat, Jun 13", LocalDate(2026, 6, 13).formattedDate)
+    fun weekdayMonthDay_readsAsShortWeekdayMonthAndDay() {
+        assertEquals("Sat, Jun 13", LocalDate(2026, 6, 13).weekdayMonthDay)
     }
 
     @Test
-    fun formattedDate_doesNotPadSingleDigitDays() {
-        assertEquals("Tue, Dec 1", LocalDate(2026, 12, 1).formattedDate)
+    fun weekdayMonthDay_doesNotPadSingleDigitDays() {
+        assertEquals("Tue, Dec 1", LocalDate(2026, 12, 1).weekdayMonthDay)
     }
 }

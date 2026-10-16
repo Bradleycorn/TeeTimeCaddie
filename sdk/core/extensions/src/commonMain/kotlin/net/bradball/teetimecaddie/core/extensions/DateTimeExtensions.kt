@@ -65,7 +65,7 @@ val LocalDate.Companion.today: LocalDate
  *
  * @return A formatted date string in "EEE, MMM d" format.
  */
-val LocalDate.formattedDate: String
+val LocalDate.weekdayMonthDay: String
     get() {
         val weekday = dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
         val monthName = month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }

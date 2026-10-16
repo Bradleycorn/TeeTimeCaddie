@@ -77,9 +77,18 @@ class GamesListViewModelTest {
     }
 
     @Test
-    fun addGameClickIsLogged() {
-        viewModel(FakeGamesRepository()).onAddGameClick()
+    fun addGameClickIsLoggedWithItsSource() {
+        val viewModel = viewModel(FakeGamesRepository())
 
-        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddGameClick), analytics.events)
+        viewModel.onAddGameClick(AnalyticsEvent.AddGameClick.Source.ADD_BUTTON)
+        viewModel.onAddGameClick(AnalyticsEvent.AddGameClick.Source.EMPTY_LIST)
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.AddGameClick(AnalyticsEvent.AddGameClick.Source.ADD_BUTTON),
+                AnalyticsEvent.AddGameClick(AnalyticsEvent.AddGameClick.Source.EMPTY_LIST),
+            ),
+            analytics.events
+        )
     }
 }

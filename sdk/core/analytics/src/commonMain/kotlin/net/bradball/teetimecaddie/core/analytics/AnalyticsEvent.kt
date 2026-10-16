@@ -91,7 +91,13 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     object GameListItemClick: AnalyticsEvent("game_list_item_click", EventType.CLICK)
     /** The add control on the Games tab was tapped: the FAB or + button, or the empty state's "Create a game". */
     @Serializable
-    object AddGameClick: AnalyticsEvent("add_game_click", EventType.CLICK)
+    data class AddGameClick(val source: Source): AnalyticsEvent("add_game_click", EventType.CLICK) {
+        @Serializable
+        enum class Source {
+            @SerialName("add_button") ADD_BUTTON,
+            @SerialName("empty_list") EMPTY_LIST
+        }
+    }
     /** One of the New game screen's player-slot buttons was tapped. [playerCount] is the number tapped. */
     @Serializable
     data class PlayerSlotsClick(
@@ -108,28 +114,28 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     object NewGameCancel: AnalyticsEvent("new_game_cancel", EventType.CLICK)
     /** A button on the "Publish with no invitees?" alert was tapped. */
     @Serializable
-    data class NoInvites(val response: NoInvitesResponse): AnalyticsEvent("no_invites", EventType.CLICK)
+    data class NoInvites(val response: Response): AnalyticsEvent("no_invites", EventType.CLICK) {
+        /** Which button closed the alert. */
+        @Serializable
+        enum class Response {
+            @SerialName("edit") KEEP_EDITING,
+            @SerialName("publish") PUBLISH_ANYWAY,
+        }
+    }
     /** A tab in the bottom tab bar was tapped. */
     @Serializable
-    data class TabBarClick(val tab: AnalyticsTab): AnalyticsEvent("tab_bar_click", EventType.CLICK)
+    data class TabBarClick(val tab: Tab): AnalyticsEvent("tab_bar_click", EventType.CLICK) {
+        /** The tabs in the bottom tab bar, as analytics names them. */
+        @Serializable
+        enum class Tab {
+            @SerialName("games") GAMES,
+            @SerialName("profile") PROFILE,
+        }
+    }
 
 
     @OptIn(ExperimentalSerializationApi::class)
     val asMap: Map<String, Any> by lazy {
         Properties.encodeToMap(this)
     }
-}
-
-/** Which button closed the "Publish with no invitees?" alert. */
-@Serializable
-enum class NoInvitesResponse {
-    @SerialName("edit") KEEP_EDITING,
-    @SerialName("publish") PUBLISH_ANYWAY,
-}
-
-/** The tabs in the bottom tab bar, as analytics names them. */
-@Serializable
-enum class AnalyticsTab {
-    @SerialName("games") GAMES,
-    @SerialName("profile") PROFILE,
 }

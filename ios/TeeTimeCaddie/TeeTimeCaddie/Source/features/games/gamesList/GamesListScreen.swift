@@ -23,8 +23,8 @@ struct GamesListScreen: View {
         Screen(.Games(viewName: self.viewName)) {
             GamesListContent(
                 state: viewModel.uiState,
-                onNewGameClick: {
-                    viewModel.onAddGameClick()
+                onNewGameClick: { source in
+                    viewModel.onAddGameClick(from: source)
                     onNewGameClick()
                 },
                 onGameClick: { gameId in
@@ -43,12 +43,12 @@ fileprivate struct GamesListContent: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let state: GamesListUiState
-    private let onNewGameClick: () -> Void
+    private let onNewGameClick: (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void
     private let onGameClick: (String) -> Void
 
     init(
         state: GamesListUiState,
-        onNewGameClick: @escaping () -> Void,
+        onNewGameClick: @escaping (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void,
         onGameClick: @escaping (String) -> Void
     ) {
         self.state = state
@@ -74,7 +74,7 @@ fileprivate struct GamesListContent: View {
                     TtcButton(
                         GMR.strings().games_create_button.localized(),
                         icon: .symbol(.plus),
-                        action: onNewGameClick
+                        action: { onNewGameClick(.emptyList) }
                     )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -107,7 +107,7 @@ fileprivate struct GamesListContent: View {
 
             Spacer()
 
-            Button(action: onNewGameClick) {
+            Button(action: { onNewGameClick(.addButton) }) {
                 Image(SfSymbol.plus)
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(theme.colorScheme.primary)
@@ -175,19 +175,19 @@ fileprivate let previewRows = [
 
 #Preview("Content") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: .content(previewRows), onNewGameClick: {}, onGameClick: { _ in })
+        GamesListContent(state: .content(previewRows), onNewGameClick: {_ in}, onGameClick: { _ in })
     }
 }
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: .empty, onNewGameClick: {}, onGameClick: { _ in })
+        GamesListContent(state: .empty, onNewGameClick: {_ in}, onGameClick: { _ in })
     }
 }
 
 #Preview("Content - Dark") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: .content(previewRows), onNewGameClick: {}, onGameClick: { _ in })
+        GamesListContent(state: .content(previewRows), onNewGameClick: {_ in}, onGameClick: { _ in })
     }
     .preferredColorScheme(.dark)
 }

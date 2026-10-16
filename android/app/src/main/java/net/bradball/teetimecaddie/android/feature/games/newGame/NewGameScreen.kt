@@ -46,7 +46,7 @@ import net.bradball.teetimecaddie.android.ui.common.pickers.TtcDatePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.pickers.TtcTimePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.extensions.formattedDate
+import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
 import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
@@ -157,7 +157,7 @@ private fun NewGameContent(
             )
 
             TtcTextField(
-                value = uiState.date?.formattedDate.orEmpty(),
+                value = uiState.date?.weekdayMonthDay.orEmpty(),
                 onValueChange = {},
                 label = stringResource(GMR.strings.new_game_field_date.resourceId),
                 leadingIcon = TtcIcons.CALENDAR,

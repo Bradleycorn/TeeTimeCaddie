@@ -15,7 +15,6 @@ import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
 import net.bradball.teetimecaddie.android.testing.RecordingEventManager
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
-import net.bradball.teetimecaddie.core.analytics.NoInvitesResponse
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.previewPlayer
@@ -219,8 +218,8 @@ class NewGameViewModelTest {
 
         assertEquals(
             listOf(
-                AnalyticsEvent.NoInvites(NoInvitesResponse.KEEP_EDITING),
-                AnalyticsEvent.NoInvites(NoInvitesResponse.PUBLISH_ANYWAY),
+                AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.KEEP_EDITING),
+                AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.PUBLISH_ANYWAY),
             ),
             analytics.events
         )
