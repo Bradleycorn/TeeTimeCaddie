@@ -127,7 +127,7 @@ private fun GameDetailsBody(game: Game, isOrganizer: Boolean, modifier: Modifier
             TtcChip(
                 text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
                 color = TtcColorRole.Secondary,
-                icon = TtcIcons.STAR,
+                icon = TtcIcons.STAR_FILLED,
             )
         }
 

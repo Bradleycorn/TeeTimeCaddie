@@ -27,7 +27,7 @@ enum class TtcIcons(val resource: Int) {
     PHONE(R.drawable.icon_phone),
     PHONE_TALK(R.drawable.icon_phone_in_talk),
     SCHEDULE(R.drawable.icon_schedule),
-    STAR(R.drawable.icon_star),
+    STAR_FILLED(R.drawable.icon_star_filled),
     TEE(R.drawable.icon_tee),
     TEE_CLOCK(R.drawable.icon_tee_clock),
     TEE_STRIKE(R.drawable.icon_strikethrough),

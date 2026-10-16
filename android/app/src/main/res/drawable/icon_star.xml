@@ -1,6 +1,0 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:height="24dp" android:tint="#000000" android:viewportHeight="960" android:viewportWidth="960" android:width="24dp">
-    <!-- Material Symbols "star". The source viewBox starts at y=-960, hence the translate. -->
-    <group android:translateY="960">
-        <path android:fillColor="@android:color/white" android:pathData="m354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z"/>
-    </group>
-</vector>
