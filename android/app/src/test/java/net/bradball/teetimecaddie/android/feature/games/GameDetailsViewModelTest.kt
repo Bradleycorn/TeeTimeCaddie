@@ -9,6 +9,10 @@ import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.core.models.previewPlayerList
 import net.bradball.teetimecaddie.features.games.GameErrors
 import net.bradball.teetimecaddie.session.SessionState
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -25,16 +29,32 @@ class GameDetailsViewModelTest {
     private fun viewModel(gameId: String, repository: FakeGamesRepository = FakeGamesRepository(previewGame)) =
         GameDetailsViewModel(gameId, session, repository)
 
+    /** Subscribes, as the screen does, then returns the loaded state. Loading starts on subscription. */
+    private fun TestScope.loaded(viewModel: GameDetailsViewModel): GameDetailsUiState {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        return viewModel.uiState.value
+    }
+
     @Test
-    fun showsTheGame() {
-        val state = viewModel(previewGame.id).uiState.value
+    fun loadsNothingUntilObserved() {
+        val repository = FakeGamesRepository(previewGame)
+
+        val viewModel = viewModel(previewGame.id, repository)
+
+        assertEquals(GameDetailsUiState.Loading, viewModel.uiState.value)
+        assertEquals(0, repository.getGameCalls)
+    }
+
+    @Test
+    fun showsTheGame() = runTest {
+        val state = loaded(viewModel(previewGame.id))
 
         assertEquals(GameDetailsUiState.Content(previewGame, isOrganizer = true), state)
     }
 
     @Test
-    fun theOrganizerFillsOneSlot() {
-        val state = viewModel(previewGame.id).uiState.value as GameDetailsUiState.Content
+    fun theOrganizerFillsOneSlot() = runTest {
+        val state = loaded(viewModel(previewGame.id)) as GameDetailsUiState.Content
         val teeTime = state.game.teeTimes.single()
 
         assertEquals(previewPlayer.id, teeTime.players.first().playerId)
@@ -43,26 +63,26 @@ class GameDetailsViewModelTest {
     }
 
     @Test
-    fun aOneSlotGameHasNoOpenSlots() {
+    fun aOneSlotGameHasNoOpenSlots() = runTest {
         val oneSlot = previewGame.copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
 
-        val state = viewModel(oneSlot.id, FakeGamesRepository(oneSlot)).uiState.value as GameDetailsUiState.Content
+        val state = loaded(viewModel(oneSlot.id, FakeGamesRepository(oneSlot))) as GameDetailsUiState.Content
 
         assertEquals(0, state.game.teeTimes.single().openSlots)
     }
 
     @Test
-    fun someoneElseIsNotTheOrganizer() {
+    fun someoneElseIsNotTheOrganizer() = runTest {
         session.value = SessionState.SignedIn(previewPlayerList[1])
 
-        val state = viewModel(previewGame.id).uiState.value as GameDetailsUiState.Content
+        val state = loaded(viewModel(previewGame.id)) as GameDetailsUiState.Content
 
         assertFalse(state.isOrganizer)
     }
 
     @Test
-    fun aMissingGameIsAnError() {
-        val state = viewModel("nope").uiState.value
+    fun aMissingGameIsAnError() = runTest {
+        val state = loaded(viewModel("nope"))
 
         assertTrue(state is GameDetailsUiState.Error)
         assertEquals(GameErrors.NOT_FOUND.message, (state as GameDetailsUiState.Error).message)

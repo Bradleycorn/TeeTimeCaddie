@@ -78,8 +78,12 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
     override fun upcomingGames(playerId: String): Flow<List<Game>> =
         games.map { all -> all.filter { game -> game.teeTimes.any { t -> t.players.any { it.playerId == playerId } } } }
 
+    /** How many times [getGame] was called. */
+    var getGameCalls = 0
+        private set
+
     override suspend fun getGame(gameId: String): TtcResult<Game> =
-        games.value.firstOrNull { it.id == gameId }
+        also { getGameCalls++ }.games.value.firstOrNull { it.id == gameId }
             ?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
 }

@@ -7,10 +7,10 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.icerock.moko.resources.StringResource
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GamesRepository
@@ -44,29 +44,30 @@ class GameDetailsViewModel @AssistedInject constructor(
     private val gamesRepository: GamesRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<GameDetailsUiState>(GameDetailsUiState.Loading)
-    val uiState: StateFlow<GameDetailsUiState> = _uiState.asStateFlow()
+    /**
+     * Loads the game once something starts observing, rather than from `init`, so creating the
+     * ViewModel has no side effects.
+     */
+    val uiState: StateFlow<GameDetailsUiState> = flow { emit(loadGame()) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = GameDetailsUiState.Loading
+        )
 
-    init {
-        load()
-    }
-
-    private fun load() {
-        viewModelScope.launch {
-            _uiState.value = when (val result = gamesRepository.getGame(gameId)) {
-                is TtcResult.Success -> {
-                    val viewerId = (sessionState.value as? SessionState.SignedIn)?.player?.id
-                    GameDetailsUiState.Content(
-                        game = result.data,
-                        isOrganizer = viewerId != null && result.data.isOrganizer(viewerId),
-                    )
-                }
-
-                is TtcResult.Failure -> GameDetailsUiState.Error(
-                    title = result.error.title,
-                    message = result.error.displayMessage,
+    private suspend fun loadGame(): GameDetailsUiState =
+        when (val result = gamesRepository.getGame(gameId)) {
+            is TtcResult.Success -> {
+                val viewerId = (sessionState.value as? SessionState.SignedIn)?.player?.id
+                GameDetailsUiState.Content(
+                    game = result.data,
+                    isOrganizer = viewerId != null && result.data.isOrganizer(viewerId),
                 )
             }
+
+            is TtcResult.Failure -> GameDetailsUiState.Error(
+                title = result.error.title,
+                message = result.error.displayMessage,
+            )
         }
-    }
 }

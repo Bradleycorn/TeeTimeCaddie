@@ -12,11 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,6 +29,7 @@ import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
+import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarPlaceholder
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
@@ -47,7 +45,6 @@ import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
-import net.bradball.teetimecaddie.core.models.GR
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.features.games.GMR
 
@@ -63,7 +60,6 @@ fun GameDetailsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GameDetailsContent(
     uiState: GameDetailsUiState,
@@ -73,16 +69,9 @@ private fun GameDetailsContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(GMR.strings.game_details_title.resourceId)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = TtcIcons.ARROW_BACK.painter,
-                            contentDescription = stringResource(GR.strings.back.resourceId),
-                        )
-                    }
-                },
+            TtcCenteredTopAppBar(
+                title = stringResource(GMR.strings.game_details_title.resourceId),
+                onBack = onBack,
             )
         },
     ) { contentPadding ->
