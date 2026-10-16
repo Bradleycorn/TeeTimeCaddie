@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -175,46 +176,14 @@ private fun TeeTimeCard(teeTime: GameTeeTime, organizerId: String, modifier: Mod
 
         val rows = teeTime.players.map<GamePlayer, GamePlayer?> { it } + List(teeTime.openSlots) { null }
         rows.forEachIndexed { index, player ->
-            if (index > 0) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = GameDetailsDefaults.DividerInset),
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                )
-            }
+            val showDivider = index < rows.lastIndex
             if (player == null) {
-                EmptySlotRow()
+                EmptySlotRow(showDivider = showDivider)
             } else {
-                PlayerSlotRow(player = player, isOrganizer = player.playerId == organizerId)
-            }
-        }
-    }
-}
-
-@Composable
-private fun PlayerSlotRow(player: GamePlayer, isOrganizer: Boolean, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(GameDetailsDefaults.RowPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(GameDetailsDefaults.RowSpacing),
-    ) {
-        TtcAvatar(
-            initials = player.initial,
-            color = if (isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
-            size = GameDetailsDefaults.AvatarSize,
-        )
-        Column {
-            Text(
-                text = player.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-            )
-            if (isOrganizer) {
-                Text(
-                    text = stringResource(GMR.strings.game_details_organizer_label.resourceId),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                PlayerSlotRow(
+                    player = player,
+                    isOrganizer = player.playerId == organizerId,
+                    showDivider = showDivider,
                 )
             }
         }
@@ -222,20 +191,87 @@ private fun PlayerSlotRow(player: GamePlayer, isOrganizer: Boolean, modifier: Mo
 }
 
 @Composable
-private fun EmptySlotRow(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(GameDetailsDefaults.RowPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(GameDetailsDefaults.RowSpacing),
+private fun PlayerSlotRow(
+    player: GamePlayer,
+    isOrganizer: Boolean,
+    showDivider: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    SlotRow(
+        showDivider = showDivider,
+        modifier = modifier,
+        avatar = {
+            TtcAvatar(
+                initials = player.initial,
+                color = if (isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
+                size = GameDetailsDefaults.AvatarSize,
+            )
+        },
     ) {
-        TtcAvatar(placeholder = TtcAvatarPlaceholder.Empty, size = GameDetailsDefaults.AvatarSize)
+        Text(
+            text = player.name,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+        )
+        if (isOrganizer) {
+            Text(
+                text = stringResource(GMR.strings.game_details_organizer_label.resourceId),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptySlotRow(showDivider: Boolean, modifier: Modifier = Modifier) {
+    SlotRow(
+        showDivider = showDivider,
+        modifier = modifier,
+        avatar = { TtcAvatar(placeholder = TtcAvatarPlaceholder.Empty, size = GameDetailsDefaults.AvatarSize) },
+    ) {
         Text(
             text = stringResource(GMR.strings.game_details_empty_slot.resourceId),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/**
+ * The layout every slot row shares: the avatar, then the text with an optional divider beneath it.
+ *
+ * The row's vertical padding sits inside the text column rather than on the row, so the divider runs
+ * along the row's bottom edge and starts exactly where the text does, with no inset to keep in sync.
+ */
+@Composable
+private fun SlotRow(
+    showDivider: Boolean,
+    avatar: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    text: @Composable ColumnScope.() -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = GameDetailsDefaults.RowHorizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GameDetailsDefaults.RowSpacing),
+    ) {
+        avatar()
+        Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.padding(
+                    top = GameDetailsDefaults.RowVerticalPadding,
+                    bottom = GameDetailsDefaults.RowVerticalPadding,
+                    end = GameDetailsDefaults.RowHorizontalPadding,
+                ),
+                content = text,
+            )
+            if (showDivider) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
+        }
     }
 }
 
@@ -246,11 +282,10 @@ private object GameDetailsDefaults {
     val HeaderPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     val HeaderSpacing = 10.dp
     val HeaderIconSize = 20.dp
-    val RowPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+    val RowHorizontalPadding = 16.dp
+    val RowVerticalPadding = 12.dp
     val RowSpacing = 12.dp
     val AvatarSize = 36.dp
-    /** Lines the dividers up with the row text, past the avatar. */
-    val DividerInset = 64.dp
 }
 
 @ScreenPreviews
