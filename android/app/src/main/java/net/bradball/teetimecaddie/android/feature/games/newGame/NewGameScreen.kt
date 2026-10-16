@@ -12,10 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,6 +36,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.Screen
+import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcButton
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcOutlinedButton
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
@@ -71,14 +70,20 @@ fun NewGameScreen(
     Screen(AnalyticsScreen.NewGame("NewGameScreen")) {
         NewGameContent(
             uiState = uiState,
-            onClose = onClose,
+            onCancel = {
+                viewModel.onCancel()
+                onClose()
+            },
             onCourseChange = viewModel::onCourseChange,
             onDateSelected = viewModel::onDateSelected,
             onTimeSelected = viewModel::onTimeSelected,
             onSlotsChange = viewModel::onSlotsChange,
             onPublishClick = viewModel::onPublishClick,
             onKeepEditing = viewModel::onKeepEditing,
+            onDismissNoInviteeConfirm = viewModel::onDismissNoInviteeConfirm,
             onPublishAnyway = viewModel::onPublishAnyway,
+            onDateInputToggle = viewModel::onDateInputToggle,
+            onTimeInputToggle = viewModel::onTimeInputToggle,
         )
     }
 }
@@ -87,14 +92,17 @@ fun NewGameScreen(
 @Composable
 private fun NewGameContent(
     uiState: NewGameUiState,
-    onClose: () -> Unit,
+    onCancel: () -> Unit,
     onCourseChange: (String) -> Unit,
     onDateSelected: (LocalDate) -> Unit,
     onTimeSelected: (LocalTime) -> Unit,
     onSlotsChange: (Int) -> Unit,
     onPublishClick: () -> Unit,
     onKeepEditing: () -> Unit,
+    onDismissNoInviteeConfirm: () -> Unit,
     onPublishAnyway: () -> Unit,
+    onDateInputToggle: () -> Unit,
+    onTimeInputToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Which picker is open is purely presentational: the ViewModel only needs the committed value.
@@ -105,16 +113,10 @@ private fun NewGameContent(
         // Keeps Publish above the keyboard; the form scrolls beneath it.
         modifier = modifier.imePadding(),
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(GMR.strings.new_game_title.resourceId)) },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            painter = TtcIcons.CLOSE.painter,
-                            contentDescription = stringResource(GMR.strings.new_game_close.resourceId),
-                        )
-                    }
-                },
+            TtcCenteredTopAppBar(
+                title = stringResource(GMR.strings.new_game_title.resourceId),
+                // Leaves without saving and without asking.
+                onBack = onCancel,
             )
         },
         bottomBar = {
@@ -193,6 +195,7 @@ private fun NewGameContent(
             selectedDate = uiState.date,
             onDateSelected = onDateSelected,
             onDismiss = { showDatePicker = false },
+            onDisplayModeToggle = onDateInputToggle,
         )
     }
 
@@ -201,13 +204,14 @@ private fun NewGameContent(
             selectedTime = uiState.time,
             onTimeSelected = onTimeSelected,
             onDismiss = { showTimePicker = false },
+            onDisplayModeToggle = onTimeInputToggle,
         )
     }
 
     // Not drawn in the design: the platform's own alert, as the story specifies.
     if (uiState.showNoInviteeConfirm) {
         AlertDialog(
-            onDismissRequest = onKeepEditing,
+            onDismissRequest = onDismissNoInviteeConfirm,
             title = { Text(stringResource(GMR.strings.new_game_no_invitees_title.resourceId)) },
             text = { Text(stringResource(GMR.strings.new_game_no_invitees_message.resourceId)) },
             confirmButton = {
@@ -300,14 +304,17 @@ private fun NewGameEmptyPreview() {
     MyApplicationTheme {
         NewGameContent(
             uiState = NewGameUiState(),
-            onClose = {},
+            onCancel = {},
             onCourseChange = {},
             onDateSelected = {},
             onTimeSelected = {},
             onSlotsChange = {},
             onPublishClick = {},
             onKeepEditing = {},
+            onDismissNoInviteeConfirm = {},
             onPublishAnyway = {},
+            onDateInputToggle = {},
+            onTimeInputToggle = {},
         )
     }
 }
@@ -323,14 +330,17 @@ private fun NewGameFilledPreview() {
                 time = LocalTime(9, 0),
                 slots = 3,
             ),
-            onClose = {},
+            onCancel = {},
             onCourseChange = {},
             onDateSelected = {},
             onTimeSelected = {},
             onSlotsChange = {},
             onPublishClick = {},
             onKeepEditing = {},
+            onDismissNoInviteeConfirm = {},
             onPublishAnyway = {},
+            onDateInputToggle = {},
+            onTimeInputToggle = {},
         )
     }
 }

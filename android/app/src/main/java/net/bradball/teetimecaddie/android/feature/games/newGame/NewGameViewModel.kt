@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.EventManager
+import net.bradball.teetimecaddie.core.analytics.NoInvitesResponse
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
@@ -53,6 +56,7 @@ class NewGameViewModel @Inject constructor(
     private val sessionState: StateFlow<@JvmSuppressWildcards SessionState>,
     private val gamesRepository: GamesRepository,
     private val messenger: TtcMessenger,
+    private val eventManager: EventManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NewGameUiState())
@@ -74,7 +78,23 @@ class NewGameViewModel @Inject constructor(
     }
 
     fun onSlotsChange(slots: Int) {
+        eventManager.logEvent(AnalyticsEvent.PlayerSlotsClick(playerCount = slots))
         _uiState.update { it.copy(slots = slots) }
+    }
+
+    /** The date picker was switched between calendar and typed entry. */
+    fun onDateInputToggle() {
+        eventManager.logEvent(AnalyticsEvent.DateInputToggle)
+    }
+
+    /** The time picker was switched between the dial and typed entry. */
+    fun onTimeInputToggle() {
+        eventManager.logEvent(AnalyticsEvent.TimeInputToggle)
+    }
+
+    /** The back button was tapped. Leaving is the screen's job; nothing is saved or asked. */
+    fun onCancel() {
+        eventManager.logEvent(AnalyticsEvent.NewGameCancel)
     }
 
     /** Publish was tapped: ask first, since nobody has been invited. */
@@ -85,11 +105,21 @@ class NewGameViewModel @Inject constructor(
 
     /** "Keep editing": close the alert and leave the form exactly as it was. */
     fun onKeepEditing() {
+        eventManager.logEvent(AnalyticsEvent.NoInvites(NoInvitesResponse.KEEP_EDITING))
+        onDismissNoInviteeConfirm()
+    }
+
+    /**
+     * The alert was dismissed without a button — a tap outside it, or back. Same outcome as
+     * "Keep editing", but it isn't a button press, so it isn't logged as one.
+     */
+    fun onDismissNoInviteeConfirm() {
         _uiState.update { it.copy(showNoInviteeConfirm = false) }
     }
 
     /** "Publish anyway". */
     fun onPublishAnyway() {
+        eventManager.logEvent(AnalyticsEvent.NoInvites(NoInvitesResponse.PUBLISH_ANYWAY))
         _uiState.update { it.copy(showNoInviteeConfirm = false) }
         submit()
     }

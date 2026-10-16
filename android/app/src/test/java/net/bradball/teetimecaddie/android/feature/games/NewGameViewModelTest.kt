@@ -13,6 +13,9 @@ import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameEvent
 import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameUiState
 import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
+import net.bradball.teetimecaddie.android.testing.RecordingEventManager
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.NoInvitesResponse
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.previewPlayer
@@ -36,8 +39,9 @@ class NewGameViewModelTest {
     private val session = MutableStateFlow<SessionState>(SessionState.SignedIn(previewPlayer))
     private val repository = FakeGamesRepository()
     private val messenger = TtcMessenger()
+    private val analytics = RecordingEventManager()
 
-    private val viewModel = NewGameViewModel(session, repository, messenger)
+    private val viewModel = NewGameViewModel(session, repository, messenger, analytics.eventManager)
 
     private fun fillIn(course: String = "Pebble Beach") {
         viewModel.onCourseChange(course)
@@ -179,5 +183,57 @@ class NewGameViewModelTest {
         assertTrue(events.isEmpty())
         assertFalse(viewModel.uiState.value.isSubmitting)
         assertEquals("Pebble Beach", viewModel.uiState.value.course)
+    }
+
+    // MARK: analytics
+
+    @Test
+    fun selectingSlotsLogsTheCountTapped() {
+        viewModel.onSlotsChange(3)
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.PlayerSlotsClick(playerCount = 3)), analytics.events)
+    }
+
+    @Test
+    fun pickerModeTogglesAreLogged() {
+        viewModel.onDateInputToggle()
+        viewModel.onTimeInputToggle()
+
+        assertEquals(listOf(AnalyticsEvent.DateInputToggle, AnalyticsEvent.TimeInputToggle), analytics.events)
+    }
+
+    @Test
+    fun cancelIsLogged() {
+        viewModel.onCancel()
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.NewGameCancel), analytics.events)
+    }
+
+    @Test
+    fun alertButtonsLogTheResponse() = runTest {
+        fillIn()
+        viewModel.onPublishClick()
+        viewModel.onKeepEditing()
+        viewModel.onPublishClick()
+        viewModel.onPublishAnyway()
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.NoInvites(NoInvitesResponse.KEEP_EDITING),
+                AnalyticsEvent.NoInvites(NoInvitesResponse.PUBLISH_ANYWAY),
+            ),
+            analytics.events
+        )
+    }
+
+    @Test
+    fun dismissingTheAlertWithoutAButtonClosesItButLogsNothing() {
+        fillIn()
+        viewModel.onPublishClick()
+
+        viewModel.onDismissNoInviteeConfirm()
+
+        assertFalse(viewModel.uiState.value.showNoInviteeConfirm)
+        assertTrue(analytics.events.isEmpty())
     }
 }

@@ -67,6 +67,8 @@ import net.bradball.teetimecaddie.core.models.GR
  *   an untouched dialog therefore commits the seeded time.
  * @param onDismiss Invoked when the dialog should close — on Cancel, on OK, and on scrim/back dismissal.
  * @param modifier Modifier for the dialog's content.
+ * @param onDisplayModeToggle Invoked each time the user switches between the dial and typed entry
+ *   with the keyboard / clock icon.
  */
 @Composable
 fun TtcTimePickerDialog(
@@ -74,6 +76,7 @@ fun TtcTimePickerDialog(
     onTimeSelected: (LocalTime) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    onDisplayModeToggle: (() -> Unit)? = null,
 ) {
     val seed = selectedTime ?: TtcTimePickerDefaults.SeedTime
 
@@ -124,6 +127,7 @@ fun TtcTimePickerDialog(
             {
                 TimePickerDialogDefaults.DisplayModeToggle(
                     onDisplayModeChange = {
+                        onDisplayModeToggle?.invoke()
                         displayMode = if (displayMode == TimePickerDisplayMode.Picker) {
                             TimePickerDisplayMode.Input
                         } else {
