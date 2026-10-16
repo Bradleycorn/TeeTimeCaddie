@@ -28,7 +28,11 @@ struct GameDetailsScreen: View {
 fileprivate struct GameDetailsContent: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let state: GameDetailsUiState
+    private let state: GameDetailsUiState
+
+    init(state: GameDetailsUiState) {
+        self.state = state
+    }
 
     var body: some View {
         Group {
@@ -54,11 +58,15 @@ fileprivate struct GameDetailsContent: View {
 fileprivate struct GameDetailsBody: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let game: GameDetailsUiModel
+    private let game: GameDetailsUiModel
+
+    init(game: GameDetailsUiModel) {
+        self.game = game
+    }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: GameDetailsDefaults.sectionSpacing) {
                 if game.isOrganizer {
                     TtcChip(
                         GMR.strings().game_details_organizer_chip.localized(),
@@ -67,7 +75,7 @@ fileprivate struct GameDetailsBody: View {
                     )
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: GameDetailsDefaults.titleSpacing) {
                     Text(game.course)
                         .font(.largeTitle.weight(.bold))
                         .foregroundStyle(theme.colorScheme.onSurface)
@@ -80,7 +88,7 @@ fileprivate struct GameDetailsBody: View {
                     TeeTimeCard(teeTime: teeTime)
                 }
             }
-            .padding(16)
+            .padding(GameDetailsDefaults.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -89,14 +97,18 @@ fileprivate struct GameDetailsBody: View {
 fileprivate struct TeeTimeCard: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let teeTime: GameTeeTimeUiModel
+    private let teeTime: GameTeeTimeUiModel
+
+    init(teeTime: GameTeeTimeUiModel) {
+        self.teeTime = teeTime
+    }
 
     var body: some View {
         TtcCard(contentPadding: TtcCardStyle.noContentPadding) {
             VStack(spacing: 0) {
                 // The tonal header strip: when, and how full.
-                HStack(spacing: 10) {
-                    Image(systemName: SfSymbol.clock.rawValue)
+                HStack(spacing: GameDetailsDefaults.headerSpacing) {
+                    Image(SfSymbol.clock)
                         .foregroundStyle(theme.colorScheme.primary)
                     Text(teeTime.time)
                         .font(.headline)
@@ -104,8 +116,8 @@ fileprivate struct TeeTimeCard: View {
                     Spacer()
                     TtcChip(teeTime.filledCount, size: .small)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, GameDetailsDefaults.horizontalPadding)
+                .padding(.vertical, GameDetailsDefaults.verticalPadding)
                 .background(theme.colorScheme.surfaceContainerHigh)
 
                 ForEach(Array(teeTime.players.enumerated()), id: \.offset) { index, player in
@@ -127,21 +139,29 @@ fileprivate struct RowDivider: View {
     var body: some View {
         Rectangle()
             .fill(theme.colorScheme.outlineVariant)
-            .frame(height: 1)
+            .frame(height: GameDetailsDefaults.dividerThickness)
             // Lines the divider up with the row text, past the avatar.
-            .padding(.leading, 64)
+            .padding(.leading, GameDetailsDefaults.dividerInset)
     }
 }
 
 fileprivate struct PlayerSlotRow: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let player: GameSlotUiModel
+    private let player: GameSlotUiModel
+
+    init(player: GameSlotUiModel) {
+        self.player = player
+    }
 
     var body: some View {
-        HStack(spacing: 12) {
-            TtcAvatar(player.initial, color: player.isOrganizer ? .secondary : .primary, size: 36)
-            VStack(alignment: .leading, spacing: 1) {
+        HStack(spacing: GameDetailsDefaults.rowSpacing) {
+            TtcAvatar(
+                player.initial,
+                color: player.isOrganizer ? .secondary : .primary,
+                size: GameDetailsDefaults.avatarSize
+            )
+            VStack(alignment: .leading, spacing: GameDetailsDefaults.nameStatusSpacing) {
                 Text(player.name)
                     .font(.body.weight(.medium))
                     .foregroundStyle(theme.colorScheme.onSurface)
@@ -153,8 +173,8 @@ fileprivate struct PlayerSlotRow: View {
             }
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, GameDetailsDefaults.horizontalPadding)
+        .padding(.vertical, GameDetailsDefaults.verticalPadding)
     }
 }
 
@@ -162,16 +182,32 @@ fileprivate struct EmptySlotRow: View {
     @EnvironmentObject private var theme: AppTheme
 
     var body: some View {
-        HStack(spacing: 12) {
-            TtcAvatar(placeholder: .empty, size: 36)
+        HStack(spacing: GameDetailsDefaults.rowSpacing) {
+            TtcAvatar(placeholder: .empty, size: GameDetailsDefaults.avatarSize)
             Text(GMR.strings().game_details_empty_slot.localized())
                 .font(.body)
                 .foregroundStyle(theme.colorScheme.onSurfaceVariant)
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, GameDetailsDefaults.horizontalPadding)
+        .padding(.vertical, GameDetailsDefaults.verticalPadding)
     }
+}
+
+/// Spacing and sizes for Game details — the twin of `GameDetailsDefaults` on Android.
+fileprivate enum GameDetailsDefaults {
+    static let padding: CGFloat = 16
+    static let sectionSpacing: CGFloat = 20
+    static let titleSpacing: CGFloat = 8
+    static let horizontalPadding: CGFloat = 16
+    static let verticalPadding: CGFloat = 12
+    static let headerSpacing: CGFloat = 10
+    static let rowSpacing: CGFloat = 12
+    static let nameStatusSpacing: CGFloat = 1
+    static let avatarSize: CGFloat = 36
+    static let dividerThickness: CGFloat = 1
+    /// Lines the dividers up with the row text, past the avatar.
+    static let dividerInset: CGFloat = horizontalPadding + avatarSize + rowSpacing
 }
 
 // MARK: - Previews
