@@ -7,30 +7,12 @@ import Foundation
 import SwiftUI
 import TeeTimeCaddieKit
 
-/// One game on the Games tab, already formatted.
-///
-/// Free of SDK types so ``GamesListContent`` previews are pure construction.
-struct GameRowUiModel: Equatable, Identifiable {
-    let id: String
-    let course: String
-
-    /// "Sat, Jun 13 · 9:00 AM"
-    let dateAndTime: String
-}
-
-/// State for the Games tab: a spinner, the empty state, or the list. Never two at once.
-enum GamesListUiState: Equatable {
-    case loading
-    case empty
-    case content([GameRowUiModel])
-}
-
 /// The Swift twin of `GamesListViewModel.kt`.
 @MainActor
 @Observable
 final class GamesListViewModel {
 
-    private(set) var uiState: GamesListUiState = .loading
+    private(set) var uiState: any GamesListUiState = GamesListUiStateLoading.shared
 
     private let gamesRepository: GamesRepository
     private let currentPlayer: () -> Player?
@@ -50,7 +32,7 @@ final class GamesListViewModel {
     func observeGames() async {
         guard let playerId = currentPlayer()?.id else { return }
         for await games in gamesRepository.upcomingGames(playerId: playerId) {
-            uiState = Self.uiState(for: games)
+            uiState = GamesListUiStateKt.toGamesListUiState(games)
         }
     }
 
@@ -64,18 +46,4 @@ final class GamesListViewModel {
         eventManager.logEvent(event: AnalyticsEvent.GameListItemClick.shared)
     }
 
-    /// What the tab shows for a set of games.
-    static func uiState(for games: [Game]) -> GamesListUiState {
-        guard !games.isEmpty else { return .empty }
-        return .content(games.map { game in
-            GameRowUiModel(
-                id: game.id,
-                course: game.course.name,
-                dateAndTime: GMR.strings().games_row_date_time.localized(
-                    game.date.weekdayMonthDay,
-                    game.teeTimes.first?.time.formattedTime ?? ""
-                )
-            )
-        })
-    }
 }

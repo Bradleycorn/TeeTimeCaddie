@@ -42,12 +42,12 @@ struct GamesListScreen: View {
 fileprivate struct GamesListContent: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let state: GamesListUiState
+    private let state: any GamesListUiState
     private let onNewGameClick: (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void
     private let onGameClick: (String) -> Void
 
     init(
-        state: GamesListUiState,
+        state: any GamesListUiState,
         onNewGameClick: @escaping (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void,
         onGameClick: @escaping (String) -> Void
     ) {
@@ -60,7 +60,7 @@ fileprivate struct GamesListContent: View {
         VStack(spacing: 0) {
             header
 
-            switch state {
+            switch onEnum(of: state) {
             case .loading:
                 ContentLoadingIndicator()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -79,14 +79,14 @@ fileprivate struct GamesListContent: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            case .content(let games):
+            case .content(let content):
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: GamesListDefaults.spacing) {
                         Text(GMR.strings().games_upcoming_header.localized())
                             .font(.headline)
                             .padding(.top, GamesListDefaults.headerTopPadding)
 
-                        ForEach(games) { game in
+                        ForEach(content.games, id: \.id) { game in
                             GameRow(game: game, onClick: { onGameClick(game.id) })
                         }
                     }
@@ -144,7 +144,7 @@ fileprivate struct GameRow: View {
                     .foregroundStyle(theme.colorScheme.onSurface)
                     .lineLimit(2)
                 Label {
-                    Text(game.dateAndTime)
+                    Text(game.dateAndTime.localized())
                 } icon: {
                     Image(SfSymbol.clock)
                 }
@@ -168,26 +168,23 @@ fileprivate enum GamesListDefaults {
 
 // MARK: - Previews
 
-fileprivate let previewRows = [
-    GameRowUiModel(id: "1", course: "Pebble Beach", dateAndTime: "Sat, Jun 13 · 9:00 AM"),
-    GameRowUiModel(id: "2", course: "Bethpage Black", dateAndTime: "Sun, Jun 14 · 8:10 AM"),
-]
+fileprivate let previewContent = GamesListUiStateContent(games: GamesListUiStateKt.previewGameRowUiModelList)
 
 #Preview("Content") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: .content(previewRows), onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(state: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
     }
 }
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: .empty, onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(state: GamesListUiStateEmpty.shared, onNewGameClick: {_ in}, onGameClick: { _ in })
     }
 }
 
 #Preview("Content - Dark") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: .content(previewRows), onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(state: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
     }
     .preferredColorScheme(.dark)
 }
