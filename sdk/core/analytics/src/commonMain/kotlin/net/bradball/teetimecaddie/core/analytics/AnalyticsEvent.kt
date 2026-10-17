@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.core.analytics
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.properties.Properties
 import kotlinx.serialization.properties.encodeToMap
@@ -82,20 +83,55 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     data class AbandonedRegistration(val reason: String? = null): AnalyticsEvent("abandoned_registration", EventType.OPERATION)
     @Serializable
     object SignOut: AnalyticsEvent("sign_out", EventType.OPERATION)
+    /** An organizer published a new Game. [slots] is how many players its tee time holds. */
     @Serializable
-    data class AddTeeTime(val times: Int, val players: Int): AnalyticsEvent("add_tee_time", EventType.OPERATION)
+    data class PublishGame(val slots: Int): AnalyticsEvent("publish_game", EventType.OPERATION)
+    /** A Game was tapped on the Games tab, opening its details. */
     @Serializable
-    object AddTimeClick: AnalyticsEvent("add_time_click", EventType.CLICK)
+    object GameListItemClick: AnalyticsEvent("game_list_item_click", EventType.CLICK)
+    /** The add control on the Games tab was tapped: the FAB or + button, or the empty state's "Create a game". */
     @Serializable
-    object AddTime: AnalyticsEvent("add_time", EventType.OPERATION)
+    data class AddGameClick(val source: Source): AnalyticsEvent("add_game_click", EventType.CLICK) {
+        @Serializable
+        enum class Source {
+            @SerialName("add_button") ADD_BUTTON,
+            @SerialName("empty_list") EMPTY_LIST
+        }
+    }
+    /** One of the New game screen's player-slot buttons was tapped. [playerCount] is the number tapped. */
     @Serializable
-    data class NumberOfPlayersClick(val numberOfPlayers: Int): AnalyticsEvent("number_of_players_click", EventType.CLICK)
+    data class PlayerSlotsClick(
+        @SerialName("player_count") val playerCount: Int
+    ): AnalyticsEvent("player_slots_click", EventType.CLICK)
+    /** The date picker was switched between its calendar and typed-entry modes. */
     @Serializable
-    object RemoveTimeClick: AnalyticsEvent("remove_time_click", EventType.CLICK)
+    object DateInputToggle: AnalyticsEvent("date_input_toggle", EventType.CLICK)
+    /** The time picker was switched between its dial and typed-entry modes. */
     @Serializable
-    data class EditTeeTime(val times: Int, val players: Int): AnalyticsEvent("tee_time_edit", EventType.OPERATION)
+    object TimeInputToggle: AnalyticsEvent("time_input_toggle", EventType.CLICK)
+    /** The New game screen's back / Cancel button was tapped, leaving without publishing. */
     @Serializable
-    object TeeTimeListItemClick: AnalyticsEvent("tee_time_list_item_click", EventType.CLICK)
+    object NewGameCancel: AnalyticsEvent("new_game_cancel", EventType.CLICK)
+    /** A button on the "Publish with no invitees?" alert was tapped. */
+    @Serializable
+    data class NoInvites(val response: Response): AnalyticsEvent("no_invites", EventType.CLICK) {
+        /** Which button closed the alert. */
+        @Serializable
+        enum class Response {
+            @SerialName("edit") KEEP_EDITING,
+            @SerialName("publish") PUBLISH_ANYWAY,
+        }
+    }
+    /** A tab in the bottom tab bar was tapped. */
+    @Serializable
+    data class TabBarClick(val tab: Tab): AnalyticsEvent("tab_bar_click", EventType.CLICK) {
+        /** The tabs in the bottom tab bar, as analytics names them. */
+        @Serializable
+        enum class Tab {
+            @SerialName("games") GAMES,
+            @SerialName("profile") PROFILE,
+        }
+    }
 
 
     @OptIn(ExperimentalSerializationApi::class)

@@ -13,6 +13,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.drop
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -78,6 +83,8 @@ import net.bradball.teetimecaddie.core.models.GR
  * @param modifier Modifier for the dialog's content.
  * @param minDate The earliest selectable date, inclusive. Defaults to today.
  * @param maxDate The latest selectable date, inclusive. Defaults to a year from today.
+ * @param onDisplayModeToggle Invoked each time the user switches between the calendar and typed
+ *   entry with the pencil / calendar icon. Not called for the mode the dialog opens in.
  */
 @Composable
 fun TtcDatePickerDialog(
@@ -87,6 +94,7 @@ fun TtcDatePickerDialog(
     modifier: Modifier = Modifier,
     minDate: LocalDate = TtcDatePickerDefaults.MinDate,
     maxDate: LocalDate = TtcDatePickerDefaults.MaxDate,
+    onDisplayModeToggle: (() -> Unit)? = null,
 ) {
     require(minDate <= maxDate) {
         "TtcDatePickerDialog: minDate ($minDate) must not be after maxDate ($maxDate)."
@@ -102,6 +110,15 @@ fun TtcDatePickerDialog(
     )
 
     val colors = TtcDatePickerDefaults.colors()
+
+    // The pencil / calendar toggle lives inside M3's DatePicker with no click callback, so a switch
+    // is read off the state instead. `drop(1)` skips the mode the dialog opened in.
+    if (onDisplayModeToggle != null) {
+        val currentOnToggle by rememberUpdatedState(onDisplayModeToggle)
+        LaunchedEffect(state) {
+            snapshotFlow { state.displayMode }.drop(1).collect { currentOnToggle() }
+        }
+    }
 
     DatePickerDialog(
         onDismissRequest = onDismiss,

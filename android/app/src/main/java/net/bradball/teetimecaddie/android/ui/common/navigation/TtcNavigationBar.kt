@@ -58,7 +58,7 @@ private fun TtcNavigationBarPreview() {
         Surface(color = MaterialTheme.colorScheme.surface) {
             TtcNavigationBar(
                 destinations = TopLevelDestination.entries,
-                selected = TopLevelDestination.TEE_TIMES,
+                selected = TopLevelDestination.GAMES,
                 onSelect = {},
             )
         }

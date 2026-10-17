@@ -2,10 +2,11 @@ package net.bradball.teetimecaddie.android.ui.navigation
 
 import androidx.annotation.StringRes
 import net.bradball.teetimecaddie.android.feature.profile.navigation.ProfileDestination
-import net.bradball.teetimecaddie.android.feature.teeTimes.navigation.TeeTimesListDestination
+import net.bradball.teetimecaddie.android.feature.games.navigation.GamesListDestination
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.features.players.PR
-import net.bradball.teetimecaddie.features.teetimes.TTR
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.features.games.GMR
 
 /**
  * Defines the top-level navigation destinations in the TeeTime Caddie app.
@@ -17,18 +18,18 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
  *
  * ## Multi-Stack Navigation
  *
- * When a user switches between top-level destinations, their position within each section
- * is preserved. For example:
+ * Each top-level destination keeps its own back stack. Pushed screens hide the navigation bar,
+ * so the player backs out to a tab's root before switching tabs:
  *
  * ```kotlin
- * // User is viewing Tee Times List, then navigates to Add Tee Time
- * navigator.navigateToAddTeeTime()
+ * // On the Games tab, open the New game form; the navigation bar hides
+ * navigator.navigateToNewGame()
  *
- * // User switches to a different top-level destination (when more are added)
+ * // Back on the Games list; the navigation bar shows again
+ * navigator.goBack()
+ *
+ * // Switch tabs
  * navigator.navigate(TopLevelDestination.PROFILE)
- *
- * // User switches back to Tee Times - they're still on Add Tee Time screen
- * navigator.navigate(TopLevelDestination.TEE_TIMES)
  * ```
  *
  * ## Adding New Top-Level Destinations
@@ -67,7 +68,7 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
  *     backStack = navigator.backStack,
  *     onBack = { navigator.goBack() },
  *     entryProvider = entryProvider {
- *         teeTimesEntries(navigator)
+ *         gamesEntries(navigator)
  *         profileEntries(navigator) // Add new entries
  *     }
  * )
@@ -82,9 +83,16 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
  * The [destination] property specifies the initial screen to show when the user first navigates
  * to this top-level destination or when the back stack is cleared.
  *
+ * ## The Navigation Bar
+ *
+ * The navigation bar shows only while a tab's [destination] is on screen. Any screen pushed on top
+ * of it hides the bar, so switching tabs always starts from a top-level screen. See
+ * [NavBarNavigator.isAtTopLevel].
+ *
  * @property icon The icon to display for this destination in the navigation UI.
  * @property iconTextId String resource ID for the accessibility label and display text.
  * @property destination The initial navigation destination for this top-level section.
+ * @property analyticsTab How analytics names this tab when it is tapped.
  *
  * @see Navigator
  * @see TtcNavKey
@@ -92,20 +100,19 @@ import net.bradball.teetimecaddie.features.teetimes.TTR
 enum class TopLevelDestination (
     val icon: TtcIcons,
     @StringRes val iconTextId: Int,
-    val destination: TtcNavKey
+    val destination: TtcNavKey,
+    val analyticsTab: AnalyticsEvent.TabBarClick.Tab,
 ): TtcNavKey {
     /**
      * The games list — the app's home tab.
      *
-     * The label is "Games" while the enum constant, feature package, SDK module and iOS twin are
-     * all still `teeTimes`/`teetimes`. Renaming that hierarchy to match the label is its own change.
-     *
      * The icon is the brand mark rather than a golf glyph, matching the design.
      */
-    TEE_TIMES(
+    GAMES(
         icon = TtcIcons.TEE,
-        iconTextId = TTR.strings.games_title.resourceId,
-        destination = TeeTimesListDestination
+        iconTextId = GMR.strings.games_title.resourceId,
+        destination = GamesListDestination,
+        analyticsTab = AnalyticsEvent.TabBarClick.Tab.GAMES,
     ),
 
     /**
@@ -117,6 +124,7 @@ enum class TopLevelDestination (
     PROFILE(
         icon = TtcIcons.PERSON_FILL,
         iconTextId = PR.strings.profile_title.resourceId,
-        destination = ProfileDestination
+        destination = ProfileDestination,
+        analyticsTab = AnalyticsEvent.TabBarClick.Tab.PROFILE,
     ),
 }

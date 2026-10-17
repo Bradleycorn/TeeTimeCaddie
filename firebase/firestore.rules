@@ -1,7 +1,49 @@
 rules_version = '2';
 
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: players
+// Document ID: the player's Firebase Auth uid
+// Fields:
+//   - name: string (required, non-empty) - display name
+//   - email: string (required, equals the auth token's email, immutable)
+//   - phone: string (required, digits only, 10-15) - matched against invitations
+//   - photoUrl: string (optional) - avatar download URL
+//
+// Collection: courses
+// Document ID: nameKey — the course name normalised for matching (lowercase, single spaces)
+// Fields:
+//   - name: string (required, 1-100) - the spelling the first organizer typed
+//   - nameKey: string (required, 1-100, equals the document id)
+// Shared by every organizer and owned by nobody, so never updated or deleted. Only ever created
+// inside the transaction that publishes a game.
+//
+// Collection: games
+// Document ID: auto
+// Fields:
+//   - organizerId: string (required, creator's uid, immutable)
+//   - courseId: string (required, 1-100) - id of an existing courses document
+//   - courseName: string (required, 1-100) - copy of that course's name
+//   - date: string (required, ISO "YYYY-MM-DD") - a calendar day, not an instant
+//   - teeTimes: list (required, exactly 1 for now) of maps:
+//       - time: string (required, ISO "HH:MM" with optional seconds)
+//       - slots: int (required, 1-4)
+//       - players: list (required, size <= slots) of maps:
+//           - playerId: string (required, a uid)
+//           - name: string (required, 1-100) - copy of that player's profile name
+//   - playerIds: list of strings (required) - everyone holding a slot; drives reads
+//   - createdAt: timestamp (required, the server's time at creation)
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
 
     function isSignedIn() {
       return request.auth != null;
@@ -10,6 +52,87 @@ service cloud.firestore {
     function isSelf(playerId) {
       return isSignedIn() && request.auth.uid == playerId;
     }
+
+    function isStringOfLength(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    function coursePath(courseId) {
+      return /databases/$(database)/documents/courses/$(courseId);
+    }
+
+    function playerPath(playerId) {
+      return /databases/$(database)/documents/players/$(playerId);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidCourse(data, courseKey) {
+      return data.keys().hasOnly(['name', 'nameKey'])
+        && data.keys().hasAll(['name', 'nameKey'])
+        && isStringOfLength(data.name, 1, 100)
+        && isStringOfLength(data.nameKey, 1, 100)
+        && data.nameKey == courseKey
+        // The key is derived from the name, so nobody can claim a course's key under a
+        // different name. Mirrors courseKey() in the games SDK module.
+        && data.name.lower().replace('/', '-') == data.nameKey;
+    }
+
+    // The organizer, and only the organizer, in a new tee time's first slot. The name must match
+    // their profile, so a game cannot show anyone under a name they did not choose.
+    function isOrganizerSlot(player) {
+      return player is map
+        && player.keys().hasOnly(['playerId', 'name'])
+        && player.keys().hasAll(['playerId', 'name'])
+        && player.playerId == request.auth.uid
+        && isStringOfLength(player.name, 1, 100)
+        && player.name == get(playerPath(request.auth.uid)).data.name;
+    }
+
+    function isValidNewTeeTime(teeTime) {
+      return teeTime is map
+        && teeTime.keys().hasOnly(['time', 'slots', 'players'])
+        && teeTime.keys().hasAll(['time', 'slots', 'players'])
+        && teeTime.time is string
+        && teeTime.time.matches('^[0-9]{2}:[0-9]{2}(:[0-9]{2}([.][0-9]+)?)?$')
+        && teeTime.slots is int
+        && teeTime.slots >= 1
+        && teeTime.slots <= 4
+        && teeTime.players is list
+        && teeTime.players.size() == 1
+        && teeTime.players.size() <= teeTime.slots
+        && isOrganizerSlot(teeTime.players[0]);
+    }
+
+    // A game as it is first published: one tee time, holding only the organizer, at a course that
+    // exists once this write lands (it may be created in the same transaction, hence getAfter).
+    function isValidNewGame(data) {
+      return data.keys().hasOnly([
+          'organizerId', 'courseId', 'courseName', 'date', 'teeTimes', 'playerIds', 'createdAt'
+        ])
+        && data.keys().hasAll([
+          'organizerId', 'courseId', 'courseName', 'date', 'teeTimes', 'playerIds', 'createdAt'
+        ])
+        && data.organizerId == request.auth.uid
+        && isStringOfLength(data.courseId, 1, 100)
+        && isStringOfLength(data.courseName, 1, 100)
+        && existsAfter(coursePath(data.courseId))
+        && getAfter(coursePath(data.courseId)).data.nameKey == data.courseId
+        && getAfter(coursePath(data.courseId)).data.name == data.courseName
+        && data.date is string
+        && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.teeTimes is list
+        && data.teeTimes.size() == 1
+        && isValidNewTeeTime(data.teeTimes[0])
+        && data.playerIds == [request.auth.uid]
+        && data.createdAt == request.time;
+    }
+
+    // ===============================================================
+    // Collections
+    // ===============================================================
 
     match /players/{playerId} {
       // Reading a profile you can already name: your own, or a player shown on an invitation.
@@ -44,10 +167,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    match /teetimes/{teeTimeId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+    match /courses/{courseKey} {
+      // Publishing looks a course up by its key. Nothing lists courses yet, so listing stays
+      // closed until course suggestions need it.
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      allow create: if isSignedIn() && isValidCourse(request.resource.data, courseKey);
+
+      // Shared by every organizer and owned by none, so nobody may rename or remove one.
+      allow update, delete: if false;
+    }
+
+    match /games/{gameId} {
+      // Only the players in a game can see it. The Games tab queries
+      // `playerIds array-contains <uid>`, which this rule can prove for every result, so the
+      // query is allowed and no other game is ever returned.
+      allow read: if isSignedIn() && request.auth.uid in resource.data.playerIds;
+
+      allow create: if isSignedIn() && isValidNewGame(request.resource.data);
+
+      // Nothing edits or cancels a game yet. Later work opens this with immutable-field checks
+      // on organizerId and createdAt.
+      allow update, delete: if false;
     }
 
     // Anything not matched above is denied. Previously this block allowed unrestricted read and

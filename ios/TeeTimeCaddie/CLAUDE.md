@@ -32,7 +32,8 @@ The app is a thin UI layer over the shared KMP SDK provided by the Kotlin Multip
 │   │   ├── inject/                       - Factory DI modules
 │   │   ├── features/                     - Feature modules
 │   │   │   ├── auth/                     - Auth screens & ViewModels
-│   │   │   └── teetimes/                 - Tee times screens, ViewModels, navigation
+│   │   │   ├── games/                    - Games list, New game, Game details, navigation
+│   │   │   └── profile/                  - Profile screen, ViewModel, navigation
 │   │   ├── ui/                           - UI components
 │   │   │   ├── common/                   - Shared UI components
 │   │   │   ├── theme/                    - App theme
@@ -97,6 +98,13 @@ etc), in particular it should be noted that Kotlin Flows are exposed as Swift As
 
 SKIE documentation can be found at: https://skie.touchlab.co/intro
 
+A Swift type can implement a Kotlin interface (test fakes do). Kotlin `suspend` methods must be
+implemented under their `__`-prefixed names (`__publishGame(...)`); the clean names are caller-side
+extensions. A method that returns a Kotlin `Flow` must return `SkieSwiftFlow<T>`, which Swift
+**cannot construct** (its initializers are internal), so a fake can't serve a stream. Keep the
+mapping from values to UI state in the SDK (see **UI State** in the root CLAUDE.md), where
+`commonTest` covers it, and test only the ViewModel's orchestration here.
+
 ## Application Lifecycle
 
 ```
@@ -108,7 +116,7 @@ UserInterface (View)
     ↓ (switches between app states)
 TeeTimeCaddieTheme
     ↓
-Feature Screens (Auth, TeeTimes)
+Feature Screens (Auth, Games, Profile)
 ```
 
 
@@ -136,6 +144,11 @@ Dependency Injection.
 - **FeatureModules** - Feature Modules (for example, the `AuthModule` (`features/auth/AuthModule.kt`))
   provide instances of Repositories and other classes related to a specific high level feature.
 
+ViewModels that only need the signed-in player take a `currentPlayer: () -> Player?` closure
+(`GamesModule.shared.currentPlayer()`), not `SessionManager`. `SessionManager`'s constructor is
+internal to the SDK, so a ViewModel that takes it can't be unit tested; one that takes the closure can
+be handed `{ testPlayer }`. This is the twin of the `StateFlow<SessionState>` Android ViewModels take.
+
 ## SwiftAppInitializers
 
 AppInitializers is a sophisticated priority-based initializer pattern for startup tasks.
@@ -151,6 +164,11 @@ Navigation-related view modifiers (`.navigationTitle()`, `.navigationBarTitleDis
 `.toolbar()`, etc.) should be applied in the navigation layer (in `destinationView()` methods within
 `*Destinations` enums), not inside the Screen views themselves. This keeps navigation concerns
 separate from view content and allows the navigation system to manage all navigation-related UI.
+
+**The tab bar shows only on a tab's root screen.** `TabNavStack` applies `.toolbar(.hidden, for: .tabBar)`
+to every destination it pushes, so the player backs out to the top level before switching tabs. A new
+destination gets this automatically; there is no per-destination flag. Android applies the same rule
+through `NavBarNavigator.isAtTopLevel`.
 
 When navigating and passing parameters, avoid passing entire objects if possible.
 Instead, pass a primitive identifier, and let the new destination's view model load the object using the identifier.
@@ -236,7 +254,29 @@ and widgets that are used across several screens within that feature. For exampl
 the `feature/auth/common` folder contains several views that are used on many
 screens within the Auth feature.
 
+For a full-width pill button, pass `fullWidth: true` to `TtcButton` / `TtcOutlinedButton`. A
+`.frame(maxWidth: .infinity)` applied outside the button only widens its tap target, because the
+pill is drawn around the label inside the button style.
+
 ## Utilities
 
 The `util` folder contains several files that define extension and other utility methods.
 When doing development, check for components defined in these files that can be used.
+
+## Testing
+
+Unit tests live in the `TeeTimeCaddieTests` target (XCTest, `@testable import TeeTimeCaddie`) and run
+in the simulator:
+
+```bash
+xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeTimeCaddie \
+  -sdk iphonesimulator -destination 'id=<simulator UDID>' test -only-testing:TeeTimeCaddieTests
+```
+
+- ViewModel tests construct the ViewModel directly with fakes: `FakeGamesRepository` (a Swift
+  implementation of the Kotlin interface), a `currentPlayer` closure, and
+  `EventManager.companion.getInstance(enableLogging: false)`. Shared fixtures are in `TestData`.
+- Mark ViewModel test classes `@MainActor`, since the ViewModels are.
+- A Kotlin sealed UI state arrives as a protocol (`any GamesListUiState`). Switch on it with
+  `onEnum(of:)`, and in tests cast to the case (`state as? GameDetailsUiStateContent`).
+- Resolve a shared `LocalizedText` with `localized()` (`util/StringExtensions.swift`).

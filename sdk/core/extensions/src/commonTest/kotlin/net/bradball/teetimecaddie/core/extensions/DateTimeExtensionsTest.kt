@@ -42,4 +42,14 @@ class DateTimeExtensionsTest {
     fun toLocalDate_handlesTheUnixEpoch() {
         assertEquals(LocalDate(1970, 1, 1), 0L.toLocalDate(TimeZone.UTC))
     }
+
+    @Test
+    fun weekdayMonthDay_readsAsShortWeekdayMonthAndDay() {
+        assertEquals("Sat, Jun 13", LocalDate(2026, 6, 13).weekdayMonthDay)
+    }
+
+    @Test
+    fun weekdayMonthDay_doesNotPadSingleDigitDays() {
+        assertEquals("Tue, Dec 1", LocalDate(2026, 12, 1).weekdayMonthDay)
+    }
 }

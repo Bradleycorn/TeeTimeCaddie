@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcButton
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
+import net.bradball.teetimecaddie.features.games.GMR
 
 /**
  * An empty state from the Fairway Morning "Feedback & overlays" design system.
@@ -40,11 +42,15 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  * ```
  * Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
  *     TtcEmptyState(
- *         title = stringResource(TTR.strings.empty_tee_times_title.resourceId),
- *         icon = TtcIcons.TEE,
- *         description = stringResource(TTR.strings.empty_tee_times_message.resourceId),
+ *         title = stringResource(GMR.strings.games_empty_title.resourceId),
+ *         icon = TtcIcons.GOLF_COURSE,
+ *         description = stringResource(GMR.strings.games_empty_message.resourceId),
  *     ) {
- *         TtcButton("Add a tee time", onClick = onAdd, icon = TtcIcons.ADD)
+ *         TtcButton(
+ *             text = stringResource(GMR.strings.games_create_button.resourceId),
+ *             onClick = onCreate,
+ *             icon = TtcIcons.ADD,
+ *         )
  *     }
  * }
  * ```
@@ -132,12 +138,15 @@ private fun TtcEmptyStatePreview() {
             // The design's composition: the empty state centered in the whole content area.
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 TtcEmptyState(
-                    title = "No games yet",
-                    icon = TtcIcons.TEE,
-                    description = "Booked a tee time? Turn it into a game so your foursome lives " +
-                        "somewhere other than a text thread.",
+                    title = stringResource(GMR.strings.games_empty_title.resourceId),
+                    icon = TtcIcons.GOLF_COURSE,
+                    description = stringResource(GMR.strings.games_empty_message.resourceId),
                 ) {
-                    TtcButton("Create a game", onClick = {}, icon = TtcIcons.ADD)
+                    TtcButton(
+                        text = stringResource(GMR.strings.games_create_button.resourceId),
+                        onClick = {},
+                        icon = TtcIcons.ADD,
+                    )
                 }
             }
         }

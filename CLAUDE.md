@@ -62,9 +62,11 @@ any status. Transition by id, not by matching names.
   │   └── models/        - Shared domain models
   └── features/          - Feature modules
       ├── auth/          - Authentication (Firebase Auth)
-      └── teetimes/      - Tee time management (Firestore)
+      ├── players/       - Player profiles (Firestore + Storage)
+      └── games/         - Games: courses, tee times, publishing (Firestore)
 /android/app/            - Android app with Jetpack Compose UI
 /ios/TeeTimeCaddie/      - iOS app with SwiftUI
+/firebase/               - Firestore rules + indexes, rules tests (rules-tests/), emulator config
 ```
 
 ---
@@ -165,9 +167,25 @@ xcodebuild clean -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeT
 
 ### Module-Specific Tests
 ```bash
-./gradlew :sdk:core:analytics:test       # Test specific module
-./gradlew :sdk:features:auth:allTests    # Test specific feature module
+./gradlew :sdk:core:analytics:test                 # Test specific module
+./gradlew :sdk:features:games:testDebugUnitTest    # Test specific feature module (JVM)
 ```
+
+SDK modules that depend on GitLive Firebase cannot link iOS test binaries, so their iOS test tasks
+are disabled (see the note in `sdk/build.gradle.kts`). Their `commonTest` suites run on the JVM via
+`testDebugUnitTest`, which gives equivalent coverage.
+
+### Firestore Rules Tests
+The security rules in `firebase/firestore.rules` have emulator tests in `firebase/rules-tests/`
+(`@firebase/rules-unit-testing` with Node's built-in runner). Run them from `firebase/`:
+
+```bash
+firebase emulators:exec --only firestore --project demo-ttc-rules "$(which node) --test rules-tests/games.test.js"
+```
+
+Use the absolute path to `node`: the standalone `firebase` CLI puts its own, older node first on
+`PATH` inside `emulators:exec`. If the dev emulators are already running, skip `emulators:exec` and
+run `FIRESTORE_EMULATOR_HOST=127.0.0.1:9399 node --test rules-tests/games.test.js` instead.
 
 ### Linting
 ```bash
@@ -229,29 +247,20 @@ object.
 
 For example:
 ```kotlin
-data class TeeTime(
-    val id: String?,
-    val createdBy: String,
-    val course: String,
-    val date: LocalDate,
-    val time: LocalTime,
-    val numberOfPlayers: Int
+data class Course(
+    val id: String,
+    val name: String
 )
 
-val previewTeeTime = TeeTime(
-    id = "previewTime",
-    createdBy = "Brad",
-    course = "Persimmon Ridge",
-    date = Clock.System.todayIn(TimeZone.currentSystemDefault()),
-    time = LocalTime(9, 0),
-    numberOfPlayers = 4
+val previewCourse = Course(
+    id = "persimmon ridge",
+    name = "Persimmon Ridge"
 )
 
-val previewTeeTimeList = listOf(
-    previewTeeTime.copy(time = LocalTime(10, 0)),
-    previewTeeTime.copy(time = LocalTime(11, 0)),
-    previewTeeTime.copy(time = LocalTime(12, 0)),
-    previewTeeTime.copy(time = LocalTime(13, 0))
+val previewCourseList = listOf(
+    previewCourse,
+    Course(id = "pebble beach", name = "Pebble Beach"),
+    Course(id = "bethpage black", name = "Bethpage Black")
 )
 ```
 
@@ -262,12 +271,12 @@ preview variables. For example:
 
 data class SomeContainer(
     val id: String,
-    val teeTime: TeeTime
+    val course: Course
 )
 
 val previewSomeContainer = SomeContainer(
     id = "previewcontainer",
-    teeTime = previewTeeTime
+    course = previewCourse
 )
 ```
 
@@ -282,8 +291,8 @@ val previewSomeContainer = SomeContainer(
 These modules use a Repository Pattern to abstract data access and contain most business logic.
 Modules are defined for each major app feature/section. These modules are defined as sub-modules
 under the `:sdk:features` modules, for example, an authentication module `:sdk:features:auth`
-(located at `sdk/features/auth`), or a module for tee time CRUD operations `:sdk:features:teetimes`
-(located at `sdk/features/teetimes`). These modules consume the other public and private core modules
+(located at `sdk/features/auth`), or a module for creating and reading games `:sdk:features:games`
+(located at `sdk/features/games`). These modules consume the other public and private core modules
 and use them to execute business logic and provide data to the applications.
 
 Feature modules should also define extension methods for converting "private" data model instances
@@ -295,6 +304,22 @@ data model instances. These methods should follow a standardized pattern:
   and network models to convert them to data model instances.
 - `.toDocument(): SomeDocument` - `.toDocument()` methods should be defined as extensions on
   data models and network response models to convert them to documents for storage.
+
+#### UI State
+When both apps show the same thing, its UI state lives in the feature module's `state` package (for
+example `features/games/state/GamesListUiState.kt`), not in each app. That covers the sealed state a
+screen renders (`Loading` / `Empty` / `Content` / `Error`), the nested UI states inside it
+(`GameRowUiState`, `GameUiState`), and the mappers from domain models
+(`List<Game>.toGamesListUiState()`, `Game.toUiState(viewerId)`). Formatting happens in the mapper and is tested in `commonTest`;
+the platform ViewModels only orchestrate (load, observe, log) and hand the mapped state to the views.
+
+- Localized text is a `LocalizedText(resource, args)` (`:sdk:core:models`), not a `String` or
+  moko's `StringDesc`. Each app resolves it with `localized()`.
+- Name them `*UiState`, never `*UiModel`. A view that takes one names the parameter `uiState`
+  (`GameRow(uiState:)`, `TeeTimeCard(uiState:)`), on both platforms.
+- UI states hold display data only: no colors, icons, or layout.
+- Define `preview*` instances for them, as for any model.
+- Form state whose values are platform types (pickers' `Date`, focus) stays in the app.
 
 ### Private Modules
 The KMP SDK also includes a set of "private" modules, which are modules that are consumed by
@@ -310,9 +335,19 @@ to provide a common API abstraction for storing key value data such as user sett
 SharedPreferences on Android and NSUserDefaults on iOS.
 
 **Firestore Storage** - Firebase Firestore is used to persist structured data in the cloud.
-`Document` classes (for example `PlayerDocument` and `TeeTimeDocument`) model firestore documents
-and `Storage` classes (for example `PlayerStorage` and `TeeTimeStorage`) provide an api for
+`Document` classes (for example `PlayerDocument` and `GameDocument`) model firestore documents
+and `Storage` classes (for example `PlayerStorage` and `GameStorage`) provide an api for
 CRUD operations on documents.
+
+New storage classes are declared as an **interface** with a Firestore implementation (for example
+`GameStorage` / `FirestoreGameStorage`). That keeps Firebase out of the repository, so the repository
+can be unit tested against an in-memory fake (see `FakeGameStorage` in the games module's
+`commonTest`). Operations that must be atomic, such as creating a course and a game together, belong
+in the storage implementation as a Firestore transaction.
+
+Any new collection also needs a rule in `firebase/firestore.rules` (everything else is denied), a
+composite index in `firebase/firestore.indexes.json` if its queries need one, and rules tests in
+`firebase/rules-tests/`.
 
 #### Network
 The `:sdk:core:network` module (found in the `sdk/core/network` folder) contains classes, objects, and
@@ -355,7 +390,7 @@ This project uses the moko-resources library to provide string resources to the 
 Each exported module (usually feature modules, but perhaps some others) should define string resources
 for all static strings displayed in the apps. This includes things like titles, labels, content descriptions,
 etc. Strings should be defined in the feature module that they are related to.  
-For example a string for the Add Tee Time screen title, should be defined in the teetimes feature module.
+For example a string for the New Game screen title should be defined in the games feature module (`GMR`).
 Generic Strings that are used across features (for example, text for common buttons such as "Save", or "OK")
 should be defined in the strings resource file in the core:models module.
 
@@ -477,15 +512,15 @@ Both platforms follow **MVVM with reactive state**:
 - Integrate EventManager for analytics
 
 **Storage Layer:**
-- Firestore: `sdk/core/storage/.../PlayerStorage.kt`, `TeeTimeStorage.kt`
+- Firestore: `sdk/core/storage/.../PlayerStorage.kt`, `GameStorage.kt`
 - Local: `StorageModule` (expect/actual for platform-specific)
 - Documents (Firestore) vs Models (domain)
-- Mapping functions: `fun Document.asModel(): Model`
+- Mapping functions: `fun Document.toModel(): Model`, `internal` so storage types stay off the iOS framework surface
 
 **Testing:**
-- Common tests in `commonTest`
-- Platform-specific tests in `androidTest`/`iosTest`
-- Use `./gradlew :module:allTests` for full test suite
+- Common tests in `commonTest`, run on the JVM with `./gradlew :module:testDebugUnitTest`
+- Repositories are interfaces, and new storage classes are too, so tests use hand-written fakes
+- App ViewModels are unit tested on both platforms (see the Android and iOS CLAUDE.md files)
 
 ## Gradle Properties Notes
 

@@ -263,8 +263,8 @@ class EventManager internal constructor(
      * development teams that the view is no longer logged, and the code which
      * calls this method can likely be removed.
      *
-     * @param screenName - The name of the Composable/View for the screen being logged (eg "TeeTimesListScreen")
-     * @param screenClass - A display name for the screen being logged (eg "TeeTimes List")
+     * @param screenName - The name of the Composable/View for the screen being logged (eg "GamesListScreen")
+     * @param screenClass - A display name for the screen being logged (eg "Games List")
      */
     fun logScreenView(screen: AnalyticsScreen, type: ScreenType = ScreenType.SCREEN) {
         // Don't log the "None" screen
