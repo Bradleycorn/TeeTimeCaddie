@@ -40,14 +40,16 @@ import net.bradball.teetimecaddie.android.ui.common.chips.TtcChipSize
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
+import net.bradball.teetimecaddie.android.ui.common.text.localized
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
-import net.bradball.teetimecaddie.core.extensions.formattedTime
-import net.bradball.teetimecaddie.core.models.Game
-import net.bradball.teetimecaddie.core.models.GamePlayer
-import net.bradball.teetimecaddie.core.models.GameTeeTime
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.features.games.GMR
+import net.bradball.teetimecaddie.features.games.state.GameDetailsUiModel
+import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
+import net.bradball.teetimecaddie.features.games.state.GameSlotUiModel
+import net.bradball.teetimecaddie.features.games.state.GameTeeTimeUiModel
+import net.bradball.teetimecaddie.features.games.state.previewGameDetailsUiModel
+import net.bradball.teetimecaddie.features.games.state.toDetailsUiModel
 
 @Composable
 fun GameDetailsScreen(
@@ -87,16 +89,12 @@ private fun GameDetailsContent(
 
             is GameDetailsUiState.Error -> Box(contentModifier, contentAlignment = Alignment.Center) {
                 TtcEmptyState(
-                    title = stringResource(uiState.title.resourceId),
-                    description = stringResource(uiState.message.resourceId),
+                    title = uiState.title.localized(),
+                    description = uiState.message.localized(),
                 )
             }
 
-            is GameDetailsUiState.Content -> GameDetailsBody(
-                game = uiState.game,
-                isOrganizer = uiState.isOrganizer,
-                modifier = contentModifier,
-            )
+            is GameDetailsUiState.Content -> GameDetailsBody(game = uiState.game, modifier = contentModifier)
         }
     }
 }
@@ -106,14 +104,14 @@ private fun GameDetailsContent(
  * are all later work, and are left out rather than shown inert.
  */
 @Composable
-private fun GameDetailsBody(game: Game, isOrganizer: Boolean, modifier: Modifier = Modifier) {
+private fun GameDetailsBody(game: GameDetailsUiModel, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
             .padding(GameDetailsDefaults.Padding),
         verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.SectionSpacing),
     ) {
-        if (isOrganizer) {
+        if (game.isOrganizer) {
             TtcChip(
                 text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
                 color = TtcColorRole.Secondary,
@@ -123,25 +121,25 @@ private fun GameDetailsBody(game: Game, isOrganizer: Boolean, modifier: Modifier
 
         Column(verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.TitleSpacing)) {
             Text(
-                text = game.course.name,
+                text = game.course,
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = game.date.weekdayMonthDay,
+                text = game.date,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         game.teeTimes.forEach { teeTime ->
-            TeeTimeCard(teeTime = teeTime, organizerId = game.organizerId)
+            TeeTimeCard(teeTime = teeTime)
         }
     }
 }
 
 @Composable
-private fun TeeTimeCard(teeTime: GameTeeTime, organizerId: String, modifier: Modifier = Modifier) {
+private fun TeeTimeCard(teeTime: GameTeeTimeUiModel, modifier: Modifier = Modifier) {
     TtcCard(modifier = modifier, contentPadding = TtcCardDefaults.NoContentPadding) {
         // The tonal header strip: when, and how full.
         Row(
@@ -159,32 +157,24 @@ private fun TeeTimeCard(teeTime: GameTeeTime, organizerId: String, modifier: Mod
                 modifier = Modifier.size(GameDetailsDefaults.HeaderIconSize),
             )
             Text(
-                text = teeTime.time.formattedTime,
+                text = teeTime.time,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
             TtcChip(
-                text = stringResource(
-                    GMR.strings.game_details_filled_count.resourceId,
-                    teeTime.filled.toString(),
-                    teeTime.slots.toString(),
-                ),
+                text = teeTime.filledCount.localized(),
                 size = TtcChipSize.Small,
             )
         }
 
-        val rows = teeTime.players.map<GamePlayer, GamePlayer?> { it } + List(teeTime.openSlots) { null }
+        val rows = teeTime.players.map<GameSlotUiModel, GameSlotUiModel?> { it } + List(teeTime.openSlots) { null }
         rows.forEachIndexed { index, player ->
             val showDivider = index < rows.lastIndex
             if (player == null) {
                 EmptySlotRow(showDivider = showDivider)
             } else {
-                PlayerSlotRow(
-                    player = player,
-                    isOrganizer = player.playerId == organizerId,
-                    showDivider = showDivider,
-                )
+                PlayerSlotRow(player = player, showDivider = showDivider)
             }
         }
     }
@@ -192,8 +182,7 @@ private fun TeeTimeCard(teeTime: GameTeeTime, organizerId: String, modifier: Mod
 
 @Composable
 private fun PlayerSlotRow(
-    player: GamePlayer,
-    isOrganizer: Boolean,
+    player: GameSlotUiModel,
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -203,7 +192,7 @@ private fun PlayerSlotRow(
         avatar = {
             TtcAvatar(
                 initials = player.initial,
-                color = if (isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
+                color = if (player.isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
                 size = GameDetailsDefaults.AvatarSize,
             )
         },
@@ -213,7 +202,7 @@ private fun PlayerSlotRow(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
         )
-        if (isOrganizer) {
+        if (player.isOrganizer) {
             Text(
                 text = stringResource(GMR.strings.game_details_organizer_label.resourceId),
                 style = MaterialTheme.typography.labelMedium,
@@ -293,7 +282,7 @@ private object GameDetailsDefaults {
 private fun GameDetailsOrganizerPreview() {
     MyApplicationTheme {
         GameDetailsContent(
-            uiState = GameDetailsUiState.Content(previewGame, isOrganizer = true),
+            uiState = GameDetailsUiState.Content(previewGameDetailsUiModel),
             onBack = {},
         )
     }
@@ -305,8 +294,9 @@ private fun GameDetailsSingleSlotPreview() {
     MyApplicationTheme {
         GameDetailsContent(
             uiState = GameDetailsUiState.Content(
-                previewGame.copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) }),
-                isOrganizer = true,
+                previewGame
+                    .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
+                    .toDetailsUiModel(viewerId = previewGame.organizerId)
             ),
             onBack = {},
         )
