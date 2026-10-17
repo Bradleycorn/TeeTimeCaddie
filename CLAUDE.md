@@ -305,6 +305,20 @@ data model instances. These methods should follow a standardized pattern:
 - `.toDocument(): SomeDocument` - `.toDocument()` methods should be defined as extensions on
   data models and network response models to convert them to documents for storage.
 
+#### UI State
+When both apps show the same thing, its UI state lives in the feature module's `state` package (for
+example `features/games/state/GamesListUiState.kt`), not in each app. That covers the sealed state a
+screen renders (`Loading` / `Empty` / `Content` / `Error`), the display models inside it
+(`GameRowUiModel`), and the mapper from domain models (`List<Game>.toGamesListUiState()`,
+`Game.toDetailsUiModel(viewerId)`). Formatting happens in the mapper and is tested in `commonTest`;
+the platform ViewModels only orchestrate (load, observe, log) and hand the mapped state to the views.
+
+- Localized text is a `LocalizedText(resource, args)` (`:sdk:core:models`), not a `String` or
+  moko's `StringDesc`. Each app resolves it with `localized()`.
+- Display models hold display data only: no colors, icons, or layout.
+- Define `preview*` instances for display models, as for any model.
+- Form state whose values are platform types (pickers' `Date`, focus) stays in the app.
+
 ### Private Modules
 The KMP SDK also includes a set of "private" modules, which are modules that are consumed by
 other modules in the KMP SDK but who's classes, methods, and properties are NOT exposed to client

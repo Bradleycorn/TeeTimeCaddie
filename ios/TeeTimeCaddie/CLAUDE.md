@@ -101,9 +101,9 @@ SKIE documentation can be found at: https://skie.touchlab.co/intro
 A Swift type can implement a Kotlin interface (test fakes do). Kotlin `suspend` methods must be
 implemented under their `__`-prefixed names (`__publishGame(...)`); the clean names are caller-side
 extensions. A method that returns a Kotlin `Flow` must return `SkieSwiftFlow<T>`, which Swift
-**cannot construct** (its initializers are internal), so a fake can't serve a stream. Test the
-ViewModel's mapping from values to UI state as a pure function instead (see
-`GamesListViewModel.uiState(for:)`).
+**cannot construct** (its initializers are internal), so a fake can't serve a stream. Keep the
+mapping from values to UI state in the SDK (see **UI State** in the root CLAUDE.md), where
+`commonTest` covers it, and test only the ViewModel's orchestration here.
 
 ## Application Lifecycle
 
@@ -277,5 +277,6 @@ xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeTimeCad
   implementation of the Kotlin interface), a `currentPlayer` closure, and
   `EventManager.companion.getInstance(enableLogging: false)`. Shared fixtures are in `TestData`.
 - Mark ViewModel test classes `@MainActor`, since the ViewModels are.
-- Keep UI state structs free of SDK types (format values in the ViewModel), so `*Content` previews
-  stay pure value construction.
+- A Kotlin sealed UI state arrives as a protocol (`any GamesListUiState`). Switch on it with
+  `onEnum(of:)`, and in tests cast to the case (`state as? GameDetailsUiStateContent`).
+- Resolve a shared `LocalizedText` with `localized()` (`util/StringExtensions.swift`).
