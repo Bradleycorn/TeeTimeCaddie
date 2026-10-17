@@ -308,15 +308,17 @@ data model instances. These methods should follow a standardized pattern:
 #### UI State
 When both apps show the same thing, its UI state lives in the feature module's `state` package (for
 example `features/games/state/GamesListUiState.kt`), not in each app. That covers the sealed state a
-screen renders (`Loading` / `Empty` / `Content` / `Error`), the display models inside it
-(`GameRowUiModel`), and the mapper from domain models (`List<Game>.toGamesListUiState()`,
-`Game.toDetailsUiModel(viewerId)`). Formatting happens in the mapper and is tested in `commonTest`;
+screen renders (`Loading` / `Empty` / `Content` / `Error`), the nested UI states inside it
+(`GameRowUiState`, `GameUiState`), and the mappers from domain models
+(`List<Game>.toGamesListUiState()`, `Game.toUiState(viewerId)`). Formatting happens in the mapper and is tested in `commonTest`;
 the platform ViewModels only orchestrate (load, observe, log) and hand the mapped state to the views.
 
 - Localized text is a `LocalizedText(resource, args)` (`:sdk:core:models`), not a `String` or
   moko's `StringDesc`. Each app resolves it with `localized()`.
-- Display models hold display data only: no colors, icons, or layout.
-- Define `preview*` instances for display models, as for any model.
+- Name them `*UiState`, never `*UiModel`. A view that takes one names the parameter `uiState`
+  (`GameRow(uiState:)`, `TeeTimeCard(uiState:)`), on both platforms.
+- UI states hold display data only: no colors, icons, or layout.
+- Define `preview*` instances for them, as for any model.
 - Form state whose values are platform types (pickers' `Date`, focus) stays in the app.
 
 ### Private Modules
