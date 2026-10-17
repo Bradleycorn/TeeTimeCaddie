@@ -28,25 +28,25 @@ struct GameDetailsScreen: View {
 fileprivate struct GameDetailsContent: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let state: GameDetailsUiState
+    private let state: any GameDetailsUiState
 
-    init(state: GameDetailsUiState) {
+    init(state: any GameDetailsUiState) {
         self.state = state
     }
 
     var body: some View {
         Group {
-            switch state {
+            switch onEnum(of: state) {
             case .loading:
                 ContentLoadingIndicator()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            case .error(let title, let message):
-                TtcEmptyState(title: title, description: message)
+            case .error(let error):
+                TtcEmptyState(title: error.title.localized(), description: error.message.localized())
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            case .content(let game):
-                GameDetailsBody(game: game)
+            case .content(let content):
+                GameDetailsBody(game: content.game)
             }
         }
         .background(theme.colorScheme.surface)
@@ -114,7 +114,7 @@ fileprivate struct TeeTimeCard: View {
                         .font(.headline)
                         .foregroundStyle(theme.colorScheme.onSurface)
                     Spacer()
-                    TtcChip(teeTime.filledCount, size: .small)
+                    TtcChip(teeTime.filledCount.localized(), size: .small)
                 }
                 .padding(.horizontal, GameDetailsDefaults.horizontalPadding)
                 .padding(.vertical, GameDetailsDefaults.verticalPadding)
@@ -127,8 +127,8 @@ fileprivate struct TeeTimeCard: View {
                         showDivider: index < teeTime.players.count - 1 || teeTime.openSlots > 0
                     )
                 }
-                ForEach(0..<teeTime.openSlots, id: \.self) { index in
-                    EmptySlotRow(showDivider: index < teeTime.openSlots - 1)
+                ForEach(0..<Int(teeTime.openSlots), id: \.self) { index in
+                    EmptySlotRow(showDivider: index < Int(teeTime.openSlots) - 1)
                 }
             }
         }
@@ -242,29 +242,17 @@ fileprivate enum GameDetailsDefaults {
 
 // MARK: - Previews
 
-fileprivate let previewDetails = GameDetailsUiModel(
-    course: "Pebble Beach",
-    date: "Sat, Jun 13",
-    isOrganizer: true,
-    teeTimes: [
-        GameTeeTimeUiModel(
-            time: "9:00 AM",
-            filledCount: "1/4 filled",
-            players: [GameSlotUiModel(initial: "D", name: "Dana Park", isOrganizer: true)],
-            openSlots: 3
-        )
-    ]
-)
+fileprivate let previewDetails = GameDetailsUiStateContent(game: GameDetailsUiStateKt.previewGameDetailsUiModel)
 
 #Preview("Organizer") {
     TeeTimeCaddieTheme {
-        GameDetailsContent(state: .content(previewDetails))
+        GameDetailsContent(state: previewDetails)
     }
 }
 
 #Preview("Organizer - Dark") {
     TeeTimeCaddieTheme {
-        GameDetailsContent(state: .content(previewDetails))
+        GameDetailsContent(state: previewDetails)
     }
     .preferredColorScheme(.dark)
 }

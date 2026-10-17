@@ -15,7 +15,7 @@ final class GameDetailsViewModelTests: XCTestCase {
         _ gameId: String,
         games: [Game] = [TestData.game()],
         viewer: Player = TestData.organizer
-    ) async -> GameDetailsUiState {
+    ) async -> any GameDetailsUiState {
         let viewModel = GameDetailsViewModel(
             gameId: gameId,
             gamesRepository: FakeGamesRepository(games: games),
@@ -25,43 +25,46 @@ final class GameDetailsViewModelTests: XCTestCase {
         return viewModel.uiState
     }
 
-    func testShowsTheGameWithTheOrganizerInTheFirstSlot() async {
-        let state = await loaded("game-1")
-
-        XCTAssertEqual(state, .content(GameDetailsUiModel(
-            course: "Pebble Beach",
-            date: "Sat, Jun 13",
-            isOrganizer: true,
-            teeTimes: [GameTeeTimeUiModel(
-                time: "9:00 AM",
-                filledCount: "1/4 filled",
-                players: [GameSlotUiModel(initial: "D", name: "Dana Park", isOrganizer: true)],
-                openSlots: 3
-            )]
-        )))
+    private func loadedGame(
+        _ gameId: String = "game-1",
+        games: [Game] = [TestData.game()],
+        viewer: Player = TestData.organizer
+    ) async throws -> GameDetailsUiModel {
+        let state = await loaded(gameId, games: games, viewer: viewer)
+        return try XCTUnwrap(state as? GameDetailsUiStateContent, "Expected content, got \(state)").game
     }
 
-    func testAOneSlotGameHasNoOpenSlots() async {
-        let state = await loaded("game-1", games: [TestData.game(slots: 1)])
+    func testShowsTheGameWithTheOrganizerInTheFirstSlot() async throws {
+        let game = try await loadedGame()
 
-        guard case .content(let game) = state else { return XCTFail("Expected content, got \(state)") }
-        XCTAssertEqual(game.teeTimes.first?.filledCount, "1/1 filled")
+        XCTAssertEqual(game.course, "Pebble Beach")
+        XCTAssertEqual(game.date, "Sat, Jun 13")
+        XCTAssertTrue(game.isOrganizer)
+        let teeTime = try XCTUnwrap(game.teeTimes.first)
+        XCTAssertEqual(teeTime.time, "9:00 AM")
+        XCTAssertEqual(teeTime.filledCount.localized(), "1/4 filled")
+        XCTAssertEqual(teeTime.players, [GameSlotUiModel(initial: "D", name: "Dana Park", isOrganizer: true)])
+        XCTAssertEqual(teeTime.openSlots, 3)
+    }
+
+    func testAOneSlotGameHasNoOpenSlots() async throws {
+        let game = try await loadedGame(games: [TestData.game(slots: 1)])
+
+        XCTAssertEqual(game.teeTimes.first?.filledCount.localized(), "1/1 filled")
         XCTAssertEqual(game.teeTimes.first?.openSlots, 0)
     }
 
-    func testSomeoneElseIsNotTheOrganizer() async {
-        let state = await loaded("game-1", viewer: TestData.otherPlayer)
+    func testSomeoneElseIsNotTheOrganizer() async throws {
+        let game = try await loadedGame(viewer: TestData.otherPlayer)
 
-        guard case .content(let game) = state else { return XCTFail("Expected content, got \(state)") }
         XCTAssertFalse(game.isOrganizer)
     }
 
-    func testAMissingGameIsAnError() async {
+    func testAMissingGameIsAnError() async throws {
         let state = await loaded("nope")
 
-        XCTAssertEqual(state, .error(
-            title: GameErrors.notFound.title.localized(),
-            message: GameErrors.notFound.message.localized()
-        ))
+        let error = try XCTUnwrap(state as? GameDetailsUiStateError, "Expected an error, got \(state)")
+        XCTAssertEqual(error.title.localized(), GameErrors.notFound.title.localized())
+        XCTAssertEqual(error.message.localized(), GameErrors.notFound.message.localized())
     }
 }
