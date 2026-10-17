@@ -5,7 +5,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import net.bradball.teetimecaddie.android.feature.games.gamesList.GamesListUiState
 import net.bradball.teetimecaddie.android.feature.games.gamesList.GamesListViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
 import net.bradball.teetimecaddie.android.testing.RecordingEventManager
@@ -13,6 +12,8 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewGameList
 import net.bradball.teetimecaddie.core.models.previewPlayer
+import net.bradball.teetimecaddie.features.games.state.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.toGamesListUiState
 import net.bradball.teetimecaddie.session.SessionState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -53,7 +54,7 @@ class GamesListViewModelTest {
         val viewModel = viewModel(FakeGamesRepository(*previewGameList.toTypedArray()))
         collect(viewModel)
 
-        assertEquals(GamesListUiState.Content(previewGameList), viewModel.uiState.value)
+        assertEquals(previewGameList.toGamesListUiState(), viewModel.uiState.value)
     }
 
     @Test
@@ -64,7 +65,7 @@ class GamesListViewModelTest {
 
         repository.setGames(previewGame)
 
-        assertEquals(GamesListUiState.Content(listOf(previewGame)), viewModel.uiState.value)
+        assertEquals(listOf(previewGame).toGamesListUiState(), viewModel.uiState.value)
     }
 
     @Test

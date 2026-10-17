@@ -34,14 +34,14 @@ import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
+import net.bradball.teetimecaddie.android.ui.common.text.localized
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
-import net.bradball.teetimecaddie.core.extensions.formattedTime
-import net.bradball.teetimecaddie.core.models.Game
-import net.bradball.teetimecaddie.core.models.previewGameList
 import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.games.GMR
+import net.bradball.teetimecaddie.features.games.state.GameRowUiModel
+import net.bradball.teetimecaddie.features.games.state.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.previewGameRowUiModelList
 
 @Composable
 fun GamesListScreen(
@@ -159,10 +159,10 @@ private fun GamesListContent(
  * The status chip, player count and avatar stack in the design arrive with later stories.
  */
 @Composable
-private fun GameRow(game: Game, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun GameRow(game: GameRowUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
     TtcCard(modifier = modifier, onClick = onClick) {
         Text(
-            text = game.course.name,
+            text = game.course,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             maxLines = 2,
@@ -180,11 +180,7 @@ private fun GameRow(game: Game, onClick: () -> Unit, modifier: Modifier = Modifi
                 modifier = Modifier.size(GamesListDefaults.RowIconSize),
             )
             Text(
-                text = stringResource(
-                    GMR.strings.games_row_date_time.resourceId,
-                    game.date.weekdayMonthDay,
-                    game.teeTimes.firstOrNull()?.time?.formattedTime.orEmpty(),
-                ),
+                text = game.dateAndTime.localized(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -210,7 +206,7 @@ private object GamesListDefaults {
 private fun GamesListContentPreview() {
     MyApplicationTheme {
         GamesListContent(
-            uiState = GamesListUiState.Content(previewGameList),
+            uiState = GamesListUiState.Content(previewGameRowUiModelList),
             onNewGameClick = {},
             onGameClick = {},
         )

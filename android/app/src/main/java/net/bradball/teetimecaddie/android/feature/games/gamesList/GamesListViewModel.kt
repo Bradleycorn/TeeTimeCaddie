@@ -13,22 +13,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
-import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.features.games.GamesRepository
+import net.bradball.teetimecaddie.features.games.state.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.toGamesListUiState
 import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
-
-/**
- * State for the Games tab.
- *
- * A sealed hierarchy rather than a data class, because the three cases never occur together: the
- * tab shows a spinner, the empty state, or the list.
- */
-sealed interface GamesListUiState {
-    data object Loading : GamesListUiState
-    data object Empty : GamesListUiState
-    data class Content(val games: List<Game>) : GamesListUiState
-}
 
 @HiltViewModel
 class GamesListViewModel @Inject constructor(
@@ -45,9 +34,7 @@ class GamesListViewModel @Inject constructor(
             if (playerId == null) {
                 flowOf(GamesListUiState.Loading)
             } else {
-                gamesRepository.upcomingGames(playerId).map { games ->
-                    if (games.isEmpty()) GamesListUiState.Empty else GamesListUiState.Content(games)
-                }
+                gamesRepository.upcomingGames(playerId).map { it.toGamesListUiState() }
             }
         }
         .stateIn(
