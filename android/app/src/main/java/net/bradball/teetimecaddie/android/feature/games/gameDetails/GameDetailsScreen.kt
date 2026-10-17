@@ -44,12 +44,12 @@ import net.bradball.teetimecaddie.android.ui.common.text.localized
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.features.games.GMR
-import net.bradball.teetimecaddie.features.games.state.GameDetailsUiModel
+import net.bradball.teetimecaddie.features.games.state.GameUiState
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.GameSlotUiModel
-import net.bradball.teetimecaddie.features.games.state.GameTeeTimeUiModel
-import net.bradball.teetimecaddie.features.games.state.previewGameDetailsUiModel
-import net.bradball.teetimecaddie.features.games.state.toDetailsUiModel
+import net.bradball.teetimecaddie.features.games.state.GameSlotUiState
+import net.bradball.teetimecaddie.features.games.state.GameTeeTimeUiState
+import net.bradball.teetimecaddie.features.games.state.previewGameUiState
+import net.bradball.teetimecaddie.features.games.state.toUiState
 
 @Composable
 fun GameDetailsScreen(
@@ -94,7 +94,7 @@ private fun GameDetailsContent(
                 )
             }
 
-            is GameDetailsUiState.Content -> GameDetailsBody(game = uiState.game, modifier = contentModifier)
+            is GameDetailsUiState.Content -> GameDetailsBody(uiState = uiState.game, modifier = contentModifier)
         }
     }
 }
@@ -104,14 +104,14 @@ private fun GameDetailsContent(
  * are all later work, and are left out rather than shown inert.
  */
 @Composable
-private fun GameDetailsBody(game: GameDetailsUiModel, modifier: Modifier = Modifier) {
+private fun GameDetailsBody(uiState: GameUiState, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
             .padding(GameDetailsDefaults.Padding),
         verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.SectionSpacing),
     ) {
-        if (game.isOrganizer) {
+        if (uiState.isOrganizer) {
             TtcChip(
                 text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
                 color = TtcColorRole.Secondary,
@@ -121,25 +121,25 @@ private fun GameDetailsBody(game: GameDetailsUiModel, modifier: Modifier = Modif
 
         Column(verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.TitleSpacing)) {
             Text(
-                text = game.course,
+                text = uiState.course,
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = game.date,
+                text = uiState.date,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
-        game.teeTimes.forEach { teeTime ->
-            TeeTimeCard(teeTime = teeTime)
+        uiState.teeTimes.forEach { teeTime ->
+            TeeTimeCard(uiState = teeTime)
         }
     }
 }
 
 @Composable
-private fun TeeTimeCard(teeTime: GameTeeTimeUiModel, modifier: Modifier = Modifier) {
+private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifier) {
     TtcCard(modifier = modifier, contentPadding = TtcCardDefaults.NoContentPadding) {
         // The tonal header strip: when, and how full.
         Row(
@@ -157,24 +157,24 @@ private fun TeeTimeCard(teeTime: GameTeeTimeUiModel, modifier: Modifier = Modifi
                 modifier = Modifier.size(GameDetailsDefaults.HeaderIconSize),
             )
             Text(
-                text = teeTime.time,
+                text = uiState.time,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
             TtcChip(
-                text = teeTime.filledCount.localized(),
+                text = uiState.filledCount.localized(),
                 size = TtcChipSize.Small,
             )
         }
 
-        val rows = teeTime.players.map<GameSlotUiModel, GameSlotUiModel?> { it } + List(teeTime.openSlots) { null }
+        val rows = uiState.players.map<GameSlotUiState, GameSlotUiState?> { it } + List(uiState.openSlots) { null }
         rows.forEachIndexed { index, player ->
             val showDivider = index < rows.lastIndex
             if (player == null) {
                 EmptySlotRow(showDivider = showDivider)
             } else {
-                PlayerSlotRow(player = player, showDivider = showDivider)
+                PlayerSlotRow(uiState = player, showDivider = showDivider)
             }
         }
     }
@@ -182,7 +182,7 @@ private fun TeeTimeCard(teeTime: GameTeeTimeUiModel, modifier: Modifier = Modifi
 
 @Composable
 private fun PlayerSlotRow(
-    player: GameSlotUiModel,
+    uiState: GameSlotUiState,
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -191,18 +191,18 @@ private fun PlayerSlotRow(
         modifier = modifier,
         avatar = {
             TtcAvatar(
-                initials = player.initial,
-                color = if (player.isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
+                initials = uiState.initial,
+                color = if (uiState.isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
                 size = GameDetailsDefaults.AvatarSize,
             )
         },
     ) {
         Text(
-            text = player.name,
+            text = uiState.name,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
         )
-        if (player.isOrganizer) {
+        if (uiState.isOrganizer) {
             Text(
                 text = stringResource(GMR.strings.game_details_organizer_label.resourceId),
                 style = MaterialTheme.typography.labelMedium,
@@ -282,7 +282,7 @@ private object GameDetailsDefaults {
 private fun GameDetailsOrganizerPreview() {
     MyApplicationTheme {
         GameDetailsContent(
-            uiState = GameDetailsUiState.Content(previewGameDetailsUiModel),
+            uiState = GameDetailsUiState.Content(previewGameUiState),
             onBack = {},
         )
     }
@@ -296,7 +296,7 @@ private fun GameDetailsSingleSlotPreview() {
             uiState = GameDetailsUiState.Content(
                 previewGame
                     .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
-                    .toDetailsUiModel(viewerId = previewGame.organizerId)
+                    .toUiState(viewerId = previewGame.organizerId)
             ),
             onBack = {},
         )

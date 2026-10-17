@@ -9,7 +9,7 @@ import net.bradball.teetimecaddie.core.models.previewPlayerList
 import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.features.games.GameErrors
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.toDetailsUiModel
+import net.bradball.teetimecaddie.features.games.state.toUiState
 import net.bradball.teetimecaddie.session.SessionState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -51,7 +51,7 @@ class GameDetailsViewModelTest {
     fun showsTheGame() = runTest {
         val state = loaded(viewModel(previewGame.id))
 
-        assertEquals(GameDetailsUiState.Content(previewGame.toDetailsUiModel(viewerId = previewPlayer.id)), state)
+        assertEquals(GameDetailsUiState.Content(previewGame.toUiState(viewerId = previewPlayer.id)), state)
     }
 
     @Test

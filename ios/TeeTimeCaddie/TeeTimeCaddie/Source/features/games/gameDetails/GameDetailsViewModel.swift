@@ -33,7 +33,7 @@ final class GameDetailsViewModel {
             let result = try await gamesRepository.getGame(gameId: gameId)
             switch onEnum(of: result) {
             case .success(let success):
-                uiState = GameDetailsUiStateContent(game: success.data.toDetailsUiModel(viewerId: currentPlayer()?.id))
+                uiState = GameDetailsUiStateContent(game: success.data.toUiState(viewerId: currentPlayer()?.id))
             case .failure(let failure):
                 uiState = GameDetailsUiStateError(error: failure.error)
             }

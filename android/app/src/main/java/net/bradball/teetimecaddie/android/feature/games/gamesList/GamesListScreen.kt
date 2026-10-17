@@ -39,9 +39,9 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.games.GMR
-import net.bradball.teetimecaddie.features.games.state.GameRowUiModel
+import net.bradball.teetimecaddie.features.games.state.GameRowUiState
 import net.bradball.teetimecaddie.features.games.state.GamesListUiState
-import net.bradball.teetimecaddie.features.games.state.previewGameRowUiModelList
+import net.bradball.teetimecaddie.features.games.state.previewGameRowUiStateList
 
 @Composable
 fun GamesListScreen(
@@ -146,7 +146,7 @@ private fun GamesListContent(
                     )
                 }
                 items(uiState.games, key = { it.id }) { game ->
-                    GameRow(game = game, onClick = { onGameClick(game.id) })
+                    GameRow(uiState = game, onClick = { onGameClick(game.id) })
                 }
             }
         }
@@ -159,10 +159,10 @@ private fun GamesListContent(
  * The status chip, player count and avatar stack in the design arrive with later stories.
  */
 @Composable
-private fun GameRow(game: GameRowUiModel, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun GameRow(uiState: GameRowUiState, onClick: () -> Unit, modifier: Modifier = Modifier) {
     TtcCard(modifier = modifier, onClick = onClick) {
         Text(
-            text = game.course,
+            text = uiState.course,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             maxLines = 2,
@@ -180,7 +180,7 @@ private fun GameRow(game: GameRowUiModel, onClick: () -> Unit, modifier: Modifie
                 modifier = Modifier.size(GamesListDefaults.RowIconSize),
             )
             Text(
-                text = game.dateAndTime.localized(),
+                text = uiState.dateAndTime.localized(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -206,7 +206,7 @@ private object GamesListDefaults {
 private fun GamesListContentPreview() {
     MyApplicationTheme {
         GamesListContent(
-            uiState = GamesListUiState.Content(previewGameRowUiModelList),
+            uiState = GamesListUiState.Content(previewGameRowUiStateList),
             onNewGameClick = {},
             onGameClick = {},
         )

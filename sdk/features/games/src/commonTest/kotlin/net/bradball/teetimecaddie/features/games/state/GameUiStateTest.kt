@@ -40,7 +40,7 @@ class GameUiStateTest {
         assertEquals(
             GamesListUiState.Content(
                 listOf(
-                    GameRowUiModel(
+                    GameRowUiState(
                         id = "game1",
                         course = "Pebble Beach",
                         dateAndTime = LocalizedText(GMR.strings.games_row_date_time, listOf("Sat, Jun 13", "9:00 AM"))
@@ -55,17 +55,17 @@ class GameUiStateTest {
 
     @Test
     fun detailsAreFormattedForDisplay() {
-        val details = game.toDetailsUiModel(viewerId = organizer.playerId)
+        val details = game.toUiState(viewerId = organizer.playerId)
 
         assertEquals("Pebble Beach", details.course)
         assertEquals("Sat, Jun 13", details.date)
         assertEquals(
-            GameTeeTimeUiModel(
+            GameTeeTimeUiState(
                 time = "9:00 AM",
                 filledCount = LocalizedText(GMR.strings.game_details_filled_count, listOf("2", "4")),
                 players = listOf(
-                    GameSlotUiModel(initial = "B", name = "brad Ball", isOrganizer = true),
-                    GameSlotUiModel(initial = "D", name = "Dana Park", isOrganizer = false),
+                    GameSlotUiState(initial = "B", name = "brad Ball", isOrganizer = true),
+                    GameSlotUiState(initial = "D", name = "Dana Park", isOrganizer = false),
                 ),
                 openSlots = 2
             ),
@@ -75,9 +75,9 @@ class GameUiStateTest {
 
     @Test
     fun onlyTheOrganizerSeesThemselvesAsOrganizer() {
-        assertTrue(game.toDetailsUiModel(viewerId = organizer.playerId).isOrganizer)
-        assertFalse(game.toDetailsUiModel(viewerId = guest.playerId).isOrganizer)
-        assertFalse(game.toDetailsUiModel(viewerId = null).isOrganizer)
+        assertTrue(game.toUiState(viewerId = organizer.playerId).isOrganizer)
+        assertFalse(game.toUiState(viewerId = guest.playerId).isOrganizer)
+        assertFalse(game.toUiState(viewerId = null).isOrganizer)
     }
 
     @Test

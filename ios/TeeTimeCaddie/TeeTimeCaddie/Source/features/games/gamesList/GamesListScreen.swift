@@ -22,7 +22,7 @@ struct GamesListScreen: View {
     var body: some View {
         Screen(.Games(viewName: self.viewName)) {
             GamesListContent(
-                state: viewModel.uiState,
+                uiState: viewModel.uiState,
                 onNewGameClick: { source in
                     viewModel.onAddGameClick(from: source)
                     onNewGameClick()
@@ -42,16 +42,16 @@ struct GamesListScreen: View {
 fileprivate struct GamesListContent: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let state: any GamesListUiState
+    private let uiState: any GamesListUiState
     private let onNewGameClick: (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void
     private let onGameClick: (String) -> Void
 
     init(
-        state: any GamesListUiState,
+        uiState: any GamesListUiState,
         onNewGameClick: @escaping (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void,
         onGameClick: @escaping (String) -> Void
     ) {
-        self.state = state
+        self.uiState = uiState
         self.onNewGameClick = onNewGameClick
         self.onGameClick = onGameClick
     }
@@ -60,7 +60,7 @@ fileprivate struct GamesListContent: View {
         VStack(spacing: 0) {
             header
 
-            switch onEnum(of: state) {
+            switch onEnum(of: uiState) {
             case .loading:
                 ContentLoadingIndicator()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -87,7 +87,7 @@ fileprivate struct GamesListContent: View {
                             .padding(.top, GamesListDefaults.headerTopPadding)
 
                         ForEach(content.games, id: \.id) { game in
-                            GameRow(game: game, onClick: { onGameClick(game.id) })
+                            GameRow(uiState: game, onClick: { onGameClick(game.id) })
                         }
                     }
                     .padding(.horizontal, GamesListDefaults.horizontalPadding)
@@ -128,23 +128,23 @@ fileprivate struct GamesListContent: View {
 fileprivate struct GameRow: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let game: GameRowUiModel
+    private let uiState: GameRowUiState
     private let onClick: () -> Void
 
-    init(game: GameRowUiModel, onClick: @escaping () -> Void) {
-        self.game = game
+    init(uiState: GameRowUiState, onClick: @escaping () -> Void) {
+        self.uiState = uiState
         self.onClick = onClick
     }
 
     var body: some View {
         TtcCard(onClick: onClick) {
             VStack(alignment: .leading, spacing: GamesListDefaults.rowLineSpacing) {
-                Text(game.course)
+                Text(uiState.course)
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(theme.colorScheme.onSurface)
                     .lineLimit(2)
                 Label {
-                    Text(game.dateAndTime.localized())
+                    Text(uiState.dateAndTime.localized())
                 } icon: {
                     Image(SfSymbol.clock)
                 }
@@ -168,23 +168,23 @@ fileprivate enum GamesListDefaults {
 
 // MARK: - Previews
 
-fileprivate let previewContent = GamesListUiStateContent(games: GamesListUiStateKt.previewGameRowUiModelList)
+fileprivate let previewContent = GamesListUiStateContent(games: GamesListUiStateKt.previewGameRowUiStateList)
 
 #Preview("Content") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(uiState: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
     }
 }
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: GamesListUiStateEmpty.shared, onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(uiState: GamesListUiStateEmpty.shared, onNewGameClick: {_ in}, onGameClick: { _ in })
     }
 }
 
 #Preview("Content - Dark") {
     TeeTimeCaddieTheme {
-        GamesListContent(state: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(uiState: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
     }
     .preferredColorScheme(.dark)
 }

@@ -12,7 +12,7 @@ import net.bradball.teetimecaddie.features.games.GMR
 sealed interface GameDetailsUiState {
     data object Loading : GameDetailsUiState
 
-    data class Content(val game: GameDetailsUiModel) : GameDetailsUiState
+    data class Content(val game: GameUiState) : GameDetailsUiState
 
     /** The game could not be read, or no longer exists. */
     data class Error(val title: LocalizedText, val message: LocalizedText) : GameDetailsUiState {
@@ -33,11 +33,11 @@ sealed interface GameDetailsUiState {
  *   "You are the organizer" chip.
  * @property teeTimes The game's tee times, earliest first.
  */
-data class GameDetailsUiModel(
+data class GameUiState(
     val course: String,
     val date: String,
     val isOrganizer: Boolean,
-    val teeTimes: List<GameTeeTimeUiModel>
+    val teeTimes: List<GameTeeTimeUiState>
 )
 
 /**
@@ -48,10 +48,10 @@ data class GameDetailsUiModel(
  * @property players The occupied slots, in slot order.
  * @property openSlots How many empty slots follow [players].
  */
-data class GameTeeTimeUiModel(
+data class GameTeeTimeUiState(
     val time: String,
     val filledCount: LocalizedText,
-    val players: List<GameSlotUiModel>,
+    val players: List<GameSlotUiState>,
     val openSlots: Int
 )
 
@@ -61,26 +61,26 @@ data class GameTeeTimeUiModel(
  * @property initial The letter in the player's avatar.
  * @property isOrganizer Whether this player organized the game, which labels the slot "Organizer".
  */
-data class GameSlotUiModel(
+data class GameSlotUiState(
     val initial: String,
     val name: String,
     val isOrganizer: Boolean
 )
 
 /** This game's details as [viewerId] sees them. A null [viewerId] is never the organizer. */
-fun Game.toDetailsUiModel(viewerId: String?): GameDetailsUiModel = GameDetailsUiModel(
+fun Game.toUiState(viewerId: String?): GameUiState = GameUiState(
     course = course.name,
     date = date.weekdayMonthDay,
     isOrganizer = viewerId != null && isOrganizer(viewerId),
     teeTimes = teeTimes.map { teeTime ->
-        GameTeeTimeUiModel(
+        GameTeeTimeUiState(
             time = teeTime.time.formattedTime,
             filledCount = LocalizedText(
                 GMR.strings.game_details_filled_count,
                 listOf(teeTime.filled.toString(), teeTime.slots.toString())
             ),
             players = teeTime.players.map { player ->
-                GameSlotUiModel(
+                GameSlotUiState(
                     initial = player.initial,
                     name = player.name,
                     isOrganizer = player.playerId == organizerId
@@ -92,4 +92,4 @@ fun Game.toDetailsUiModel(viewerId: String?): GameDetailsUiModel = GameDetailsUi
 )
 
 /** [previewGame] as its organizer sees it: one player and three open slots. */
-val previewGameDetailsUiModel = previewGame.toDetailsUiModel(viewerId = previewGame.organizerId)
+val previewGameUiState = previewGame.toUiState(viewerId = previewGame.organizerId)

@@ -17,7 +17,7 @@ struct GameDetailsScreen: View {
 
     var body: some View {
         Screen(.GameDetails(viewName: self.viewName)) {
-            GameDetailsContent(state: viewModel.uiState)
+            GameDetailsContent(uiState: viewModel.uiState)
         }
         .task { await viewModel.load() }
     }
@@ -28,15 +28,15 @@ struct GameDetailsScreen: View {
 fileprivate struct GameDetailsContent: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let state: any GameDetailsUiState
+    private let uiState: any GameDetailsUiState
 
-    init(state: any GameDetailsUiState) {
-        self.state = state
+    init(uiState: any GameDetailsUiState) {
+        self.uiState = uiState
     }
 
     var body: some View {
         Group {
-            switch onEnum(of: state) {
+            switch onEnum(of: uiState) {
             case .loading:
                 ContentLoadingIndicator()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -46,7 +46,7 @@ fileprivate struct GameDetailsContent: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             case .content(let content):
-                GameDetailsBody(game: content.game)
+                GameDetailsBody(uiState: content.game)
             }
         }
         .background(theme.colorScheme.surface)
@@ -58,16 +58,16 @@ fileprivate struct GameDetailsContent: View {
 fileprivate struct GameDetailsBody: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let game: GameDetailsUiModel
+    private let uiState: GameUiState
 
-    init(game: GameDetailsUiModel) {
-        self.game = game
+    init(uiState: GameUiState) {
+        self.uiState = uiState
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: GameDetailsDefaults.sectionSpacing) {
-                if game.isOrganizer {
+                if uiState.isOrganizer {
                     TtcChip(
                         GMR.strings().game_details_organizer_chip.localized(),
                         color: .secondary,
@@ -76,16 +76,16 @@ fileprivate struct GameDetailsBody: View {
                 }
 
                 VStack(alignment: .leading, spacing: GameDetailsDefaults.titleSpacing) {
-                    Text(game.course)
+                    Text(uiState.course)
                         .font(.largeTitle.weight(.bold))
                         .foregroundStyle(theme.colorScheme.onSurface)
-                    Text(game.date)
+                    Text(uiState.date)
                         .font(.body)
                         .foregroundStyle(theme.colorScheme.onSurfaceVariant)
                 }
 
-                ForEach(Array(game.teeTimes.enumerated()), id: \.offset) { _, teeTime in
-                    TeeTimeCard(teeTime: teeTime)
+                ForEach(Array(uiState.teeTimes.enumerated()), id: \.offset) { _, teeTime in
+                    TeeTimeCard(uiState: teeTime)
                 }
             }
             .padding(GameDetailsDefaults.padding)
@@ -97,10 +97,10 @@ fileprivate struct GameDetailsBody: View {
 fileprivate struct TeeTimeCard: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let teeTime: GameTeeTimeUiModel
+    private let uiState: GameTeeTimeUiState
 
-    init(teeTime: GameTeeTimeUiModel) {
-        self.teeTime = teeTime
+    init(uiState: GameTeeTimeUiState) {
+        self.uiState = uiState
     }
 
     var body: some View {
@@ -110,25 +110,25 @@ fileprivate struct TeeTimeCard: View {
                 HStack(spacing: GameDetailsDefaults.headerSpacing) {
                     Image(SfSymbol.clock)
                         .foregroundStyle(theme.colorScheme.primary)
-                    Text(teeTime.time)
+                    Text(uiState.time)
                         .font(.headline)
                         .foregroundStyle(theme.colorScheme.onSurface)
                     Spacer()
-                    TtcChip(teeTime.filledCount.localized(), size: .small)
+                    TtcChip(uiState.filledCount.localized(), size: .small)
                 }
                 .padding(.horizontal, GameDetailsDefaults.horizontalPadding)
                 .padding(.vertical, GameDetailsDefaults.verticalPadding)
                 .background(theme.colorScheme.surfaceContainerHigh)
 
                 // Every row but the last one carries a divider, across players and empty slots alike.
-                ForEach(Array(teeTime.players.enumerated()), id: \.offset) { index, player in
+                ForEach(Array(uiState.players.enumerated()), id: \.offset) { index, player in
                     PlayerSlotRow(
-                        player: player,
-                        showDivider: index < teeTime.players.count - 1 || teeTime.openSlots > 0
+                        uiState: player,
+                        showDivider: index < uiState.players.count - 1 || uiState.openSlots > 0
                     )
                 }
-                ForEach(0..<Int(teeTime.openSlots), id: \.self) { index in
-                    EmptySlotRow(showDivider: index < Int(teeTime.openSlots) - 1)
+                ForEach(0..<Int(uiState.openSlots), id: \.self) { index in
+                    EmptySlotRow(showDivider: index < Int(uiState.openSlots) - 1)
                 }
             }
         }
@@ -138,27 +138,27 @@ fileprivate struct TeeTimeCard: View {
 fileprivate struct PlayerSlotRow: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let player: GameSlotUiModel
+    private let uiState: GameSlotUiState
     private let showDivider: Bool
 
-    init(player: GameSlotUiModel, showDivider: Bool) {
-        self.player = player
+    init(uiState: GameSlotUiState, showDivider: Bool) {
+        self.uiState = uiState
         self.showDivider = showDivider
     }
 
     var body: some View {
         SlotRow(showDivider: showDivider) {
             TtcAvatar(
-                player.initial,
-                color: player.isOrganizer ? .secondary : .primary,
+                uiState.initial,
+                color: uiState.isOrganizer ? .secondary : .primary,
                 size: GameDetailsDefaults.avatarSize
             )
         } text: {
             VStack(alignment: .leading, spacing: GameDetailsDefaults.nameStatusSpacing) {
-                Text(player.name)
+                Text(uiState.name)
                     .font(.body.weight(.medium))
                     .foregroundStyle(theme.colorScheme.onSurface)
-                if player.isOrganizer {
+                if uiState.isOrganizer {
                     Text(GMR.strings().game_details_organizer_label.localized())
                         .font(.caption)
                         .foregroundStyle(theme.colorScheme.secondary)
@@ -242,17 +242,17 @@ fileprivate enum GameDetailsDefaults {
 
 // MARK: - Previews
 
-fileprivate let previewDetails = GameDetailsUiStateContent(game: GameDetailsUiStateKt.previewGameDetailsUiModel)
+fileprivate let previewDetails = GameDetailsUiStateContent(game: GameDetailsUiStateKt.previewGameUiState)
 
 #Preview("Organizer") {
     TeeTimeCaddieTheme {
-        GameDetailsContent(state: previewDetails)
+        GameDetailsContent(uiState: previewDetails)
     }
 }
 
 #Preview("Organizer - Dark") {
     TeeTimeCaddieTheme {
-        GameDetailsContent(state: previewDetails)
+        GameDetailsContent(uiState: previewDetails)
     }
     .preferredColorScheme(.dark)
 }

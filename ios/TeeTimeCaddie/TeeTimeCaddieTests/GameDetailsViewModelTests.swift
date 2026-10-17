@@ -29,7 +29,7 @@ final class GameDetailsViewModelTests: XCTestCase {
         _ gameId: String = "game-1",
         games: [Game] = [TestData.game()],
         viewer: Player = TestData.organizer
-    ) async throws -> GameDetailsUiModel {
+    ) async throws -> GameUiState {
         let state = await loaded(gameId, games: games, viewer: viewer)
         return try XCTUnwrap(state as? GameDetailsUiStateContent, "Expected content, got \(state)").game
     }
@@ -43,7 +43,7 @@ final class GameDetailsViewModelTests: XCTestCase {
         let teeTime = try XCTUnwrap(game.teeTimes.first)
         XCTAssertEqual(teeTime.time, "9:00 AM")
         XCTAssertEqual(teeTime.filledCount.localized(), "1/4 filled")
-        XCTAssertEqual(teeTime.players, [GameSlotUiModel(initial: "D", name: "Dana Park", isOrganizer: true)])
+        XCTAssertEqual(teeTime.players, [GameSlotUiState(initial: "D", name: "Dana Park", isOrganizer: true)])
         XCTAssertEqual(teeTime.openSlots, 3)
     }
 

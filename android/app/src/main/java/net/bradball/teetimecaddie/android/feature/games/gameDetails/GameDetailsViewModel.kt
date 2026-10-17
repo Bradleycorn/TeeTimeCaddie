@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GamesRepository
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.toDetailsUiModel
+import net.bradball.teetimecaddie.features.games.state.toUiState
 import net.bradball.teetimecaddie.session.SessionState
 
 @AssistedFactory
@@ -43,7 +43,7 @@ class GameDetailsViewModel @AssistedInject constructor(
         when (val result = gamesRepository.getGame(gameId)) {
             is TtcResult.Success -> {
                 val viewerId = (sessionState.value as? SessionState.SignedIn)?.player?.id
-                GameDetailsUiState.Content(result.data.toDetailsUiModel(viewerId))
+                GameDetailsUiState.Content(result.data.toUiState(viewerId))
             }
 
             is TtcResult.Failure -> GameDetailsUiState.Error(result.error)

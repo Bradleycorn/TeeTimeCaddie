@@ -17,7 +17,7 @@ import net.bradball.teetimecaddie.features.games.GMR
 sealed interface GamesListUiState {
     data object Loading : GamesListUiState
     data object Empty : GamesListUiState
-    data class Content(val games: List<GameRowUiModel>) : GamesListUiState
+    data class Content(val games: List<GameRowUiState>) : GamesListUiState
 }
 
 /**
@@ -27,7 +27,7 @@ sealed interface GamesListUiState {
  * @property course The course name.
  * @property dateAndTime The date and first tee time, e.g. "Sat, Jun 13 · 9:00 AM".
  */
-data class GameRowUiModel(
+data class GameRowUiState(
     val id: String,
     val course: String,
     val dateAndTime: LocalizedText
@@ -35,9 +35,9 @@ data class GameRowUiModel(
 
 /** What the Games tab shows for these games: the empty state, or a row for each. */
 fun List<Game>.toGamesListUiState(): GamesListUiState =
-    if (isEmpty()) GamesListUiState.Empty else GamesListUiState.Content(map { it.toRowUiModel() })
+    if (isEmpty()) GamesListUiState.Empty else GamesListUiState.Content(map { it.toRowUiState() })
 
-internal fun Game.toRowUiModel(): GameRowUiModel = GameRowUiModel(
+internal fun Game.toRowUiState(): GameRowUiState = GameRowUiState(
     id = id,
     course = course.name,
     dateAndTime = LocalizedText(
@@ -46,6 +46,6 @@ internal fun Game.toRowUiModel(): GameRowUiModel = GameRowUiModel(
     )
 )
 
-val previewGameRowUiModel = previewGame.toRowUiModel()
+val previewGameRowUiState = previewGame.toRowUiState()
 
-val previewGameRowUiModelList = previewGameList.map { it.toRowUiModel() }
+val previewGameRowUiStateList = previewGameList.map { it.toRowUiState() }

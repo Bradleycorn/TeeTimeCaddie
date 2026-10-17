@@ -20,7 +20,7 @@ struct NewGameScreen: View {
     var body: some View {
         Screen(.NewGame(viewName: self.viewName)) {
             NewGameContent(
-                state: viewModel.uiState,
+                uiState: viewModel.uiState,
                 onCourseChange: viewModel.onCourseChange,
                 onDateSelected: viewModel.onDateSelected,
                 onTimeSelected: viewModel.onTimeSelected,
@@ -49,7 +49,7 @@ fileprivate struct NewGameContent: View {
     @State private var draftDate: Date = .today
     @State private var draftTime: Date = NewGameDefaults.seedTime
 
-    private let state: NewGameUiState
+    private let uiState: NewGameUiState
     private let onCourseChange: (String) -> Void
     private let onDateSelected: (Date) -> Void
     private let onTimeSelected: (Date) -> Void
@@ -60,7 +60,7 @@ fileprivate struct NewGameContent: View {
     private let onPublishAnyway: () -> Void
 
     init(
-        state: NewGameUiState,
+        uiState: NewGameUiState,
         onCourseChange: @escaping (String) -> Void,
         onDateSelected: @escaping (Date) -> Void,
         onTimeSelected: @escaping (Date) -> Void,
@@ -70,7 +70,7 @@ fileprivate struct NewGameContent: View {
         onDismissNoInviteeConfirm: @escaping () -> Void,
         onPublishAnyway: @escaping () -> Void
     ) {
-        self.state = state
+        self.uiState = uiState
         self.onCourseChange = onCourseChange
         self.onDateSelected = onDateSelected
         self.onTimeSelected = onTimeSelected
@@ -88,47 +88,47 @@ fileprivate struct NewGameContent: View {
 
                 TtcTextField(
                     GMR.strings().new_game_field_course.localized(),
-                    text: Binding(get: { state.course }, set: onCourseChange),
+                    text: Binding(get: { uiState.course }, set: onCourseChange),
                     leadingIcon: .symbol(.flag),
                     placeholder: GMR.strings().new_game_field_course_placeholder.localized(),
                     autocapitalization: .words,
                     autocorrectionDisabled: true,
                     focused: $courseFocused
                 )
-                .disabled(state.isSubmitting)
+                .disabled(uiState.isSubmitting)
                 .submitLabel(.done)
 
                 PickerField(
                     label: GMR.strings().new_game_field_date.localized(),
                     icon: .symbol(.calendar),
-                    value: state.dateText,
+                    value: uiState.dateText,
                     placeholder: GMR.strings().new_game_field_date_placeholder.localized(),
                     onActivate: {
                         courseFocused = false
                         // Reopening starts on the date already chosen.
-                        draftDate = state.date ?? .today
+                        draftDate = uiState.date ?? .today
                         showDatePicker = true
                     }
                 )
-                .disabled(state.isSubmitting)
+                .disabled(uiState.isSubmitting)
 
                 PickerField(
                     label: GMR.strings().new_game_field_tee_time.localized(),
                     icon: .symbol(.clock),
-                    value: state.timeText,
+                    value: uiState.timeText,
                     placeholder: GMR.strings().new_game_field_tee_time_placeholder.localized(),
                     onActivate: {
                         courseFocused = false
-                        draftTime = state.time ?? NewGameDefaults.seedTime
+                        draftTime = uiState.time ?? NewGameDefaults.seedTime
                         showTimePicker = true
                     }
                 )
-                .disabled(state.isSubmitting)
+                .disabled(uiState.isSubmitting)
 
                 SectionLabel(GMR.strings().new_game_section_players.localized())
 
-                SlotSelector(selected: state.slots, onSelect: onSlotsChange)
-                    .disabled(state.isSubmitting)
+                SlotSelector(selected: uiState.slots, onSelect: onSlotsChange)
+                    .disabled(uiState.isSubmitting)
             }
             .padding(.horizontal, NewGameDefaults.horizontalPadding)
             .padding(.bottom, NewGameDefaults.horizontalPadding)
@@ -139,11 +139,11 @@ fileprivate struct NewGameContent: View {
         .safeAreaInset(edge: .bottom) {
             TtcButton(
                 GMR.strings().new_game_publish_button.localized(),
-                isLoading: state.isSubmitting,
+                isLoading: uiState.isSubmitting,
                 fullWidth: true,
                 action: onPublishClick
             )
-            .disabled(!state.canSubmit)
+            .disabled(!uiState.canSubmit)
             .padding(.horizontal, NewGameDefaults.horizontalPadding)
             .padding(.vertical, NewGameDefaults.ctaPadding)
             .background(.bar)
@@ -174,7 +174,7 @@ fileprivate struct NewGameContent: View {
         .alert(
             GMR.strings().new_game_no_invitees_title.localized(),
             isPresented: Binding(
-                get: { state.showNoInviteeConfirm },
+                get: { uiState.showNoInviteeConfirm },
                 // Fires for every way the alert closes, buttons included, so it only closes it;
                 // the buttons log which one was tapped.
                 set: { isPresented in if !isPresented { onDismissNoInviteeConfirm() } }
@@ -309,15 +309,15 @@ fileprivate enum NewGameDefaults {
 /// Never constructs ``NewGameScreen``: that wrapper builds a ViewModel, which resolves the SDK and
 /// kills the preview process.
 fileprivate struct NewGameContentPreviews: View {
-    private let state: NewGameUiState
+    private let uiState: NewGameUiState
 
-    init(state: NewGameUiState) {
-        self.state = state
+    init(uiState: NewGameUiState) {
+        self.uiState = uiState
     }
 
     var body: some View {
         NewGameContent(
-            state: state,
+            uiState: uiState,
             onCourseChange: { _ in },
             onDateSelected: { _ in },
             onTimeSelected: { _ in },
@@ -332,13 +332,13 @@ fileprivate struct NewGameContentPreviews: View {
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        NewGameContentPreviews(state: NewGameUiState())
+        NewGameContentPreviews(uiState: NewGameUiState())
     }
 }
 
 #Preview("Filled - Dark") {
     TeeTimeCaddieTheme {
-        NewGameContentPreviews(state: NewGameUiState(
+        NewGameContentPreviews(uiState: NewGameUiState(
             course: "Pebble Beach",
             date: .today,
             dateText: "Sat, Jun 13",
