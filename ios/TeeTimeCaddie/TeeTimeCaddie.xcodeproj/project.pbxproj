@@ -50,6 +50,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		026E855730830AA900628A6C /* CLAUDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CLAUDE.md; sourceTree = "<group>"; };
 		02BA11612A195E0000BF0416 /* TeeTimeCaddie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeeTimeCaddie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		02BA11712A195E0300BF0416 /* TeeTimeCaddieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeeTimeCaddieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		02BA117B2A195E0300BF0416 /* TeeTimeCaddieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeeTimeCaddieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,6 +132,7 @@
 		02BA11582A195E0000BF0416 = {
 			isa = PBXGroup;
 			children = (
+				026E855730830AA900628A6C /* CLAUDE.md */,
 				02E4B2282F1160CA00B385C1 /* TeeTimeCaddie */,
 				02E4B1D42F1160CA00B385C1 /* TeeTimeCaddieTests */,
 				0296EB51301D398700840B06 /* Frameworks */,
