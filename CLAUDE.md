@@ -314,7 +314,8 @@ screen renders (`Loading` / `Empty` / `Content` / `Error`), the nested UI states
 the platform ViewModels only orchestrate (load, observe, log) and hand the mapped state to the views.
 
 - Localized text is a `LocalizedText(resource, args)` (`:sdk:core:models`), not a `String` or
-  moko's `StringDesc`. Each app resolves it with `localized()`.
+  moko's `StringDesc`. Android resolves it with `stringResource(text)`, iOS with
+  `text.localized()`.
 - Name them `*UiState`, never `*UiModel`. A view that takes one names the parameter `uiState`
   (`GameRow(uiState:)`, `TeeTimeCard(uiState:)`), on both platforms.
 - UI states hold display data only: no colors, icons, or layout.
