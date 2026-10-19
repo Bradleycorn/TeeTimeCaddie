@@ -83,16 +83,18 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     
     /// Returns the root view for a tab with appropriate navigation setup.
     ///
-    /// - Parameter navigator: The Navigator instance for handling navigation callbacks
+    /// - Parameters:
+    ///   - navigator: The Navigator instance for handling navigation callbacks
+    ///   - eventManager: For logging taps on controls the navigation layer owns
     /// - Returns: The configured root view for this tab
     @MainActor
     @ViewBuilder
-    func destinationView(_ navigator: any Navigator) -> some View {
+    func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> some View {
         switch self {
         case .games:
-            GamesDestinations.gamesList.destinationView(navigator)
+            GamesDestinations.gamesList.destinationView(navigator, eventManager: eventManager)
         case .profile:
-            ProfileDestinations.profile.destinationView(navigator)
+            ProfileDestinations.profile.destinationView(navigator, eventManager: eventManager)
         }
     }
 }

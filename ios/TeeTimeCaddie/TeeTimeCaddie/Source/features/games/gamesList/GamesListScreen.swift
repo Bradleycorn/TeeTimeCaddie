@@ -23,8 +23,8 @@ struct GamesListScreen: View {
         Screen(.Games(viewName: self.viewName)) {
             GamesListContent(
                 uiState: viewModel.uiState,
-                onNewGameClick: { source in
-                    viewModel.onAddGameClick(from: source)
+                onCreateGameClick: {
+                    viewModel.onAddGameClick(from: .emptyList)
                     onNewGameClick()
                 },
                 onGameClick: { gameId in
@@ -43,23 +43,23 @@ fileprivate struct GamesListContent: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let uiState: any GamesListUiState
-    private let onNewGameClick: (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void
+    private let onCreateGameClick: () -> Void
     private let onGameClick: (String) -> Void
 
+    /// - Parameter onCreateGameClick: The empty state's "Create a game". The bar's + belongs to the
+    ///   navigation layer (`GamesDestinations`), which handles it there.
     init(
         uiState: any GamesListUiState,
-        onNewGameClick: @escaping (AnalyticsEvent.AddGameClick.AddGameClickSource) -> Void,
+        onCreateGameClick: @escaping () -> Void,
         onGameClick: @escaping (String) -> Void
     ) {
         self.uiState = uiState
-        self.onNewGameClick = onNewGameClick
+        self.onCreateGameClick = onCreateGameClick
         self.onGameClick = onGameClick
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-
+        Group {
             switch onEnum(of: uiState) {
             case .loading:
                 ContentLoadingIndicator()
@@ -74,7 +74,7 @@ fileprivate struct GamesListContent: View {
                     TtcButton(
                         GMR.strings().games_create_button.localized(),
                         icon: .symbol(.plus),
-                        action: { onNewGameClick(.emptyList) }
+                        action: onCreateGameClick
                     )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -96,29 +96,6 @@ fileprivate struct GamesListContent: View {
             }
         }
         .background(theme.colorScheme.surface)
-    }
-
-    /// The brand as a large title, with the round + beside it, as the design draws it.
-    private var header: some View {
-        HStack(alignment: .lastTextBaseline) {
-            Text(AR.strings().auth_brand_name.localized())
-                .font(.largeTitle.weight(.bold))
-                .foregroundStyle(theme.colorScheme.primary)
-
-            Spacer()
-
-            Button(action: { onNewGameClick(.addButton) }) {
-                Image(SfSymbol.plus)
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(theme.colorScheme.primary)
-                    .frame(width: GamesListDefaults.addButtonSize, height: GamesListDefaults.addButtonSize)
-                    .background(theme.colorScheme.surfaceContainerHigh, in: Circle())
-            }
-            .accessibilityLabel(GMR.strings().games_new_game_action.localized())
-        }
-        .padding(.horizontal, GamesListDefaults.horizontalPadding)
-        .padding(.top, GamesListDefaults.headerTopPadding)
-        .padding(.bottom, GamesListDefaults.headerBottomPadding)
     }
 }
 
@@ -161,8 +138,6 @@ fileprivate enum GamesListDefaults {
     static let horizontalPadding: CGFloat = 16
     static let spacing: CGFloat = 16
     static let headerTopPadding: CGFloat = 8
-    static let headerBottomPadding: CGFloat = 12
-    static let addButtonSize: CGFloat = 36
     static let rowLineSpacing: CGFloat = 4
 }
 
@@ -172,19 +147,19 @@ fileprivate let previewContent = GamesListUiStateContent(games: GamesListUiState
 
 #Preview("Content") {
     TeeTimeCaddieTheme {
-        GamesListContent(uiState: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(uiState: previewContent, onCreateGameClick: {}, onGameClick: { _ in })
     }
 }
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        GamesListContent(uiState: GamesListUiStateEmpty.shared, onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(uiState: GamesListUiStateEmpty.shared, onCreateGameClick: {}, onGameClick: { _ in })
     }
 }
 
 #Preview("Content - Dark") {
     TeeTimeCaddieTheme {
-        GamesListContent(uiState: previewContent, onNewGameClick: {_ in}, onGameClick: { _ in })
+        GamesListContent(uiState: previewContent, onCreateGameClick: {}, onGameClick: { _ in })
     }
     .preferredColorScheme(.dark)
 }

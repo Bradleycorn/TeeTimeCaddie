@@ -63,7 +63,7 @@ struct TabsNavView: View {
             ForEach(navigator.tabs, id: \.self) { tab in
                 
                     // Display normal tab content with navigation stack
-                    TabNavStack(for: tab, navigator)
+                    TabNavStack(for: tab, navigator, eventManager: eventManager)
                     .tabItem {
                         Label(tab.iconText, icon: tab.icon)
                     }

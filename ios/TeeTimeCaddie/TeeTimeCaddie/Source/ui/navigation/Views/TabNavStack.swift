@@ -5,6 +5,7 @@
 //  Created by Bradley Ball on 9/14/25.
 //
 import SwiftUI
+import TeeTimeCaddieKit
 
 /// A view that creates a NavigationStack for a specific tab with proper destination routing.
 ///
@@ -32,7 +33,7 @@ import SwiftUI
 /// ## Usage
 /// TabNavStack is used internally by TabsNavView to create navigation stacks:
 /// ```swift
-/// TabNavStack(for: .races, navigator)
+/// TabNavStack(for: .games, navigator, eventManager: eventManager)
 /// ```
 ///
 /// ## Adding New Destination Types
@@ -40,7 +41,7 @@ import SwiftUI
 /// in the `navigationDestination` modifier:
 /// ```swift
 /// case let navKey as NewFeatureDestinations:
-///     navKey.destinationView(navigator)
+///     navKey.destinationView(navigator, eventManager: eventManager)
 /// ```
 struct TabNavStack: View {
     /// The Navigator instance that manages navigation state
@@ -48,31 +49,36 @@ struct TabNavStack: View {
     
     /// The specific tab this NavigationStack represents
     private let tab: AppTabs
+
+    /// Handed to each destination, for the controls its navigation layer owns
+    private let eventManager: EventManager
     
     /// Creates a NavigationStack for the specified tab.
     ///
     /// - Parameters:
     ///   - tab: The tab this NavigationStack will represent
     ///   - navigator: The TabNavigator instance managing navigation state
-    init(for tab: AppTabs, _ navigator: TabNavigator) {
+    ///   - eventManager: Handed to each destination, for the controls its navigation layer owns
+    init(for tab: AppTabs, _ navigator: TabNavigator, eventManager: EventManager) {
         self.navigator = navigator
         self.tab = tab
+        self.eventManager = eventManager
     }
 
     
     var body: some View {
         NavigationStack(path: navigator.backstack(for: tab)) {
             // Display the tab's root view
-            tab.destinationView(navigator)
+            tab.destinationView(navigator, eventManager: eventManager)
                 .navigationDestination(for: AnyTtcNavKey.self) { key in
                     // Route navigation destinations to their corresponding views
                     // This switch statement must be updated when adding new destination types
                     Group {
                         switch key.wrapped {
                         case let navKey as GamesDestinations:
-                            navKey.destinationView(navigator)
+                            navKey.destinationView(navigator, eventManager: eventManager)
                         case let navKey as ProfileDestinations:
-                            navKey.destinationView(navigator)
+                            navKey.destinationView(navigator, eventManager: eventManager)
                         default:
                             fatalError("Unhandled navigation key: \(key)")
                         }

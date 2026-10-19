@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import ThemeUI
 import TeeTimeCaddieKit
 
 /// Destinations within the Games tab. The Swift twin of `GamesNavigation.kt`.
@@ -13,17 +14,28 @@ enum GamesDestinations: @MainActor TtcNavKey {
     case gameDetails(id: String)
 
     @ViewBuilder
-    func destinationView(_ navigator: any Navigator) -> some View {
+    func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> some View {
         switch self {
         case .gamesList:
             GamesListScreen(
                 onNewGameClick: { navigator.navigateToNewGame() },
                 onGameClick: { gameId in navigator.navigateToGameDetails(id: gameId) }
             )
-            // The screen draws its own brand header, so the bar is hidden; the title still names
-            // the back button on pushed screens ("‹ Games").
+            // The title names the back button on pushed screens ("‹ Games"); the bar itself shows
+            // the brand mark in its place, as Android's centered top bar does.
             .navigationTitle(GMR.strings().games_title.localized())
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    BrandTitle()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    AddGameButton {
+                        eventManager.logEvent(event: AnalyticsEvent.AddGameClick(source: .addButton))
+                        navigator.navigateToNewGame()
+                    }
+                }
+            }
 
         case .newGame:
             NewGameScreen(
@@ -38,7 +50,7 @@ enum GamesDestinations: @MainActor TtcNavKey {
                     // Leaves without saving and without asking. Logged here because the toolbar
                     // lives in the navigation layer, as the iOS CLAUDE.md asks.
                     Button(GR.strings().cancel.localized()) {
-                        AppModule.shared.eventManager().logEvent(event: AnalyticsEvent.NewGameCancel.shared)
+                        eventManager.logEvent(event: AnalyticsEvent.NewGameCancel.shared)
                         navigator.pop()
                     }
                 }
@@ -49,6 +61,36 @@ enum GamesDestinations: @MainActor TtcNavKey {
                 .navigationTitle(GMR.strings().game_details_title.localized())
                 .navigationBarTitleDisplayMode(.inline)
         }
+    }
+}
+
+/// The Games tab's title: the brand mark, in the theme's primary color.
+fileprivate struct BrandTitle: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    var body: some View {
+        Text(AR.strings().auth_brand_name.localized())
+            .font(.headline.weight(.bold))
+            .foregroundStyle(theme.colorScheme.primary)
+    }
+}
+
+/// The Games tab's + for creating a game.
+fileprivate struct AddGameButton: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    private let action: () -> Void
+
+    init(action: @escaping () -> Void) {
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Image(SfSymbol.plus)
+                .foregroundStyle(theme.colorScheme.primary)
+        }
+        .accessibilityLabel(GMR.strings().games_new_game_action.localized())
     }
 }
 
