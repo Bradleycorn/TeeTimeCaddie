@@ -34,7 +34,7 @@ import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
-import net.bradball.teetimecaddie.android.ui.common.text.localized
+import net.bradball.teetimecaddie.android.ui.common.text.stringResource
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.features.auth.AR
@@ -180,7 +180,7 @@ private fun GameRow(uiState: GameRowUiState, onClick: () -> Unit, modifier: Modi
                 modifier = Modifier.size(GamesListDefaults.RowIconSize),
             )
             Text(
-                text = uiState.dateAndTime.localized(),
+                text = stringResource(uiState.dateAndTime),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

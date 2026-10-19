@@ -40,7 +40,7 @@ import net.bradball.teetimecaddie.android.ui.common.chips.TtcChipSize
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
-import net.bradball.teetimecaddie.android.ui.common.text.localized
+import net.bradball.teetimecaddie.android.ui.common.text.stringResource
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.features.games.GMR
@@ -89,8 +89,8 @@ private fun GameDetailsContent(
 
             is GameDetailsUiState.Error -> Box(contentModifier, contentAlignment = Alignment.Center) {
                 TtcEmptyState(
-                    title = uiState.title.localized(),
-                    description = uiState.message.localized(),
+                    title = stringResource(uiState.title),
+                    description = stringResource(uiState.message),
                 )
             }
 
@@ -163,7 +163,7 @@ private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifi
                 modifier = Modifier.weight(1f),
             )
             TtcChip(
-                text = uiState.filledCount.localized(),
+                text = stringResource(uiState.filledCount),
                 size = TtcChipSize.Small,
             )
         }

@@ -50,7 +50,7 @@ extension StringResource {
 
 extension LocalizedText {
     /// This text, with its placeholders filled, resolved for the current locale. The Android twin is
-    /// the `LocalizedText.localized()` composable.
+    /// the `stringResource(LocalizedText)` composable.
     func localized() -> String {
         resource.localized(args: args)
     }
