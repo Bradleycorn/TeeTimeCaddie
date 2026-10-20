@@ -25,8 +25,12 @@ struct AuthNavView: View {
     /// signing in discards it instead of leaving a half-finished sign-up behind the tabs.
     @State private var navigator: BasicNavigator
 
-    init(sessionState: SessionState) {
+    /// Handed to each destination, for the controls its navigation layer owns.
+    private let eventManager: EventManager
+
+    init(sessionState: SessionState, eventManager: EventManager = AppModule.shared.eventManager()) {
         self.sessionState = sessionState
+        self.eventManager = eventManager
         self.navigator = BasicNavigator(Self.initialStack(for: sessionState))
     }
 
@@ -35,11 +39,11 @@ struct AuthNavView: View {
     // Android twin gets the same from the nav entry's ViewModelStore.
     var body: some View {
         NavigationStack(path: $navigator.backstack) {
-            AuthDestinations.login.destinationView(navigator)
+            AuthDestinations.login.destinationView(navigator, eventManager: eventManager)
                 .navigationDestination(for: AnyTtcNavKey.self) { key in
                     switch key.wrapped {
                     case let navKey as AuthDestinations:
-                        navKey.destinationView(navigator)
+                        navKey.destinationView(navigator, eventManager: eventManager)
                     default:
                         fatalError("Unhandled navigation key: \(key)")
                     }
@@ -62,6 +66,9 @@ struct AuthNavView: View {
 
 #Preview {
     TeeTimeCaddieTheme {
-        AuthNavView(sessionState: SessionState.SignedOut())
+        AuthNavView(
+            sessionState: SessionState.SignedOut(),
+            eventManager: EventManager.companion.getInstance(enableLogging: false)
+        )
     }
 }

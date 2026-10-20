@@ -35,8 +35,8 @@ kotlin {
             export(project(":sdk:core:extensions"))
             export(project(":sdk:core:models"))
             export(project(":sdk:features:auth"))
+            export(project(":sdk:features:games"))
             export(project(":sdk:features:players"))
-            export(project(":sdk:features:teetimes"))
             export(libs.mokoresources.api)
             export(libs.kotlinx.datetime)
             export(libs.nsexceptionkt)
@@ -54,8 +54,8 @@ kotlin {
             api(project(":sdk:core:extensions"))
             api(project(":sdk:core:models"))
             api(project(":sdk:features:auth"))
+            api(project(":sdk:features:games"))
             api(project(":sdk:features:players"))
-            api(project(":sdk:features:teetimes"))
             implementation(project(":sdk:core:storage"))
             implementation(libs.multiplatform.settings)
             implementation(libs.firebase.mpp.auth)
@@ -102,7 +102,7 @@ android {
 // GitLive's Firebase modules bake `-framework FirebaseCore` (and friends) into their linker
 // options, but those frameworks only exist inside the iOS app's SPM checkout — so `ld` fails with
 // "framework 'FirebaseCore' not found" for any module that depends on them, directly or
-// transitively. This predates TTC-67: :sdk:features:teetimes has always had it.
+// transitively. This predates TTC-67: the old :sdk:features:teetimes module always had it.
 //
 // The tests in these modules are platform-agnostic Kotlin with no expect/actual, so running them
 // on the JVM gives equivalent coverage. Disabling the iOS test tasks is what keeps `./gradlew

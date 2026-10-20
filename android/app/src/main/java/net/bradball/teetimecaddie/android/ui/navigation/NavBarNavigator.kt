@@ -53,13 +53,13 @@ fun rememberNavBarNavigator(startDestination: TopLevelDestination): NavBarNaviga
 /**
  * A [Navigator] with one back stack **per** [TopLevelDestination] — the tabbed, signed-in app.
  *
- * Switching tabs preserves your position in each: navigate Games → Add Tee Time, switch to Profile,
- * switch back, and Add Tee Time is still there.
+ * Each tab keeps its own back stack. Since pushed screens hide the navigation bar (see
+ * [isAtTopLevel]), a tab switch always starts from a root, and each stack is just that root.
  *
  * ```kotlin
- * navigator.navigateToAddTeeTime()                     // pushes onto the Games stack
+ * navigator.navigateToNewGame()                        // pushes onto the Games stack
  * navigator.navigate(TopLevelDestination.PROFILE)      // switches tab; Games stack is untouched
- * navigator.navigate(TopLevelDestination.TEE_TIMES)    // back on Add Tee Time
+ * navigator.navigate(TopLevelDestination.GAMES)    // back on the Games stack
  * ```
  *
  * Passing a [TopLevelDestination] to [navigate] switches tabs; passing anything else pushes onto
@@ -111,6 +111,20 @@ class NavBarNavigator(startDestination: TopLevelDestination) : Navigator {
 
     override val currentDestination: NavKey?
         get() = backStack.lastOrNull()
+
+    /**
+     * Whether the current destination is a tab's root screen.
+     *
+     * The navigation bar shows only when this is true. Every screen pushed onto a tab — a form, a
+     * details screen — hides it, so the player backs out to the top level before switching tabs.
+     * One rule rather than a per-destination flag: there is nothing to remember to set on a new
+     * destination, and switching tabs never strands a half-finished flow on another tab's stack.
+     *
+     * Reads [backStack], which is snapshot state, so a composable reading this recomposes when it
+     * changes.
+     */
+    val isAtTopLevel: Boolean
+        get() = topLevelDestinations.any { it.destination == currentDestination }
 
     private fun updateBackStack() =
         backStack.apply {

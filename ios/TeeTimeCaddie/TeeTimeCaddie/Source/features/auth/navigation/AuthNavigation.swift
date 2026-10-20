@@ -27,7 +27,7 @@ enum AuthDestinations: @MainActor TtcNavKey {
     case createAccount(email: String)
 
     @ViewBuilder
-    func destinationView(_ navigator: any Navigator) -> some View {
+    func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> some View {
         switch self {
         case .login:
             LoginScreen(onCreateAccount: { navigator.navigateToCreateAccount(email: $0) })

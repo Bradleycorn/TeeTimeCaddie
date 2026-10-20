@@ -38,10 +38,7 @@ import TeeTimeCaddieKit
 enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
 
     /// The games list — the app's home tab.
-    ///
-    /// Labelled "Games" while the case name, feature folder, SDK module and Android twin are all
-    /// still `teeTimes`/`teetimes`. Renaming that hierarchy to match the label is its own change.
-    case teeTimes
+    case games
 
     /// The signed-in player's own profile.
     case profile
@@ -52,16 +49,24 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     var icon: ImageSource {
         switch self {
         // The brand mark, not a golf glyph — matching the design, and the Android twin.
-        case .teeTimes: return .asset(.icon)
+        case .games: return .asset(.icon)
         // Always filled; it does not swap to the outlined variant when unselected.
         case .profile: return .symbol(.personFill)
         }
     }
     
+    /// How analytics names this tab when it is tapped.
+    var analyticsTab: AnalyticsEvent.TabBarClick.TabBarClickTab {
+        switch self {
+        case .games: return .games
+        case .profile: return .profile
+        }
+    }
+
     /// The text label to display in the tab bar for this tab.
     var iconText: String {
         switch self {
-        case .teeTimes: return TTR.strings().games_title.desc().localized()
+        case .games: return GMR.strings().games_title.localized()
         case .profile: return PR.strings().profile_title.desc().localized()
         }
     }
@@ -78,16 +83,18 @@ enum AppTabs: @MainActor TtcNavKey, Hashable, CaseIterable {
     
     /// Returns the root view for a tab with appropriate navigation setup.
     ///
-    /// - Parameter navigator: The Navigator instance for handling navigation callbacks
+    /// - Parameters:
+    ///   - navigator: The Navigator instance for handling navigation callbacks
+    ///   - eventManager: For logging taps on controls the navigation layer owns
     /// - Returns: The configured root view for this tab
     @MainActor
     @ViewBuilder
-    func destinationView(_ navigator: any Navigator) -> some View {
+    func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> some View {
         switch self {
-        case .teeTimes:
-            TeeTimesDestinations.teeTimesList.destinationView(navigator)
+        case .games:
+            GamesDestinations.gamesList.destinationView(navigator, eventManager: eventManager)
         case .profile:
-            ProfileDestinations.profile.destinationView(navigator)
+            ProfileDestinations.profile.destinationView(navigator, eventManager: eventManager)
         }
     }
 }

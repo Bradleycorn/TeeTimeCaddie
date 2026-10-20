@@ -58,6 +58,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    testOptions {
+        unitTests {
+            // ViewModel tests build an EventManager, whose Kermit logger reaches android.os.Process
+            // on construction. They exercise screen logic, not Android behaviour, so let the
+            // unmocked framework calls return defaults rather than throwing.
+            isReturnDefaultValues = true
+        }
+    }
+
     kotlinOptions {
         freeCompilerArgs += listOf(
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
@@ -110,6 +119,7 @@ dependencies {
 
     // TESTING
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.bundles.android.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
 }

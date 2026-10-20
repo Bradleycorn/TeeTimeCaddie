@@ -1,6 +1,8 @@
 package net.bradball.teetimecaddie.android.ui.common.forms
 
 import android.content.res.Configuration
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,10 +16,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,6 +63,9 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  *   no-autocorrect rules the design requires.
  * @param keyboardActions What the IME action buttons do, e.g. moving focus on Next or submitting
  *   on Done.
+ * @param onClick Makes this a *picker trigger*: the field becomes read-only, raises no keyboard,
+ *   and a tap anywhere on it — the trailing icon included — calls this instead. Used for fields
+ *   whose value comes from a dialog, such as a date or a time. [onValueChange] is never called.
  */
 @Composable
 fun TtcTextField(
@@ -75,12 +85,34 @@ fun TtcTextField(
     trailingContentDescription: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
+    onClick: (() -> Unit)? = null,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    // A read-only TextField still takes presses, so listening for a release on its interaction
+    // source makes the whole field tappable without layering a clickable over it, which would
+    // swallow the press ripple and the focus indicator.
+    if (onClick != null) {
+        val currentOnClick by rememberUpdatedState(onClick)
+        val focusManager = LocalFocusManager.current
+        LaunchedEffect(interactionSource) {
+            interactionSource.interactions.collect { interaction ->
+                if (interaction is PressInteraction.Release) {
+                    // The tap focuses the field, but nothing is typed into it: drop the focus so
+                    // it doesn't stay underlined once the picker closes.
+                    focusManager.clearFocus()
+                    currentOnClick()
+                }
+            }
+        }
+    }
+
     TextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
         enabled = enabled,
+        readOnly = onClick != null,
         label = { Text(label) },
         placeholder = placeholder?.let { { Text(it) } },
         leadingIcon = leadingIcon?.let {
@@ -94,7 +126,7 @@ fun TtcTextField(
         },
         trailingIcon = trailingIcon?.let {
             {
-                IconButton(onClick = { onTrailingClick?.invoke() }) {
+                IconButton(onClick = { (onTrailingClick ?: onClick)?.invoke() }) {
                     Icon(
                         painter = it.painter,
                         contentDescription = trailingContentDescription,
@@ -111,6 +143,7 @@ fun TtcTextField(
         colors = TtcTextFieldDefaults.colors(),
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
+        interactionSource = interactionSource,
     )
 }
 
@@ -193,6 +226,15 @@ private fun TtcTextFieldStatesPreview() {
                     onValueChange = {},
                     label = "Mobile number",
                     error = "Already linked to another account",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                TtcTextField(
+                    value = "Sat, Jun 13",
+                    onValueChange = {},
+                    label = "Date",
+                    leadingIcon = TtcIcons.CALENDAR,
+                    trailingIcon = TtcIcons.ARROW_DROP_DOWN,
+                    onClick = {},
                     modifier = Modifier.fillMaxWidth(),
                 )
                 TtcTextField(

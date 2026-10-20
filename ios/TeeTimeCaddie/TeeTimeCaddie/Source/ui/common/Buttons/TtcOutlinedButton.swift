@@ -8,7 +8,8 @@ import ThemeUI
 /// including `.error`, for a low-emphasis destructive action.
 /// Use [icon] for an optional leading icon, [dense] for tighter padding, and [isLoading] to show an
 /// animated indicator in place of the label (taps are ignored while loading). For a full-width CTA,
-/// apply `.frame(maxWidth: .infinity)`.
+/// pass `fullWidth: true` — a `.frame(maxWidth:)` outside the button only widens its tap target,
+/// because the pill is drawn around the label.
 struct TtcOutlinedButton: View {
     @EnvironmentObject private var theme: AppTheme
 
@@ -17,6 +18,7 @@ struct TtcOutlinedButton: View {
     private let icon: ImageSource?
     private let dense: Bool
     private let isLoading: Bool
+    private let fullWidth: Bool
     private let action: () -> Void
 
     init(
@@ -25,6 +27,7 @@ struct TtcOutlinedButton: View {
         icon: ImageSource? = nil,
         dense: Bool = false,
         isLoading: Bool = false,
+        fullWidth: Bool = false,
         action: @escaping () -> Void
     ) {
         self.title = title
@@ -32,6 +35,7 @@ struct TtcOutlinedButton: View {
         self.icon = icon
         self.dense = dense
         self.isLoading = isLoading
+        self.fullWidth = fullWidth
         self.action = action
     }
 
@@ -48,7 +52,8 @@ struct TtcOutlinedButton: View {
             disabledForeground: scheme.onSurfaceVariant,
             border: TtcButtonStyle.outlinedBorder(color, scheme),
             disabledBorder: scheme.outlineVariant,
-            dense: dense
+            dense: dense,
+            fullWidth: fullWidth
         ))
     }
 }

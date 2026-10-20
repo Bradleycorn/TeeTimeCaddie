@@ -9,10 +9,8 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
 import net.bradball.teetimecaddie.core.extensions.toEpochMilliseconds
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
+import net.bradball.teetimecaddie.core.extensions.today
 
 /**
  * Shared bounds and color values for [TtcDatePickerDialog], derived from the Fairway Morning
@@ -31,9 +29,8 @@ internal object TtcDatePickerDefaults {
      * every current caller. Declared as a `get()` rather than an initialized `val` so it re-reads
      * the clock instead of freezing on whichever day this object was first touched.
      */
-    @OptIn(ExperimentalTime::class)
     val MinDate: LocalDate
-        get() = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        get() = LocalDate.today
 
     /**
      * The default latest selectable date — one year out from [MinDate].

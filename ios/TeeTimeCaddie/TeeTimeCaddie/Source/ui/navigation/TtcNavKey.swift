@@ -32,7 +32,7 @@ import TeeTimeCaddieKit
 /// struct SettingsDestination: TtcNavKey {
 ///     static let shared = SettingsDestination()
 ///
-///     func destinationView(_ navigator: any Navigator) -> some View {
+///     func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> some View {
 ///         SettingsScreen(onBackClicked: { navigator.pop() })
 ///     }
 /// }
@@ -45,7 +45,7 @@ import TeeTimeCaddieKit
 ///
 ///     var authRequired: Bool { true }
 ///
-///     func destinationView(_ navigator: any Navigator) -> some View {
+///     func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> some View {
 ///         // Return appropriate view based on case
 ///     }
 /// }
@@ -77,12 +77,15 @@ protocol TtcNavKey: Hashable, Equatable, Identifiable {
     /// access to the Navigator instance to maintain separation of concerns. Do not pass
     /// the navigator into the view, or make it available as an environment object.
     ///
-    /// - Parameter navigator: The Navigator instance for creating navigation callbacks
+    /// - Parameters:
+    ///   - navigator: The Navigator instance for creating navigation callbacks
+    ///   - eventManager: For logging taps on controls the navigation layer owns, such as toolbar
+    ///     buttons, which have no ViewModel to log through
     /// - Returns: The configured SwiftUI view for this destination
     ///
     /// ## Example Implementation
     /// ```swift
-    /// func destinationView(_ navigator: any Navigator) -> some View {
+    /// func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> some View {
     ///     ProfileScreen(
     ///         onEditClicked: { navigator.navigateToEditProfile() },
     ///         onBackClicked: { navigator.pop() }
@@ -91,7 +94,7 @@ protocol TtcNavKey: Hashable, Equatable, Identifiable {
     /// ```
     @MainActor
     @ViewBuilder
-    func destinationView(_ navigator: any Navigator) -> Screen
+    func destinationView(_ navigator: any Navigator, eventManager: EventManager) -> Screen
 }
 
 /// Default implementations for optional CdiNavKey properties.

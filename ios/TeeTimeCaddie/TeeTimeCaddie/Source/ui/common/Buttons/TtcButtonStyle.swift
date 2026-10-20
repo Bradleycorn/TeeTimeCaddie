@@ -82,6 +82,8 @@ struct TtcPillButtonStyle: ButtonStyle {
     /// Disabled border color, or `nil`.
     let disabledBorder: Color?
     let dense: Bool
+    /// Stretch the pill to the width it is offered, rather than hugging the label.
+    var fullWidth: Bool = false
 
     private var padding: EdgeInsets {
         dense
@@ -97,7 +99,7 @@ struct TtcPillButtonStyle: ButtonStyle {
         configuration.label
             .font(.body.weight(.semibold))
             .padding(padding)
-            .frame(minHeight: 20)
+            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 20)
             .background(bg)
             .foregroundStyle(fg)
             .clipShape(TtcButtonStyle.shape)

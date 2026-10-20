@@ -7,7 +7,8 @@ import ThemeUI
 /// destructive one ("Delete tee time", "Leave game"); the remaining ``TtcColorRole`` cases render
 /// the "tonal" look (a container fill). Use [icon] for an optional leading icon, [dense] for
 /// tighter padding, and [isLoading] to show an animated indicator in place of the label (taps are
-/// ignored while loading). For a full-width CTA, apply `.frame(maxWidth: .infinity)`.
+/// ignored while loading). For a full-width CTA, pass `fullWidth: true` — a `.frame(maxWidth:)`
+/// outside the button only widens its tap target, because the pill is drawn around the label.
 struct TtcButton: View {
     @EnvironmentObject private var theme: AppTheme
 
@@ -16,6 +17,7 @@ struct TtcButton: View {
     private let icon: ImageSource?
     private let dense: Bool
     private let isLoading: Bool
+    private let fullWidth: Bool
     private let action: () -> Void
 
     init(
@@ -24,6 +26,7 @@ struct TtcButton: View {
         icon: ImageSource? = nil,
         dense: Bool = false,
         isLoading: Bool = false,
+        fullWidth: Bool = false,
         action: @escaping () -> Void
     ) {
         self.title = title
@@ -31,6 +34,7 @@ struct TtcButton: View {
         self.icon = icon
         self.dense = dense
         self.isLoading = isLoading
+        self.fullWidth = fullWidth
         self.action = action
     }
 
@@ -48,7 +52,8 @@ struct TtcButton: View {
             disabledForeground: scheme.onSurfaceVariant,
             border: nil,
             disabledBorder: nil,
-            dense: dense
+            dense: dense,
+            fullWidth: fullWidth
         ))
     }
 }
