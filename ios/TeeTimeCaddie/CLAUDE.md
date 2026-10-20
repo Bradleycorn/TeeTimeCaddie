@@ -165,10 +165,6 @@ Navigation-related view modifiers (`.navigationTitle()`, `.navigationBarTitleDis
 `*Destinations` enums), not inside the Screen views themselves. This keeps navigation concerns
 separate from view content and allows the navigation system to manage all navigation-related UI.
 
-`destinationView(_:eventManager:)` also receives the app's `EventManager`, for logging taps on
-controls the navigation layer owns: a toolbar button has no ViewModel to log through (see the Games
-list's + and New game's Cancel in `GamesNavigation.swift`).
-
 **The tab bar shows only on a tab's root screen.** `TabNavStack` applies `.toolbar(.hidden, for: .tabBar)`
 to every destination it pushes, so the player backs out to the top level before switching tabs. A new
 destination gets this automatically; there is no per-destination flag. Android applies the same rule
