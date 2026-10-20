@@ -8,41 +8,7 @@ code in this repository.
 Native SwiftUI application using **Factory** for DI, **custom multi-backstack Navigator**, and **MVVM** architecture.
 The app is a thin UI layer over the shared KMP SDK provided by the Kotlin Multiplatform parent project.
 
-## Key Technologies
-
-- **TeeTimeCaddieKit** - KMP framework
-- **SwiftUI** - Declarative UI
-- **Factory** - Dependency injection
-- **NavigationStack** - SwiftUI navigation
-- **Combine** - Reactive programming (via @Published)
-- **Swift Concurrency** - async/await
-- **SKIE** - Swift/Kotlin interop
-- **ThemeUI** - Material3-inspired theming
-- **SwiftAppInitializers** - App initialization
-- **Firebase iOS SDK** - Firebase services
-
 ## Module Structure
-
-```
-/TeeTimeCaddie/
-├── TeeTimeCaddie/              - Main iOS app
-│   ├── Source/
-│   │   ├── TeeTimeCaddieApp.swift        - App entry point
-│   │   ├── TeeTimeCaddieAppState.swift   - Root app state
-│   │   ├── inject/                       - Factory DI modules
-│   │   ├── features/                     - Feature modules
-│   │   │   ├── auth/                     - Auth screens & ViewModels
-│   │   │   ├── games/                    - Games list, New game, Game details, navigation
-│   │   │   └── profile/                  - Profile screen, ViewModel, navigation
-│   │   ├── ui/                           - UI components
-│   │   │   ├── common/                   - Shared UI components
-│   │   │   ├── theme/                    - App theme
-│   │   │   └── navigation/               - Custom Navigator, AppTabs, TtcNavKey
-│   │   ├── util/                         - Utilities (UiState, extensions)
-│   │   └── analytics/                    - Analytics plugins
-├── TeeTimeCaddieTests/         - Unit tests
-└── TeeTimeCaddieUITests/       - UI tests
-```
 
 Note: all future file references in this file leave off the root path to the application source code
 (`/TeeTimeCaddie/TeeTimeCaddie/Source`), and start from there.
