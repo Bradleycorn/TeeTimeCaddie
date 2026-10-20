@@ -44,7 +44,11 @@ suggesting `main`.
 git checkout epic/TTC-100-user-management   # or whatever base was agreed
 git pull
 git checkout -b story/TTC-101-login-screen
+git push -u origin story/TTC-101-login-screen
 ```
+
+Push it right away, empty: it is the trunk of the story's sub-task stack, and the first sub-task
+PR targets it. Sub-task branches are created by `gh stack`, not by hand — see `stacked-prs.md`.
 
 **Remember the base branch.** The PR must target it, and re-deriving it later is how a story PR
 ends up pointed at `main` by mistake. State it back to the user when you report the new branch.
@@ -55,11 +59,15 @@ When the base branch has moved on (for example, the user merged their own work i
 branch), **merge** it into the story branch:
 
 ```bash
+git checkout story/TTC-101-login-screen
 git fetch origin
 git merge origin/epic/TTC-100-user-management
+git push
+gh stack sync    # if the story has open sub-task layers: rebases them onto the new story branch
 ```
 
-Never rebase a branch that has been pushed — that needs a force-push.
+Never rebase a branch that has been pushed — that needs a force-push. The only exception is
+sub-task layer branches, and only through `gh stack` (see `stacked-prs.md`).
 
 ## Changes outside the issue's scope
 

@@ -8,7 +8,8 @@ Criteria and Development Notes — have content before planning. Read the parent
 ## Plan
 
 - Map each AC to the sub-task that delivers it. Every AC must be covered.
-- Name the branches and what each is based on.
+- Name the branches and what each is based on: the story branch (the stack's trunk) and one
+  `subtask/…` layer per sub-task, in stack order.
 
 ## Propose sub-tasks
 

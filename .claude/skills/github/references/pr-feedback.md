@@ -84,3 +84,7 @@ for genuinely PR-wide remarks.
 
 Commit and push the fixes to the same branch, then reply on each comment you acted on saying what
 changed. Leaving a thread silently fixed makes the reviewer re-read the whole diff.
+
+If the PR is a sub-task layer in a stack, push with `gh stack`, not `git push`: run
+`gh stack rebase --upstack` then `gh stack push`, so the layers above pick up the fix (see
+`stacked-prs.md`).
