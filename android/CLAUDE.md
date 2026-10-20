@@ -8,37 +8,8 @@ code in this repository.
 Native Jetpack Compose application using **Hilt** for DI, **custom multi-backstack Navigator**, and **MVVM** architecture.
 The app is a thin UI layer over the shared KMP SDK provided by the Kotlin Multiplatform parent project.
 
-## Key Technologies
-
-- **TeeTimeCaddieSdk** - KMP SDK that provides data and business logic.
-- **Jetpack Compose** - Declarative UI
-- **Material3** - Design system
-- **Hilt** - Dependency injection
-- **androidx.navigation3** - Navigation
-- **Kotlin Coroutines** - Async operations
-- **StateFlow** - Reactive state
-- **ViewModel** - UI state management
-- **ProcessLifecycleOwner** - App lifecycle
-- **SavedState API** - State preservation
-- **Accompanist** - System UI controller
-- **Core Splashscreen** - Android 12+ splash screen API
-
 ## Module Structure
 
-```
-/app/src/main/java/net/bradball/teetimecaddie/android/
-├── di/                          - Hilt modules
-├── initializers/                - App initialization system
-├── analytics/                   - Firebase analytics plugin
-├── feature/                     - Features container. Each feature should get it's own folder.
-│   ├── auth/                    - Auth screens, VMs, navigation, Hilt module
-│   └── teeTimes/                - Tee times screens, VMs, navigation, Hilt module
-├── ui/
-│   ├── app/                     - Root app composable, app state
-│   ├── common/                  - Shared UI components
-│   └── navigation/              - Custom Navigator, TopLevelDestination
-└── theme/                       - Material3 theme
-```
 Note: all future file references in this file leave off the root path to the application source code
 (`/app/src/main/java/net/bradball/teetimecaddie/android/`), and start from there.
 
