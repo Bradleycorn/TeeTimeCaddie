@@ -22,7 +22,7 @@ enum GamesDestinations: @MainActor TtcNavKey {
                 onGameClick: { gameId in navigator.navigateToGameDetails(id: gameId) }
             )
             // The title names the back button on pushed screens ("‹ Games"); the bar itself shows
-            // the brand mark in its place, as Android's centered top bar does.
+            // the BrandTitle in its place.
             .navigationTitle(GMR.strings().games_title.localized())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -30,10 +30,11 @@ enum GamesDestinations: @MainActor TtcNavKey {
                     BrandTitle()
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    AddGameButton {
-                        eventManager.logEvent(event: AnalyticsEvent.AddGameClick(source: .addButton))
-                        navigator.navigateToNewGame()
-                    }
+                    AddGameButton(action: {
+                            eventManager.logEvent(event: AnalyticsEvent.AddGameClick(source: .addButton))
+                            navigator.navigateToNewGame()
+                        }
+                    )
                 }
             }
 
@@ -70,7 +71,7 @@ fileprivate struct BrandTitle: View {
 
     var body: some View {
         Text(AR.strings().auth_brand_name.localized())
-            .font(.headline.weight(.bold))
+            .font(.title.weight(.bold))
             .foregroundStyle(theme.colorScheme.primary)
     }
 }
