@@ -16,11 +16,9 @@ key from Jira.
 | You are about to | Read |
 |---|---|
 | Find or create a branch, update it from its base, or place out-of-scope changes | `references/branching.md` |
-| Open the story PR (draft or ready, or the single PR of a one-sub-task issue), update its description, or mark it ready | `references/pull-requests.md` |
+| Open the story PR (draft or ready), update its description, or mark it ready | `references/pull-requests.md` |
 | Create a sub-task's branch and stacked PR, push a fix up the stack, or catch up after merges | `references/stacked-prs.md` |
 | Address review comments or feedback on a PR | `references/pr-feedback.md` |
-
-Read one. They cover different moments and don't overlap.
 
 ## One PR or a stack
 
@@ -37,12 +35,10 @@ they never get a branch or PR.
 - **Commit cadence:** at least one commit per Jira sub-task, and no commit spans two sub-tasks.
   PR-feedback fixes are separate follow-up commits, keyed to the sub-task that owns the changed
   code.
-- **Commit message format:** follow the commit-message convention in CLAUDE.md.
 - **Stage only files you changed.** Never `git add -A` or `git add .` — name the files. If
   `git status` shows changes you didn't make, stop and ask; they are the user's work in progress.
-- **A story PR never targets `main`.** It targets the branch the story was cut from.
-- **A sub-task PR targets the layer below it** in the story's stack, and the bottom layer targets
-  the story branch. `gh stack submit` sets these bases. (A one-sub-task issue has no sub-task PR.)
+- **A story PR targets the branch the story was cut from** — the epic branch, or `main` only when
+  the story was cut from `main`. Never re-derive it as `main` by default.
 - **Never create an epic branch without asking**, and never assume its base.
 - **Never force-push by hand.** The one exception is `gh stack` (`rebase`, `push`, `sync`), which
   rebases sub-task layer branches and pushes them with `--force-with-lease`. Story, epic, and
@@ -51,4 +47,3 @@ they never get a branch or PR.
   version and can fail silently; `--json` and `gh api` do not.
 - **Stop at "PR created."** That includes each sub-task PR in a stack. Merging a PR and deleting
   the branch are the user's, not yours.
-- `main` is always stable.

@@ -15,8 +15,7 @@ Criteria and Development Notes — have content before planning. Read the parent
 ## Propose sub-tasks
 
 - 5–10 broad sub-tasks, ordered by dependency. A step list in a description is optional.
-- A small defect or story may need just one. Don't split it to fill a quota; one sub-task means
-  one PR and no stack.
+- A small defect or story may need just one. Don't split it to fill a quota.
 - Work the user must do themselves (console settings, adding packages, assets) gets its own
   sub-task.
 - Create nothing in Jira until the user approves.

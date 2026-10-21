@@ -5,17 +5,14 @@ description: Implements a TeeTimeCaddie (TTC) Jira story or defect end to end â€
 
 # Implementing a TTC story
 
-Defects follow the same steps. Field, user, issue-type, and transition ids are in CLAUDE.md.
+Defects follow the same steps.
 
-- Acceptance Criteria and Development Notes are **custom fields**. Read with
-  `fields: ["*all"]` or they look empty.
-- Transition by id. **Never move the story to Done.**
+- **Never move the story to Done.**
 - **One sub-task per turn.** When a sub-task's stacked PR is pushed and the sub-task is IN
   REVIEW, stop and report: the PR URL and which sub-task is next. Do this even when asked to
   implement the whole story. Start the next sub-task only when the user says to.
-- **One sub-task, one PR.** A small issue with a single sub-task that produces code gets no stack:
-  it is worked on the story branch and gets one ready PR. Follow "Single-sub-task issues" in
-  `references/working.md` instead of the stacked checklist below.
+- **One sub-task, one PR.** An issue with a single sub-task that produces code gets no stack.
+  Follow "Single-sub-task issues" in `references/working.md` instead of the checklist below.
 
 | You are | Read |
 |---|---|
