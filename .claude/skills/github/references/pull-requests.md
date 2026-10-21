@@ -9,10 +9,15 @@ A story worked in sub-tasks gets its story PR as a draft once the first sub-task
 merged into the story branch. Before that the story branch has no commits of its own, and GitHub
 refuses a PR with no diff.
 
+A one-sub-task issue has no stack. Its story PR is its only PR: open it **ready, not as a draft**,
+once the sub-task's work is committed on the story branch. Title it with the story key
+(`TTC-101: Login screen`), link both the story and the sub-task in the body, and skip the draft
+checklist below.
+
 ## 1. Confirm the base branch
 
 The PR targets **the branch the story was cut from** — the epic branch if there is one, otherwise
-whatever base was agreed when the branch was created. Never `main` for a story branch.
+whatever base was agreed when the branch was created. `main` only if that was the agreed base.
 
 If you no longer have it from `branching.md`, recover it rather than guessing:
 
@@ -91,13 +96,8 @@ gh pr checks <n>
 gh pr diff <n>
 ```
 
-**Always pass `--json` with explicit fields.** The default human-readable view asks GitHub for a
-broad bundle of PR metadata, and on some `gh` versions part of that bundle is a GraphQL field
-GitHub has since deprecated. The command then prints nothing but an error — e.g.
-`Projects (classic) is being deprecated ... (repository.pullRequest.projectCards)` — **and still
-exits 0**, so an empty result looks like an empty PR. `--json` requests exactly the fields you
-name, so it is unaffected by whatever the default view happens to include. If you hit an error
-like that, you are not missing data: reissue with `--json`. If `--json` itself fails, fall back to
-`gh api repos/{owner}/{repo}/pulls/<n>`, which is plain REST.
+Without `--json`, some `gh` versions print only a `Projects (classic) is being deprecated` error
+**and exit 0**, so the PR looks empty. Reissue with `--json`; if that fails too, use
+`gh api repos/{owner}/{repo}/pulls/<n>`.
 
 To add to an open PR, commit and push to the same branch; the PR updates itself.

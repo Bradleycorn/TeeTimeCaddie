@@ -1,25 +1,25 @@
 ---
 name: jira-issue
-description: Implements a TeeTimeCaddie (TTC) Jira story or defect end to end — planning it, splitting it into sub-tasks, giving each sub-task its own stacked PR, tracking status in Jira, and handing it off for review. Use when asked to implement, start, continue, or resume a TTC issue, or to pick up its next sub-task.
+description: Implements a TeeTimeCaddie (TTC) Jira story or defect end to end — planning it, splitting it into sub-tasks, giving each sub-task its own stacked PR (or one PR when there is only one sub-task), tracking status in Jira, and handing it off for review. Use when asked to implement, start, continue, or resume a TTC issue, or to pick up its next sub-task.
 ---
 
 # Implementing a TTC story
 
-Defects follow the same steps. Field, user, issue-type, and transition ids are in CLAUDE.md.
+Defects follow the same steps.
 
-- Acceptance Criteria and Development Notes are **custom fields**. Read with
-  `fields: ["*all"]` or they look empty.
-- Transition by id. **Never move the story to Done.**
+- **Never move the story to Done.**
 - **One sub-task per turn.** When a sub-task's stacked PR is pushed and the sub-task is IN
   REVIEW, stop and report: the PR URL and which sub-task is next. Do this even when asked to
   implement the whole story. Start the next sub-task only when the user says to.
+- **One sub-task, one PR.** An issue with a single sub-task that produces code gets no stack.
+  Follow "Single-sub-task issues" in `references/working.md` instead of the checklist below.
 
 | You are | Read |
 |---|---|
 | Starting the story — no sub-tasks yet | `references/planning.md` |
 | Working or resuming sub-tasks, opening the story PR, or handling review | `references/working.md` |
 
-Copy this checklist and track progress:
+Copy this checklist and track progress (stacked issues):
 
 ```
 - [ ] Read the story (custom fields included) and its epic

@@ -3,6 +3,8 @@
 Read this when a sub-task needs its branch and PR, when a fix must reach the layers above it, or
 when the user has merged part of a stack.
 
+A one-sub-task issue has no stack and skips this file (SKILL.md, "One PR or a stack").
+
 Each sub-task of a story gets its own branch and PR, linked as a GitHub stack with the `gh stack`
 extension. The story branch is the stack's **trunk**:
 
