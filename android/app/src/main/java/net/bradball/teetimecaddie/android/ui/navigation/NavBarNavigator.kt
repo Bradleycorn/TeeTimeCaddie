@@ -175,11 +175,21 @@ class NavBarNavigator(startDestination: TopLevelDestination) : Navigator {
     }
 
     /**
-     * Goes back to the previous destination in the current top-level stack.
+     * Goes back to the previous destination in the current top-level stack, refusing to pop the
+     * tab's root.
+     *
+     * An empty stack leaves [NavDisplay] nothing to render, which is a crash — and an easy one to
+     * reach: a second tap on a top bar's back arrow lands while the screen it belongs to is still
+     * animating out, after the first tap has already returned to the root. Going back from a root
+     * is the system's business; nav3 only intercepts the back gesture while there is more than one
+     * entry, so the app closes as it should.
      */
     override fun goBack() {
-        stackFor(selectedTopLevelDestination).removeLastOrNull()
-        updateBackStack()
+        val currentStack = stackFor(selectedTopLevelDestination)
+        if (currentStack.size > 1) {
+            currentStack.removeAt(currentStack.lastIndex)
+            updateBackStack()
+        }
     }
 
     companion object {
