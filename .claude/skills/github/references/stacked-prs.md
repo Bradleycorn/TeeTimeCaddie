@@ -3,6 +3,9 @@
 Read this when a sub-task needs its branch and PR, when a fix must reach the layers above it, or
 when the user has merged part of a stack.
 
+Stacks are only for issues with two or more sub-tasks that produce code. A one-sub-task issue
+skips this file: its work goes on the story branch, under a single PR (`pull-requests.md`).
+
 Each sub-task of a story gets its own branch and PR, linked as a GitHub stack with the `gh stack`
 extension. The story branch is the stack's **trunk**:
 

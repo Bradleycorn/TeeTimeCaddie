@@ -3,6 +3,9 @@
 Each sub-task is a layer in the story's PR stack: its own branch and PR, stacked on the story
 branch. The github skill's `references/stacked-prs.md` has the commands.
 
+An issue with only one sub-task that produces code skips the stack — see "Single-sub-task issues"
+at the end.
+
 ## Catch up first
 
 Every time you start or resume, before touching the next sub-task:
@@ -54,3 +57,18 @@ The same applies to any rework after a sub-task is IN REVIEW or Done.
 - Post verification results on the relevant sub-task with `Atlassian:addCommentToJiraIssue`.
 - When later work supersedes a comment, add a new comment saying so. Never edit or delete the
   old one.
+
+## Single-sub-task issues
+
+No stack, no `subtask/` branch, no `gh stack`.
+
+1. Sub-task and story → In Progress.
+2. Do the work on the story branch, committing under the sub-task's key.
+3. Push and open the story PR, ready for review, against the story's base (github
+   `references/pull-requests.md`).
+4. Sub-task and story → IN REVIEW.
+5. **Stop.** Report the PR URL.
+
+Review fixes are committed on the story branch under the sub-task's key and pushed; the sub-task
+goes back to In Progress, then IN REVIEW. When resumed after the user has merged the PR, move the
+sub-task to Done. The story stays where it is; closing it is the user's.

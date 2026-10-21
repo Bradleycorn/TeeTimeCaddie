@@ -1,6 +1,6 @@
 ---
 name: github
-description: The TeeTimeCaddie repo's GitHub conventions — the epic/story branch hierarchy, stacked sub-task PRs (gh stack), opening a PR against the right base, and triaging PR review comments. Use when starting work on a TTC Jira issue (story, defect, hotfix) and a branch is needed, when a sub-task is finished and its stacked PR should be opened, when a story PR should be opened, or when asked to address feedback, comments, or a review on a PR.
+description: The TeeTimeCaddie repo's GitHub conventions — the epic/story branch hierarchy, stacked sub-task PRs (gh stack) or a single PR for a one-sub-task issue, opening a PR against the right base, and triaging PR review comments. Use when starting work on a TTC Jira issue (story, defect, hotfix) and a branch is needed, when a sub-task is finished and its stacked PR should be opened, when a story PR should be opened, or when asked to address feedback, comments, or a review on a PR.
 ---
 
 # Working with GitHub on TeeTimeCaddie
@@ -16,11 +16,21 @@ key from Jira.
 | You are about to | Read |
 |---|---|
 | Find or create a branch, update it from its base, or place out-of-scope changes | `references/branching.md` |
-| Open the story PR (draft or ready), update its description, or mark it ready | `references/pull-requests.md` |
+| Open the story PR (draft or ready, or the single PR of a one-sub-task issue), update its description, or mark it ready | `references/pull-requests.md` |
 | Create a sub-task's branch and stacked PR, push a fix up the stack, or catch up after merges | `references/stacked-prs.md` |
 | Address review comments or feedback on a PR | `references/pr-feedback.md` |
 
 Read one. They cover different moments and don't overlap.
+
+## One PR or a stack
+
+An issue with **two or more sub-tasks that produce code** gets a stack: one PR per sub-task,
+stacked on the story branch, plus the story PR (`stacked-prs.md`).
+
+An issue with **exactly one** such sub-task (a small defect or story) gets **no stack**: no
+`subtask/` branch and no `gh stack`. Commit straight to the story branch and open the story PR,
+ready for review, against the story's base (`pull-requests.md`). User-owned sub-tasks don't count;
+they never get a branch or PR.
 
 ## Rules that always apply
 
@@ -32,7 +42,7 @@ Read one. They cover different moments and don't overlap.
   `git status` shows changes you didn't make, stop and ask; they are the user's work in progress.
 - **A story PR never targets `main`.** It targets the branch the story was cut from.
 - **A sub-task PR targets the layer below it** in the story's stack, and the bottom layer targets
-  the story branch. `gh stack submit` sets these bases.
+  the story branch. `gh stack submit` sets these bases. (A one-sub-task issue has no sub-task PR.)
 - **Never create an epic branch without asking**, and never assume its base.
 - **Never force-push by hand.** The one exception is `gh stack` (`rebase`, `push`, `sync`), which
   rebases sub-task layer branches and pushes them with `--force-with-lease`. Story, epic, and

@@ -50,6 +50,9 @@ git push -u origin story/TTC-101-login-screen
 Push it right away, empty: it is the trunk of the story's sub-task stack, and the first sub-task
 PR targets it. Sub-task branches are created by `gh stack`, not by hand — see `stacked-prs.md`.
 
+For a one-sub-task issue (see SKILL.md, "One PR or a stack") there is no stack: commit the work
+directly on the story branch.
+
 **Remember the base branch.** The PR must target it, and re-deriving it later is how a story PR
 ends up pointed at `main` by mistake. State it back to the user when you report the new branch.
 

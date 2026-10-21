@@ -9,6 +9,11 @@ A story worked in sub-tasks gets its story PR as a draft once the first sub-task
 merged into the story branch. Before that the story branch has no commits of its own, and GitHub
 refuses a PR with no diff.
 
+A one-sub-task issue has no stack. Its story PR is its only PR: open it **ready, not as a draft**,
+once the sub-task's work is committed on the story branch. Title it with the story key
+(`TTC-101: Login screen`), link both the story and the sub-task in the body, and skip the draft
+checklist below.
+
 ## 1. Confirm the base branch
 
 The PR targets **the branch the story was cut from** — the epic branch if there is one, otherwise
