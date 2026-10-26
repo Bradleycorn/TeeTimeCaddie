@@ -140,6 +140,7 @@ class NewGameViewModel @Inject constructor(
                     date = date,
                     time = time,
                     slots = state.slots,
+                    invitees = emptyList(),
                 )
             ) {
                 is TtcResult.Success -> {

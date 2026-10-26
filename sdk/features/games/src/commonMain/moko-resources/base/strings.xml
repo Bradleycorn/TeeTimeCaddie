@@ -52,6 +52,7 @@
     <string name="game_error_title">We couldn\'t publish your game</string>
     <string name="game_error_no_course_message">Enter the course you\'re playing.</string>
     <string name="game_error_invalid_slots_message">A tee time holds between 1 and 4 players.</string>
+    <string name="game_error_invalid_invitee_message">One of your invitees is missing a name or a valid phone number.</string>
     <string name="game_error_publish_failed_message">Your game didn\'t make it to the clubhouse.</string>
     <string name="game_error_publish_failed_recovery">Try again.</string>
     <string name="game_error_not_found_title">That game is gone</string>

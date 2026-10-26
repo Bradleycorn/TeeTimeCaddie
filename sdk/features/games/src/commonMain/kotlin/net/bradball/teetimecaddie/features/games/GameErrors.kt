@@ -23,6 +23,12 @@ enum class GameErrors(
         GMR.strings.game_error_invalid_slots_message
     ),
 
+    /** An invitee had no name, or a number too short or long to be a phone number. */
+    INVALID_INVITEE(
+        GMR.strings.game_error_title,
+        GMR.strings.game_error_invalid_invitee_message
+    ),
+
     /** The write failed. Nothing was saved — the transaction is all or nothing — so a retry is clean. */
     PUBLISH_FAILED(
         GMR.strings.game_error_title,

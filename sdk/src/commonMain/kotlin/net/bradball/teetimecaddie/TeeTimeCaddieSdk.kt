@@ -41,7 +41,11 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
     }
 
     val gamesRepository: GamesRepository by lazy {
-        GamesRepositoryImpl(eventManager, storageModule.provideGameStorage())
+        GamesRepositoryImpl(
+            eventManager,
+            storageModule.provideGameStorage(),
+            playerRepository::findPlayerByPhone
+        )
     }
 
 

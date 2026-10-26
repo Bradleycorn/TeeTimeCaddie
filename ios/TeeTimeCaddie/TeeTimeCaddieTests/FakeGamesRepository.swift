@@ -46,7 +46,8 @@ enum TestData {
                     slots: slots,
                     players: [GamePlayer(playerId: organizer.id, name: organizer.name)]
                 )
-            ]
+            ],
+            invitees: []
         )
     }
 }
@@ -84,7 +85,8 @@ final class FakeGamesRepository: GamesRepository {
         courseName: String,
         date: LocalDate,
         time: LocalTime,
-        slots: Int32
+        slots: Int32,
+        invitees: [NewInvitee]
     ) async throws -> TtcResult<Game> {
         publishRequests.append(PublishRequest(
             organizerId: organizer.id,

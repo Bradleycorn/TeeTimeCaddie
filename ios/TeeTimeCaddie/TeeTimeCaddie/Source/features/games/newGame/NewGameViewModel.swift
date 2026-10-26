@@ -120,7 +120,8 @@ final class NewGameViewModel {
                 courseName: state.course,
                 date: date.toLocalDate(),
                 time: time.toLocalTime(),
-                slots: Int32(state.slots)
+                slots: Int32(state.slots),
+                invitees: []
             )
 
             switch onEnum(of: result) {

@@ -25,7 +25,8 @@ class GameUiStateTest {
         organizerId = organizer.playerId,
         course = Course(id = "pebble beach", name = "Pebble Beach"),
         date = LocalDate(2026, 6, 13),
-        teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest)))
+        teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest))),
+        invitees = emptyList()
     )
 
     // MARK: Games list
