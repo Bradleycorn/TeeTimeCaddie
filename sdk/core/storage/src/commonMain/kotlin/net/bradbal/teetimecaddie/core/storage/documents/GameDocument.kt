@@ -29,9 +29,8 @@ data class GameDocument(
     val date: LocalDate,
     val teeTimes: List<GameTeeTimeDocument>,
     val playerIds: List<String>,
-    // Defaulted so games published before invitees existed still read back.
-    val invitees: List<GameInviteeDocument> = emptyList(),
-    val invitedPhones: List<String> = emptyList(),
+    val invitees: List<GameInviteeDocument>,
+    val invitedPhones: List<String>,
     val createdAt: BaseTimestamp? = Timestamp.ServerTimestamp
 ) {
 
