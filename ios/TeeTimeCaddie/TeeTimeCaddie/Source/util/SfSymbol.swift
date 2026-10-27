@@ -24,5 +24,6 @@ enum SfSymbol: String {
     case rectanglePortraitAndArrowRight = "rectangle.portrait.and.arrow.right"
     case starFill = "star.fill"
     case trash = "trash"
+    case xmark = "xmark"
 }
 
