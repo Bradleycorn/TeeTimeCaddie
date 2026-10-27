@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
@@ -66,8 +67,9 @@ import net.bradball.teetimecaddie.core.models.GR
  * @param modifier Modifier for the sheet.
  * @param sheetState The sheet's state. Defaults to one that skips the half-open state.
  * @param contentPadding Padding around [content]. Defaults to the design's sheet body inset.
- * @param action Replaces the ✕ at the end of the header, e.g. the picker's "Done (3)". A sheet with
- *   an action has no ✕; it closes by dragging down, tapping outside, or through [action] itself.
+ * @param action Replaces the ✕ at the end of the header, e.g. the picker's "Done (3)". It is placed
+ *   in the header's row, after the title. A sheet with an action has no ✕; it closes by dragging
+ *   down, tapping outside, or through [action] itself.
  * @param content The sheet's body, below the header.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +80,7 @@ fun TtcBottomSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     contentPadding: PaddingValues = TtcBottomSheetDefaults.ContentPadding,
-    action: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
+    action: (@Composable RowScope.(dismiss: () -> Unit) -> Unit)? = null,
     content: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -99,18 +101,25 @@ fun TtcBottomSheet(
         TtcBottomSheetBody(
             title = title,
             contentPadding = contentPadding,
-            action = { action?.invoke(dismiss) ?: CloseButton(onClick = dismiss) },
+            trailingContent = {
+                if (action != null) action(dismiss) else CloseButton(onClick = dismiss)
+            },
             content = { content(dismiss) },
         )
     }
 }
 
-/** Everything inside the sheet below the drag handle: the header row, then the content. */
+/**
+ * Everything inside the sheet below the drag handle: the header row, then the content.
+ *
+ * @param trailingContent What ends the header row, after the title — already resolved to the
+ *   caller's action or the ✕.
+ */
 @Composable
 private fun TtcBottomSheetBody(
     title: String,
     contentPadding: PaddingValues,
-    action: @Composable () -> Unit,
+    trailingContent: @Composable RowScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -126,7 +135,7 @@ private fun TtcBottomSheetBody(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
-            action()
+            trailingContent()
         }
         Column(
             modifier = Modifier
@@ -158,7 +167,7 @@ private fun CloseButton(onClick: () -> Unit) {
 @Composable
 private fun BottomSheetPreviewScaffold(
     title: String,
-    action: @Composable () -> Unit = { CloseButton(onClick = {}) },
+    trailingContent: @Composable RowScope.() -> Unit = { CloseButton(onClick = {}) },
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
@@ -168,7 +177,7 @@ private fun BottomSheetPreviewScaffold(
                 TtcBottomSheetBody(
                     title = title,
                     contentPadding = TtcBottomSheetDefaults.ContentPadding,
-                    action = action,
+                    trailingContent = trailingContent,
                     content = content,
                 )
             }
@@ -198,7 +207,7 @@ private fun TtcBottomSheetActionPreview() {
     MyApplicationTheme {
         BottomSheetPreviewScaffold(
             title = "Sheet title",
-            action = { TextButton(onClick = {}) { Text("Done (2)", fontWeight = FontWeight.SemiBold) } },
+            trailingContent = { TextButton(onClick = {}) { Text("Done (2)", fontWeight = FontWeight.SemiBold) } },
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(3) {
