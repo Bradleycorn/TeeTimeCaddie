@@ -11,6 +11,9 @@ Defects follow the same steps.
 - **One sub-task per turn.** When a sub-task's stacked PR is pushed and the sub-task is IN
   REVIEW, stop and report: the PR URL and which sub-task is next. Do this even when asked to
   implement the whole story. Start the next sub-task only when the user says to.
+- **Approval finishes a sub-task; merging waits for the story.** The user approves each sub-task
+  PR as it comes up and merges the whole stack only when every sub-task is approved. Sub-tasks stay
+  IN REVIEW until then. Never wait for, ask for, or offer a merge.
 - **One sub-task, one PR.** An issue with a single sub-task that produces code gets no stack.
   Follow "Single-sub-task issues" in `references/working.md` instead of the checklist below.
 
@@ -26,11 +29,10 @@ Copy this checklist and track progress (stacked issues):
 - [ ] Plan: every AC covered, branches named; propose sub-tasks
 - [ ] After approval: create and assign sub-tasks; story → In Progress
 - [ ] Set up and push the story branch
-- [ ] Each sub-task: catch up on merges → In Progress → work → commit → stacked PR
+- [ ] Each sub-task: catch up on reviews → In Progress → work → commit → stacked PR
       → IN REVIEW → stop
-- [ ] Open the story PR as a draft once the first sub-task PR is merged into the story branch
 - [ ] Final sub-task's PR up: story → IN REVIEW, stop
-- [ ] Every sub-task PR merged: sub-tasks Done, rewrite the story PR description, mark it ready
+- [ ] User has merged the approved stack: sub-tasks Done, open the story PR ready for review
 ```
 
 Stop there. Merging PRs and closing the story are the user's.

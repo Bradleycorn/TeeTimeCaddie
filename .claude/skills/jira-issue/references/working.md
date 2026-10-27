@@ -10,12 +10,14 @@ at the end.
 
 Every time you start or resume, before touching the next sub-task:
 
-1. Find which sub-task PRs the user has merged since you last stopped, and `gh stack sync --prune`.
-2. Move each merged sub-task to Done.
-3. If no story PR exists yet and a sub-task PR has merged into the story branch, open the story PR
-   as a draft (github `references/pull-requests.md`). Otherwise update its checklist.
-4. If the user's own work landed on the epic branch, merge the epic into the story branch, push,
+1. Check every sub-task PR in the stack for new review comments and approvals (github
+   `references/stacked-prs.md`, "Checking the stack"). Unresolved feedback on any layer comes
+   first — see "Review comments and rework".
+2. If the user's own work landed on the epic branch, merge the epic into the story branch, push,
    and `gh stack sync`.
+
+Approved sub-tasks stay IN REVIEW. Nothing merges, and nothing goes to Done, until the user merges
+the whole stack.
 
 ## Each sub-task
 
@@ -25,14 +27,16 @@ Every time you start or resume, before touching the next sub-task:
 4. Commit, following the repo's commit conventions.
 5. Submit the stack so the sub-task's PR opens ready for review; set its title and body.
 6. → IN REVIEW.
-7. **Stop.** Report the PR URL and the next sub-task. Wait to be told to continue.
+7. **Stop.** Report the PR URL and the next sub-task. Wait to be told to continue — approval is
+   not a cue to merge or to start the next one.
 
 ## The final sub-task
 
 After step 6, also move the story → IN REVIEW, then stop.
 
-When resumed after the user has merged every sub-task PR into the story branch: catch up (all
-sub-tasks → Done), rewrite the story PR description to describe what was built, and mark it ready.
+When every sub-task PR is approved, the user merges the stack into the story branch. When resumed
+after that: `gh stack sync --prune`, move every sub-task → Done, and open the story PR ready for
+review, describing what was built (github `references/pull-requests.md`).
 
 ## User-owned sub-tasks
 
@@ -45,12 +49,14 @@ work may have landed on the epic branch.
 Handle review comments using the repo's PR-feedback conventions. Each fix belongs to the
 sub-task that owns the changed code:
 
-- Reopen that sub-task (In Progress) and commit the fix under its key.
-- **Its PR is still open:** commit on its layer and push the stack up from there. → IN REVIEW.
-- **Its PR is already merged:** commit on the story branch, push, and `gh stack sync`. → Done.
-- Never create a new sub-task or fold the work into another one.
+1. Reopen that sub-task (In Progress), even if its PR is approved.
+2. Commit the fix on its layer, under its key.
+3. `gh stack rebase --upstack`, then `gh stack push`.
+4. → IN REVIEW.
 
-The same applies to any rework after a sub-task is IN REVIEW or Done.
+Fixes to an earlier layer are the normal case, not an exception. Never create a new sub-task or
+fold the work into another one. After the stack is merged, fixes from the story PR's review go on
+the story branch under the owning sub-task's key; that sub-task stays Done.
 
 ## Jira comments
 
