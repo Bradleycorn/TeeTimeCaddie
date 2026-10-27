@@ -103,9 +103,7 @@ fileprivate struct TeeTimeCard: View {
         self.uiState = uiState
     }
 
-    private var inviteesStart: Int { uiState.players.count }
-    private var emptyStart: Int { inviteesStart + uiState.invitees.count }
-    private var lastRow: Int { emptyStart + Int(uiState.openSlots) - 1 }
+    private var lastRow: Int { uiState.players.count + Int(uiState.openSlots) - 1 }
 
     var body: some View {
         TtcCard(contentPadding: TtcCardStyle.noContentPadding) {
@@ -124,29 +122,26 @@ fileprivate struct TeeTimeCard: View {
                 .padding(.vertical, GameDetailsDefaults.verticalPadding)
                 .background(theme.colorScheme.surfaceContainerHigh)
 
-                // Players, then invitees, then the empty slots that are left. Every row but the last
-                // carries a divider.
+                // The roster, then the empty slots that are left. Every row but the last carries a
+                // divider.
                 ForEach(Array(uiState.players.enumerated()), id: \.offset) { index, player in
-                    PlayerSlotRow(uiState: player, showDivider: index < lastRow)
-                }
-                ForEach(Array(uiState.invitees.enumerated()), id: \.offset) { index, invitee in
-                    InviteeSlotRow(uiState: invitee, showDivider: inviteesStart + index < lastRow)
+                    PlayerRow(uiState: player, showDivider: index < lastRow)
                 }
                 ForEach(0..<Int(uiState.openSlots), id: \.self) { index in
-                    EmptySlotRow(showDivider: emptyStart + index < lastRow)
+                    EmptySlotRow(showDivider: uiState.players.count + index < lastRow)
                 }
             }
         }
     }
 }
 
-fileprivate struct PlayerSlotRow: View {
+fileprivate struct PlayerRow: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let uiState: GameSlotUiState
+    private let uiState: TeeTimePlayerRowUiState
     private let showDivider: Bool
 
-    init(uiState: GameSlotUiState, showDivider: Bool) {
+    init(uiState: TeeTimePlayerRowUiState, showDivider: Bool) {
         self.uiState = uiState
         self.showDivider = showDivider
     }
@@ -155,7 +150,7 @@ fileprivate struct PlayerSlotRow: View {
         SlotRow(showDivider: showDivider) {
             TtcAvatar(
                 uiState.initial,
-                color: uiState.isOrganizer ? .secondary : .primary,
+                color: uiState.status == .organizer ? .secondary : .primary,
                 size: GameDetailsDefaults.avatarSize
             )
         } text: {
@@ -163,38 +158,18 @@ fileprivate struct PlayerSlotRow: View {
                 Text(uiState.name)
                     .font(.body.weight(.medium))
                     .foregroundStyle(theme.colorScheme.onSurface)
-                if uiState.isOrganizer {
+                switch uiState.status {
+                case .organizer:
                     Text(GMR.strings().game_details_organizer_label.localized())
                         .font(.caption)
                         .foregroundStyle(theme.colorScheme.secondary)
+                case .invited:
+                    Text(GMR.strings().game_details_invited_label.localized())
+                        .font(.caption)
+                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                case .confirmed:
+                    EmptyView()
                 }
-            }
-        }
-    }
-}
-
-fileprivate struct InviteeSlotRow: View {
-    @EnvironmentObject private var theme: AppTheme
-
-    private let uiState: GameInviteeSlotUiState
-    private let showDivider: Bool
-
-    init(uiState: GameInviteeSlotUiState, showDivider: Bool) {
-        self.uiState = uiState
-        self.showDivider = showDivider
-    }
-
-    var body: some View {
-        SlotRow(showDivider: showDivider) {
-            TtcAvatar(uiState.initial, color: .primary, size: GameDetailsDefaults.avatarSize)
-        } text: {
-            VStack(alignment: .leading, spacing: GameDetailsDefaults.nameStatusSpacing) {
-                Text(uiState.name)
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(theme.colorScheme.onSurface)
-                Text(GMR.strings().game_details_invited_label.localized())
-                    .font(.caption)
-                    .foregroundStyle(theme.colorScheme.onSurfaceVariant)
             }
         }
     }

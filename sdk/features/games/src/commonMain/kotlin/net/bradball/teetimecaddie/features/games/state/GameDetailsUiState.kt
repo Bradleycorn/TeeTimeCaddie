@@ -46,40 +46,41 @@ data class GameUiState(
  *
  * @property time When the group tees off, e.g. "9:00 AM".
  * @property filledCount How full it is, e.g. "1/4 filled".
- * @property players The occupied slots, in slot order.
- * @property invitees The people invited but not yet holding a slot, listed after [players] in the
- *   order they were added. Never capped: there can be more of them than open slots.
- * @property openSlots How many empty slots follow the invitees: the open slots left once each
- *   invitee is given a row, and never below zero.
+ * @property players One row per person on the tee time's roster: those holding a slot, in slot
+ *   order, then those invited and not yet confirmed, in the order they were added. Never capped:
+ *   there can be more rows than slots.
+ * @property openSlots How many empty slots follow [players]: the slots no row has used, and never
+ *   below zero.
  */
 data class GameTeeTimeUiState(
     val time: String,
     val filledCount: LocalizedText,
-    val players: List<GameSlotUiState>,
-    val invitees: List<GameInviteeSlotUiState>,
+    val players: List<TeeTimePlayerRowUiState>,
     val openSlots: Int
 )
 
-/**
- * A player in one of a tee time's slots.
- *
- * @property initial The letter in the player's avatar.
- * @property isOrganizer Whether this player organized the game, which labels the slot "Organizer".
- */
-data class GameSlotUiState(
-    val initial: String,
-    val name: String,
-    val isOrganizer: Boolean
-)
+/** Where a person on a tee time's roster stands, which decides how their row is labelled. */
+enum class TeeTimePlayerStatus {
+    /** Organized the game, and holds a slot. Labelled "Organizer". */
+    ORGANIZER,
+
+    /** Holds a slot. No label yet; responses arrive with TTC-70. */
+    CONFIRMED,
+
+    /** Invited, and hasn't taken a slot. Labelled "Invited". */
+    INVITED
+}
 
 /**
- * Someone invited to the game who hasn't responded, shown on a row labelled "Invited".
+ * One row of a tee time's roster.
  *
- * @property initial The letter in the invitee's avatar.
+ * @property initial The letter in the person's avatar.
+ * @property status Where they stand, which decides the row's label and avatar color.
  */
-data class GameInviteeSlotUiState(
+data class TeeTimePlayerRowUiState(
     val initial: String,
-    val name: String
+    val name: String,
+    val status: TeeTimePlayerStatus
 )
 
 /**
@@ -94,8 +95,21 @@ fun Game.toUiState(viewerId: String?): GameUiState = GameUiState(
     date = date.weekdayMonthDay,
     isOrganizer = viewerId != null && isOrganizer(viewerId),
     teeTimes = teeTimes.mapIndexed { index, teeTime ->
-        val invitees = if (index == 0) {
-            invitees.map { GameInviteeSlotUiState(initial = it.initial, name = it.name) }
+        val slotHolders = teeTime.players.map { player ->
+            TeeTimePlayerRowUiState(
+                initial = player.initial,
+                name = player.name,
+                status = if (player.playerId == organizerId) {
+                    TeeTimePlayerStatus.ORGANIZER
+                } else {
+                    TeeTimePlayerStatus.CONFIRMED
+                }
+            )
+        }
+        val invited = if (index == 0) {
+            invitees.map {
+                TeeTimePlayerRowUiState(initial = it.initial, name = it.name, status = TeeTimePlayerStatus.INVITED)
+            }
         } else {
             emptyList()
         }
@@ -105,15 +119,8 @@ fun Game.toUiState(viewerId: String?): GameUiState = GameUiState(
                 GMR.strings.game_details_filled_count,
                 listOf(teeTime.filled.toString(), teeTime.slots.toString())
             ),
-            players = teeTime.players.map { player ->
-                GameSlotUiState(
-                    initial = player.initial,
-                    name = player.name,
-                    isOrganizer = player.playerId == organizerId
-                )
-            },
-            invitees = invitees,
-            openSlots = (teeTime.openSlots - invitees.size).coerceAtLeast(0)
+            players = slotHolders + invited,
+            openSlots = (teeTime.openSlots - invited.size).coerceAtLeast(0)
         )
     }
 )

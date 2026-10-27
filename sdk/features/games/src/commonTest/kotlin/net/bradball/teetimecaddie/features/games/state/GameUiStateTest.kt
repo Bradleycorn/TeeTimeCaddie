@@ -67,10 +67,9 @@ class GameUiStateTest {
                 time = "9:00 AM",
                 filledCount = LocalizedText(GMR.strings.game_details_filled_count, listOf("2", "4")),
                 players = listOf(
-                    GameSlotUiState(initial = "B", name = "brad Ball", isOrganizer = true),
-                    GameSlotUiState(initial = "D", name = "Dana Park", isOrganizer = false),
+                    TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", status = TeeTimePlayerStatus.ORGANIZER),
+                    TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", status = TeeTimePlayerStatus.CONFIRMED),
                 ),
-                invitees = emptyList(),
                 openSlots = 2
             ),
             details.teeTimes.single()
@@ -78,17 +77,19 @@ class GameUiStateTest {
     }
 
     @Test
-    fun inviteesFollowThePlayersInTheOrderAddedWithoutFillingSlots() {
+    fun inviteesFollowTheSlotHoldersInTheOrderAddedWithoutFillingSlots() {
         val withInvitees = game.copy(invitees = listOf(invitee("matt Chen"), invitee("Jeff Morrison")))
 
         val teeTime = withInvitees.toUiState(viewerId = organizer.playerId).teeTimes.single()
 
         assertEquals(
             listOf(
-                GameInviteeSlotUiState(initial = "M", name = "matt Chen"),
-                GameInviteeSlotUiState(initial = "J", name = "Jeff Morrison"),
+                TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", status = TeeTimePlayerStatus.ORGANIZER),
+                TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", status = TeeTimePlayerStatus.CONFIRMED),
+                TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", status = TeeTimePlayerStatus.INVITED),
+                TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", status = TeeTimePlayerStatus.INVITED),
             ),
-            teeTime.invitees
+            teeTime.players
         )
         // Two players and two invitees use all four rows; the count still says two are filled.
         assertEquals(0, teeTime.openSlots)
@@ -101,7 +102,8 @@ class GameUiStateTest {
 
         val teeTime = crowded.toUiState(viewerId = organizer.playerId).teeTimes.single()
 
-        assertEquals(5, teeTime.invitees.size)
+        // Two slot holders and all five invitees: more rows than the tee time's four slots.
+        assertEquals(7, teeTime.players.size)
         assertEquals(0, teeTime.openSlots)
     }
 
@@ -114,8 +116,8 @@ class GameUiStateTest {
 
         val teeTimes = twoTeeTimes.toUiState(viewerId = organizer.playerId).teeTimes
 
-        assertEquals(1, teeTimes[0].invitees.size)
-        assertEquals(emptyList(), teeTimes[1].invitees)
+        assertEquals(1, teeTimes[0].players.count { it.status == TeeTimePlayerStatus.INVITED })
+        assertEquals(emptyList(), teeTimes[1].players)
         assertEquals(4, teeTimes[1].openSlots)
     }
 

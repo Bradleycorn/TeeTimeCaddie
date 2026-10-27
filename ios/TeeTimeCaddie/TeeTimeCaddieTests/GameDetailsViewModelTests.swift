@@ -43,7 +43,10 @@ final class GameDetailsViewModelTests: XCTestCase {
         let teeTime = try XCTUnwrap(game.teeTimes.first)
         XCTAssertEqual(teeTime.time, "9:00 AM")
         XCTAssertEqual(teeTime.filledCount.localized(), "1/4 filled")
-        XCTAssertEqual(teeTime.players, [GameSlotUiState(initial: "D", name: "Dana Park", isOrganizer: true)])
+        XCTAssertEqual(
+            teeTime.players,
+            [TeeTimePlayerRowUiState(initial: "D", name: "Dana Park", status: .organizer)]
+        )
         XCTAssertEqual(teeTime.openSlots, 3)
     }
 

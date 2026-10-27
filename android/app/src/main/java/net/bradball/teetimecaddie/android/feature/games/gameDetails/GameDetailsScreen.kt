@@ -46,9 +46,9 @@ import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.state.GameUiState
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.GameInviteeSlotUiState
-import net.bradball.teetimecaddie.features.games.state.GameSlotUiState
 import net.bradball.teetimecaddie.features.games.state.GameTeeTimeUiState
+import net.bradball.teetimecaddie.features.games.state.TeeTimePlayerRowUiState
+import net.bradball.teetimecaddie.features.games.state.TeeTimePlayerStatus
 import net.bradball.teetimecaddie.features.games.state.previewGameUiState
 import net.bradball.teetimecaddie.features.games.state.previewGameWithInviteesUiState
 import net.bradball.teetimecaddie.features.games.state.toUiState
@@ -170,36 +170,31 @@ private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifi
             )
         }
 
-        // Players, then invitees, then the empty slots that are left. Every row but the last
-        // carries a divider.
-        val inviteesStart = uiState.players.size
-        val emptyStart = inviteesStart + uiState.invitees.size
-        val lastRow = emptyStart + uiState.openSlots - 1
+        // The roster, then the empty slots that are left. Every row but the last carries a divider.
+        val lastRow = uiState.players.size + uiState.openSlots - 1
         uiState.players.forEachIndexed { i, player ->
-            PlayerSlotRow(uiState = player, showDivider = i < lastRow)
-        }
-        uiState.invitees.forEachIndexed { i, invitee ->
-            InviteeSlotRow(uiState = invitee, showDivider = inviteesStart + i < lastRow)
+            PlayerRow(uiState = player, showDivider = i < lastRow)
         }
         repeat(uiState.openSlots) { i ->
-            EmptySlotRow(showDivider = emptyStart + i < lastRow)
+            EmptySlotRow(showDivider = uiState.players.size + i < lastRow)
         }
     }
 }
 
 @Composable
-private fun PlayerSlotRow(
-    uiState: GameSlotUiState,
+private fun PlayerRow(
+    uiState: TeeTimePlayerRowUiState,
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val isOrganizer = uiState.status == TeeTimePlayerStatus.ORGANIZER
     SlotRow(
         showDivider = showDivider,
         modifier = modifier,
         avatar = {
             TtcAvatar(
                 initials = uiState.initial,
-                color = if (uiState.isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
+                color = if (isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
                 size = GameDetailsDefaults.AvatarSize,
             )
         },
@@ -209,43 +204,19 @@ private fun PlayerSlotRow(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
         )
-        if (uiState.isOrganizer) {
-            Text(
+        when (uiState.status) {
+            TeeTimePlayerStatus.ORGANIZER -> Text(
                 text = stringResource(GMR.strings.game_details_organizer_label.resourceId),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )
-        }
-    }
-}
-
-@Composable
-private fun InviteeSlotRow(
-    uiState: GameInviteeSlotUiState,
-    showDivider: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    SlotRow(
-        showDivider = showDivider,
-        modifier = modifier,
-        avatar = {
-            TtcAvatar(
-                initials = uiState.initial,
-                color = TtcColorRole.Primary,
-                size = GameDetailsDefaults.AvatarSize,
+            TeeTimePlayerStatus.INVITED -> Text(
+                text = stringResource(GMR.strings.game_details_invited_label.resourceId),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        },
-    ) {
-        Text(
-            text = uiState.name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-        )
-        Text(
-            text = stringResource(GMR.strings.game_details_invited_label.resourceId),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+            TeeTimePlayerStatus.CONFIRMED -> Unit
+        }
     }
 }
 
