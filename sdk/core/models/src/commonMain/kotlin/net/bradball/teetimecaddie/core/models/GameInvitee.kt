@@ -1,15 +1,6 @@
 package net.bradball.teetimecaddie.core.models
 
 /**
- * Where an invitee stands on a game.
- *
- * Every invitee starts [PENDING]. Responding arrives with TTC-70 and TTC-72.
- */
-enum class InviteStatus {
-    PENDING
-}
-
-/**
  * A person the organizer invited to a game.
  *
  * Whether the invitee already has an account is settled when the game is published, by matching
@@ -33,17 +24,6 @@ data class GameInvitee(
         get() = name.trim().take(1).uppercase()
 }
 
-/**
- * Someone the organizer has picked to invite, before the game is published.
- *
- * @property name The name to show them under.
- * @property phone The number to invite them by, in any format; it is normalized on publish.
- */
-data class NewInvitee(
-    val name: String,
-    val phone: String
-)
-
 val previewGameInvitee = GameInvitee(
     name = "Matt Chen",
     phone = "4155550188",
@@ -56,5 +36,3 @@ val previewGameInviteeList = listOf(
     previewGameInvitee.copy(name = "Jeff Morrison", phone = "4155550142", playerId = "previewJeff"),
     previewGameInvitee.copy(name = "Dana Park", phone = "4155550117")
 )
-
-val previewNewInvitee = NewInvitee(name = "Matt Chen", phone = "(415) 555-0188")
