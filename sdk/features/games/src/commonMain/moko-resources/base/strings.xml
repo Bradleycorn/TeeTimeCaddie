@@ -44,6 +44,7 @@
     <string name="game_details_title">Game details</string>
     <string name="game_details_organizer_chip">You are the organizer</string>
     <string name="game_details_organizer_label">Organizer</string>
+    <string name="game_details_invited_label">Invited</string>
     <string name="game_details_empty_slot">Empty slot</string>
     <!-- A tee time's fill count: players, then slots. "1/4 filled" -->
     <string name="game_details_filled_count">%1$s/%2$s filled</string>

@@ -6,6 +6,7 @@ import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
 import net.bradball.teetimecaddie.core.models.previewGame
+import net.bradball.teetimecaddie.core.models.previewGameInviteeList
 import net.bradball.teetimecaddie.features.games.GMR
 
 /** State for a game's details. */
@@ -46,12 +47,16 @@ data class GameUiState(
  * @property time When the group tees off, e.g. "9:00 AM".
  * @property filledCount How full it is, e.g. "1/4 filled".
  * @property players The occupied slots, in slot order.
- * @property openSlots How many empty slots follow [players].
+ * @property invitees The people invited but not yet holding a slot, listed after [players] in the
+ *   order they were added. Never capped: there can be more of them than open slots.
+ * @property openSlots How many empty slots follow the invitees: the open slots left once each
+ *   invitee is given a row, and never below zero.
  */
 data class GameTeeTimeUiState(
     val time: String,
     val filledCount: LocalizedText,
     val players: List<GameSlotUiState>,
+    val invitees: List<GameInviteeSlotUiState>,
     val openSlots: Int
 )
 
@@ -67,12 +72,33 @@ data class GameSlotUiState(
     val isOrganizer: Boolean
 )
 
-/** This game's details as [viewerId] sees them. A null [viewerId] is never the organizer. */
+/**
+ * Someone invited to the game who hasn't responded, shown on a row labelled "Invited".
+ *
+ * @property initial The letter in the invitee's avatar.
+ */
+data class GameInviteeSlotUiState(
+    val initial: String,
+    val name: String
+)
+
+/**
+ * This game's details as [viewerId] sees them. A null [viewerId] is never the organizer.
+ *
+ * Invitees belong to the game rather than to a tee time, so they are listed under the first tee
+ * time — for now every game has exactly one. They don't fill a slot until they say yes, so the
+ * filled count still counts only the tee time's players.
+ */
 fun Game.toUiState(viewerId: String?): GameUiState = GameUiState(
     course = course.name,
     date = date.weekdayMonthDay,
     isOrganizer = viewerId != null && isOrganizer(viewerId),
-    teeTimes = teeTimes.map { teeTime ->
+    teeTimes = teeTimes.mapIndexed { index, teeTime ->
+        val invitees = if (index == 0) {
+            invitees.map { GameInviteeSlotUiState(initial = it.initial, name = it.name) }
+        } else {
+            emptyList()
+        }
         GameTeeTimeUiState(
             time = teeTime.time.formattedTime,
             filledCount = LocalizedText(
@@ -86,10 +112,16 @@ fun Game.toUiState(viewerId: String?): GameUiState = GameUiState(
                     isOrganizer = player.playerId == organizerId
                 )
             },
-            openSlots = teeTime.openSlots
+            invitees = invitees,
+            openSlots = (teeTime.openSlots - invitees.size).coerceAtLeast(0)
         )
     }
 )
 
 /** [previewGame] as its organizer sees it: one player and three open slots. */
 val previewGameUiState = previewGame.toUiState(viewerId = previewGame.organizerId)
+
+/** [previewGame] with three invitees, as its organizer sees it: no open slots left to show. */
+val previewGameWithInviteesUiState = previewGame
+    .copy(invitees = previewGameInviteeList)
+    .toUiState(viewerId = previewGame.organizerId)

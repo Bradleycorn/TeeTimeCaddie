@@ -103,6 +103,10 @@ fileprivate struct TeeTimeCard: View {
         self.uiState = uiState
     }
 
+    private var inviteesStart: Int { uiState.players.count }
+    private var emptyStart: Int { inviteesStart + uiState.invitees.count }
+    private var lastRow: Int { emptyStart + Int(uiState.openSlots) - 1 }
+
     var body: some View {
         TtcCard(contentPadding: TtcCardStyle.noContentPadding) {
             VStack(spacing: 0) {
@@ -120,15 +124,16 @@ fileprivate struct TeeTimeCard: View {
                 .padding(.vertical, GameDetailsDefaults.verticalPadding)
                 .background(theme.colorScheme.surfaceContainerHigh)
 
-                // Every row but the last one carries a divider, across players and empty slots alike.
+                // Players, then invitees, then the empty slots that are left. Every row but the last
+                // carries a divider.
                 ForEach(Array(uiState.players.enumerated()), id: \.offset) { index, player in
-                    PlayerSlotRow(
-                        uiState: player,
-                        showDivider: index < uiState.players.count - 1 || uiState.openSlots > 0
-                    )
+                    PlayerSlotRow(uiState: player, showDivider: index < lastRow)
+                }
+                ForEach(Array(uiState.invitees.enumerated()), id: \.offset) { index, invitee in
+                    InviteeSlotRow(uiState: invitee, showDivider: inviteesStart + index < lastRow)
                 }
                 ForEach(0..<Int(uiState.openSlots), id: \.self) { index in
-                    EmptySlotRow(showDivider: index < Int(uiState.openSlots) - 1)
+                    EmptySlotRow(showDivider: emptyStart + index < lastRow)
                 }
             }
         }
@@ -163,6 +168,33 @@ fileprivate struct PlayerSlotRow: View {
                         .font(.caption)
                         .foregroundStyle(theme.colorScheme.secondary)
                 }
+            }
+        }
+    }
+}
+
+fileprivate struct InviteeSlotRow: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    private let uiState: GameInviteeSlotUiState
+    private let showDivider: Bool
+
+    init(uiState: GameInviteeSlotUiState, showDivider: Bool) {
+        self.uiState = uiState
+        self.showDivider = showDivider
+    }
+
+    var body: some View {
+        SlotRow(showDivider: showDivider) {
+            TtcAvatar(uiState.initial, color: .primary, size: GameDetailsDefaults.avatarSize)
+        } text: {
+            VStack(alignment: .leading, spacing: GameDetailsDefaults.nameStatusSpacing) {
+                Text(uiState.name)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(theme.colorScheme.onSurface)
+                Text(GMR.strings().game_details_invited_label.localized())
+                    .font(.caption)
+                    .foregroundStyle(theme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -247,6 +279,14 @@ fileprivate let previewDetails = GameDetailsUiStateContent(game: GameDetailsUiSt
 #Preview("Organizer") {
     TeeTimeCaddieTheme {
         GameDetailsContent(uiState: previewDetails)
+    }
+}
+
+#Preview("With invitees") {
+    TeeTimeCaddieTheme {
+        GameDetailsContent(
+            uiState: GameDetailsUiStateContent(game: GameDetailsUiStateKt.previewGameWithInviteesUiState)
+        )
     }
 }
 

@@ -46,9 +46,11 @@ import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.state.GameUiState
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
+import net.bradball.teetimecaddie.features.games.state.GameInviteeSlotUiState
 import net.bradball.teetimecaddie.features.games.state.GameSlotUiState
 import net.bradball.teetimecaddie.features.games.state.GameTeeTimeUiState
 import net.bradball.teetimecaddie.features.games.state.previewGameUiState
+import net.bradball.teetimecaddie.features.games.state.previewGameWithInviteesUiState
 import net.bradball.teetimecaddie.features.games.state.toUiState
 
 @Composable
@@ -168,14 +170,19 @@ private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifi
             )
         }
 
-        val rows = uiState.players.map<GameSlotUiState, GameSlotUiState?> { it } + List(uiState.openSlots) { null }
-        rows.forEachIndexed { index, player ->
-            val showDivider = index < rows.lastIndex
-            if (player == null) {
-                EmptySlotRow(showDivider = showDivider)
-            } else {
-                PlayerSlotRow(uiState = player, showDivider = showDivider)
-            }
+        // Players, then invitees, then the empty slots that are left. Every row but the last
+        // carries a divider.
+        val inviteesStart = uiState.players.size
+        val emptyStart = inviteesStart + uiState.invitees.size
+        val lastRow = emptyStart + uiState.openSlots - 1
+        uiState.players.forEachIndexed { i, player ->
+            PlayerSlotRow(uiState = player, showDivider = i < lastRow)
+        }
+        uiState.invitees.forEachIndexed { i, invitee ->
+            InviteeSlotRow(uiState = invitee, showDivider = inviteesStart + i < lastRow)
+        }
+        repeat(uiState.openSlots) { i ->
+            EmptySlotRow(showDivider = emptyStart + i < lastRow)
         }
     }
 }
@@ -209,6 +216,36 @@ private fun PlayerSlotRow(
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
+    }
+}
+
+@Composable
+private fun InviteeSlotRow(
+    uiState: GameInviteeSlotUiState,
+    showDivider: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    SlotRow(
+        showDivider = showDivider,
+        modifier = modifier,
+        avatar = {
+            TtcAvatar(
+                initials = uiState.initial,
+                color = TtcColorRole.Primary,
+                size = GameDetailsDefaults.AvatarSize,
+            )
+        },
+    ) {
+        Text(
+            text = uiState.name,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+        )
+        Text(
+            text = stringResource(GMR.strings.game_details_invited_label.resourceId),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -283,6 +320,17 @@ private fun GameDetailsOrganizerPreview() {
     MyApplicationTheme {
         GameDetailsContent(
             uiState = GameDetailsUiState.Content(previewGameUiState),
+            onBack = {},
+        )
+    }
+}
+
+@ScreenPreviews
+@Composable
+private fun GameDetailsWithInviteesPreview() {
+    MyApplicationTheme {
+        GameDetailsContent(
+            uiState = GameDetailsUiState.Content(previewGameWithInviteesUiState),
             onBack = {},
         )
     }
