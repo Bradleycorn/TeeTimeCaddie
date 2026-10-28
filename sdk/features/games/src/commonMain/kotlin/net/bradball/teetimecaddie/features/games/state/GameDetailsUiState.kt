@@ -64,7 +64,7 @@ enum class TeeTimePlayerStatus {
     /** Organized the game, and holds a slot. Labelled "Organizer". */
     ORGANIZER,
 
-    /** Holds a slot. No label yet; responses arrive with TTC-70. */
+    /** Holds a slot. Shown without a label. */
     CONFIRMED,
 
     /** Invited, and hasn't taken a slot. Labelled "Invited". */
