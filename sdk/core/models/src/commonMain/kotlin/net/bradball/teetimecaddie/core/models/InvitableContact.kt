@@ -9,7 +9,8 @@ package net.bradball.teetimecaddie.core.models
  * @property id Unique among the contacts read together, and the same each time the same contacts
  *   are read. Use it to track which rows are checked.
  * @property name The contact's name, without spaces around it.
- * @property phone The number, digits only.
+ * @property phone The number as it is written on the contact, such as `"+44 20 7946 0958"`. It is
+ *   normalized when the game is published.
  * @property phoneLabel The number's type as the device names it, such as "mobile", already in the
  *   device's language. Null when the device gives none.
  */
@@ -27,7 +28,10 @@ data class InvitableContact(
     val avatarTone: AvatarTone
         get() = AvatarTone.forName(name)
 
-    /** [phone] for display, formatted like `"(415) 555-0188"` when it is a 10-digit number. */
+    /**
+     * [phone] for display: formatted like `"(415) 555-0188"` when it is a 10-digit number, and as
+     * written otherwise.
+     */
     val formattedPhone: String
         get() = displayPhone(phone)
 
@@ -38,14 +42,14 @@ data class InvitableContact(
 val previewInvitableContact = InvitableContact(
     id = "preview-matt|4155550188",
     name = "Matt Chen",
-    phone = "4155550188",
+    phone = "(415) 555-0188",
     phoneLabel = "mobile"
 )
 
 val previewInvitableContactList = listOf(
-    InvitableContact(id = "preview-dana|4155550117", name = "Dana Park", phone = "4155550117", phoneLabel = "mobile"),
-    InvitableContact(id = "preview-jeff|4155550142", name = "Jeff Morrison", phone = "4155550142", phoneLabel = "mobile"),
-    InvitableContact(id = "preview-jeff|5025550199", name = "Jeff Morrison", phone = "5025550199", phoneLabel = "work"),
+    InvitableContact(id = "preview-dana|4155550117", name = "Dana Park", phone = "415.555.0117", phoneLabel = "mobile"),
+    InvitableContact(id = "preview-jeff|4155550142", name = "Jeff Morrison", phone = "(415) 555-0142", phoneLabel = "mobile"),
+    InvitableContact(id = "preview-jeff|5025550199", name = "Jeff Morrison", phone = "502-555-0199", phoneLabel = "work"),
     previewInvitableContact,
-    InvitableContact(id = "preview-priya|4155550155", name = "Priya Shah", phone = "4155550155", phoneLabel = null)
+    InvitableContact(id = "preview-priya|442079460958", name = "Priya Shah", phone = "+44 20 7946 0958", phoneLabel = null)
 )

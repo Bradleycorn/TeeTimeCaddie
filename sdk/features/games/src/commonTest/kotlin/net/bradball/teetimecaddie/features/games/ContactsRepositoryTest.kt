@@ -33,23 +33,23 @@ class ContactsRepositoryTest {
     // MARK: reading
 
     @Test
-    fun eachNumberIsItsOwnRowCarryingItsLabel() = runTest {
+    fun eachNumberIsItsOwnRowCarryingItsLabelAsWritten() = runTest {
         val rows = read(contact("c1", "Jeff Morrison", "(415) 555-0142" to "mobile", "502-555-0199" to "work"))
 
         assertEquals(
             listOf(
-                InvitableContact("c1|4155550142", "Jeff Morrison", "4155550142", "mobile"),
-                InvitableContact("c1|5025550199", "Jeff Morrison", "5025550199", "work")
+                InvitableContact("c1|4155550142", "Jeff Morrison", "(415) 555-0142", "mobile"),
+                InvitableContact("c1|5025550199", "Jeff Morrison", "502-555-0199", "work")
             ),
             rows
         )
     }
 
     @Test
-    fun aNumberListedTwiceOnAContactAppearsOnceWithItsFirstLabel() = runTest {
+    fun aNumberListedTwiceOnAContactAppearsOnceAsFirstWritten() = runTest {
         val rows = read(contact("c1", "Matt Chen", "+1 415 555 0188" to "mobile", "415.555.0188" to "home"))
 
-        assertEquals(listOf(InvitableContact("c1|4155550188", "Matt Chen", "4155550188", "mobile")), rows)
+        assertEquals(listOf(InvitableContact("c1|4155550188", "Matt Chen", "+1 415 555 0188", "mobile")), rows)
     }
 
     @Test
@@ -72,7 +72,7 @@ class ContactsRepositoryTest {
             contact("c5", "Priya Shah", "611" to "other", "+44 20 7946 0958" to "mobile")
         )
 
-        assertEquals(listOf(InvitableContact("c5|442079460958", "Priya Shah", "442079460958", "mobile")), rows)
+        assertEquals(listOf(InvitableContact("c5|442079460958", "Priya Shah", "+44 20 7946 0958", "mobile")), rows)
     }
 
     @Test
@@ -107,8 +107,8 @@ class ContactsRepositoryTest {
 
     // MARK: search
 
-    private val jeff = InvitableContact("c1|4155550142", "Jeff Morrison", "4155550142", "mobile")
-    private val jeffWork = InvitableContact("c1|5025550199", "Jeff Morrison", "5025550199", "work")
+    private val jeff = InvitableContact("c1|4155550142", "Jeff Morrison", "(415) 555-0142", "mobile")
+    private val jeffWork = InvitableContact("c1|5025550199", "Jeff Morrison", "502-555-0199", "work")
     private val matt = InvitableContact("c2|4155550188", "Matt Chen", "4155550188", "mobile")
     private val dana = InvitableContact("c3|4155550117", "Dana Park", "4155550117", "home")
     private val contacts = listOf(dana, jeff, jeffWork, matt)

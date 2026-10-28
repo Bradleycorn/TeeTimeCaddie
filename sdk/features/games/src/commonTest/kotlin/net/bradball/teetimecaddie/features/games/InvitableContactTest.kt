@@ -18,4 +18,12 @@ class InvitableContactTest {
         assertEquals(invitee.avatarTone, matt.avatarTone)
         assertEquals("(415) 555-0188", matt.formattedPhone)
     }
+
+    @Test
+    fun anInternationalNumberIsShownAsWritten() {
+        val priya = InvitableContact("c2|442079460958", "Priya Shah", "+44 20 7946 0958", "mobile")
+
+        assertEquals("+44 20 7946 0958", priya.formattedPhone)
+        assertEquals("+44 20 7946 0958", priya.toNewInvitee().formattedPhone)
+    }
 }

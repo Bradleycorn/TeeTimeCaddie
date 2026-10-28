@@ -23,8 +23,10 @@ interface ContactsRepository {
     /**
      * Read the device's contacts as people to invite, sorted by name, ignoring case.
      *
-     * A contact with several numbers is listed once per number, in the device's order. A number
-     * listed twice on the same contact appears once. Left out: contacts without a name, and
+     * A contact with several numbers is listed once per number, in the device's order. Each number
+     * keeps the form it was written in, for display; numbers are compared by their digits, so a
+     * number listed twice on the same contact, however it is written, appears once, as first
+     * written. Left out: contacts without a name, and
      * numbers a game can't be published with (fewer than 10 or more than 15 digits), so a contact
      * with no other number is left out entirely.
      *
@@ -118,7 +120,7 @@ class ContactsRepositoryImpl(
 
 /** True when [invitee] is this contact at this number. */
 private fun InvitableContact.matches(invitee: NewInvitee): Boolean =
-    invitee.name.trim() == name && invitee.phone.toPhoneDigits() == phone
+    invitee.name.trim() == name && invitee.phone.toPhoneDigits() == phone.toPhoneDigits()
 
 /** The contacts as people to invite: see [ContactsRepository.invitableContacts]. */
 internal fun List<DeviceContact>.toInvitableContacts(): List<InvitableContact> =
@@ -126,10 +128,14 @@ internal fun List<DeviceContact>.toInvitableContacts(): List<InvitableContact> =
         val name = contact.name.trim()
         if (name.isEmpty()) return@flatMap emptyList()
         contact.phones
-            .map { it.number.toPhoneDigits() to it.label?.trim()?.ifEmpty { null } }
-            .filter { (digits, _) -> digits.length in STORED_PHONE_LENGTHS }
-            .distinctBy { (digits, _) -> digits }
-            .map { (digits, label) ->
-                InvitableContact(id = "${contact.id}|$digits", name = name, phone = digits, phoneLabel = label)
+            .filter { it.number.toPhoneDigits().length in STORED_PHONE_LENGTHS }
+            .distinctBy { it.number.toPhoneDigits() }
+            .map { phone ->
+                InvitableContact(
+                    id = "${contact.id}|${phone.number.toPhoneDigits()}",
+                    name = name,
+                    phone = phone.number.trim(),
+                    phoneLabel = phone.label?.trim()?.ifEmpty { null }
+                )
             }
     }.sortedBy { it.name.lowercase() }
