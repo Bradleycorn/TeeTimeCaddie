@@ -178,8 +178,7 @@ service cloud.firestore {
       // field a query filters on, only its shape. Capping the limit blocks a bulk dump and makes
       // scraping slow and expensive, but an authenticated attacker can still page through players
       // one document at a time. Enumeration is mitigated, not eliminated. Closing it properly
-      // means a key-addressed uniqueness collection or a callable function, both out of scope for
-      // TTC-67.
+      // means a key-addressed uniqueness collection or a callable function.
       allow list: if isSignedIn() && request.query.limit <= 1;
 
       allow create: if isSelf(playerId)

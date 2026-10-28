@@ -45,8 +45,7 @@ interface PlayerRepository {
      * Find the player who owns a phone number.
      *
      * Accepts any way of writing the number; it is normalized before the lookup. Finding nobody
-     * is a normal answer — TTC-69 and TTC-73 branch on it to tell app users from invitees the
-     * organizer manages by hand.
+     * is a normal answer: it means the number belongs to someone without the app.
      */
     suspend fun findPlayerByPhone(phone: String): TtcLookup<Player>
 
