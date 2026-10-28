@@ -1,5 +1,12 @@
 package net.bradball.teetimecaddie.android.feature.games.newGame
 
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.IconButton
@@ -8,6 +15,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.theme.toColorRole
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
+import net.bradball.teetimecaddie.core.models.InvitableContact
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.previewNewInviteeList
 import androidx.compose.foundation.layout.Column
@@ -67,11 +75,20 @@ fun NewGameScreen(
     viewModel: NewGameViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val requestContactsAccess = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+        viewModel::onContactsAccessResult,
+    )
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 NewGameEvent.Published -> onPublished()
+                NewGameEvent.RequestContactsAccess -> requestContactsAccess.launch(Manifest.permission.READ_CONTACTS)
+                NewGameEvent.OpenAppSettings -> context.startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                )
             }
         }
     }
@@ -87,8 +104,7 @@ fun NewGameScreen(
             onDateSelected = viewModel::onDateSelected,
             onTimeSelected = viewModel::onTimeSelected,
             onSlotsChange = viewModel::onSlotsChange,
-            // TODO(TTC-100): open the contacts flow.
-            onAddFromContactsClick = {},
+            onAddFromContactsClick = viewModel::onAddFromContactsClick,
             onRemoveInvitee = viewModel::onRemoveInvitee,
             onPublishClick = viewModel::onPublishClick,
             onKeepEditing = viewModel::onKeepEditing,
@@ -96,6 +112,12 @@ fun NewGameScreen(
             onPublishAnyway = viewModel::onPublishAnyway,
             onDateInputToggle = viewModel::onDateInputToggle,
             onTimeInputToggle = viewModel::onTimeInputToggle,
+            onContactsContinue = viewModel::onContactsContinue,
+            onOpenAppSettings = viewModel::onOpenAppSettings,
+            onDismissContactsSheet = viewModel::onDismissContactsSheet,
+            onContactsQueryChange = viewModel::onContactsQueryChange,
+            onToggleContact = viewModel::onToggleContact,
+            onContactsDone = viewModel::onContactsDone,
         )
     }
 }
@@ -117,6 +139,12 @@ private fun NewGameContent(
     onPublishAnyway: () -> Unit,
     onDateInputToggle: () -> Unit,
     onTimeInputToggle: () -> Unit,
+    onContactsContinue: () -> Unit,
+    onOpenAppSettings: () -> Unit,
+    onDismissContactsSheet: () -> Unit,
+    onContactsQueryChange: (String) -> Unit,
+    onToggleContact: (InvitableContact) -> Unit,
+    onContactsDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Which picker is open is purely presentational: the ViewModel only needs the committed value.
@@ -221,6 +249,28 @@ private fun NewGameContent(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+
+    when (val sheet = uiState.contactsSheet) {
+        ContactsSheet.Explanation -> ContactsExplanationSheet(
+            onContinue = onContactsContinue,
+            onDismiss = onDismissContactsSheet,
+        )
+
+        ContactsSheet.AccessOff -> ContactsAccessOffSheet(
+            onOpenSettings = onOpenAppSettings,
+            onDismiss = onDismissContactsSheet,
+        )
+
+        is ContactsSheet.Picker -> ContactsPickerSheet(
+            picker = sheet,
+            onQueryChange = onContactsQueryChange,
+            onToggle = onToggleContact,
+            onDone = onContactsDone,
+            onDismiss = onDismissContactsSheet,
+        )
+
+        null -> Unit
     }
 
     if (showDatePicker) {
@@ -396,6 +446,12 @@ private fun NewGameEmptyPreview() {
             onPublishAnyway = {},
             onDateInputToggle = {},
             onTimeInputToggle = {},
+            onContactsContinue = {},
+            onOpenAppSettings = {},
+            onDismissContactsSheet = {},
+            onContactsQueryChange = {},
+            onToggleContact = {},
+            onContactsDone = {},
         )
     }
 }
@@ -425,6 +481,12 @@ private fun NewGameFilledPreview() {
             onPublishAnyway = {},
             onDateInputToggle = {},
             onTimeInputToggle = {},
+            onContactsContinue = {},
+            onOpenAppSettings = {},
+            onDismissContactsSheet = {},
+            onContactsQueryChange = {},
+            onToggleContact = {},
+            onContactsDone = {},
         )
     }
 }

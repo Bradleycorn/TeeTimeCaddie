@@ -45,6 +45,27 @@
     <!-- The confirmation after publishing. The course name is the stored spelling. -->
     <string name="new_game_published_message">%s game published</string>
 
+    <!-- ==== Inviting from contacts (TTC-69) ==== -->
+    <!-- The sheet shown before the system asks for contacts access. Line two is reworded from the design. -->
+    <string name="contacts_explanation_title">Find your golf buddies</string>
+    <string name="contacts_explanation_reason">To invite people to this game, TeeTimeCaddie needs to read your contacts.</string>
+    <string name="contacts_explanation_privacy">We only use them to match names to phone numbers — your contact list is never uploaded, and only the people you invite are saved to the game. Your phone will ask next.</string>
+    <string name="contacts_not_now">Not now</string>
+    <string name="contacts_continue">Continue</string>
+    <!-- Shown once contacts access has been turned down. Proposed in the story, not drawn in the design. -->
+    <string name="contacts_access_off_title">Contacts access is off</string>
+    <string name="contacts_access_off_message">To invite people from your contacts, turn on Contacts access for TeeTimeCaddie in Settings.</string>
+    <string name="contacts_open_settings">Open Settings</string>
+    <string name="contacts_picker_title">Invite from contacts</string>
+    <!-- The picker's Done button, with how many people are checked. "Done (3)" -->
+    <string name="contacts_picker_done">Done (%1$s)</string>
+    <string name="contacts_picker_search">Search contacts</string>
+    <!-- A picker row's number with its type. "mobile · (415) 555-0142" -->
+    <string name="contacts_picker_labelled_number">%1$s · %2$s</string>
+    <!-- The picker's empty states. Proposed in the story, not drawn in the design. -->
+    <string name="contacts_picker_no_match">No contacts match \"%1$s\"</string>
+    <string name="contacts_picker_no_contacts">No contacts with phone numbers</string>
+
     <!-- ==== Game details (TTC-68) ==== -->
     <string name="game_details_title">Game details</string>
     <string name="game_details_organizer_chip">You are the organizer</string>

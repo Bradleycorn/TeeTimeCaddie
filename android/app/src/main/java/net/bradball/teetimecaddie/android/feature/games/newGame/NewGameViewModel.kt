@@ -14,11 +14,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import net.bradball.teetimecaddie.android.feature.games.contacts.ContactsAccess
+import net.bradball.teetimecaddie.android.feature.games.contacts.ContactsPermission
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
+import net.bradball.teetimecaddie.core.models.InvitableContact
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
+import net.bradball.teetimecaddie.features.games.ContactsRepository
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
 import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
@@ -35,6 +39,7 @@ import javax.inject.Inject
  *   [canSubmit], and may outnumber [slots].
  * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Only a
  *   publish with no invitees asks.
+ * @property contactsSheet The contacts sheet that's open, if any.
  */
 data class NewGameUiState(
     val course: String = "",
@@ -43,6 +48,7 @@ data class NewGameUiState(
     val slots: Int = MAX_TEE_TIME_SLOTS,
     val invitees: List<NewInvitee> = emptyList(),
     val showNoInviteeConfirm: Boolean = false,
+    val contactsSheet: ContactsSheet? = null,
     val isSubmitting: Boolean = false,
 ) {
     /** A course of only spaces doesn't count. Slots never block publishing; they start at 4. */
@@ -58,15 +64,63 @@ data class NewGameUiState(
         }
 }
 
+/** The sheets that adding from contacts can open, one at a time. */
+sealed interface ContactsSheet {
+
+    /** Why the app wants contacts, before the system asks. */
+    data object Explanation : ContactsSheet
+
+    /** Contacts access was turned down, and only Settings can turn it back on. */
+    data object AccessOff : ContactsSheet
+
+    /**
+     * The contacts picker.
+     *
+     * @property contacts Everyone who can be invited.
+     * @property query What's typed in the search field.
+     * @property shown The [contacts] that match [query].
+     * @property checkedIds The checked contacts' ids, in the order they were checked. Checked
+     *   contacts stay checked while the search hides them.
+     */
+    data class Picker(
+        val contacts: List<InvitableContact>,
+        val query: String = "",
+        val shown: List<InvitableContact> = contacts,
+        val checkedIds: List<String> = emptyList(),
+    ) : ContactsSheet {
+
+        fun isChecked(contact: InvitableContact): Boolean = contact.id in checkedIds
+
+        /**
+         * Why the list is empty, when it is: the device has no contacts that can be invited, or
+         * none match the search. Formatted with the trimmed [query].
+         */
+        val emptyMessage: StringResource?
+            get() = when {
+                contacts.isEmpty() -> GMR.strings.contacts_picker_no_contacts
+                shown.isEmpty() -> GMR.strings.contacts_picker_no_match
+                else -> null
+            }
+    }
+}
+
 sealed interface NewGameEvent {
     /** The game is published; leave the form. */
     data object Published : NewGameEvent
+
+    /** Show the system's contacts access prompt, and report the answer to `onContactsAccessResult`. */
+    data object RequestContactsAccess : NewGameEvent
+
+    /** Open TeeTimeCaddie's page in the device Settings, where contacts access can be turned on. */
+    data object OpenAppSettings : NewGameEvent
 }
 
 @HiltViewModel
 class NewGameViewModel @Inject constructor(
     private val sessionState: StateFlow<@JvmSuppressWildcards SessionState>,
     private val gamesRepository: GamesRepository,
+    private val contactsRepository: ContactsRepository,
+    private val contactsPermission: ContactsPermission,
     private val messenger: TtcMessenger,
     private val eventManager: EventManager,
 ) : ViewModel() {
@@ -105,11 +159,66 @@ class NewGameViewModel @Inject constructor(
     }
 
     /**
-     * The contacts picker closed with Done: [invitees] replaces the list, because the picker opens
-     * with everyone already invited still checked, and unchecking someone removes them.
+     * "Add from contacts" was tapped. With access on, open the picker. Otherwise explain first, or,
+     * once access has been turned down, say how to turn it back on.
      */
-    fun onInviteesPicked(invitees: List<NewInvitee>) {
-        _uiState.update { it.copy(invitees = invitees) }
+    fun onAddFromContactsClick() {
+        when (contactsPermission.access) {
+            ContactsAccess.GRANTED -> openPicker()
+            ContactsAccess.NOT_ASKED -> _uiState.update { it.copy(contactsSheet = ContactsSheet.Explanation) }
+            ContactsAccess.DENIED -> _uiState.update { it.copy(contactsSheet = ContactsSheet.AccessOff) }
+        }
+    }
+
+    /** "Continue" on the explanation sheet: the system asks next. The sheet closes itself. */
+    fun onContactsContinue() {
+        viewModelScope.launch { _events.send(NewGameEvent.RequestContactsAccess) }
+    }
+
+    /** The system prompt was answered. Allowing opens the picker straight away. */
+    fun onContactsAccessResult(granted: Boolean) {
+        contactsPermission.markRequested()
+        if (granted) openPicker()
+    }
+
+    /** "Open Settings" on the access-off sheet. The sheet closes itself. */
+    fun onOpenAppSettings() {
+        viewModelScope.launch { _events.send(NewGameEvent.OpenAppSettings) }
+    }
+
+    /**
+     * The open contacts sheet closed, by any route. Closing the picker this way discards that
+     * visit's checks; only Done applies them.
+     */
+    fun onDismissContactsSheet() {
+        _uiState.update { it.copy(contactsSheet = null) }
+    }
+
+    fun onContactsQueryChange(query: String) {
+        updatePicker { it.copy(query = query, shown = contactsRepository.search(it.contacts, query)) }
+    }
+
+    /** A picker row was tapped: check it, or uncheck it. */
+    fun onToggleContact(contact: InvitableContact) {
+        updatePicker { picker ->
+            val checkedIds = if (picker.isChecked(contact)) {
+                picker.checkedIds - contact.id
+            } else {
+                picker.checkedIds + contact.id
+            }
+            picker.copy(checkedIds = checkedIds)
+        }
+    }
+
+    /**
+     * Done: the checked contacts become the invitees. Unchecked people are removed, and the rest
+     * keep their order. The sheet closes itself, through [onDismissContactsSheet].
+     */
+    fun onContactsDone() {
+        val picker = _uiState.value.contactsSheet as? ContactsSheet.Picker ?: return
+        _uiState.update {
+            it.copy(invitees = contactsRepository.pickInvitees(it.invitees, picker.contacts, picker.checkedIds))
+        }
     }
 
     /** An invitee's ✕ was tapped. They're removed at once, without asking. */
@@ -152,6 +261,28 @@ class NewGameViewModel @Inject constructor(
         eventManager.logEvent(AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.PUBLISH_ANYWAY))
         _uiState.update { it.copy(showNoInviteeConfirm = false) }
         submit()
+    }
+
+    /** Read the contacts and open the picker, with everyone already invited checked. */
+    private fun openPicker() {
+        viewModelScope.launch {
+            when (val result = contactsRepository.invitableContacts()) {
+                is TtcResult.Success -> _uiState.update { state ->
+                    val invited = contactsRepository.invitedContactIds(result.data, state.invitees)
+                    val checkedIds = result.data.map { it.id }.filter { it in invited }
+                    state.copy(contactsSheet = ContactsSheet.Picker(result.data, checkedIds = checkedIds))
+                }
+
+                is TtcResult.Failure -> messenger.show(result.error)
+            }
+        }
+    }
+
+    private fun updatePicker(transform: (ContactsSheet.Picker) -> ContactsSheet.Picker) {
+        _uiState.update { state ->
+            val picker = state.contactsSheet as? ContactsSheet.Picker ?: return@update state
+            state.copy(contactsSheet = transform(picker))
+        }
     }
 
     private fun submit() {
