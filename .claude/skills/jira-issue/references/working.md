@@ -23,16 +23,29 @@ the whole stack.
 
 1. `Atlassian:transitionJiraIssue` → In Progress.
 2. Add its layer on top of the stack.
-3. Do the work.
-4. Commit, following the repo's commit conventions.
-5. Submit the stack so the sub-task's PR opens ready for review; set its title and body.
-6. → IN REVIEW.
-7. **Stop.** Report the PR URL and the next sub-task. Wait to be told to continue — approval is
+3. Do the work. See "Comments that point at later work".
+4. Search the code for `TODO(<this sub-task's key>)` and resolve every match. Fix any older
+   comment this work made untrue, whichever ticket wrote it.
+5. Commit, following the repo's commit conventions.
+6. Submit the stack so the sub-task's PR opens ready for review; set its title and body.
+7. → IN REVIEW.
+8. **Stop.** Report the PR URL and the next sub-task. Wait to be told to continue — approval is
    not a cue to merge or to start the next one.
+
+## Comments that point at later work
+
+Code comments describe the code as it is now. Never narrate another ticket's work in a comment
+("TTC-100 opens the contacts flow from here", "responses arrive with TTC-70").
+
+When a stub must point at later work, mark it `TODO(<key>): <what to do>` in the file's comment
+syntax, with the key of the sub-task or story that will do it. Then comment on that issue in
+Jira, naming the file, so whoever picks it up knows to clear it. This is the only form a future
+ticket key takes in code.
 
 ## The final sub-task
 
-After step 6, also move the story → IN REVIEW, then stop.
+In step 4, also clear every `TODO(<story key>)`. After step 7, also move the story → IN REVIEW,
+then stop.
 
 When every sub-task PR is approved, the user merges the stack into the story branch. When resumed
 after that: `gh stack sync --prune`, move every sub-task → Done, and open the story PR ready for
@@ -69,7 +82,8 @@ the story branch under the owning sub-task's key; that sub-task stays Done.
 No stack, no `subtask/` branch, no `gh stack`.
 
 1. Sub-task and story → In Progress.
-2. Do the work on the story branch, committing under the sub-task's key.
+2. Do the work on the story branch, committing under the sub-task's key. Before pushing, search
+   the code for `TODO(<sub-task key>)` and `TODO(<story key>)` and resolve every match.
 3. Push and open the story PR, ready for review, against the story's base (github
    `references/pull-requests.md`).
 4. Sub-task and story → IN REVIEW.

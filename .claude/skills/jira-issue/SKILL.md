@@ -29,8 +29,8 @@ Copy this checklist and track progress (stacked issues):
 - [ ] Plan: every AC covered, branches named; propose sub-tasks
 - [ ] After approval: create and assign sub-tasks; story → In Progress
 - [ ] Set up and push the story branch
-- [ ] Each sub-task: catch up on reviews → In Progress → work → commit → stacked PR
-      → IN REVIEW → stop
+- [ ] Each sub-task: catch up on reviews → In Progress → work → clear its TODOs → commit
+      → stacked PR → IN REVIEW → stop
 - [ ] Final sub-task's PR up: story → IN REVIEW, stop
 - [ ] User has merged the approved stack: sub-tasks Done, open the story PR ready for review
 ```
