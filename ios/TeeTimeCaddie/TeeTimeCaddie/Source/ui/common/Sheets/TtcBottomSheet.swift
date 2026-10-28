@@ -13,7 +13,7 @@ import TeeTimeCaddieKit
 /// .ttcBottomSheet(isPresented: $showPrePrompt) {
 ///     TtcBottomSheet(title: "Find your golf buddies") {
 ///         Text("…")
-///         TtcButton("Not now") { showPrePrompt = false }
+///         TtcButton("Not now", action: { showPrePrompt = false })
 ///     }
 /// }
 /// ```
@@ -81,9 +81,7 @@ struct TtcBottomSheet<Action: View, Content: View>: View {
     }
 
     private var closeButton: some View {
-        Button {
-            dismiss()
-        } label: {
+        Button(action: { dismiss() }) {
             Image(SfSymbol.xmark)
                 .font(.body.weight(.semibold))
                 .foregroundStyle(theme.colorScheme.onSurfaceVariant)
@@ -172,8 +170,8 @@ private struct TtcBottomSheetPreviewContent: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Button("Fitted sheet") { showFitted = true }
-            Button("Large sheet with an action") { showLarge = true }
+            Button("Fitted sheet", action: { showFitted = true })
+            Button("Large sheet with an action", action: { showLarge = true })
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(theme.colorScheme.surface)
@@ -186,7 +184,7 @@ private struct TtcBottomSheetPreviewContent: View {
         }
         .ttcBottomSheet(isPresented: $showLarge, size: .large) {
             TtcBottomSheet(title: "Sheet title") {
-                Button("Done (2)") { showLarge = false }
+                Button("Done (2)", action: { showLarge = false })
                     .fontWeight(.semibold)
                     .padding(.horizontal, 14)
             } content: {
