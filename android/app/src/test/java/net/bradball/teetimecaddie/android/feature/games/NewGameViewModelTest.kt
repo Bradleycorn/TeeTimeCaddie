@@ -122,10 +122,10 @@ class NewGameViewModelTest {
     // MARK: invitees
 
     // The picker's rows for the device contacts above, sorted by name, and the invitees they become.
-    private val danaContact = InvitableContact("c3|4155550117", "Dana Park", "4155550117", "home")
-    private val jeffContact = InvitableContact("c2|4155550142", "Jeff Morrison", "4155550142", "mobile")
-    private val jeffWorkContact = InvitableContact("c2|5025550199", "Jeff Morrison", "5025550199", "work")
-    private val mattContact = InvitableContact("c1|4155550188", "Matt Chen", "4155550188", "mobile")
+    private val danaContact = InvitableContact("c3|4155550117", "Dana Park", "415.555.0117", "home")
+    private val jeffContact = InvitableContact("c2|4155550142", "Jeff Morrison", "(415) 555-0142", "mobile")
+    private val jeffWorkContact = InvitableContact("c2|5025550199", "Jeff Morrison", "502-555-0199", "work")
+    private val mattContact = InvitableContact("c1|4155550188", "Matt Chen", "(415) 555-0188", "mobile")
     private val matt = mattContact.toNewInvitee()
     private val jeff = jeffContact.toNewInvitee()
     private val dana = danaContact.toNewInvitee()
