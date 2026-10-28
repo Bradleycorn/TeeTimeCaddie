@@ -53,7 +53,7 @@ final class NewGameViewModelTests: XCTestCase {
                 name: "Jeff Morrison",
                 initial: "J",
                 phone: "(415) 555-0142",
-                tone: TtcColorRole(jeff.avatarTone)
+                tone: jeff.avatarTone.toColorRole()
             )
         ])
     }

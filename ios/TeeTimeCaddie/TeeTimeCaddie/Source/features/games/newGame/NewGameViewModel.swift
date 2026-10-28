@@ -192,7 +192,7 @@ private extension NewInvitee {
             name: name,
             initial: initial,
             phone: formattedPhone,
-            tone: TtcColorRole(avatarTone)
+            tone: avatarTone.toColorRole()
         )
     }
 }

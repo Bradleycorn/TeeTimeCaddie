@@ -55,7 +55,7 @@ enum class TtcColorRole {
     Neutral
 }
 
-/** The role an initial avatar in this tone is drawn in. Twin of `TtcColorRole(_:)` on iOS. */
+/** The role an initial avatar in this tone is drawn in. Twin of `AvatarTone.toColorRole()` on iOS. */
 fun AvatarTone.toColorRole(): TtcColorRole = when (this) {
     AvatarTone.PRIMARY -> TtcColorRole.Primary
     AvatarTone.SECONDARY -> TtcColorRole.Secondary

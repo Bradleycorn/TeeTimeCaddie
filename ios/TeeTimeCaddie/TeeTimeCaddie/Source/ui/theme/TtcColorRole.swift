@@ -56,14 +56,14 @@ enum TtcColorRole {
     case neutral
 }
 
-extension TtcColorRole {
-    /// The role an initial avatar in `tone` is drawn in. Twin of `AvatarTone.toColorRole()` on
+extension AvatarTone {
+    /// The role an initial avatar in this tone is drawn in. Twin of `AvatarTone.toColorRole()` on
     /// Android.
-    init(_ tone: AvatarTone) {
-        switch tone {
-        case .primary: self = .primary
-        case .secondary: self = .secondary
-        case .tertiary: self = .tertiary
+    func toColorRole() -> TtcColorRole {
+        switch self {
+        case .primary: .primary
+        case .secondary: .secondary
+        case .tertiary: .tertiary
         }
     }
 }
