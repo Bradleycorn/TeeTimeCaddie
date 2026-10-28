@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.features.games
 
-import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
@@ -70,9 +71,10 @@ class ContactsRepositoryImpl(
     override suspend fun invitableContacts(): TtcResult<List<InvitableContact>> {
         val contacts = try {
             reader.readContacts()
-        } catch (ex: CancellationException) {
-            throw ex
         } catch (ex: Exception) {
+            // Re-throws if this coroutine was cancelled, so cancellation is not swallowed into a
+            // Failure. See the note in AuthRepository for why this beats catching the type.
+            currentCoroutineContext().ensureActive()
             eventManager.logException(
                 ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "read_contacts")
             )
