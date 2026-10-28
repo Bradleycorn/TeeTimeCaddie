@@ -25,7 +25,7 @@ struct NewGameScreen: View {
                 onDateSelected: viewModel.onDateSelected,
                 onTimeSelected: viewModel.onTimeSelected,
                 onSlotsChange: viewModel.onSlotsChange,
-                // TTC-101 opens the contacts flow from here.
+                // TODO(TTC-101): open the contacts flow.
                 onAddFromContactsClick: {},
                 onRemoveInvitee: viewModel.onRemoveInvitee,
                 onPublishClick: {

@@ -87,7 +87,7 @@ fun NewGameScreen(
             onDateSelected = viewModel::onDateSelected,
             onTimeSelected = viewModel::onTimeSelected,
             onSlotsChange = viewModel::onSlotsChange,
-            // TTC-100 opens the contacts flow from here.
+            // TODO(TTC-100): open the contacts flow.
             onAddFromContactsClick = {},
             onRemoveInvitee = viewModel::onRemoveInvitee,
             onPublishClick = viewModel::onPublishClick,

@@ -34,8 +34,8 @@
     <string name="new_game_close">Close</string>
 
     <!--
-      Asked before every publish until invitees arrive in TTC-69. The copy is proposed in the
-      story, not drawn in the design.
+      Asked before publishing a game with nobody invited. The copy is proposed in the story, not
+      drawn in the design.
     -->
     <string name="new_game_no_invitees_title">Publish with no invitees?</string>
     <string name="new_game_no_invitees_message">You haven\'t invited anyone to this game yet.</string>
