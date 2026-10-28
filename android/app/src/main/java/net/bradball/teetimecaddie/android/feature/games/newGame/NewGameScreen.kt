@@ -212,13 +212,8 @@ private fun NewGameContent(
                 )
             }
 
-            val addLabel = if (uiState.invitees.isEmpty()) {
-                GMR.strings.new_game_add_from_contacts
-            } else {
-                GMR.strings.new_game_add_more_from_contacts
-            }
             TtcOutlinedButton(
-                text = stringResource(addLabel.resourceId),
+                text = stringResource(uiState.addFromContactsLabel.resourceId),
                 onClick = onAddFromContactsClick,
                 color = TtcColorRole.Primary,
                 icon = TtcIcons.PERSON_ADD,

@@ -40,6 +40,14 @@ struct NewGameUiState: Equatable {
             && time != nil
             && !isSubmitting
     }
+
+    /// "Add from contacts", or "Add more from contacts" once anyone has been added. Computed, so
+    /// building this state still never reaches into the Kotlin framework.
+    var addFromContactsLabel: StringResource {
+        invitees.isEmpty
+            ? GMR.strings().new_game_add_from_contacts
+            : GMR.strings().new_game_add_more_from_contacts
+    }
 }
 
 /// One invitee on the New game form, ready to display. Swift-only, like the rest of

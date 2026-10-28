@@ -67,6 +67,16 @@ final class NewGameViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.uiState.invitees.map(\.name), ["Matt Chen", "Dana Park"])
     }
 
+    func testAddFromContactsLabelReadsAddMoreOnceAnyoneIsAdded() {
+        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_from_contacts)
+
+        viewModel.onInviteesPicked([matt])
+        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_more_from_contacts)
+
+        viewModel.onRemoveInvitee(viewModel.uiState.invitees[0].id)
+        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_from_contacts)
+    }
+
     func testInviteesNeverAffectWhetherPublishIsEnabled() {
         viewModel.onInviteesPicked([matt])
         XCTAssertFalse(viewModel.uiState.canSubmit)

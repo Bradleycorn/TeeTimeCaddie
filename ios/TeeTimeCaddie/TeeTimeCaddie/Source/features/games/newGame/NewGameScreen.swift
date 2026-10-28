@@ -149,9 +149,7 @@ fileprivate struct NewGameContent: View {
                 }
 
                 TtcOutlinedButton(
-                    uiState.invitees.isEmpty
-                        ? GMR.strings().new_game_add_from_contacts.localized()
-                        : GMR.strings().new_game_add_more_from_contacts.localized(),
+                    uiState.addFromContactsLabel.localized(),
                     color: .primary,
                     icon: .symbol(.personBadgePlus),
                     fullWidth: true,

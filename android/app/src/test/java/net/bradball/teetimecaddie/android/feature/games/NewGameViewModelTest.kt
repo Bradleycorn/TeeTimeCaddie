@@ -117,6 +117,17 @@ class NewGameViewModelTest {
     }
 
     @Test
+    fun addFromContactsLabel_readsAddMoreOnceAnyoneIsAdded() {
+        assertEquals(GMR.strings.new_game_add_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+
+        viewModel.onInviteesPicked(listOf(matt))
+        assertEquals(GMR.strings.new_game_add_more_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+
+        viewModel.onRemoveInvitee(matt)
+        assertEquals(GMR.strings.new_game_add_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+    }
+
+    @Test
     fun inviteesNeverAffectWhetherPublishIsEnabled() {
         viewModel.onInviteesPicked(listOf(matt))
         assertFalse(viewModel.uiState.value.canSubmit)

@@ -3,6 +3,7 @@ package net.bradball.teetimecaddie.android.feature.games.newGame
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,14 @@ data class NewGameUiState(
     /** A course of only spaces doesn't count. Slots never block publishing; they start at 4. */
     val canSubmit: Boolean
         get() = course.isNotBlank() && date != null && time != null && !isSubmitting
+
+    /** "Add from contacts", or "Add more from contacts" once anyone has been added. */
+    val addFromContactsLabel: StringResource
+        get() = if (invitees.isEmpty()) {
+            GMR.strings.new_game_add_from_contacts
+        } else {
+            GMR.strings.new_game_add_more_from_contacts
+        }
 }
 
 sealed interface NewGameEvent {
