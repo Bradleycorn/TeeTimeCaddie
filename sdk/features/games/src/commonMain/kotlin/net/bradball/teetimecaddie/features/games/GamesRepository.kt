@@ -86,7 +86,7 @@ interface GamesRepository {
 const val MAX_TEE_TIME_SLOTS = 4
 
 // The digit counts the `players` and `games` rules accept for a stored phone number.
-private val STORED_PHONE_LENGTHS = 10..15
+internal val STORED_PHONE_LENGTHS = 10..15
 
 /**
  * @param findPlayerByPhone Looks up the player who owns a phone number, as

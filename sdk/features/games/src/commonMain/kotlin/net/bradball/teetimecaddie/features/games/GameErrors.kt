@@ -4,7 +4,7 @@ import dev.icerock.moko.resources.StringResource
 import net.bradball.teetimecaddie.core.models.GR
 
 /**
- * The ways publishing or reading a game can fail.
+ * The ways publishing or reading a game, or reading contacts to invite, can fail.
  */
 enum class GameErrors(
     val title: StringResource,
@@ -47,6 +47,16 @@ enum class GameErrors(
         GMR.strings.game_error_load_failed_title,
         GMR.strings.game_error_load_failed_message,
         GMR.strings.game_error_load_failed_recovery
+    ),
+
+    /**
+     * The device's contacts couldn't be read. Shown with the general error copy; the story
+     * proposes none of its own.
+     */
+    CONTACTS_LOAD_FAILED(
+        GR.strings.error_default_title,
+        GR.strings.error_default_message,
+        GR.strings.error_default_recovery
     ),
 
     UNKNOWN(

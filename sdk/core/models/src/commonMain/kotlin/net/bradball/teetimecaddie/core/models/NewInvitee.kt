@@ -1,9 +1,5 @@
 package net.bradball.teetimecaddie.core.models
 
-import net.bradball.teetimecaddie.core.extensions.PHONE_NUMBER_LENGTH
-import net.bradball.teetimecaddie.core.extensions.formattedPhoneNumber
-import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
-
 /**
  * Someone the organizer has picked to invite, before the game is published.
  *
@@ -16,7 +12,7 @@ data class NewInvitee(
 ) {
     /** The single uppercase letter shown in the invitee's avatar. */
     val initial: String
-        get() = name.trim().take(1).uppercase()
+        get() = avatarInitial(name)
 
     /** The color of the invitee's avatar, the same one they get on every screen. */
     val avatarTone: AvatarTone
@@ -28,11 +24,7 @@ data class NewInvitee(
      * international number.
      */
     val formattedPhone: String
-        get() = if (phone.toPhoneDigits().length == PHONE_NUMBER_LENGTH) {
-            phone.formattedPhoneNumber
-        } else {
-            phone.trim()
-        }
+        get() = displayPhone(phone)
 }
 
 val previewNewInvitee = NewInvitee(name = "Matt Chen", phone = "(415) 555-0188")
