@@ -9,9 +9,10 @@ import kotlin.test.assertEquals
 
 class AvatarToneTest {
 
-    // Expected values come from the design prototype's own `toneForName`, so these pin the port.
+    // Pinned, so a change to the hash or the tone list, which would recolor everyone's avatar,
+    // can't slip through unnoticed.
     @Test
-    fun matchesTheDesignsHash() {
+    fun aNameAlwaysGetsTheSameTone() {
         assertEquals(AvatarTone.PRIMARY, AvatarTone.forName("Matt Chen"))
         assertEquals(AvatarTone.SECONDARY, AvatarTone.forName("Jeff Morrison"))
         assertEquals(AvatarTone.TERTIARY, AvatarTone.forName("brad Ball"))

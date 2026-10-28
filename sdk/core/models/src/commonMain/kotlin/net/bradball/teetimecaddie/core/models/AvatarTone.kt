@@ -12,16 +12,15 @@ enum class AvatarTone {
     TERTIARY;
 
     companion object {
-        // The design's own spread (`toneForName` in the Tee Time Caddie prototype): blue and green
-        // twice as often as gold, which is also the organizer's color.
+        // Five slots, so blue and green each come up about twice as often as gold.
         private val byHash = listOf(TERTIARY, PRIMARY, TERTIARY, PRIMARY, SECONDARY)
 
         /**
          * The tone for a person named [name], the same every time, so someone keeps their color on
          * every screen and on both platforms.
          *
-         * A port of the design's hash: a 31-based rolling hash of the name's characters, kept to 16
-         * bits. Spaces around the name don't change it.
+         * A 31-based rolling hash of the name's characters, kept to 16 bits, picks a slot in
+         * [byHash]. Spaces around the name don't change it.
          */
         fun forName(name: String): AvatarTone {
             var hash = 0
