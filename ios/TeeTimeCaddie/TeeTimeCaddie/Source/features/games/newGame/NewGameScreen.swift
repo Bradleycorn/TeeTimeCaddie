@@ -148,8 +148,16 @@ fileprivate struct NewGameContent: View {
                         .disabled(uiState.isSubmitting)
                 }
 
-                AddFromContactsRow(hasInvitees: !uiState.invitees.isEmpty, onClick: onAddFromContactsClick)
-                    .disabled(uiState.isSubmitting)
+                TtcOutlinedButton(
+                    uiState.invitees.isEmpty
+                        ? GMR.strings().new_game_add_from_contacts.localized()
+                        : GMR.strings().new_game_add_more_from_contacts.localized(),
+                    color: .primary,
+                    icon: .symbol(.personBadgePlus),
+                    fullWidth: true,
+                    action: onAddFromContactsClick
+                )
+                .disabled(uiState.isSubmitting)
             }
             .padding(.horizontal, NewGameDefaults.horizontalPadding)
             .padding(.bottom, NewGameDefaults.horizontalPadding)
@@ -350,52 +358,6 @@ fileprivate struct InviteeRow: View {
     }
 }
 
-/// The dashed row that opens the contacts flow. It reads "Add more from contacts" once anyone has
-/// been added.
-fileprivate struct AddFromContactsRow: View {
-    @EnvironmentObject private var theme: AppTheme
-
-    private let hasInvitees: Bool
-    private let onClick: () -> Void
-
-    init(hasInvitees: Bool, onClick: @escaping () -> Void) {
-        self.hasInvitees = hasInvitees
-        self.onClick = onClick
-    }
-
-    var body: some View {
-        let shape = theme.shapes.medium
-        let label = hasInvitees
-            ? GMR.strings().new_game_add_more_from_contacts.localized()
-            : GMR.strings().new_game_add_from_contacts.localized()
-
-        Button(action: onClick) {
-            HStack(spacing: NewGameDefaults.inviteeRowSpacing) {
-                Image(SfSymbol.personBadgePlus)
-                Text(label)
-                    .font(.body.weight(.semibold))
-            }
-            .foregroundStyle(theme.colorScheme.primary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(NewGameDefaults.addRowPadding)
-            // A themed shape can't `strokeBorder`, so this strokes at double width and clips the
-            // outer half away.
-            .overlay(
-                shape.stroke(
-                    theme.colorScheme.outline,
-                    style: StrokeStyle(
-                        lineWidth: NewGameDefaults.addRowBorderWidth * 2,
-                        dash: TtcAvatarStyle.dashedStroke().dash
-                    )
-                )
-            )
-            .clipShape(shape)
-            .contentShape(shape)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 /// Spacing, sizes and seeds for the New game form — the twin of `NewGameDefaults` on Android.
 fileprivate enum NewGameDefaults {
     static let horizontalPadding: CGFloat = 16
@@ -409,8 +371,6 @@ fileprivate enum NewGameDefaults {
     static let inviteeRowSpacing: CGFloat = 12
     static let inviteeTextSpacing: CGFloat = 1
     static let removeButtonSize: CGFloat = 36
-    static let addRowPadding: CGFloat = 14
-    static let addRowBorderWidth: CGFloat = 1
 
     /// With no time set, the time picker opens at 7:00 AM.
     static var seedTime: Date {
