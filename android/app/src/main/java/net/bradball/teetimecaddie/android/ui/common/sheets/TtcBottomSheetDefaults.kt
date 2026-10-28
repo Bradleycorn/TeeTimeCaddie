@@ -10,9 +10,9 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
 /**
- * Shared color, shape and spacing values for [TtcBottomSheet], derived from the Fairway Morning
- * bottom sheet in the Tee Time Caddie design (the `Sheet` primitive behind the contacts sheets).
- * Colors always resolve to semantic Material 3 roles.
+ * Shared color, shape and spacing values for [TtcBottomSheet], derived from the bottom sheets in
+ * the Tee Time Caddie design (the contacts explanation sheet and picker). Colors always resolve to
+ * semantic Material 3 roles.
  *
  * Mirrors the structure of `TtcCardDefaults`.
  */
