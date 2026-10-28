@@ -24,6 +24,11 @@
     <string name="new_game_field_tee_time_placeholder">Set tee time</string>
     <string name="new_game_section_players">How many players</string>
     <string name="new_game_player_slots_label">Player slots</string>
+    <string name="new_game_section_invitees">Invitees</string>
+    <string name="new_game_add_from_contacts">Add from contacts</string>
+    <string name="new_game_add_more_from_contacts">Add more from contacts</string>
+    <!-- Content description for an invitee row's remove button. "Remove Matt Chen" -->
+    <string name="new_game_remove_invitee">Remove %1$s</string>
     <string name="new_game_publish_button">Publish game</string>
     <!-- Spoken label for the Android ✕ that leaves New game. -->
     <string name="new_game_close">Close</string>

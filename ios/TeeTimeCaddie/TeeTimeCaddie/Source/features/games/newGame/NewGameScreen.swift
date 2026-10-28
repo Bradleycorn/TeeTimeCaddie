@@ -25,7 +25,12 @@ struct NewGameScreen: View {
                 onDateSelected: viewModel.onDateSelected,
                 onTimeSelected: viewModel.onTimeSelected,
                 onSlotsChange: viewModel.onSlotsChange,
-                onPublishClick: viewModel.onPublishClick,
+                // TTC-101 opens the contacts flow from here.
+                onAddFromContactsClick: {},
+                onRemoveInvitee: viewModel.onRemoveInvitee,
+                onPublishClick: {
+                    Task { await viewModel.onPublishClick(onPublished: onPublished) }
+                },
                 onKeepEditing: viewModel.onKeepEditing,
                 onDismissNoInviteeConfirm: viewModel.onDismissNoInviteeConfirm,
                 onPublishAnyway: {
@@ -54,6 +59,8 @@ fileprivate struct NewGameContent: View {
     private let onDateSelected: (Date) -> Void
     private let onTimeSelected: (Date) -> Void
     private let onSlotsChange: (Int) -> Void
+    private let onAddFromContactsClick: () -> Void
+    private let onRemoveInvitee: (NewGameInviteeRow.ID) -> Void
     private let onPublishClick: () -> Void
     private let onKeepEditing: () -> Void
     private let onDismissNoInviteeConfirm: () -> Void
@@ -65,6 +72,8 @@ fileprivate struct NewGameContent: View {
         onDateSelected: @escaping (Date) -> Void,
         onTimeSelected: @escaping (Date) -> Void,
         onSlotsChange: @escaping (Int) -> Void,
+        onAddFromContactsClick: @escaping () -> Void,
+        onRemoveInvitee: @escaping (NewGameInviteeRow.ID) -> Void,
         onPublishClick: @escaping () -> Void,
         onKeepEditing: @escaping () -> Void,
         onDismissNoInviteeConfirm: @escaping () -> Void,
@@ -75,6 +84,8 @@ fileprivate struct NewGameContent: View {
         self.onDateSelected = onDateSelected
         self.onTimeSelected = onTimeSelected
         self.onSlotsChange = onSlotsChange
+        self.onAddFromContactsClick = onAddFromContactsClick
+        self.onRemoveInvitee = onRemoveInvitee
         self.onPublishClick = onPublishClick
         self.onKeepEditing = onKeepEditing
         self.onDismissNoInviteeConfirm = onDismissNoInviteeConfirm
@@ -128,6 +139,16 @@ fileprivate struct NewGameContent: View {
                 SectionLabel(GMR.strings().new_game_section_players.localized())
 
                 SlotSelector(selected: uiState.slots, onSelect: onSlotsChange)
+                    .disabled(uiState.isSubmitting)
+
+                SectionLabel(GMR.strings().new_game_section_invitees.localized())
+
+                ForEach(uiState.invitees) { invitee in
+                    InviteeRow(invitee: invitee, onRemove: { onRemoveInvitee(invitee.id) })
+                        .disabled(uiState.isSubmitting)
+                }
+
+                AddFromContactsRow(hasInvitees: !uiState.invitees.isEmpty, onClick: onAddFromContactsClick)
                     .disabled(uiState.isSubmitting)
             }
             .padding(.horizontal, NewGameDefaults.horizontalPadding)
@@ -288,6 +309,93 @@ fileprivate struct SlotSelector: View {
     }
 }
 
+/// Someone picked to invite: their avatar, name and number, and an ✕ that removes them at once.
+fileprivate struct InviteeRow: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    private let invitee: NewGameInviteeRow
+    private let onRemove: () -> Void
+
+    init(invitee: NewGameInviteeRow, onRemove: @escaping () -> Void) {
+        self.invitee = invitee
+        self.onRemove = onRemove
+    }
+
+    var body: some View {
+        TtcCard(contentPadding: NewGameDefaults.inviteeRowPadding) {
+            HStack(spacing: NewGameDefaults.inviteeRowSpacing) {
+                TtcAvatar(invitee.initial, color: invitee.tone)
+                VStack(alignment: .leading, spacing: NewGameDefaults.inviteeTextSpacing) {
+                    Text(invitee.name)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(theme.colorScheme.onSurface)
+                    Text(invitee.phone)
+                        .font(.footnote)
+                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                }
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button(action: onRemove) {
+                    Image(SfSymbol.xmark)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                        .frame(width: NewGameDefaults.removeButtonSize, height: NewGameDefaults.removeButtonSize)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(GMR.strings().new_game_remove_invitee.localized(invitee.name))
+            }
+        }
+    }
+}
+
+/// The dashed row that opens the contacts flow. It reads "Add more from contacts" once anyone has
+/// been added.
+fileprivate struct AddFromContactsRow: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    private let hasInvitees: Bool
+    private let onClick: () -> Void
+
+    init(hasInvitees: Bool, onClick: @escaping () -> Void) {
+        self.hasInvitees = hasInvitees
+        self.onClick = onClick
+    }
+
+    var body: some View {
+        let shape = theme.shapes.medium
+        let label = hasInvitees
+            ? GMR.strings().new_game_add_more_from_contacts.localized()
+            : GMR.strings().new_game_add_from_contacts.localized()
+
+        Button(action: onClick) {
+            HStack(spacing: NewGameDefaults.inviteeRowSpacing) {
+                Image(SfSymbol.personBadgePlus)
+                Text(label)
+                    .font(.body.weight(.semibold))
+            }
+            .foregroundStyle(theme.colorScheme.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(NewGameDefaults.addRowPadding)
+            // A themed shape can't `strokeBorder`, so this strokes at double width and clips the
+            // outer half away.
+            .overlay(
+                shape.stroke(
+                    theme.colorScheme.outline,
+                    style: StrokeStyle(
+                        lineWidth: NewGameDefaults.addRowBorderWidth * 2,
+                        dash: TtcAvatarStyle.dashedStroke().dash
+                    )
+                )
+            )
+            .clipShape(shape)
+            .contentShape(shape)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 /// Spacing, sizes and seeds for the New game form — the twin of `NewGameDefaults` on Android.
 fileprivate enum NewGameDefaults {
     static let horizontalPadding: CGFloat = 16
@@ -297,6 +405,12 @@ fileprivate enum NewGameDefaults {
     static let sectionLabelTopPadding: CGFloat = 12
     static let slotLabelSpacing: CGFloat = 10
     static let slotSpacing: CGFloat = 8
+    static let inviteeRowPadding = EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 4)
+    static let inviteeRowSpacing: CGFloat = 12
+    static let inviteeTextSpacing: CGFloat = 1
+    static let removeButtonSize: CGFloat = 36
+    static let addRowPadding: CGFloat = 14
+    static let addRowBorderWidth: CGFloat = 1
 
     /// With no time set, the time picker opens at 7:00 AM.
     static var seedTime: Date {
@@ -322,6 +436,8 @@ fileprivate struct NewGameContentPreviews: View {
             onDateSelected: { _ in },
             onTimeSelected: { _ in },
             onSlotsChange: { _ in },
+            onAddFromContactsClick: {},
+            onRemoveInvitee: { _ in },
             onPublishClick: {},
             onKeepEditing: {},
             onDismissNoInviteeConfirm: {},
@@ -344,7 +460,15 @@ fileprivate struct NewGameContentPreviews: View {
             dateText: "Sat, Jun 13",
             time: .today,
             timeText: "9:00 AM",
-            slots: 3
+            slots: 3,
+            invitees: [
+                NewGameInviteeRow(
+                    id: "matt", name: "Matt Chen", initial: "M", phone: "(415) 555-0188", tone: .primary
+                ),
+                NewGameInviteeRow(
+                    id: "jeff", name: "Jeff Morrison", initial: "J", phone: "(415) 555-0142", tone: .secondary
+                ),
+            ]
         ))
     }
     .preferredColorScheme(.dark)

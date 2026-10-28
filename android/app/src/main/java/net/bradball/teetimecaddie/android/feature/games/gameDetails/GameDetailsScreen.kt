@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
+import net.bradball.teetimecaddie.android.theme.toColorRole
 import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
@@ -187,14 +188,13 @@ private fun PlayerRow(
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val isOrganizer = uiState.status == TeeTimePlayerStatus.ORGANIZER
     SlotRow(
         showDivider = showDivider,
         modifier = modifier,
         avatar = {
             TtcAvatar(
                 initials = uiState.initial,
-                color = if (isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
+                color = uiState.tone.toColorRole(),
                 size = GameDetailsDefaults.AvatarSize,
             )
         },

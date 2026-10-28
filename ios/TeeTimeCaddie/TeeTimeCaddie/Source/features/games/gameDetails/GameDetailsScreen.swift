@@ -150,7 +150,7 @@ fileprivate struct PlayerRow: View {
         SlotRow(showDivider: showDivider) {
             TtcAvatar(
                 uiState.initial,
-                color: uiState.status == .organizer ? .secondary : .primary,
+                color: TtcColorRole(uiState.tone),
                 size: GameDetailsDefaults.avatarSize
             )
         } text: {

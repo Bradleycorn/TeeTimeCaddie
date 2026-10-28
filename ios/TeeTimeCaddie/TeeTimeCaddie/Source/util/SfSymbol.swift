@@ -17,6 +17,7 @@ enum SfSymbol: String {
     case lockFill = "lock"
     case pencil = "pencil"
     case person = "person"
+    case personBadgePlus = "person.badge.plus"
     case personFill = "person.fill"
     case phone = "iphone"
     case phoneBadgeWaveformFill = "phone.badge.waveform.fill"

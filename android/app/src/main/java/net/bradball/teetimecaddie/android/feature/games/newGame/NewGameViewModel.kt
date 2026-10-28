@@ -16,6 +16,7 @@ import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
+import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
@@ -29,14 +30,17 @@ import javax.inject.Inject
  * A data class rather than a sealed hierarchy, because its parts are independent: the confirmation
  * opens over a filled-in form, and a failed publish leaves the form as it was.
  *
- * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Until
- *   invitees arrive (TTC-69) every publish asks.
+ * @property invitees The people picked so far, in the order they were added. Never affects
+ *   [canSubmit], and may outnumber [slots].
+ * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Only a
+ *   publish with no invitees asks.
  */
 data class NewGameUiState(
     val course: String = "",
     val date: LocalDate? = null,
     val time: LocalTime? = null,
     val slots: Int = MAX_TEE_TIME_SLOTS,
+    val invitees: List<NewInvitee> = emptyList(),
     val showNoInviteeConfirm: Boolean = false,
     val isSubmitting: Boolean = false,
 ) {
@@ -91,15 +95,33 @@ class NewGameViewModel @Inject constructor(
         eventManager.logEvent(AnalyticsEvent.TimeInputToggle)
     }
 
+    /**
+     * The contacts picker closed with Done: [invitees] replaces the list, because the picker opens
+     * with everyone already invited still checked, and unchecking someone removes them.
+     */
+    fun onInviteesPicked(invitees: List<NewInvitee>) {
+        _uiState.update { it.copy(invitees = invitees) }
+    }
+
+    /** An invitee's ✕ was tapped. They're removed at once, without asking. */
+    fun onRemoveInvitee(invitee: NewInvitee) {
+        _uiState.update { it.copy(invitees = it.invitees - invitee) }
+    }
+
     /** The back button was tapped. Leaving is the screen's job; nothing is saved or asked. */
     fun onCancel() {
         eventManager.logEvent(AnalyticsEvent.NewGameCancel)
     }
 
-    /** Publish was tapped: ask first, since nobody has been invited. */
+    /** Publish was tapped. With nobody invited, ask first; otherwise publish. */
     fun onPublishClick() {
-        if (!_uiState.value.canSubmit) return
-        _uiState.update { it.copy(showNoInviteeConfirm = true) }
+        val state = _uiState.value
+        if (!state.canSubmit) return
+        if (state.invitees.isEmpty()) {
+            _uiState.update { it.copy(showNoInviteeConfirm = true) }
+        } else {
+            submit()
+        }
     }
 
     /** "Keep editing": close the alert and leave the form exactly as it was. */
@@ -140,7 +162,7 @@ class NewGameViewModel @Inject constructor(
                     date = date,
                     time = time,
                     slots = state.slots,
-                    invitees = emptyList(),
+                    invitees = state.invitees,
                 )
             ) {
                 is TtcResult.Success -> {

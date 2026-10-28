@@ -1,6 +1,21 @@
 package net.bradball.teetimecaddie.android.feature.games.newGame
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
+import net.bradball.teetimecaddie.android.theme.toColorRole
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarDefaults
+import net.bradball.teetimecaddie.core.models.NewInvitee
+import net.bradball.teetimecaddie.core.models.previewNewInviteeList
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -78,6 +93,9 @@ fun NewGameScreen(
             onDateSelected = viewModel::onDateSelected,
             onTimeSelected = viewModel::onTimeSelected,
             onSlotsChange = viewModel::onSlotsChange,
+            // TTC-100 opens the contacts flow from here.
+            onAddFromContactsClick = {},
+            onRemoveInvitee = viewModel::onRemoveInvitee,
             onPublishClick = viewModel::onPublishClick,
             onKeepEditing = viewModel::onKeepEditing,
             onDismissNoInviteeConfirm = viewModel::onDismissNoInviteeConfirm,
@@ -97,6 +115,8 @@ private fun NewGameContent(
     onDateSelected: (LocalDate) -> Unit,
     onTimeSelected: (LocalTime) -> Unit,
     onSlotsChange: (Int) -> Unit,
+    onAddFromContactsClick: () -> Unit,
+    onRemoveInvitee: (NewInvitee) -> Unit,
     onPublishClick: () -> Unit,
     onKeepEditing: () -> Unit,
     onDismissNoInviteeConfirm: () -> Unit,
@@ -185,6 +205,22 @@ private fun NewGameContent(
             SlotSelector(
                 selected = uiState.slots,
                 onSelect = onSlotsChange,
+                enabled = !uiState.isSubmitting,
+            )
+
+            SectionLabel(stringResource(GMR.strings.new_game_section_invitees.resourceId))
+
+            uiState.invitees.forEach { invitee ->
+                InviteeRow(
+                    invitee = invitee,
+                    onRemove = { onRemoveInvitee(invitee) },
+                    enabled = !uiState.isSubmitting,
+                )
+            }
+
+            AddFromContactsRow(
+                hasInvitees = uiState.invitees.isNotEmpty(),
+                onClick = onAddFromContactsClick,
                 enabled = !uiState.isSubmitting,
             )
         }
@@ -288,6 +324,102 @@ private fun SlotSelector(
     }
 }
 
+/** Someone picked to invite: their avatar, name and number, and an ✕ that removes them at once. */
+@Composable
+private fun InviteeRow(
+    invitee: NewInvitee,
+    onRemove: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    TtcCard(modifier = modifier, contentPadding = NewGameDefaults.InviteeRowPadding) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(NewGameDefaults.InviteeRowSpacing),
+        ) {
+            TtcAvatar(initials = invitee.initial, color = invitee.avatarTone.toColorRole())
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = invitee.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = invitee.formattedPhone,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            IconButton(onClick = onRemove, enabled = enabled) {
+                Icon(
+                    painter = TtcIcons.CLOSE.painter,
+                    contentDescription = stringResource(
+                        GMR.strings.new_game_remove_invitee.resourceId,
+                        invitee.name,
+                    ),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The dashed row that opens the contacts flow. It reads "Add more from contacts" once anyone has
+ * been added.
+ */
+@Composable
+private fun AddFromContactsRow(
+    hasInvitees: Boolean,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val shape = MaterialTheme.shapes.medium
+    val borderColor = MaterialTheme.colorScheme.outline
+    val label = if (hasInvitees) {
+        GMR.strings.new_game_add_more_from_contacts
+    } else {
+        GMR.strings.new_game_add_from_contacts
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .drawBehind {
+                drawOutline(
+                    outline = shape.createOutline(size, layoutDirection, this),
+                    color = borderColor,
+                    style = Stroke(
+                        width = NewGameDefaults.AddRowBorderWidth.toPx(),
+                        pathEffect = TtcAvatarDefaults.dashPathEffect(),
+                    ),
+                )
+            }
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(NewGameDefaults.AddRowPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(NewGameDefaults.InviteeRowSpacing),
+    ) {
+        Icon(
+            painter = TtcIcons.PERSON_ADD.painter,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = stringResource(label.resourceId),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
 private object NewGameDefaults {
     val HorizontalPadding = 16.dp
     val FieldSpacing = 8.dp
@@ -296,6 +428,10 @@ private object NewGameDefaults {
     val SlotLabelSpacing = 10.dp
     val SlotSpacing = 8.dp
     val PublishPadding = 16.dp
+    val InviteeRowPadding = PaddingValues(start = 12.dp, top = 10.dp, end = 4.dp, bottom = 10.dp)
+    val InviteeRowSpacing = 12.dp
+    val AddRowPadding = PaddingValues(14.dp)
+    val AddRowBorderWidth = 1.dp
 }
 
 @ScreenPreviews
@@ -309,6 +445,8 @@ private fun NewGameEmptyPreview() {
             onDateSelected = {},
             onTimeSelected = {},
             onSlotsChange = {},
+            onAddFromContactsClick = {},
+            onRemoveInvitee = {},
             onPublishClick = {},
             onKeepEditing = {},
             onDismissNoInviteeConfirm = {},
@@ -329,12 +467,15 @@ private fun NewGameFilledPreview() {
                 date = LocalDate(2026, 6, 13),
                 time = LocalTime(9, 0),
                 slots = 3,
+                invitees = previewNewInviteeList,
             ),
             onCancel = {},
             onCourseChange = {},
             onDateSelected = {},
             onTimeSelected = {},
             onSlotsChange = {},
+            onAddFromContactsClick = {},
+            onRemoveInvitee = {},
             onPublishClick = {},
             onKeepEditing = {},
             onDismissNoInviteeConfirm = {},

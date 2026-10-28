@@ -2,6 +2,7 @@ package net.bradball.teetimecaddie.features.games.state
 
 import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
+import net.bradball.teetimecaddie.core.models.AvatarTone
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
@@ -75,11 +76,14 @@ enum class TeeTimePlayerStatus {
  * One row of a tee time's roster.
  *
  * @property initial The letter in the person's avatar.
- * @property status Where they stand, which decides the row's label and avatar color.
+ * @property tone The avatar's color: the organizer's gold, or the person's own color from their
+ *   name, which matches the one they had on the New game screen.
+ * @property status Where they stand, which decides the row's label.
  */
 data class TeeTimePlayerRowUiState(
     val initial: String,
     val name: String,
+    val tone: AvatarTone,
     val status: TeeTimePlayerStatus
 )
 
@@ -96,19 +100,22 @@ fun Game.toUiState(viewerId: String?): GameUiState = GameUiState(
     isOrganizer = viewerId != null && isOrganizer(viewerId),
     teeTimes = teeTimes.mapIndexed { index, teeTime ->
         val slotHolders = teeTime.players.map { player ->
+            val isOrganizer = player.playerId == organizerId
             TeeTimePlayerRowUiState(
                 initial = player.initial,
                 name = player.name,
-                status = if (player.playerId == organizerId) {
-                    TeeTimePlayerStatus.ORGANIZER
-                } else {
-                    TeeTimePlayerStatus.CONFIRMED
-                }
+                tone = if (isOrganizer) AvatarTone.SECONDARY else AvatarTone.forName(player.name),
+                status = if (isOrganizer) TeeTimePlayerStatus.ORGANIZER else TeeTimePlayerStatus.CONFIRMED
             )
         }
         val invited = if (index == 0) {
             invitees.map {
-                TeeTimePlayerRowUiState(initial = it.initial, name = it.name, status = TeeTimePlayerStatus.INVITED)
+                TeeTimePlayerRowUiState(
+                    initial = it.initial,
+                    name = it.name,
+                    tone = it.avatarTone,
+                    status = TeeTimePlayerStatus.INVITED
+                )
             }
         } else {
             emptyList()

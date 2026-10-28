@@ -22,6 +22,10 @@ data class GameInvitee(
     /** The single uppercase letter shown in the invitee's avatar. */
     val initial: String
         get() = name.trim().take(1).uppercase()
+
+    /** The color of the invitee's avatar, the same one they get on every screen. */
+    val avatarTone: AvatarTone
+        get() = AvatarTone.forName(name)
 }
 
 val previewGameInvitee = GameInvitee(

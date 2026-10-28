@@ -1,4 +1,5 @@
 import Foundation
+import TeeTimeCaddieKit
 
 /// The semantic color role a Ttc component renders itself in — the app's single tonal vocabulary,
 /// shared by every component that offers a choice of color.
@@ -53,4 +54,16 @@ enum TtcColorRole {
 
     /// The ambient surface treatment — no tint. The quiet default for containers.
     case neutral
+}
+
+extension TtcColorRole {
+    /// The role an initial avatar in `tone` is drawn in. Twin of `AvatarTone.toColorRole()` on
+    /// Android.
+    init(_ tone: AvatarTone) {
+        switch tone {
+        case .primary: self = .primary
+        case .secondary: self = .secondary
+        case .tertiary: self = .tertiary
+        }
+    }
 }

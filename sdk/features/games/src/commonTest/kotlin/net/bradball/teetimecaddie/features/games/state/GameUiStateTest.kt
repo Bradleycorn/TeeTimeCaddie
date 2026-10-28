@@ -2,6 +2,7 @@ package net.bradball.teetimecaddie.features.games.state
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import net.bradball.teetimecaddie.core.models.AvatarTone
 import net.bradball.teetimecaddie.core.models.Course
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GameInvitee
@@ -67,8 +68,8 @@ class GameUiStateTest {
                 time = "9:00 AM",
                 filledCount = LocalizedText(GMR.strings.game_details_filled_count, listOf("2", "4")),
                 players = listOf(
-                    TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", status = TeeTimePlayerStatus.ORGANIZER),
-                    TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", status = TeeTimePlayerStatus.CONFIRMED),
+                    TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", tone = AvatarTone.SECONDARY, status = TeeTimePlayerStatus.ORGANIZER),
+                    TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", tone = AvatarTone.forName("Dana Park"), status = TeeTimePlayerStatus.CONFIRMED),
                 ),
                 openSlots = 2
             ),
@@ -84,10 +85,10 @@ class GameUiStateTest {
 
         assertEquals(
             listOf(
-                TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", status = TeeTimePlayerStatus.ORGANIZER),
-                TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", status = TeeTimePlayerStatus.CONFIRMED),
-                TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", status = TeeTimePlayerStatus.INVITED),
-                TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", status = TeeTimePlayerStatus.INVITED),
+                TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", tone = AvatarTone.SECONDARY, status = TeeTimePlayerStatus.ORGANIZER),
+                TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", tone = AvatarTone.forName("Dana Park"), status = TeeTimePlayerStatus.CONFIRMED),
+                TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", tone = AvatarTone.forName("matt Chen"), status = TeeTimePlayerStatus.INVITED),
+                TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", tone = AvatarTone.forName("Jeff Morrison"), status = TeeTimePlayerStatus.INVITED),
             ),
             teeTime.players
         )

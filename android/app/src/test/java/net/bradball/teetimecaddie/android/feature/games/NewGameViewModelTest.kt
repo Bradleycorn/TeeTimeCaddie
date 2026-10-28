@@ -17,6 +17,7 @@ import net.bradball.teetimecaddie.android.testing.RecordingEventManager
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
+import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GameErrors
@@ -89,6 +90,65 @@ class NewGameViewModelTest {
         viewModel.onSlotsChange(2)
 
         assertEquals(2, viewModel.uiState.value.slots)
+    }
+
+    // MARK: publishing
+
+    // MARK: invitees
+
+    private val matt = NewInvitee(name = "Matt Chen", phone = "(415) 555-0188")
+    private val jeff = NewInvitee(name = "Jeff Morrison", phone = "(415) 555-0142")
+
+    @Test
+    fun pickedInviteesReplaceTheList() {
+        viewModel.onInviteesPicked(listOf(matt, jeff))
+        viewModel.onInviteesPicked(listOf(jeff))
+
+        assertEquals(listOf(jeff), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun removingAnInviteeKeepsTheRestInOrder() {
+        viewModel.onInviteesPicked(listOf(matt, jeff, NewInvitee("Dana Park", "4155550117")))
+
+        viewModel.onRemoveInvitee(jeff)
+
+        assertEquals(listOf(matt, NewInvitee("Dana Park", "4155550117")), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun inviteesNeverAffectWhetherPublishIsEnabled() {
+        viewModel.onInviteesPicked(listOf(matt))
+        assertFalse(viewModel.uiState.value.canSubmit)
+
+        fillIn()
+        viewModel.onRemoveInvitee(matt)
+        assertTrue(viewModel.uiState.value.canSubmit)
+    }
+
+    @Test
+    fun publishClick_withInviteesPublishesThemWithoutAsking() = runTest {
+        val events = events()
+        fillIn()
+        viewModel.onInviteesPicked(listOf(matt, jeff))
+
+        viewModel.onPublishClick()
+
+        assertFalse(viewModel.uiState.value.showNoInviteeConfirm)
+        assertEquals(listOf(matt, jeff), repository.publishRequests.single().invitees)
+        assertEquals(listOf<NewGameEvent>(NewGameEvent.Published), events)
+    }
+
+    @Test
+    fun publishClick_asksAgainOnceEveryInviteeIsRemoved() {
+        fillIn()
+        viewModel.onInviteesPicked(listOf(matt))
+        viewModel.onRemoveInvitee(matt)
+
+        viewModel.onPublishClick()
+
+        assertTrue(viewModel.uiState.value.showNoInviteeConfirm)
+        assertTrue(repository.publishRequests.isEmpty())
     }
 
     // MARK: publishing

@@ -21,8 +21,11 @@ struct NewGameUiState: Equatable {
     var timeText: String?
     var slots: Int = NewGameUiState.maxSlots
 
-    /// Whether the "Publish with no invitees?" alert is up. Until invitees arrive (TTC-69) every
-    /// publish asks.
+    /// The people picked so far, in the order they were added. Never affects ``canSubmit``, and may
+    /// outnumber ``slots``.
+    var invitees: [NewGameInviteeRow] = []
+
+    /// Whether the "Publish with no invitees?" alert is up. Only a publish with no invitees asks.
     var showNoInviteeConfirm: Bool = false
     var isSubmitting: Bool = false
 
@@ -39,12 +42,30 @@ struct NewGameUiState: Equatable {
     }
 }
 
+/// One invitee on the New game form, ready to display. Swift-only, like the rest of
+/// ``NewGameUiState``; the ViewModel builds it from the SDK's `NewInvitee`, which does the
+/// formatting.
+struct NewGameInviteeRow: Equatable, Identifiable {
+    /// The invitee's name and number together, which is what tells two invitees apart.
+    let id: String
+    let name: String
+    let initial: String
+    let phone: String
+    let tone: TtcColorRole
+}
+
 /// The Swift twin of `NewGameViewModel.kt` — same state, same method names.
 @MainActor
 @Observable
 final class NewGameViewModel {
 
     private(set) var uiState = NewGameUiState()
+
+    /// The invitees as the SDK knows them, for publishing. ``NewGameUiState/invitees`` mirrors this
+    /// list row for row.
+    private var invitees: [NewInvitee] = [] {
+        didSet { uiState.invitees = invitees.map(\.row) }
+    }
 
     private let gamesRepository: GamesRepository
     private let currentPlayer: () -> Player?
@@ -82,10 +103,27 @@ final class NewGameViewModel {
         uiState.slots = slots
     }
 
-    /// Publish was tapped: ask first, since nobody has been invited.
-    func onPublishClick() {
+    /// The contacts picker closed with Done: `invitees` replaces the list, because the picker opens
+    /// with everyone already invited still checked, and unchecking someone removes them.
+    func onInviteesPicked(_ invitees: [NewInvitee]) {
+        self.invitees = invitees
+    }
+
+    /// An invitee's ✕ was tapped. They're removed at once, without asking.
+    func onRemoveInvitee(_ id: NewGameInviteeRow.ID) {
+        invitees.removeAll { $0.row.id == id }
+    }
+
+    /// Publish was tapped. With nobody invited, ask first; otherwise publish.
+    ///
+    /// - Parameter onPublished: Called once the game is saved, to leave the form.
+    func onPublishClick(onPublished: () -> Void) async {
         guard uiState.canSubmit else { return }
-        uiState.showNoInviteeConfirm = true
+        if invitees.isEmpty {
+            uiState.showNoInviteeConfirm = true
+        } else {
+            await publish(onPublished: onPublished)
+        }
     }
 
     /// "Keep editing": close the alert and leave the form exactly as it was.
@@ -105,7 +143,10 @@ final class NewGameViewModel {
     func onPublishAnyway(onPublished: () -> Void) async {
         eventManager.logEvent(event: AnalyticsEvent.NoInvites(response: .publishAnyway))
         uiState.showNoInviteeConfirm = false
+        await publish(onPublished: onPublished)
+    }
 
+    private func publish(onPublished: () -> Void) async {
         let state = uiState
         guard state.canSubmit,
               let organizer = currentPlayer(),
@@ -121,7 +162,7 @@ final class NewGameViewModel {
                 date: date.toLocalDate(),
                 time: time.toLocalTime(),
                 slots: Int32(state.slots),
-                invitees: []
+                invitees: invitees
             )
 
             switch onEnum(of: result) {
@@ -141,5 +182,17 @@ final class NewGameViewModel {
     private func report(_ error: any TeeTimeCaddieException) {
         toastPresenter.show(error.displayMessage.localized(args: error.messageArgs))
         uiState.isSubmitting = false
+    }
+}
+
+private extension NewInvitee {
+    var row: NewGameInviteeRow {
+        NewGameInviteeRow(
+            id: "\(name)|\(phone)",
+            name: name,
+            initial: initial,
+            phone: formattedPhone,
+            tone: TtcColorRole(avatarTone)
+        )
     }
 }
