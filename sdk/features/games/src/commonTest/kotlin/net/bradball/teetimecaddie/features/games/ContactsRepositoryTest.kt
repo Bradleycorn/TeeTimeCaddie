@@ -202,7 +202,7 @@ class ContactsRepositoryTest {
     }
 
     @Test
-    fun addingPickedContactsLogsTheDoneTapAndHowManyWereAdded() = runTest {
+    fun addingPickedContactsLogsHowManyWerePickedAndAdded() = runTest {
         deviceContacts = listOf(
             contact("c1", "Jeff Morrison", "(415) 555-0142" to "mobile"),
             contact("c2", "Matt Chen", "4155550188" to "mobile"),
@@ -211,17 +211,11 @@ class ContactsRepositoryTest {
 
         repository.addPickedContacts(listOf(matt.toNewInvitee()))
 
-        assertEquals(
-            listOf(
-                AnalyticsEvent.ContactPickerDone(contactCount = 3),
-                AnalyticsEvent.AddInvitees(pickedCount = 3, addedCount = 1)
-            ),
-            events
-        )
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddInvitees(pickedCount = 3, addedCount = 1)), events)
     }
 
     @Test
-    fun aFailedReadOfPickedContactsIsReportedAndLogsNoEvents() = runTest {
+    fun aFailedReadOfPickedContactsIsReportedAndLogsNothing() = runTest {
         readFailure = IllegalStateException("grant expired")
 
         val result = assertIs<TtcResult.Failure>(repository.addPickedContacts(emptyList()))

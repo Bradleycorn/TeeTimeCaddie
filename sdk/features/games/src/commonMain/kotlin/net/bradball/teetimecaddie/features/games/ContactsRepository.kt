@@ -41,9 +41,9 @@ interface ContactsRepository {
      * The contacts are read as in [invitableContacts], then added as in [pickInvitees]: at the end,
      * sorted by name among themselves, leaving out anyone already invited.
      *
-     * Logs [AnalyticsEvent.ContactPickerDone] with how many contacts were picked, which is known
-     * only once they're read (Android's picker returns just a URI), then [AnalyticsEvent.AddInvitees]
-     * with how many of them were added. A failed read logs neither.
+     * Logs [AnalyticsEvent.AddInvitees] with how many contacts were picked, which is known only
+     * once they're read (Android's picker returns just a URI), and how many of them were added. A
+     * failed read logs nothing.
      *
      * @return The new invitee list, or [GameErrors.CONTACTS_LOAD_FAILED] when the reader fails.
      */
@@ -94,7 +94,6 @@ class ContactsRepositoryImpl(
             is TtcResult.Success -> result.data
             is TtcResult.Failure -> return result
         }
-        eventManager.logEvent(AnalyticsEvent.ContactPickerDone(contactCount = picked.size))
         val contacts = picked.toInvitableContacts()
         val updated = pickInvitees(invitees, contacts, contacts.map { it.id })
         eventManager.logEvent(
