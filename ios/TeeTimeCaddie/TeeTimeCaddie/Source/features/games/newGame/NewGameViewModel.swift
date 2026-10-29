@@ -120,6 +120,7 @@ final class NewGameViewModel {
     /// - Parameter pickContacts: Opens the picker, which hands what's picked to
     ///   ``onContactsPicked(_:)``.
     func onAddFromContactsClick(pickContacts: () -> Void) {
+        eventManager.logEvent(event: AnalyticsEvent.AddFromContactsClick.shared)
         pickContacts()
     }
 
@@ -129,15 +130,10 @@ final class NewGameViewModel {
     func onContactsPicked(_ picked: any DeviceContactsReader) async {
         let repository = contactsRepositoryFactory(picked)
         do {
-            let result = try await repository.invitableContacts()
+            let result = try await repository.addPickedContacts(invitees: invitees)
             switch onEnum(of: result) {
             case .success(let success):
-                let contacts = success.data as? [InvitableContact] ?? []
-                invitees = repository.pickInvitees(
-                    invitees: invitees,
-                    contacts: contacts,
-                    checkedIds: contacts.map(\.id)
-                )
+                invitees = success.data as? [NewInvitee] ?? invitees
             case .failure(let failure):
                 show(failure.error)
             }
@@ -148,6 +144,7 @@ final class NewGameViewModel {
 
     /// An invitee's ✕ was tapped. They're removed at once, without asking.
     func onRemoveInvitee(_ id: NewGameInviteeRow.ID) {
+        eventManager.logEvent(event: AnalyticsEvent.RemoveInviteeClick.shared)
         invitees.removeAll { $0.row.id == id }
     }
 

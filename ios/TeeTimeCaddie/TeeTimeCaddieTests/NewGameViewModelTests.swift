@@ -303,6 +303,34 @@ final class NewGameViewModelTests: XCTestCase {
         XCTAssertEqual(analytics.events, [AnalyticsEvent.PlayerSlotsClick(playerCount: 3)])
     }
 
+    func testAddFromContactsIsLogged() {
+        viewModel.onAddFromContactsClick(pickContacts: {})
+
+        XCTAssertEqual(analytics.events, [AnalyticsEvent.AddFromContactsClick.shared])
+    }
+
+    func testAPickLogsTheDoneTapAndHowManyWereAdded() async {
+        await invite(matt)
+
+        await pick(
+            DeviceContact(id: "c1", name: "Matt Chen", phones: [DevicePhone(number: "4155550188", label: "Mobile", isMobile: true)]),
+            DeviceContact(id: "c2", name: "Jeff Morrison", phones: [DevicePhone(number: "(415) 555-0142", label: "Mobile", isMobile: true)])
+        )
+
+        XCTAssertEqual(Array(analytics.events.suffix(2)), [
+            AnalyticsEvent.ContactPickerDone(contactCount: 2),
+            AnalyticsEvent.AddInvitees(pickedCount: 2, addedCount: 1),
+        ])
+    }
+
+    func testRemovingAnInviteeIsLogged() async {
+        await invite(matt)
+
+        viewModel.onRemoveInvitee(viewModel.uiState.invitees[0].id)
+
+        XCTAssertEqual(analytics.events.last, AnalyticsEvent.RemoveInviteeClick.shared)
+    }
+
     func testAlertButtonsLogTheResponse() async {
         fillIn()
         await viewModel.onPublishClick(onPublished: {})
