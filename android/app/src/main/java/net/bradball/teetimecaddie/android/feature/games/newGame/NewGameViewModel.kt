@@ -17,6 +17,7 @@ import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.feature.games.contacts.ContactsRepositoryFactory
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent.ContactPickerDismiss.Selection
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
@@ -64,7 +65,7 @@ sealed interface NewGameEvent {
     /** The game is published; leave the form. */
     data object Published : NewGameEvent
 
-    /** Open the system contact picker, and hand what's picked to `onContactsPicked`. */
+    /** Open the system contact picker, and report how it closed to `onContactPickerDismissed`. */
     data object PickContacts : NewGameEvent
 }
 
@@ -117,11 +118,15 @@ class NewGameViewModel @Inject constructor(
     }
 
     /**
-     * The system picker returned contacts, which [picked] reads. They join the end of the list,
-     * sorted by name among themselves; anyone already invited at that number isn't added twice.
-     * The picker can't show who's already invited, so it only ever adds; the ✕ on a row removes.
+     * The system picker closed. [picked] reads the contacts it returned, or is null when nothing was
+     * picked. Picked contacts join the end of the list, sorted by name among themselves; anyone
+     * already invited at that number isn't added twice. The picker can't show who's already
+     * invited, so it only ever adds; the ✕ on a row removes.
      */
-    fun onContactsPicked(picked: DeviceContactsReader) {
+    fun onContactPickerDismissed(picked: DeviceContactsReader?) {
+        val selection = if (picked == null) Selection.NONE else Selection.SOME
+        eventManager.logEvent(AnalyticsEvent.ContactPickerDismiss(selection))
+        if (picked == null) return
         viewModelScope.launch {
             val repository = contactsRepositoryFactory.create(picked)
             when (val result = repository.addPickedContacts(_uiState.value.invitees)) {

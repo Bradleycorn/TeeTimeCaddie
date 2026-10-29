@@ -73,7 +73,7 @@ fun NewGameScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val pickContacts = rememberLauncherForActivityResult(PickContacts()) { uri ->
-        if (uri != null) viewModel.onContactsPicked(PickedContactsReader(context.applicationContext, uri))
+        viewModel.onContactPickerDismissed(uri?.let { PickedContactsReader(context.applicationContext, it) })
     }
 
     LaunchedEffect(viewModel) {

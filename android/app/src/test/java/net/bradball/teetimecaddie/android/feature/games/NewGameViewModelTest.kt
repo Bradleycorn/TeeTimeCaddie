@@ -15,6 +15,7 @@ import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
 import net.bradball.teetimecaddie.android.testing.RecordingEventManager
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent.ContactPickerDismiss.Selection
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.NewInvitee
@@ -56,7 +57,7 @@ class NewGameViewModelTest {
 
     /** The system picker returned [contacts]. */
     private fun pick(vararg contacts: DeviceContact) {
-        viewModel.onContactsPicked(object : DeviceContactsReader {
+        viewModel.onContactPickerDismissed(object : DeviceContactsReader {
             override suspend fun readContacts(): List<DeviceContact> = contacts.toList()
         })
     }
@@ -191,7 +192,7 @@ class NewGameViewModelTest {
         val messages = messages()
         invite(matt)
 
-        viewModel.onContactsPicked(object : DeviceContactsReader {
+        viewModel.onContactPickerDismissed(object : DeviceContactsReader {
             override suspend fun readContacts(): List<DeviceContact> = throw SecurityException("grant expired")
         })
 
@@ -379,7 +380,7 @@ class NewGameViewModelTest {
     }
 
     @Test
-    fun aPickLogsTheDoneTapAndHowManyWereAdded() {
+    fun aPickLogsTheDismissWithASelectionAndHowManyWereAdded() {
         invite(matt)
         analytics.events.clear()
 
@@ -390,11 +391,22 @@ class NewGameViewModelTest {
 
         assertEquals(
             listOf(
-                AnalyticsEvent.ContactPickerDone(contactCount = 2),
+                AnalyticsEvent.ContactPickerDismiss(Selection.SOME),
                 AnalyticsEvent.AddInvitees(pickedCount = 2, addedCount = 1),
             ),
             analytics.events
         )
+    }
+
+    @Test
+    fun closingThePickerWithNothingPickedLogsADismissWithNoSelection() {
+        invite(matt)
+        analytics.events.clear()
+
+        viewModel.onContactPickerDismissed(null)
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.ContactPickerDismiss(Selection.NONE)), analytics.events)
+        assertEquals(listOf(matt), viewModel.uiState.value.invitees)
     }
 
     @Test
