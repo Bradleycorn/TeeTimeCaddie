@@ -112,6 +112,7 @@ class NewGameViewModel @Inject constructor(
 
     /** "Add from contacts" was tapped: the system contact picker opens. No permission is needed. */
     fun onAddFromContactsClick() {
+        eventManager.logEvent(AnalyticsEvent.AddFromContactsClick)
         viewModelScope.launch { _events.send(NewGameEvent.PickContacts) }
     }
 
@@ -123,12 +124,8 @@ class NewGameViewModel @Inject constructor(
     fun onContactsPicked(picked: DeviceContactsReader) {
         viewModelScope.launch {
             val repository = contactsRepositoryFactory.create(picked)
-            when (val result = repository.invitableContacts()) {
-                is TtcResult.Success -> _uiState.update { state ->
-                    val contacts = result.data
-                    state.copy(invitees = repository.pickInvitees(state.invitees, contacts, contacts.map { it.id }))
-                }
-
+            when (val result = repository.addPickedContacts(_uiState.value.invitees)) {
+                is TtcResult.Success -> _uiState.update { it.copy(invitees = result.data) }
                 is TtcResult.Failure -> messenger.show(result.error)
             }
         }
@@ -136,6 +133,7 @@ class NewGameViewModel @Inject constructor(
 
     /** An invitee's ✕ was tapped. They're removed at once, without asking. */
     fun onRemoveInvitee(invitee: NewInvitee) {
+        eventManager.logEvent(AnalyticsEvent.RemoveInviteeClick)
         _uiState.update { it.copy(invitees = it.invitees - invitee) }
     }
 

@@ -372,6 +372,42 @@ class NewGameViewModelTest {
     }
 
     @Test
+    fun addFromContactsIsLogged() {
+        viewModel.onAddFromContactsClick()
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddFromContactsClick), analytics.events)
+    }
+
+    @Test
+    fun aPickLogsTheDoneTapAndHowManyWereAdded() {
+        invite(matt)
+        analytics.events.clear()
+
+        pick(
+            DeviceContact("c1", "Matt Chen", listOf(DevicePhone("4155550188", "Mobile", isMobile = true))),
+            DeviceContact("c2", "Jeff Morrison", listOf(DevicePhone("(415) 555-0142", "Mobile", isMobile = true))),
+        )
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.ContactPickerDone(contactCount = 2),
+                AnalyticsEvent.AddInvitees(pickedCount = 2, addedCount = 1),
+            ),
+            analytics.events
+        )
+    }
+
+    @Test
+    fun removingAnInviteeIsLogged() {
+        invite(matt)
+        analytics.events.clear()
+
+        viewModel.onRemoveInvitee(matt)
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.RemoveInviteeClick), analytics.events)
+    }
+
+    @Test
     fun alertButtonsLogTheResponse() = runTest {
         fillIn()
         viewModel.onPublishClick()
