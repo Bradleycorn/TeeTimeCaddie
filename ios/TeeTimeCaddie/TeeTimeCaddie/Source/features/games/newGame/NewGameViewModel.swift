@@ -76,17 +76,21 @@ final class NewGameViewModel {
     }
 
     private let gamesRepository: GamesRepository
+    private let contactsRepositoryFactory: (any DeviceContactsReader) -> any ContactsRepository
     private let currentPlayer: () -> Player?
     private let toastPresenter: TtcToastPresenter
     private let eventManager: EventManager
 
     init(
         gamesRepository: GamesRepository = GamesModule.shared.gamesRepository(),
+        contactsRepositoryFactory: @escaping (any DeviceContactsReader) -> any ContactsRepository =
+            GamesModule.shared.contactsRepositoryFactory(),
         currentPlayer: @escaping () -> Player? = GamesModule.shared.currentPlayer(),
         toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter(),
         eventManager: EventManager = AppModule.shared.eventManager()
     ) {
         self.gamesRepository = gamesRepository
+        self.contactsRepositoryFactory = contactsRepositoryFactory
         self.currentPlayer = currentPlayer
         self.toastPresenter = toastPresenter
         self.eventManager = eventManager
@@ -111,10 +115,35 @@ final class NewGameViewModel {
         uiState.slots = slots
     }
 
-    /// The contacts picker closed with Done: `invitees` replaces the list, because the picker opens
-    /// with everyone already invited still checked, and unchecking someone removes them.
-    func onInviteesPicked(_ invitees: [NewInvitee]) {
-        self.invitees = invitees
+    /// "Add from contacts" was tapped: the system contact picker opens. No permission is needed.
+    ///
+    /// - Parameter pickContacts: Opens the picker, which hands what's picked to
+    ///   ``onContactsPicked(_:)``.
+    func onAddFromContactsClick(pickContacts: () -> Void) {
+        pickContacts()
+    }
+
+    /// The system picker returned contacts, which `picked` reads. They join the end of the list,
+    /// sorted by name among themselves; anyone already invited at that number isn't added twice.
+    /// The picker can't show who's already invited, so it only ever adds; the ✕ on a row removes.
+    func onContactsPicked(_ picked: any DeviceContactsReader) async {
+        let repository = contactsRepositoryFactory(picked)
+        do {
+            let result = try await repository.invitableContacts()
+            switch onEnum(of: result) {
+            case .success(let success):
+                let contacts = success.data as? [InvitableContact] ?? []
+                invitees = repository.pickInvitees(
+                    invitees: invitees,
+                    contacts: contacts,
+                    checkedIds: contacts.map(\.id)
+                )
+            case .failure(let failure):
+                show(failure.error)
+            }
+        } catch {
+            show(error.asTeeTimeCaddieException())
+        }
     }
 
     /// An invitee's ✕ was tapped. They're removed at once, without asking.
@@ -188,8 +217,12 @@ final class NewGameViewModel {
     }
 
     private func report(_ error: any TeeTimeCaddieException) {
-        toastPresenter.show(error.displayMessage.localized(args: error.messageArgs))
+        show(error)
         uiState.isSubmitting = false
+    }
+
+    private func show(_ error: any TeeTimeCaddieException) {
+        toastPresenter.show(error.displayMessage.localized(args: error.messageArgs))
     }
 }
 

@@ -12,6 +12,7 @@ struct NewGameScreen: View {
     private let onPublished: () -> Void
 
     @State private var viewModel = NewGameViewModel()
+    @State private var showContactPicker = false
 
     init(onPublished: @escaping () -> Void) {
         self.onPublished = onPublished
@@ -25,8 +26,9 @@ struct NewGameScreen: View {
                 onDateSelected: viewModel.onDateSelected,
                 onTimeSelected: viewModel.onTimeSelected,
                 onSlotsChange: viewModel.onSlotsChange,
-                // TODO(TTC-101): open the contacts flow.
-                onAddFromContactsClick: {},
+                onAddFromContactsClick: {
+                    viewModel.onAddFromContactsClick(pickContacts: { showContactPicker = true })
+                },
                 onRemoveInvitee: viewModel.onRemoveInvitee,
                 onPublishClick: {
                     Task { await viewModel.onPublishClick(onPublished: onPublished) }
@@ -35,6 +37,13 @@ struct NewGameScreen: View {
                 onDismissNoInviteeConfirm: viewModel.onDismissNoInviteeConfirm,
                 onPublishAnyway: {
                     Task { await viewModel.onPublishAnyway(onPublished: onPublished) }
+                }
+            )
+            .contactPicker(
+                isPresented: $showContactPicker,
+                onPicked: { picked in
+                    let reader = PickedContactsReader(picked)
+                    Task { await viewModel.onContactsPicked(reader) }
                 }
             )
         }
