@@ -49,7 +49,7 @@ final class NewGameViewModelTests: XCTestCase {
 
     /// The system picker returned `contacts`.
     private func pick(_ contacts: DeviceContact...) async {
-        await viewModel.onContactsPicked(FakeContactsReader(contacts: contacts))
+        await viewModel.onContactPickerDismissed(FakeContactsReader(contacts: contacts))
     }
 
     /// Pick each of `invitees` from the system picker, one pick at a time, in that order.
@@ -136,7 +136,7 @@ final class NewGameViewModelTests: XCTestCase {
     func testAFailedReadSaysSoAndLeavesTheList() async {
         await invite(matt)
 
-        await viewModel.onContactsPicked(FakeContactsReader(error: FakeContactsReader.ReadError()))
+        await viewModel.onContactPickerDismissed(FakeContactsReader(error: FakeContactsReader.ReadError()))
 
         XCTAssertEqual(inviteeNames, ["Matt Chen"])
         XCTAssertEqual(toastPresenter.message, GameErrors.contactsLoadFailed.message.localized())
@@ -309,7 +309,7 @@ final class NewGameViewModelTests: XCTestCase {
         XCTAssertEqual(analytics.events, [AnalyticsEvent.AddFromContactsClick.shared])
     }
 
-    func testAPickLogsTheDoneTapAndHowManyWereAdded() async {
+    func testAPickLogsTheDismissWithASelectionAndHowManyWereAdded() async {
         await invite(matt)
 
         await pick(
@@ -318,9 +318,19 @@ final class NewGameViewModelTests: XCTestCase {
         )
 
         XCTAssertEqual(Array(analytics.events.suffix(2)), [
-            AnalyticsEvent.ContactPickerDone(contactCount: 2),
+            AnalyticsEvent.ContactPickerDismiss(selection: .some),
             AnalyticsEvent.AddInvitees(pickedCount: 2, addedCount: 1),
         ])
+    }
+
+    func testClosingThePickerWithNothingPickedLogsADismissWithNoSelection() async {
+        await invite(matt)
+        let before = analytics.events.count
+
+        await viewModel.onContactPickerDismissed(nil)
+
+        XCTAssertEqual(Array(analytics.events.dropFirst(before)), [AnalyticsEvent.ContactPickerDismiss(selection: .none)])
+        XCTAssertEqual(viewModel.uiState.invitees.map(\.name), ["Matt Chen"])
     }
 
     func testRemovingAnInviteeIsLogged() async {

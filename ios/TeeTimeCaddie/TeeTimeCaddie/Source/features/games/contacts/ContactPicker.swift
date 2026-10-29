@@ -16,13 +16,13 @@ extension View {
     /// picker runs outside the app and hands back just the contacts checked. Read them with
     /// ``PickedContactsReader``.
     ///
-    /// - Parameter onPicked: Called with the checked contacts when the organizer taps Done. Not
-    ///   called when they cancel.
+    /// - Parameter onDismiss: Called when the picker closes, with the checked contacts when the
+    ///   organizer taps Done, or none when they cancel.
     func contactPicker(
         isPresented: Binding<Bool>,
-        onPicked: @escaping ([CNContact]) -> Void
+        onDismiss: @escaping ([CNContact]) -> Void
     ) -> some View {
-        background(ContactPickerPresenter(isPresented: isPresented, onPicked: onPicked))
+        background(ContactPickerPresenter(isPresented: isPresented, onDismiss: onDismiss))
     }
 }
 
@@ -30,7 +30,7 @@ extension View {
 /// itself when it's done, which would leave an empty sheet behind.
 private struct ContactPickerPresenter: UIViewControllerRepresentable {
     @Binding var isPresented: Bool
-    let onPicked: ([CNContact]) -> Void
+    let onDismiss: ([CNContact]) -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -64,11 +64,12 @@ private struct ContactPickerPresenter: UIViewControllerRepresentable {
         // contact.
         func contactPicker(_ picker: CNContactPickerViewController, didSelect contacts: [CNContact]) {
             presenter.isPresented = false
-            presenter.onPicked(contacts)
+            presenter.onDismiss(contacts)
         }
 
         func contactPickerDidCancel(_ picker: CNContactPickerViewController) {
             presenter.isPresented = false
+            presenter.onDismiss([])
         }
     }
 }

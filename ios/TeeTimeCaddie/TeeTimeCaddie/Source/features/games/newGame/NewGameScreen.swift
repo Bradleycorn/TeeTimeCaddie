@@ -41,9 +41,9 @@ struct NewGameScreen: View {
             )
             .contactPicker(
                 isPresented: $showContactPicker,
-                onPicked: { picked in
-                    let reader = PickedContactsReader(picked)
-                    Task { await viewModel.onContactsPicked(reader) }
+                onDismiss: { picked in
+                    let reader = picked.isEmpty ? nil : PickedContactsReader(picked)
+                    Task { await viewModel.onContactPickerDismissed(reader) }
                 }
             )
         }

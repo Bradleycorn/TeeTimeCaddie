@@ -117,17 +117,20 @@ final class NewGameViewModel {
 
     /// "Add from contacts" was tapped: the system contact picker opens. No permission is needed.
     ///
-    /// - Parameter pickContacts: Opens the picker, which hands what's picked to
-    ///   ``onContactsPicked(_:)``.
+    /// - Parameter pickContacts: Opens the picker, which reports how it closed to
+    ///   ``onContactPickerDismissed(_:)``.
     func onAddFromContactsClick(pickContacts: () -> Void) {
         eventManager.logEvent(event: AnalyticsEvent.AddFromContactsClick.shared)
         pickContacts()
     }
 
-    /// The system picker returned contacts, which `picked` reads. They join the end of the list,
-    /// sorted by name among themselves; anyone already invited at that number isn't added twice.
-    /// The picker can't show who's already invited, so it only ever adds; the ✕ on a row removes.
-    func onContactsPicked(_ picked: any DeviceContactsReader) async {
+    /// The system picker closed. `picked` reads the contacts it returned, or is nil when nothing was
+    /// picked. Picked contacts join the end of the list, sorted by name among themselves; anyone
+    /// already invited at that number isn't added twice. The picker can't show who's already
+    /// invited, so it only ever adds; the ✕ on a row removes.
+    func onContactPickerDismissed(_ picked: (any DeviceContactsReader)?) async {
+        eventManager.logEvent(event: AnalyticsEvent.ContactPickerDismiss(selection: picked == nil ? .none : .some))
+        guard let picked else { return }
         let repository = contactsRepositoryFactory(picked)
         do {
             let result = try await repository.addPickedContacts(invitees: invitees)
