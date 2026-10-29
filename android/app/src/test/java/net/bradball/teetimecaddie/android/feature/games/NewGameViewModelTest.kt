@@ -15,9 +15,15 @@ import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
 import net.bradball.teetimecaddie.android.testing.RecordingEventManager
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent.ContactPickerDismiss.Selection
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
+import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.previewPlayer
+import net.bradball.teetimecaddie.features.games.ContactsRepositoryImpl
+import net.bradball.teetimecaddie.features.games.DeviceContact
+import net.bradball.teetimecaddie.features.games.DeviceContactsReader
+import net.bradball.teetimecaddie.features.games.DevicePhone
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GameErrors
 import net.bradball.teetimecaddie.session.SessionState
@@ -40,7 +46,26 @@ class NewGameViewModelTest {
     private val messenger = TtcMessenger()
     private val analytics = RecordingEventManager()
 
-    private val viewModel = NewGameViewModel(session, repository, messenger, analytics.eventManager)
+    // The real SDK repository, over whatever reader the system picker's result is wrapped in.
+    private val viewModel = NewGameViewModel(
+        session,
+        repository,
+        { reader -> ContactsRepositoryImpl(analytics.eventManager, reader) },
+        messenger,
+        analytics.eventManager,
+    )
+
+    /** The system picker returned [contacts]. */
+    private fun pick(vararg contacts: DeviceContact) {
+        viewModel.onContactPickerDismissed(object : DeviceContactsReader {
+            override suspend fun readContacts(): List<DeviceContact> = contacts.toList()
+        })
+    }
+
+    /** Pick each of [invitees] from the system picker, one pick at a time, in that order. */
+    private fun invite(vararg invitees: NewInvitee) {
+        invitees.forEach { pick(DeviceContact(it.name, it.name, listOf(DevicePhone(it.phone, "mobile")))) }
+    }
 
     private fun fillIn(course: String = "Pebble Beach") {
         viewModel.onCourseChange(course)
@@ -89,6 +114,145 @@ class NewGameViewModelTest {
         viewModel.onSlotsChange(2)
 
         assertEquals(2, viewModel.uiState.value.slots)
+    }
+
+    // MARK: publishing
+
+    // MARK: invitees
+
+    private val matt = NewInvitee(name = "Matt Chen", phone = "(415) 555-0188")
+    private val jeff = NewInvitee(name = "Jeff Morrison", phone = "(415) 555-0142")
+
+    @Test
+    fun addFromContactsOpensTheSystemPicker() = runTest {
+        val events = events()
+
+        viewModel.onAddFromContactsClick()
+
+        assertEquals(listOf<NewGameEvent>(NewGameEvent.PickContacts), events)
+    }
+
+    @Test
+    fun pickedContactsJoinTheEndOfTheListInTheOrderPicked() {
+        invite(matt)
+        invite(jeff, NewInvitee("Dana Park", "415.555.0117"))
+
+        assertEquals(listOf(matt, jeff, NewInvitee("Dana Park", "415.555.0117")), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun peoplePickedTogetherJoinSortedByName() {
+        invite(matt)
+
+        pick(
+            DeviceContact("c2", "Jeff Morrison", listOf(DevicePhone("(415) 555-0142", "Mobile"))),
+            DeviceContact("c3", "Dana Park", listOf(DevicePhone("415.555.0117", "Home"))),
+        )
+
+        assertEquals(
+            listOf(matt, NewInvitee("Dana Park", "415.555.0117"), jeff),
+            viewModel.uiState.value.invitees
+        )
+    }
+
+    @Test
+    fun pickingSomeoneAlreadyInvitedDoesNotAddThemTwice() {
+        invite(matt)
+
+        invite(NewInvitee("Matt Chen", "+1 415 555 0188"), jeff)
+
+        assertEquals(listOf(matt, jeff), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun aPickedContactIsInvitedOnceAtItsMobileNumber() {
+        pick(
+            DeviceContact(
+                "c1",
+                "Jeff Morrison",
+                listOf(DevicePhone("502-555-0199", "Work"), DevicePhone("(415) 555-0142", "Mobile", isMobile = true))
+            )
+        )
+
+        assertEquals(listOf(NewInvitee("Jeff Morrison", "(415) 555-0142")), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun pickedNumbersAGameCantBePublishedWithAreLeftOut() {
+        pick(
+            DeviceContact("c1", "Pizza Place", listOf(DevicePhone("611", "Other"))),
+            DeviceContact("c2", "  ", listOf(DevicePhone("4155550101", "Mobile"))),
+        )
+
+        assertTrue(viewModel.uiState.value.invitees.isEmpty())
+    }
+
+    @Test
+    fun aFailedReadSaysSoAndLeavesTheList() = runTest {
+        val messages = messages()
+        invite(matt)
+
+        viewModel.onContactPickerDismissed(object : DeviceContactsReader {
+            override suspend fun readContacts(): List<DeviceContact> = throw SecurityException("grant expired")
+        })
+
+        assertEquals(listOf(matt), viewModel.uiState.value.invitees)
+        assertEquals(listOf(TtcMessage(GameErrors.CONTACTS_LOAD_FAILED.message)), messages)
+    }
+
+    @Test
+    fun removingAnInviteeKeepsTheRestInOrder() {
+        invite(matt, jeff, NewInvitee("Dana Park", "4155550117"))
+
+        viewModel.onRemoveInvitee(jeff)
+
+        assertEquals(listOf(matt, NewInvitee("Dana Park", "4155550117")), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun addFromContactsLabel_readsAddMoreOnceAnyoneIsAdded() {
+        assertEquals(GMR.strings.new_game_add_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+
+        invite(matt)
+        assertEquals(GMR.strings.new_game_add_more_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+
+        viewModel.onRemoveInvitee(matt)
+        assertEquals(GMR.strings.new_game_add_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+    }
+
+    @Test
+    fun inviteesNeverAffectWhetherPublishIsEnabled() {
+        invite(matt)
+        assertFalse(viewModel.uiState.value.canSubmit)
+
+        fillIn()
+        viewModel.onRemoveInvitee(matt)
+        assertTrue(viewModel.uiState.value.canSubmit)
+    }
+
+    @Test
+    fun publishClick_withInviteesPublishesThemWithoutAsking() = runTest {
+        val events = events()
+        fillIn()
+        invite(matt, jeff)
+
+        viewModel.onPublishClick()
+
+        assertFalse(viewModel.uiState.value.showNoInviteeConfirm)
+        assertEquals(listOf(matt, jeff), repository.publishRequests.single().invitees)
+        assertEquals(listOf<NewGameEvent>(NewGameEvent.Published), events)
+    }
+
+    @Test
+    fun publishClick_asksAgainOnceEveryInviteeIsRemoved() {
+        fillIn()
+        invite(matt)
+        viewModel.onRemoveInvitee(matt)
+
+        viewModel.onPublishClick()
+
+        assertTrue(viewModel.uiState.value.showNoInviteeConfirm)
+        assertTrue(repository.publishRequests.isEmpty())
     }
 
     // MARK: publishing
@@ -206,6 +370,53 @@ class NewGameViewModelTest {
         viewModel.onCancel()
 
         assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.NewGameCancel), analytics.events)
+    }
+
+    @Test
+    fun addFromContactsIsLogged() {
+        viewModel.onAddFromContactsClick()
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddFromContactsClick), analytics.events)
+    }
+
+    @Test
+    fun aPickLogsTheDismissWithASelectionAndHowManyWereAdded() {
+        invite(matt)
+        analytics.events.clear()
+
+        pick(
+            DeviceContact("c1", "Matt Chen", listOf(DevicePhone("4155550188", "Mobile", isMobile = true))),
+            DeviceContact("c2", "Jeff Morrison", listOf(DevicePhone("(415) 555-0142", "Mobile", isMobile = true))),
+        )
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.ContactPickerDismiss(Selection.SOME),
+                AnalyticsEvent.AddInvitees(pickedCount = 2, addedCount = 1),
+            ),
+            analytics.events
+        )
+    }
+
+    @Test
+    fun closingThePickerWithNothingPickedLogsADismissWithNoSelection() {
+        invite(matt)
+        analytics.events.clear()
+
+        viewModel.onContactPickerDismissed(null)
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.ContactPickerDismiss(Selection.NONE)), analytics.events)
+        assertEquals(listOf(matt), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun removingAnInviteeIsLogged() {
+        invite(matt)
+        analytics.events.clear()
+
+        viewModel.onRemoveInvitee(matt)
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.RemoveInviteeClick), analytics.events)
     }
 
     @Test

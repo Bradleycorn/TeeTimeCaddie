@@ -54,7 +54,7 @@ any status. Transition by id, not by matching names.
 
 Standard Gradle tasks (`build`, `test`, `allTests`, `lint`, `:android:app:assembleDebug`, ...) work as usual.
 
-iOS app — use any available iPhone simulator with iOS 17.0+ (`xcrun simctl list devices available`):
+iOS app — use any available iPhone simulator with iOS 18.0+ (`xcrun simctl list devices available`):
 ```bash
 xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeTimeCaddie \
   -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16'

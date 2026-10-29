@@ -45,6 +45,8 @@ class GameExtensionsTest {
         date = LocalDate(2026, 6, 13),
         teeTimes = teeTimes.toList(),
         playerIds = listOf("brad"),
+        invitees = emptyList(),
+        invitedPhones = emptyList(),
         createdAt = null
     ).also { it.id = "game-1" }
 

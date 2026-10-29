@@ -13,7 +13,13 @@ import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.EventPlugin
 import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
+import net.bradball.teetimecaddie.core.models.GameInvitee
+import net.bradball.teetimecaddie.core.models.InviteStatus
+import net.bradball.teetimecaddie.core.models.NewInvitee
+import net.bradball.teetimecaddie.core.models.Player
+import net.bradball.teetimecaddie.core.models.TtcLookup
 import net.bradball.teetimecaddie.core.models.TtcResult
+import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,11 +43,22 @@ class GamesRepositoryTest {
         })
     }
 
-    private fun repository(storage: FakeGameStorage) =
-        GamesRepositoryImpl(eventManager, storage)
+    // Players by their digits-only phone number, for the fake lookup.
+    private val playersByPhone = mutableMapOf<String, Player>()
+    private val lookedUpPhones = mutableListOf<String>()
+    private var lookupFailure: TeeTimeCaddieException? = null
 
-    private suspend fun GamesRepositoryImpl.publish(course: String = "Pebble Beach", slots: Int = 4) =
-        publishGame(organizer, course, gameDate, teeTime, slots)
+    private fun repository(storage: FakeGameStorage) =
+        GamesRepositoryImpl(eventManager, storage) { phone ->
+            lookedUpPhones += phone
+            lookupFailure?.let { TtcLookup.Failure(it) } ?: TtcLookup.Success(playersByPhone[phone])
+        }
+
+    private suspend fun GamesRepositoryImpl.publish(
+        course: String = "Pebble Beach",
+        slots: Int = 4,
+        invitees: List<NewInvitee> = emptyList()
+    ) = publishGame(organizer, course, gameDate, teeTime, slots, invitees)
 
     private fun TtcResult<Game>.game(): Game = assertIs<TtcResult.Success<Game>>(this).data
 
@@ -164,6 +181,107 @@ class GamesRepositoryTest {
 
         assertEquals(GameErrors.PUBLISH_FAILED, result.error())
         assertTrue(events.isEmpty())
+    }
+
+    // MARK: invitees
+
+    @Test
+    fun publishGame_recordsAMatchedNumberAsAnAppUserAndTheRestAsManaged() = runTest {
+        val jeff = previewPlayer.copy(id = "jeff-uid", name = "Jeff Morrison", phone = "4155550142")
+        playersByPhone[jeff.phone] = jeff
+        val storage = FakeGameStorage()
+
+        val game = repository(storage).publish(
+            invitees = listOf(
+                NewInvitee("Jeff Morrison", "+1 (415) 555-0142"),
+                NewInvitee("Matt Chen", "415.555.0188")
+            )
+        ).game()
+
+        assertEquals(
+            listOf(
+                GameInvitee("Jeff Morrison", "4155550142", "jeff-uid", InviteStatus.PENDING),
+                GameInvitee("Matt Chen", "4155550188", null, InviteStatus.PENDING)
+            ),
+            game.invitees
+        )
+        val written = storage.writtenGames.single()
+        assertEquals(listOf("4155550142", "4155550188"), written.invitedPhones)
+        // Invitees don't hold slots until they say yes.
+        assertEquals(listOf(organizer.id), written.playerIds)
+        assertEquals(1, game.teeTimes.single().filled)
+    }
+
+    @Test
+    fun publishGame_allowsMoreInviteesThanSlots() = runTest {
+        val invitees = (0..4).map { NewInvitee("Player $it", "415555010$it") }
+
+        val game = repository(FakeGameStorage()).publish(slots = 2, invitees = invitees).game()
+
+        assertEquals(5, game.invitees.size)
+    }
+
+    @Test
+    fun publishGame_invitesARepeatedNumberOnceUnderTheFirstName() = runTest {
+        val game = repository(FakeGameStorage()).publish(
+            invitees = listOf(
+                NewInvitee("Matt Chen", "(415) 555-0188"),
+                NewInvitee("Matthew Chen", "4155550188")
+            )
+        ).game()
+
+        assertEquals(listOf("Matt Chen"), game.invitees.map { it.name })
+        assertEquals(listOf("4155550188"), lookedUpPhones)
+    }
+
+    @Test
+    fun publishGame_skipsTheOrganizersOwnNumber() = runTest {
+        val game = repository(FakeGameStorage()).publish(
+            invitees = listOf(NewInvitee("Me", organizer.phone), NewInvitee("Matt Chen", "4155550188"))
+        ).game()
+
+        assertEquals(listOf("Matt Chen"), game.invitees.map { it.name })
+    }
+
+    @Test
+    fun publishGame_trimsInviteeNames() = runTest {
+        val game = repository(FakeGameStorage())
+            .publish(invitees = listOf(NewInvitee("  Matt Chen ", "4155550188")))
+            .game()
+
+        assertEquals("Matt Chen", game.invitees.single().name)
+    }
+
+    @Test
+    fun publishGame_rejectsAnInviteeWithoutANameOrUsableNumber() = runTest {
+        for (bad in listOf(NewInvitee(" ", "4155550188"), NewInvitee("Matt", "555-0188"))) {
+            val storage = FakeGameStorage()
+
+            val result = repository(storage).publish(invitees = listOf(bad))
+
+            assertEquals(GameErrors.INVALID_INVITEE, result.error())
+            assertTrue(storage.writtenGames.isEmpty())
+        }
+    }
+
+    @Test
+    fun publishGame_failsWithoutWritingWhenALookupFails() = runTest {
+        lookupFailure = GameException(GameErrors.LOAD_FAILED)
+        val storage = FakeGameStorage()
+
+        val result = repository(storage).publish(invitees = listOf(NewInvitee("Matt", "4155550188")))
+
+        assertEquals(GameErrors.PUBLISH_FAILED, result.error())
+        assertTrue(storage.writtenGames.isEmpty())
+        assertTrue(events.isEmpty())
+    }
+
+    @Test
+    fun publishGame_withNoInviteesLooksNothingUp() = runTest {
+        val game = repository(FakeGameStorage()).publish().game()
+
+        assertEquals(emptyList(), game.invitees)
+        assertTrue(lookedUpPhones.isEmpty())
     }
 
     // MARK: reading games

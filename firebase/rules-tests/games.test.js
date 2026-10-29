@@ -81,6 +81,8 @@ function newGame(overrides = {}, teeTimeOverrides = {}, playerOverrides = {}) {
       ...teeTimeOverrides,
     }],
     playerIds: [BRAD],
+    invitees: [],
+    invitedPhones: [],
     createdAt: serverTimestamp(),
     ...overrides,
   };
@@ -100,6 +102,64 @@ async function seedGame(gameId = 'game-1', overrides = {}) {
     await setDoc(doc(context.firestore(), 'games', gameId), newGame(overrides));
   });
 }
+
+const MATT = { name: 'Matt Chen', phone: '4155550188', playerId: null, status: 'PENDING' };
+const JEFF = { name: 'Jeff Morrison', phone: '4155550142', playerId: DANA, status: 'PENDING' };
+
+/** A new game inviting [invitees], with invitedPhones kept in step. */
+function invitingGame(invitees, overrides = {}) {
+  return newGame({ invitees, invitedPhones: invitees.map((i) => i.phone), ...overrides });
+}
+
+describe('publishing a game with invitees', () => {
+  test('allows app-user and managed invitees', async () => {
+    await assertSucceeds(publish(signedIn(BRAD), invitingGame([MATT, JEFF])));
+  });
+
+  test('allows more invitees than slots', async () => {
+    const invitees = [0, 1, 2, 3, 4].map((n) => ({ ...MATT, phone: `415555010${n}` }));
+    await assertSucceeds(publish(signedIn(BRAD), invitingGame(invitees, {}), { gameId: 'many' }));
+  });
+
+  test('denies a game without the invitee fields', async () => {
+    const game = newGame();
+    delete game.invitees;
+    delete game.invitedPhones;
+    await assertFails(publish(signedIn(BRAD), game));
+  });
+
+  test('denies invitedPhones that do not pair with the invitees', async () => {
+    await assertFails(publish(signedIn(BRAD), newGame({ invitees: [MATT], invitedPhones: [] })));
+    await assertFails(
+      publish(signedIn(BRAD), newGame({ invitees: [MATT], invitedPhones: ['4155550142'] }))
+    );
+  });
+
+  test('denies a formatted phone number', async () => {
+    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, phone: '(415) 555-0188' }])));
+  });
+
+  test('denies an invitee who has already responded', async () => {
+    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, status: 'ACCEPTED' }])));
+  });
+
+  test('denies an invitee with an extra field', async () => {
+    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, extra: 'nope' }])));
+  });
+
+  test('denies a blank invitee name', async () => {
+    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, name: '' }])));
+  });
+
+  test('denies more than 50 invitees', async () => {
+    const invitees = Array.from({ length: 51 }, (_, n) => ({ ...MATT, phone: `41555${String(n).padStart(5, '0')}` }));
+    await assertFails(publish(signedIn(BRAD), invitingGame(invitees)));
+  });
+
+  test('denies putting invitees in playerIds', async () => {
+    await assertFails(publish(signedIn(BRAD), invitingGame([JEFF], { playerIds: [BRAD, DANA] })));
+  });
+});
 
 describe('publishing a game', () => {
   test('allows the organizer to publish at an existing course', async () => {

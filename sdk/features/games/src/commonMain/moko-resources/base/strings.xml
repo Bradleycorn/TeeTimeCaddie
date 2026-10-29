@@ -24,13 +24,18 @@
     <string name="new_game_field_tee_time_placeholder">Set tee time</string>
     <string name="new_game_section_players">How many players</string>
     <string name="new_game_player_slots_label">Player slots</string>
+    <string name="new_game_section_invitees">Invitees</string>
+    <string name="new_game_add_from_contacts">Add from contacts</string>
+    <string name="new_game_add_more_from_contacts">Add more from contacts</string>
+    <!-- Content description for an invitee row's remove button. "Remove Matt Chen" -->
+    <string name="new_game_remove_invitee">Remove %1$s</string>
     <string name="new_game_publish_button">Publish game</string>
     <!-- Spoken label for the Android ✕ that leaves New game. -->
     <string name="new_game_close">Close</string>
 
     <!--
-      Asked before every publish until invitees arrive in TTC-69. The copy is proposed in the
-      story, not drawn in the design.
+      Asked before publishing a game with nobody invited. The copy is proposed in the story, not
+      drawn in the design.
     -->
     <string name="new_game_no_invitees_title">Publish with no invitees?</string>
     <string name="new_game_no_invitees_message">You haven\'t invited anyone to this game yet.</string>
@@ -44,6 +49,7 @@
     <string name="game_details_title">Game details</string>
     <string name="game_details_organizer_chip">You are the organizer</string>
     <string name="game_details_organizer_label">Organizer</string>
+    <string name="game_details_invited_label">Invited</string>
     <string name="game_details_empty_slot">Empty slot</string>
     <!-- A tee time's fill count: players, then slots. "1/4 filled" -->
     <string name="game_details_filled_count">%1$s/%2$s filled</string>
@@ -52,6 +58,7 @@
     <string name="game_error_title">We couldn\'t publish your game</string>
     <string name="game_error_no_course_message">Enter the course you\'re playing.</string>
     <string name="game_error_invalid_slots_message">A tee time holds between 1 and 4 players.</string>
+    <string name="game_error_invalid_invitee_message">One of your invitees is missing a name or a valid phone number.</string>
     <string name="game_error_publish_failed_message">Your game didn\'t make it to the clubhouse.</string>
     <string name="game_error_publish_failed_recovery">Try again.</string>
     <string name="game_error_not_found_title">That game is gone</string>

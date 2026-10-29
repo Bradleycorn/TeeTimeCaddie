@@ -9,6 +9,7 @@ import net.bradball.teetimecaddie.core.models.previewPlayerList
 import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.features.games.GameErrors
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
+import net.bradball.teetimecaddie.features.games.state.TeeTimePlayerStatus
 import net.bradball.teetimecaddie.features.games.state.toUiState
 import net.bradball.teetimecaddie.session.SessionState
 import kotlinx.coroutines.launch
@@ -60,7 +61,7 @@ class GameDetailsViewModelTest {
         val teeTime = state.game.teeTimes.single()
 
         assertEquals(previewPlayer.name, teeTime.players.single().name)
-        assertTrue(teeTime.players.single().isOrganizer)
+        assertEquals(TeeTimePlayerStatus.ORGANIZER, teeTime.players.single().status)
         assertEquals(previewGame.teeTimes.single().slots - 1, teeTime.openSlots)
     }
 
