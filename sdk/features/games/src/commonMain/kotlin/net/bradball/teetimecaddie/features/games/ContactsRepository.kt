@@ -23,12 +23,10 @@ interface ContactsRepository {
     /**
      * Read the device's contacts as people to invite, sorted by name, ignoring case.
      *
-     * A contact with several numbers is listed once per number, in the device's order. Each number
-     * keeps the form it was written in, for display; numbers are compared by their digits, so a
-     * number listed twice on the same contact, however it is written, appears once, as first
-     * written. Left out: contacts without a name, and
-     * numbers a game can't be published with (fewer than 10 or more than 15 digits), so a contact
-     * with no other number is left out entirely.
+     * Each contact is listed once, at one number: its first mobile number, or its first number
+     * when none is a mobile. The number keeps the form it was written in, for display. Left out:
+     * contacts without a name, and numbers a game can't be published with (fewer than 10 or more
+     * than 15 digits), so a contact with no other number is left out entirely.
      *
      * Read again each time the picker opens, so it reflects the contacts as they are now.
      *
@@ -124,18 +122,15 @@ private fun InvitableContact.matches(invitee: NewInvitee): Boolean =
 
 /** The contacts as people to invite: see [ContactsRepository.invitableContacts]. */
 internal fun List<DeviceContact>.toInvitableContacts(): List<InvitableContact> =
-    flatMap { contact ->
+    mapNotNull { contact ->
         val name = contact.name.trim()
-        if (name.isEmpty()) return@flatMap emptyList()
-        contact.phones
-            .filter { it.number.toPhoneDigits().length in STORED_PHONE_LENGTHS }
-            .distinctBy { it.number.toPhoneDigits() }
-            .map { phone ->
-                InvitableContact(
-                    id = "${contact.id}|${phone.number.toPhoneDigits()}",
-                    name = name,
-                    phone = phone.number.trim(),
-                    phoneLabel = phone.label?.trim()?.ifEmpty { null }
-                )
-            }
+        if (name.isEmpty()) return@mapNotNull null
+        val usable = contact.phones.filter { it.number.toPhoneDigits().length in STORED_PHONE_LENGTHS }
+        val phone = usable.firstOrNull { it.isMobile } ?: usable.firstOrNull() ?: return@mapNotNull null
+        InvitableContact(
+            id = "${contact.id}|${phone.number.toPhoneDigits()}",
+            name = name,
+            phone = phone.number.trim(),
+            phoneLabel = phone.label?.trim()?.ifEmpty { null }
+        )
     }.sortedBy { it.name.lowercase() }

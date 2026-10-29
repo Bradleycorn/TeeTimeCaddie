@@ -5,7 +5,7 @@ package net.bradball.teetimecaddie.features.games
  *
  * Each app implements this over its platform's contacts API and hands it to
  * `TeeTimeCaddieSdk.contactsRepository`. Return the contacts as the device stores them:
- * [ContactsRepository] does all the filtering, splitting and sorting, so the two apps behave the
+ * [ContactsRepository] does all the filtering, choosing and sorting, so the two apps behave the
  * same. Checking and asking for contacts access stays with the app, which calls this only once
  * access is granted.
  */
@@ -39,8 +39,11 @@ data class DeviceContact(
  * @property number The number as stored, in any format.
  * @property label The number's type, such as "mobile", already in the device's language. Null or
  *   blank when the device gives none.
+ * @property isMobile True when the device types the number as a mobile. A contact is invited at
+ *   its mobile number when it has one.
  */
 data class DevicePhone(
     val number: String,
-    val label: String?
+    val label: String?,
+    val isMobile: Boolean = false
 )

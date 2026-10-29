@@ -28,28 +28,29 @@ class ContactsRepositoryTest {
     }
 
     private fun contact(id: String, name: String, vararg phones: Pair<String, String?>) =
-        DeviceContact(id, name, phones.map { (number, label) -> DevicePhone(number, label) })
+        DeviceContact(id, name, phones.map { (number, label) -> DevicePhone(number, label, isMobile = label == "mobile") })
 
     // MARK: reading
 
     @Test
-    fun eachNumberIsItsOwnRowCarryingItsLabelAsWritten() = runTest {
-        val rows = read(contact("c1", "Jeff Morrison", "(415) 555-0142" to "mobile", "502-555-0199" to "work"))
+    fun aContactWithSeveralNumbersIsListedOnceAtItsMobileNumber() = runTest {
+        val rows = read(contact("c1", "Jeff Morrison", "502-555-0199" to "work", "(415) 555-0142" to "mobile"))
 
-        assertEquals(
-            listOf(
-                InvitableContact("c1|4155550142", "Jeff Morrison", "(415) 555-0142", "mobile"),
-                InvitableContact("c1|5025550199", "Jeff Morrison", "502-555-0199", "work")
-            ),
-            rows
-        )
+        assertEquals(listOf(InvitableContact("c1|4155550142", "Jeff Morrison", "(415) 555-0142", "mobile")), rows)
     }
 
     @Test
-    fun aNumberListedTwiceOnAContactAppearsOnceAsFirstWritten() = runTest {
-        val rows = read(contact("c1", "Matt Chen", "+1 415 555 0188" to "mobile", "415.555.0188" to "home"))
+    fun aContactWithNoMobileNumberIsListedAtItsFirstNumber() = runTest {
+        val rows = read(contact("c1", "Matt Chen", "415.555.0188" to "home", "502-555-0199" to "work"))
 
-        assertEquals(listOf(InvitableContact("c1|4155550188", "Matt Chen", "+1 415 555 0188", "mobile")), rows)
+        assertEquals(listOf(InvitableContact("c1|4155550188", "Matt Chen", "415.555.0188", "home")), rows)
+    }
+
+    @Test
+    fun anUnusableMobileNumberIsPassedOverForAUsableOne() = runTest {
+        val rows = read(contact("c1", "Dana Park", "611" to "mobile", "4155550117" to "home"))
+
+        assertEquals(listOf(InvitableContact("c1|4155550117", "Dana Park", "4155550117", "home")), rows)
     }
 
     @Test
@@ -83,17 +84,14 @@ class ContactsRepositoryTest {
     }
 
     @Test
-    fun rowsAreSortedByNameIgnoringCaseKeepingEachContactsNumberOrder() = runTest {
+    fun rowsAreSortedByNameIgnoringCase() = runTest {
         val rows = read(
             contact("c1", "sam Tanaka", "4155550124" to null),
-            contact("c2", "Jeff Morrison", "5025550199" to "work", "4155550142" to "mobile"),
+            contact("c2", "Jeff Morrison", "5025550199" to "work"),
             contact("c3", "Alex Rivera", "4155550163" to null)
         )
 
-        assertEquals(
-            listOf("c3|4155550163", "c2|5025550199", "c2|4155550142", "c1|4155550124"),
-            rows.map { it.id }
-        )
+        assertEquals(listOf("c3|4155550163", "c2|5025550199", "c1|4155550124"), rows.map { it.id })
     }
 
     @Test
