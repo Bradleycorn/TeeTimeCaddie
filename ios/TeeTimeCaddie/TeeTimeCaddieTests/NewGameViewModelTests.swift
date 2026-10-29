@@ -58,7 +58,7 @@ final class NewGameViewModelTests: XCTestCase {
             await pick(DeviceContact(
                 id: invitee.name,
                 name: invitee.name,
-                phones: [DevicePhone(number: invitee.phone, label: "mobile")]
+                phones: [DevicePhone(number: invitee.phone, label: "mobile", isMobile: true)]
             ))
         }
     }
@@ -100,8 +100,8 @@ final class NewGameViewModelTests: XCTestCase {
         await invite(matt)
 
         await pick(
-            DeviceContact(id: "c2", name: "Jeff Morrison", phones: [DevicePhone(number: "(415) 555-0142", label: "Mobile")]),
-            DeviceContact(id: "c3", name: "Dana Park", phones: [DevicePhone(number: "415.555.0117", label: "Home")])
+            DeviceContact(id: "c2", name: "Jeff Morrison", phones: [DevicePhone(number: "(415) 555-0142", label: "Mobile", isMobile: true)]),
+            DeviceContact(id: "c3", name: "Dana Park", phones: [DevicePhone(number: "415.555.0117", label: "Home", isMobile: false)])
         )
 
         XCTAssertEqual(inviteeNames, ["Matt Chen", "Dana Park", "Jeff Morrison"])
@@ -115,22 +115,19 @@ final class NewGameViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.uiState.invitees.map(\.phone), ["(415) 555-0188", "(415) 555-0142"])
     }
 
-    func testEachPickedNumberIsItsOwnInvitee() async {
+    func testAPickedContactIsInvitedOnceAtItsMobileNumber() async {
         await pick(DeviceContact(id: "c1", name: "Jeff Morrison", phones: [
-            DevicePhone(number: "(415) 555-0142", label: "Mobile"),
-            DevicePhone(number: "502-555-0199", label: "Work")
+            DevicePhone(number: "502-555-0199", label: "Work", isMobile: false),
+            DevicePhone(number: "(415) 555-0142", label: "Mobile", isMobile: true)
         ]))
 
-        XCTAssertEqual(viewModel.uiState.invitees.map(\.id), [
-            "Jeff Morrison|(415) 555-0142",
-            "Jeff Morrison|502-555-0199"
-        ])
+        XCTAssertEqual(viewModel.uiState.invitees.map(\.id), ["Jeff Morrison|(415) 555-0142"])
     }
 
     func testPickedNumbersAGameCantBePublishedWithAreLeftOut() async {
         await pick(
-            DeviceContact(id: "c1", name: "Pizza Place", phones: [DevicePhone(number: "611", label: "Other")]),
-            DeviceContact(id: "c2", name: "  ", phones: [DevicePhone(number: "4155550101", label: "Mobile")])
+            DeviceContact(id: "c1", name: "Pizza Place", phones: [DevicePhone(number: "611", label: "Other", isMobile: false)]),
+            DeviceContact(id: "c2", name: "  ", phones: [DevicePhone(number: "4155550101", label: "Mobile", isMobile: true)])
         )
 
         XCTAssertTrue(viewModel.uiState.invitees.isEmpty)

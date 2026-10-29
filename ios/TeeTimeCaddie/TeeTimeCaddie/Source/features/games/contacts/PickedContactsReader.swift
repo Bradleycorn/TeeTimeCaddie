@@ -10,8 +10,9 @@ import TeeTimeCaddieKit
 /// `DeviceContactsReader`. The twin of Android's `PickedContactsReader`.
 ///
 /// The picker hands back the contacts themselves, so there's nothing left to fetch. Each keeps
-/// every number it has, in the contact's own order, and each number's label is the system's own
-/// wording for its type, in the device's language.
+/// every number it has, in the contact's own order, with mobile numbers marked so the contact is
+/// invited at one. Each number's label is the system's own wording for its type, in the device's
+/// language.
 final class PickedContactsReader: DeviceContactsReader {
     private let contacts: [DeviceContact]
 
@@ -23,7 +24,8 @@ final class PickedContactsReader: DeviceContactsReader {
                 phones: contact.phoneNumbers.map { phone in
                     DevicePhone(
                         number: phone.value.stringValue,
-                        label: phone.label.map { CNLabeledValue<CNPhoneNumber>.localizedString(forLabel: $0) }
+                        label: phone.label.map { CNLabeledValue<CNPhoneNumber>.localizedString(forLabel: $0) },
+                        isMobile: phone.label.map(mobileLabels.contains) ?? false
                     )
                 }
             )
@@ -34,6 +36,9 @@ final class PickedContactsReader: DeviceContactsReader {
         contacts
     }
 }
+
+/// The phone labels that count as a mobile number.
+private let mobileLabels: Set<String> = [CNLabelPhoneNumberMobile, CNLabelPhoneNumberiPhone]
 
 private extension CNContact {
     /// The name as the system shows it, or the given and family names when the picker didn't

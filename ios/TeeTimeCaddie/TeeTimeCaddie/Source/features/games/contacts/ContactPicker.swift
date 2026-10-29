@@ -58,9 +58,10 @@ private struct ContactPickerPresenter: UIViewControllerRepresentable {
             self.presenter = presenter
         }
 
-        // Picks whole contacts, every number included, as Android 17's picker does. The plural
-        // form is what lets the organizer check several. Picking single numbers instead (the
-        // `didSelectContactProperties` form) returns nothing for a checked contact.
+        // Picks whole contacts, every number included, as Android 17's picker does; each is invited
+        // at one of them. The plural form is what lets the organizer check several. Picking single
+        // numbers instead (the `didSelectContactProperties` form) returns nothing for a checked
+        // contact.
         func contactPicker(_ picker: CNContactPickerViewController, didSelect contacts: [CNContact]) {
             presenter.isPresented = false
             presenter.onPicked(contacts)
