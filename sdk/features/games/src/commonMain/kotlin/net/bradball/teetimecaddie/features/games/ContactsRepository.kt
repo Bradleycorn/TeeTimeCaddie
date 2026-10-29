@@ -2,6 +2,7 @@ package net.bradball.teetimecaddie.features.games
 
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
@@ -33,6 +34,20 @@ interface ContactsRepository {
      * @return The contacts, or [GameErrors.CONTACTS_LOAD_FAILED] when the reader fails.
      */
     suspend fun invitableContacts(): TtcResult<List<InvitableContact>>
+
+    /**
+     * Add every contact the system picker returned to [invitees], once the organizer taps Done.
+     *
+     * The contacts are read as in [invitableContacts], then added as in [pickInvitees]: at the end,
+     * sorted by name among themselves, leaving out anyone already invited.
+     *
+     * Logs [AnalyticsEvent.ContactPickerDone] with how many contacts were picked, which is known
+     * only once they're read (Android's picker returns just a URI), then [AnalyticsEvent.AddInvitees]
+     * with how many of them were added. A failed read logs neither.
+     *
+     * @return The new invitee list, or [GameErrors.CONTACTS_LOAD_FAILED] when the reader fails.
+     */
+    suspend fun addPickedContacts(invitees: List<NewInvitee>): TtcResult<List<NewInvitee>>
 
     /**
      * The [contacts] whose name contains [query], ignoring case. A blank query matches everyone.
@@ -68,7 +83,27 @@ class ContactsRepositoryImpl(
     private val reader: DeviceContactsReader
 ) : ContactsRepository {
 
-    override suspend fun invitableContacts(): TtcResult<List<InvitableContact>> {
+    override suspend fun invitableContacts(): TtcResult<List<InvitableContact>> =
+        when (val result = readContacts()) {
+            is TtcResult.Success -> TtcResult.Success(result.data.toInvitableContacts())
+            is TtcResult.Failure -> result
+        }
+
+    override suspend fun addPickedContacts(invitees: List<NewInvitee>): TtcResult<List<NewInvitee>> {
+        val picked = when (val result = readContacts()) {
+            is TtcResult.Success -> result.data
+            is TtcResult.Failure -> return result
+        }
+        eventManager.logEvent(AnalyticsEvent.ContactPickerDone(contactCount = picked.size))
+        val contacts = picked.toInvitableContacts()
+        val updated = pickInvitees(invitees, contacts, contacts.map { it.id })
+        eventManager.logEvent(
+            AnalyticsEvent.AddInvitees(pickedCount = picked.size, addedCount = updated.size - invitees.size)
+        )
+        return TtcResult.Success(updated)
+    }
+
+    private suspend fun readContacts(): TtcResult<List<DeviceContact>> {
         val contacts = try {
             reader.readContacts()
         } catch (ex: Exception) {
@@ -80,7 +115,7 @@ class ContactsRepositoryImpl(
             )
             return TtcResult.Failure(GameException(GameErrors.CONTACTS_LOAD_FAILED, cause = ex))
         }
-        return TtcResult.Success(contacts.toInvitableContacts())
+        return TtcResult.Success(contacts)
     }
 
     override fun search(contacts: List<InvitableContact>, query: String): List<InvitableContact> {

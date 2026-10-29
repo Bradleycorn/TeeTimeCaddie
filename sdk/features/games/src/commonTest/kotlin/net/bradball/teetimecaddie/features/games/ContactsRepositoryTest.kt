@@ -1,7 +1,9 @@
 package net.bradball.teetimecaddie.features.games
 
 import kotlinx.coroutines.test.runTest
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
+import net.bradball.teetimecaddie.core.analytics.EventPlugin
 import net.bradball.teetimecaddie.core.models.InvitableContact
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
@@ -14,8 +16,16 @@ class ContactsRepositoryTest {
     private var deviceContacts: List<DeviceContact> = emptyList()
     private var readFailure: Exception? = null
 
+    private val events = mutableListOf<AnalyticsEvent>()
+    private val eventManager = EventManager.getInstance(enableLogging = false).apply {
+        registerPlugin(object : EventPlugin {
+            override fun logEvent(event: AnalyticsEvent): Boolean = events.add(event)
+            override fun setUserId(userId: String) = Unit
+        })
+    }
+
     private val repository = ContactsRepositoryImpl(
-        EventManager.getInstance(enableLogging = false),
+        eventManager,
         object : DeviceContactsReader {
             override suspend fun readContacts(): List<DeviceContact> =
                 readFailure?.let { throw it } ?: deviceContacts
@@ -170,5 +180,53 @@ class ContactsRepositoryTest {
         val invitee = NewInvitee("Jeff Morrison", "+1 415 555 0142")
 
         assertEquals(listOf(invitee), repository.pickInvitees(listOf(invitee), contacts, listOf(jeff.id)))
+    }
+
+    // MARK: adding picked contacts
+
+    @Test
+    fun pickedContactsJoinTheEndSortedByNameWithoutInvitingAnyoneTwice() = runTest {
+        deviceContacts = listOf(
+            contact("c2", "Matt Chen", "+1 415 555 0188" to "mobile"),
+            contact("c1", "Jeff Morrison", "(415) 555-0142" to "mobile"),
+            contact("c3", "Dana Park", "4155550117" to "home")
+        )
+        val invitees = listOf(NewInvitee("Matt Chen", "4155550188"))
+
+        val result = assertIs<TtcResult.Success<List<NewInvitee>>>(repository.addPickedContacts(invitees))
+
+        assertEquals(
+            listOf(NewInvitee("Matt Chen", "4155550188"), dana.toNewInvitee(), jeff.toNewInvitee()),
+            result.data
+        )
+    }
+
+    @Test
+    fun addingPickedContactsLogsTheDoneTapAndHowManyWereAdded() = runTest {
+        deviceContacts = listOf(
+            contact("c1", "Jeff Morrison", "(415) 555-0142" to "mobile"),
+            contact("c2", "Matt Chen", "4155550188" to "mobile"),
+            contact("c3", "Pizza Place", "611" to null)
+        )
+
+        repository.addPickedContacts(listOf(matt.toNewInvitee()))
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.ContactPickerDone(contactCount = 3),
+                AnalyticsEvent.AddInvitees(pickedCount = 3, addedCount = 1)
+            ),
+            events
+        )
+    }
+
+    @Test
+    fun aFailedReadOfPickedContactsIsReportedAndLogsNoEvents() = runTest {
+        readFailure = IllegalStateException("grant expired")
+
+        val result = assertIs<TtcResult.Failure>(repository.addPickedContacts(emptyList()))
+
+        assertEquals(GameErrors.CONTACTS_LOAD_FAILED, assertIs<GameException>(result.error).error)
+        assertEquals(emptyList(), events)
     }
 }

@@ -112,6 +112,27 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** The New game screen's back / Cancel button was tapped, leaving without publishing. */
     @Serializable
     object NewGameCancel: AnalyticsEvent("new_game_cancel", EventType.CLICK)
+    /** The New game screen's "Add from contacts" (or "Add more from contacts") button was tapped. */
+    @Serializable
+    object AddFromContactsClick: AnalyticsEvent("add_from_contacts_click", EventType.CLICK)
+    /** An invitee's ✕ was tapped on the New game screen, removing them. */
+    @Serializable
+    object RemoveInviteeClick: AnalyticsEvent("remove_invitee_click", EventType.CLICK)
+    /** Done was tapped in the system contact picker. [contactCount] is how many contacts were checked. */
+    @Serializable
+    data class ContactPickerDone(
+        @SerialName("contact_count") val contactCount: Int
+    ): AnalyticsEvent("contact_picker_done", EventType.CLICK)
+    /**
+     * Contacts from the system picker were added to a new game's invitees. [pickedCount] is how many
+     * contacts were picked; [addedCount] is how many became invitees, leaving out anyone already
+     * invited and contacts without a number a game can be published with.
+     */
+    @Serializable
+    data class AddInvitees(
+        @SerialName("picked_count") val pickedCount: Int,
+        @SerialName("added_count") val addedCount: Int
+    ): AnalyticsEvent("add_invitees", EventType.OPERATION)
     /** A button on the "Publish with no invitees?" alert was tapped. */
     @Serializable
     data class NoInvites(val response: Response): AnalyticsEvent("no_invites", EventType.CLICK) {
