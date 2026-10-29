@@ -164,13 +164,16 @@ class NewGameViewModelTest {
     }
 
     @Test
-    fun eachPickedNumberIsItsOwnInvitee() {
-        pick(DeviceContact("c1", "Jeff Morrison", listOf(DevicePhone("(415) 555-0142", "Mobile"), DevicePhone("502-555-0199", "Work"))))
-
-        assertEquals(
-            listOf(NewInvitee("Jeff Morrison", "(415) 555-0142"), NewInvitee("Jeff Morrison", "502-555-0199")),
-            viewModel.uiState.value.invitees
+    fun aPickedContactIsInvitedOnceAtItsMobileNumber() {
+        pick(
+            DeviceContact(
+                "c1",
+                "Jeff Morrison",
+                listOf(DevicePhone("502-555-0199", "Work"), DevicePhone("(415) 555-0142", "Mobile", isMobile = true))
+            )
         )
+
+        assertEquals(listOf(NewInvitee("Jeff Morrison", "(415) 555-0142")), viewModel.uiState.value.invitees)
     }
 
     @Test
