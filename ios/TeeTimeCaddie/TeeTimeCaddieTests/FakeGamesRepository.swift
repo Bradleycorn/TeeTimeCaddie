@@ -46,7 +46,8 @@ enum TestData {
                     slots: slots,
                     players: [GamePlayer(playerId: organizer.id, name: organizer.name)]
                 )
-            ]
+            ],
+            invitees: []
         )
     }
 }
@@ -64,6 +65,7 @@ final class FakeGamesRepository: GamesRepository {
         let date: String
         let time: String
         let slots: Int32
+        var inviteeNames: [String] = []
     }
 
     private(set) var games: [Game]
@@ -84,14 +86,16 @@ final class FakeGamesRepository: GamesRepository {
         courseName: String,
         date: LocalDate,
         time: LocalTime,
-        slots: Int32
+        slots: Int32,
+        invitees: [NewInvitee]
     ) async throws -> TtcResult<Game> {
         publishRequests.append(PublishRequest(
             organizerId: organizer.id,
             courseName: courseName,
             date: date.description,
             time: time.description,
-            slots: slots
+            slots: slots,
+            inviteeNames: invitees.map(\.name)
         ))
         if let publishFailure {
             return failure(publishFailure)

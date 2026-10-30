@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The app's name wherever the system shows it: the launcher, and permission prompts. -->
+    <string name="app_name" translatable="false">TeeTimeCaddie</string>
+</resources>
