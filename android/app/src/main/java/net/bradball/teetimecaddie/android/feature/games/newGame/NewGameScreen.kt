@@ -75,7 +75,6 @@ fun NewGameScreen(
         viewModel.onContactPickerDismissed(uri?.let { PickedContactsReader(context.applicationContext, it) })
     }
 
-    // Whether the alert is up is presentational; the ViewModel decides when to ask, and hears the answer.
     var showNoInviteeConfirm by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
@@ -107,7 +106,6 @@ fun NewGameScreen(
                 showNoInviteeConfirm = false
                 viewModel.onKeepEditing()
             },
-            // A tap outside the alert, or back: same outcome as "Keep editing", but not logged as a press.
             onDismissNoInviteeConfirm = { showNoInviteeConfirm = false },
             onPublishAnyway = {
                 showNoInviteeConfirm = false
@@ -261,7 +259,6 @@ private fun NewGameContent(
         )
     }
 
-    // Not drawn in the design: the platform's own alert, as the story specifies.
     if (showNoInviteeConfirm) {
         AlertDialog(
             onDismissRequest = onDismissNoInviteeConfirm,

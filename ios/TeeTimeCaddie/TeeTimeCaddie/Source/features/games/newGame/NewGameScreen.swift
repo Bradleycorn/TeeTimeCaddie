@@ -13,7 +13,6 @@ struct NewGameScreen: View {
 
     @State private var viewModel = NewGameViewModel()
     @State private var showContactPicker = false
-    // Whether the alert is up is presentational; the ViewModel decides when to ask, and hears the answer.
     @State private var showNoInviteeConfirm = false
 
     init(onPublished: @escaping () -> Void) {
@@ -213,11 +212,8 @@ fileprivate struct NewGameContent: View {
             )
             .presentationDetents([.height(TtcTimePickerStyle.sheetHeight)])
         }
-        // Not drawn in the design: the platform's own alert, as the story specifies.
         .alert(
             GMR.strings().new_game_no_invitees_title.localized(),
-            // Every way the alert closes clears this, buttons included; the buttons log which one
-            // was tapped.
             isPresented: $showNoInviteeConfirm
         ) {
             Button(GMR.strings().new_game_no_invitees_keep_editing.localized(), role: .cancel) {
