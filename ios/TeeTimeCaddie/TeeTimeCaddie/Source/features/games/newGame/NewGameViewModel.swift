@@ -92,25 +92,22 @@ final class NewGameViewModel {
 
     /// Publish was tapped. With nobody invited, ask first; otherwise publish.
     ///
-    /// - Parameter onPublished: Called once the game is saved, to leave the form.
-    func onPublishClick(onPublished: () -> Void) async {
+    /// - Parameters:
+    ///   - confirmNoInvitees: Asks "Publish with no invitees?", which reports the answer to
+    ///     ``onKeepEditing()`` or ``onPublishAnyway(onPublished:)``.
+    ///   - onPublished: Called once the game is saved, to leave the form.
+    func onPublishClick(confirmNoInvitees: () -> Void, onPublished: () -> Void) async {
         guard uiState.canSubmit else { return }
         if uiState.invitees.isEmpty {
-            uiState = uiState.withNoInviteeConfirm(showNoInviteeConfirm: true)
+            confirmNoInvitees()
         } else {
             await publish(onPublished: onPublished)
         }
     }
 
-    /// "Keep editing": close the alert and leave the form exactly as it was.
+    /// "Keep editing": the form stays exactly as it was.
     func onKeepEditing() {
         eventManager.logEvent(event: AnalyticsEvent.NoInvites(response: .keepEditing))
-        onDismissNoInviteeConfirm()
-    }
-
-    /// The alert closed. Every way it closes ends here, buttons included, so it logs nothing itself.
-    func onDismissNoInviteeConfirm() {
-        uiState = uiState.withNoInviteeConfirm(showNoInviteeConfirm: false)
     }
 
     /// "Publish anyway".
@@ -118,7 +115,6 @@ final class NewGameViewModel {
     /// - Parameter onPublished: Called once the game is saved, to leave the form.
     func onPublishAnyway(onPublished: () -> Void) async {
         eventManager.logEvent(event: AnalyticsEvent.NoInvites(response: .publishAnyway))
-        uiState = uiState.withNoInviteeConfirm(showNoInviteeConfirm: false)
         await publish(onPublished: onPublished)
     }
 

@@ -75,11 +75,15 @@ fun NewGameScreen(
         viewModel.onContactPickerDismissed(uri?.let { PickedContactsReader(context.applicationContext, it) })
     }
 
+    // Whether the alert is up is presentational; the ViewModel decides when to ask, and hears the answer.
+    var showNoInviteeConfirm by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 NewGameEvent.Published -> onPublished()
                 NewGameEvent.PickContacts -> pickContacts.launch(Unit)
+                NewGameEvent.ConfirmNoInvitees -> showNoInviteeConfirm = true
             }
         }
     }
@@ -98,9 +102,17 @@ fun NewGameScreen(
             onAddFromContactsClick = viewModel::onAddFromContactsClick,
             onRemoveInvitee = viewModel::onRemoveInvitee,
             onPublishClick = viewModel::onPublishClick,
-            onKeepEditing = viewModel::onKeepEditing,
-            onDismissNoInviteeConfirm = viewModel::onDismissNoInviteeConfirm,
-            onPublishAnyway = viewModel::onPublishAnyway,
+            showNoInviteeConfirm = showNoInviteeConfirm,
+            onKeepEditing = {
+                showNoInviteeConfirm = false
+                viewModel.onKeepEditing()
+            },
+            // A tap outside the alert, or back: same outcome as "Keep editing", but not logged as a press.
+            onDismissNoInviteeConfirm = { showNoInviteeConfirm = false },
+            onPublishAnyway = {
+                showNoInviteeConfirm = false
+                viewModel.onPublishAnyway()
+            },
             onDateInputToggle = viewModel::onDateInputToggle,
             onTimeInputToggle = viewModel::onTimeInputToggle,
         )
@@ -119,6 +131,7 @@ private fun NewGameContent(
     onAddFromContactsClick: () -> Unit,
     onRemoveInvitee: (NewInvitee) -> Unit,
     onPublishClick: () -> Unit,
+    showNoInviteeConfirm: Boolean,
     onKeepEditing: () -> Unit,
     onDismissNoInviteeConfirm: () -> Unit,
     onPublishAnyway: () -> Unit,
@@ -249,7 +262,7 @@ private fun NewGameContent(
     }
 
     // Not drawn in the design: the platform's own alert, as the story specifies.
-    if (uiState.showNoInviteeConfirm) {
+    if (showNoInviteeConfirm) {
         AlertDialog(
             onDismissRequest = onDismissNoInviteeConfirm,
             title = { Text(stringResource(GMR.strings.new_game_no_invitees_title.resourceId)) },
@@ -398,6 +411,7 @@ private fun NewGameEmptyPreview() {
             onAddFromContactsClick = {},
             onRemoveInvitee = {},
             onPublishClick = {},
+            showNoInviteeConfirm = false,
             onKeepEditing = {},
             onDismissNoInviteeConfirm = {},
             onPublishAnyway = {},
@@ -421,6 +435,7 @@ private fun NewGameFilledPreview() {
             onAddFromContactsClick = {},
             onRemoveInvitee = {},
             onPublishClick = {},
+            showNoInviteeConfirm = false,
             onKeepEditing = {},
             onDismissNoInviteeConfirm = {},
             onPublishAnyway = {},

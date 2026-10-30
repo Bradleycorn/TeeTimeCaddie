@@ -164,11 +164,12 @@ final class NewGameViewModelTests: XCTestCase {
     func testPublishClickWithInviteesPublishesThemWithoutAsking() async {
         fillIn()
         await invite(matt, jeff)
+        var asked = false
         var published = false
 
-        await viewModel.onPublishClick(onPublished: { published = true })
+        await viewModel.onPublishClick(confirmNoInvitees: { asked = true }, onPublished: { published = true })
 
-        XCTAssertFalse(viewModel.uiState.showNoInviteeConfirm)
+        XCTAssertFalse(asked)
         XCTAssertTrue(published)
         XCTAssertEqual(repository.publishRequests.map(\.inviteeNames), [["Matt Chen", "Jeff Morrison"]])
     }
@@ -177,10 +178,11 @@ final class NewGameViewModelTests: XCTestCase {
         fillIn()
         await invite(matt)
         viewModel.onRemoveInvitee(viewModel.uiState.invitees[0])
+        var asked = false
 
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: { asked = true }, onPublished: {})
 
-        XCTAssertTrue(viewModel.uiState.showNoInviteeConfirm)
+        XCTAssertTrue(asked)
         XCTAssertTrue(repository.publishRequests.isEmpty)
     }
 
@@ -201,37 +203,40 @@ final class NewGameViewModelTests: XCTestCase {
 
     func testPublishClickAsksFirstAndPublishesNothing() async {
         fillIn()
+        var asked = false
 
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: { asked = true }, onPublished: {})
 
-        XCTAssertTrue(viewModel.uiState.showNoInviteeConfirm)
+        XCTAssertTrue(asked)
         XCTAssertTrue(repository.publishRequests.isEmpty)
     }
 
     func testPublishClickDoesNothingWhenTheFormIsIncomplete() async {
         viewModel.onCourseChange("Pebble Beach")
+        var asked = false
 
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: { asked = true }, onPublished: {})
 
-        XCTAssertFalse(viewModel.uiState.showNoInviteeConfirm)
+        XCTAssertFalse(asked)
+        XCTAssertTrue(repository.publishRequests.isEmpty)
     }
 
-    func testKeepEditingClosesTheAlertAndLeavesTheForm() async {
+    func testKeepEditingLeavesTheFormAsItWas() async {
         fillIn()
         viewModel.onSlotsChange(3)
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: {}, onPublished: {})
         let before = viewModel.uiState
 
         viewModel.onKeepEditing()
 
-        XCTAssertEqual(viewModel.uiState, before.withNoInviteeConfirm(showNoInviteeConfirm: false))
+        XCTAssertEqual(viewModel.uiState, before)
         XCTAssertTrue(repository.publishRequests.isEmpty)
     }
 
     func testPublishAnywayPublishesWhatWasEntered() async {
         fillIn(course: " pebble beach ")
         viewModel.onSlotsChange(2)
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: {}, onPublished: {})
 
         await viewModel.onPublishAnyway(onPublished: {})
 
@@ -249,7 +254,7 @@ final class NewGameViewModelTests: XCTestCase {
     func testPublishAnywayConfirmsWithTheStoredSpellingAndLeaves() async {
         repository.storedCourseName = { _ in "Pebble Beach" }
         fillIn(course: "pebble beach")
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: {}, onPublished: {})
         var published = false
 
         await viewModel.onPublishAnyway(onPublished: { published = true })
@@ -261,7 +266,7 @@ final class NewGameViewModelTests: XCTestCase {
     func testPublishFailureReportsTheErrorAndStays() async {
         repository.publishFailure = .publishFailed
         fillIn()
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: {}, onPublished: {})
         var published = false
 
         await viewModel.onPublishAnyway(onPublished: { published = true })
@@ -320,24 +325,14 @@ final class NewGameViewModelTests: XCTestCase {
 
     func testAlertButtonsLogTheResponse() async {
         fillIn()
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: {}, onPublished: {})
         viewModel.onKeepEditing()
-        await viewModel.onPublishClick(onPublished: {})
+        await viewModel.onPublishClick(confirmNoInvitees: {}, onPublished: {})
         await viewModel.onPublishAnyway(onPublished: {})
 
         XCTAssertEqual(analytics.events, [
             AnalyticsEvent.NoInvites(response: .keepEditing),
             AnalyticsEvent.NoInvites(response: .publishAnyway),
         ])
-    }
-
-    func testDismissingTheAlertWithoutAButtonClosesItButLogsNothing() async {
-        fillIn()
-        await viewModel.onPublishClick(onPublished: {})
-
-        viewModel.onDismissNoInviteeConfirm()
-
-        XCTAssertFalse(viewModel.uiState.showNoInviteeConfirm)
-        XCTAssertTrue(analytics.events.isEmpty)
     }
 }

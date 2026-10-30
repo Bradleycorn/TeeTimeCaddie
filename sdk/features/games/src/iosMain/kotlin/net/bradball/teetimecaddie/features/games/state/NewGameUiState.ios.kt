@@ -17,7 +17,4 @@ fun NewGameUiState.withSlots(slots: Int): NewGameUiState = copy(slots = slots)
 
 fun NewGameUiState.withInvitees(invitees: List<NewInvitee>): NewGameUiState = copy(invitees = invitees)
 
-fun NewGameUiState.withNoInviteeConfirm(showNoInviteeConfirm: Boolean): NewGameUiState =
-    copy(showNoInviteeConfirm = showNoInviteeConfirm)
-
 fun NewGameUiState.withSubmitting(isSubmitting: Boolean): NewGameUiState = copy(isSubmitting = isSubmitting)

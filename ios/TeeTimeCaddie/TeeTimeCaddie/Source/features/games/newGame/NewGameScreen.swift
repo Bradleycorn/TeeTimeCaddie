@@ -13,6 +13,8 @@ struct NewGameScreen: View {
 
     @State private var viewModel = NewGameViewModel()
     @State private var showContactPicker = false
+    // Whether the alert is up is presentational; the ViewModel decides when to ask, and hears the answer.
+    @State private var showNoInviteeConfirm = false
 
     init(onPublished: @escaping () -> Void) {
         self.onPublished = onPublished
@@ -31,10 +33,15 @@ struct NewGameScreen: View {
                 },
                 onRemoveInvitee: viewModel.onRemoveInvitee,
                 onPublishClick: {
-                    Task { await viewModel.onPublishClick(onPublished: onPublished) }
+                    Task {
+                        await viewModel.onPublishClick(
+                            confirmNoInvitees: { showNoInviteeConfirm = true },
+                            onPublished: onPublished
+                        )
+                    }
                 },
+                showNoInviteeConfirm: $showNoInviteeConfirm,
                 onKeepEditing: viewModel.onKeepEditing,
-                onDismissNoInviteeConfirm: viewModel.onDismissNoInviteeConfirm,
                 onPublishAnyway: {
                     Task { await viewModel.onPublishAnyway(onPublished: onPublished) }
                 }
@@ -71,8 +78,8 @@ fileprivate struct NewGameContent: View {
     private let onAddFromContactsClick: () -> Void
     private let onRemoveInvitee: (NewInvitee) -> Void
     private let onPublishClick: () -> Void
+    @Binding private var showNoInviteeConfirm: Bool
     private let onKeepEditing: () -> Void
-    private let onDismissNoInviteeConfirm: () -> Void
     private let onPublishAnyway: () -> Void
 
     init(
@@ -84,8 +91,8 @@ fileprivate struct NewGameContent: View {
         onAddFromContactsClick: @escaping () -> Void,
         onRemoveInvitee: @escaping (NewInvitee) -> Void,
         onPublishClick: @escaping () -> Void,
+        showNoInviteeConfirm: Binding<Bool>,
         onKeepEditing: @escaping () -> Void,
-        onDismissNoInviteeConfirm: @escaping () -> Void,
         onPublishAnyway: @escaping () -> Void
     ) {
         self.uiState = uiState
@@ -96,8 +103,8 @@ fileprivate struct NewGameContent: View {
         self.onAddFromContactsClick = onAddFromContactsClick
         self.onRemoveInvitee = onRemoveInvitee
         self.onPublishClick = onPublishClick
+        self._showNoInviteeConfirm = showNoInviteeConfirm
         self.onKeepEditing = onKeepEditing
-        self.onDismissNoInviteeConfirm = onDismissNoInviteeConfirm
         self.onPublishAnyway = onPublishAnyway
     }
 
@@ -209,12 +216,9 @@ fileprivate struct NewGameContent: View {
         // Not drawn in the design: the platform's own alert, as the story specifies.
         .alert(
             GMR.strings().new_game_no_invitees_title.localized(),
-            isPresented: Binding(
-                get: { uiState.showNoInviteeConfirm },
-                // Fires for every way the alert closes, buttons included, so it only closes it;
-                // the buttons log which one was tapped.
-                set: { isPresented in if !isPresented { onDismissNoInviteeConfirm() } }
-            )
+            // Every way the alert closes clears this, buttons included; the buttons log which one
+            // was tapped.
+            isPresented: $showNoInviteeConfirm
         ) {
             Button(GMR.strings().new_game_no_invitees_keep_editing.localized(), role: .cancel) {
                 onKeepEditing()
@@ -406,8 +410,8 @@ fileprivate struct NewGameContentPreviews: View {
             onAddFromContactsClick: {},
             onRemoveInvitee: { _ in },
             onPublishClick: {},
+            showNoInviteeConfirm: .constant(false),
             onKeepEditing: {},
-            onDismissNoInviteeConfirm: {},
             onPublishAnyway: {}
         )
     }

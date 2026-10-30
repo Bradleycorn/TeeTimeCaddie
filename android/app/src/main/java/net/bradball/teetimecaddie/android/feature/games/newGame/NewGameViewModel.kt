@@ -33,6 +33,12 @@ sealed interface NewGameEvent {
 
     /** Open the system contact picker, and report how it closed to `onContactPickerDismissed`. */
     data object PickContacts : NewGameEvent
+
+    /**
+     * Ask "Publish with no invitees?", and report the answer to `onKeepEditing` or
+     * `onPublishAnyway`. Dismissing it any other way leaves the form as it was.
+     */
+    data object ConfirmNoInvitees : NewGameEvent
 }
 
 @HiltViewModel
@@ -118,30 +124,20 @@ class NewGameViewModel @Inject constructor(
         val state = _uiState.value
         if (!state.canSubmit) return
         if (state.invitees.isEmpty()) {
-            _uiState.update { it.copy(showNoInviteeConfirm = true) }
+            viewModelScope.launch { _events.send(NewGameEvent.ConfirmNoInvitees) }
         } else {
             submit()
         }
     }
 
-    /** "Keep editing": close the alert and leave the form exactly as it was. */
+    /** "Keep editing": the form stays exactly as it was. */
     fun onKeepEditing() {
         eventManager.logEvent(AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.KEEP_EDITING))
-        onDismissNoInviteeConfirm()
-    }
-
-    /**
-     * The alert was dismissed without a button — a tap outside it, or back. Same outcome as
-     * "Keep editing", but it isn't a button press, so it isn't logged as one.
-     */
-    fun onDismissNoInviteeConfirm() {
-        _uiState.update { it.copy(showNoInviteeConfirm = false) }
     }
 
     /** "Publish anyway". */
     fun onPublishAnyway() {
         eventManager.logEvent(AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.PUBLISH_ANYWAY))
-        _uiState.update { it.copy(showNoInviteeConfirm = false) }
         submit()
     }
 

@@ -13,13 +13,11 @@ import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
 /**
  * State of the New game form.
  *
- * A data class rather than a sealed hierarchy, because its parts are independent: the confirmation
- * opens over a filled-in form, and a failed publish leaves the form as it was.
+ * A data class rather than a sealed hierarchy, because its parts are independent: a failed
+ * publish leaves the form as it was.
  *
  * @property invitees The people picked so far, in the order they were added. Never affects
  *   [canSubmit], and may outnumber [slots].
- * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Only a
- *   publish with no invitees asks.
  */
 data class NewGameUiState(
     val course: String = "",
@@ -27,7 +25,6 @@ data class NewGameUiState(
     val time: LocalTime? = null,
     val slots: Int = MAX_TEE_TIME_SLOTS,
     val invitees: List<NewInvitee> = emptyList(),
-    val showNoInviteeConfirm: Boolean = false,
     val isSubmitting: Boolean = false,
 ) {
     /** A course of only spaces doesn't count. Slots never block publishing; they start at 4. */
