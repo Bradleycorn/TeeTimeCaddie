@@ -2,6 +2,8 @@ package net.bradball.teetimecaddie.features.games.state
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import net.bradball.teetimecaddie.core.models.previewNewInvitee
+import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,6 +37,15 @@ class NewGameUiStateTest {
     }
 
     @Test
+    fun inviteesNeverAffectCanSubmit() {
+        assertFalse(NewGameUiState(invitees = listOf(previewNewInvitee)).canSubmit)
+        assertTrue(
+            NewGameUiState(course = "Pebble Beach", date = date, time = time, invitees = listOf(previewNewInvitee))
+                .canSubmit
+        )
+    }
+
+    @Test
     fun canSubmitIsFalseWhilePublishing() {
         assertFalse(
             NewGameUiState(course = "Pebble Beach", date = date, time = time, isSubmitting = true).canSubmit
@@ -53,5 +64,14 @@ class NewGameUiStateTest {
     fun nothingIsDisplayedUntilChosen() {
         assertNull(NewGameUiState().dateText)
         assertNull(NewGameUiState().timeText)
+    }
+
+    @Test
+    fun addFromContactsReadsAddMoreOnceAnyoneIsAdded() {
+        assertEquals(GMR.strings.new_game_add_from_contacts, NewGameUiState().addFromContactsLabel)
+        assertEquals(
+            GMR.strings.new_game_add_more_from_contacts,
+            NewGameUiState(invitees = listOf(previewNewInvitee)).addFromContactsLabel
+        )
     }
 }

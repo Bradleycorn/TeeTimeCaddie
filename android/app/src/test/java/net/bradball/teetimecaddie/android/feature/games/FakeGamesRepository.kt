@@ -8,8 +8,11 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.core.models.Course
 import net.bradball.teetimecaddie.core.models.Game
+import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
+import net.bradball.teetimecaddie.core.models.InviteStatus
+import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GameErrors
@@ -44,6 +47,7 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
         val date: LocalDate,
         val time: LocalTime,
         val slots: Int,
+        val invitees: List<NewInvitee> = emptyList(),
     )
 
     fun setGames(vararg updated: Game) {
@@ -56,8 +60,9 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
         date: LocalDate,
         time: LocalTime,
         slots: Int,
+        invitees: List<NewInvitee>,
     ): TtcResult<Game> {
-        publishRequests += PublishRequest(organizer, courseName, date, time, slots)
+        publishRequests += PublishRequest(organizer, courseName, date, time, slots, invitees)
         publishGate?.await()
         publishFailure?.let { return TtcResult.Failure(GameException(it)) }
 
@@ -70,6 +75,9 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
             teeTimes = listOf(
                 GameTeeTime(time, slots, listOf(GamePlayer(organizer.id, organizer.name)))
             ),
+            invitees = invitees.map {
+                GameInvitee(it.name, it.phone, playerId = null, status = InviteStatus.PENDING)
+            },
         )
         games.value = games.value + game
         return TtcResult.Success(game)

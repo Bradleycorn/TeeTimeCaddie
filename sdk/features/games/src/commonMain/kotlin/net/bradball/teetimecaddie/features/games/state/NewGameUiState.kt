@@ -1,9 +1,13 @@
 package net.bradball.teetimecaddie.features.games.state
 
+import dev.icerock.moko.resources.StringResource
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
+import net.bradball.teetimecaddie.core.models.NewInvitee
+import net.bradball.teetimecaddie.core.models.previewNewInviteeList
+import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
 
 /**
@@ -12,14 +16,17 @@ import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
  * A data class rather than a sealed hierarchy, because its parts are independent: the confirmation
  * opens over a filled-in form, and a failed publish leaves the form as it was.
  *
- * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Until
- *   invitees arrive (TTC-69) every publish asks.
+ * @property invitees The people picked so far, in the order they were added. Never affects
+ *   [canSubmit], and may outnumber [slots].
+ * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Only a
+ *   publish with no invitees asks.
  */
 data class NewGameUiState(
     val course: String = "",
     val date: LocalDate? = null,
     val time: LocalTime? = null,
     val slots: Int = MAX_TEE_TIME_SLOTS,
+    val invitees: List<NewInvitee> = emptyList(),
     val showNoInviteeConfirm: Boolean = false,
     val isSubmitting: Boolean = false,
 ) {
@@ -35,16 +42,25 @@ data class NewGameUiState(
     val timeText: String?
         get() = time?.formattedTime
 
+    /** "Add from contacts", or "Add more from contacts" once anyone has been added. */
+    val addFromContactsLabel: StringResource
+        get() = if (invitees.isEmpty()) {
+            GMR.strings.new_game_add_from_contacts
+        } else {
+            GMR.strings.new_game_add_more_from_contacts
+        }
+
     companion object {
         /** An empty form, for callers that can't use the constructor's default arguments (Swift). */
         val defaultValue = NewGameUiState()
     }
 }
 
-/** A filled-in form: Pebble Beach, Sat, Jun 13 at 9:00 AM, for three players. */
+/** A filled-in form: Pebble Beach, Sat, Jun 13 at 9:00 AM, for three players, with invitees. */
 val previewNewGameUiState = NewGameUiState(
     course = "Pebble Beach",
     date = LocalDate(2026, 6, 13),
     time = LocalTime(9, 0),
-    slots = 3
+    slots = 3,
+    invitees = previewNewInviteeList
 )

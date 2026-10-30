@@ -12,6 +12,7 @@ struct NewGameScreen: View {
     private let onPublished: () -> Void
 
     @State private var viewModel = NewGameViewModel()
+    @State private var showContactPicker = false
 
     init(onPublished: @escaping () -> Void) {
         self.onPublished = onPublished
@@ -25,11 +26,24 @@ struct NewGameScreen: View {
                 onDateSelected: viewModel.onDateSelected,
                 onTimeSelected: viewModel.onTimeSelected,
                 onSlotsChange: viewModel.onSlotsChange,
-                onPublishClick: viewModel.onPublishClick,
+                onAddFromContactsClick: {
+                    viewModel.onAddFromContactsClick(pickContacts: { showContactPicker = true })
+                },
+                onRemoveInvitee: viewModel.onRemoveInvitee,
+                onPublishClick: {
+                    Task { await viewModel.onPublishClick(onPublished: onPublished) }
+                },
                 onKeepEditing: viewModel.onKeepEditing,
                 onDismissNoInviteeConfirm: viewModel.onDismissNoInviteeConfirm,
                 onPublishAnyway: {
                     Task { await viewModel.onPublishAnyway(onPublished: onPublished) }
+                }
+            )
+            .contactPicker(
+                isPresented: $showContactPicker,
+                onDismiss: { picked in
+                    let reader = picked.isEmpty ? nil : PickedContactsReader(picked)
+                    Task { await viewModel.onContactPickerDismissed(reader) }
                 }
             )
         }
@@ -54,6 +68,8 @@ fileprivate struct NewGameContent: View {
     private let onDateSelected: (Date) -> Void
     private let onTimeSelected: (Date) -> Void
     private let onSlotsChange: (Int) -> Void
+    private let onAddFromContactsClick: () -> Void
+    private let onRemoveInvitee: (NewInvitee) -> Void
     private let onPublishClick: () -> Void
     private let onKeepEditing: () -> Void
     private let onDismissNoInviteeConfirm: () -> Void
@@ -65,6 +81,8 @@ fileprivate struct NewGameContent: View {
         onDateSelected: @escaping (Date) -> Void,
         onTimeSelected: @escaping (Date) -> Void,
         onSlotsChange: @escaping (Int) -> Void,
+        onAddFromContactsClick: @escaping () -> Void,
+        onRemoveInvitee: @escaping (NewInvitee) -> Void,
         onPublishClick: @escaping () -> Void,
         onKeepEditing: @escaping () -> Void,
         onDismissNoInviteeConfirm: @escaping () -> Void,
@@ -75,6 +93,8 @@ fileprivate struct NewGameContent: View {
         self.onDateSelected = onDateSelected
         self.onTimeSelected = onTimeSelected
         self.onSlotsChange = onSlotsChange
+        self.onAddFromContactsClick = onAddFromContactsClick
+        self.onRemoveInvitee = onRemoveInvitee
         self.onPublishClick = onPublishClick
         self.onKeepEditing = onKeepEditing
         self.onDismissNoInviteeConfirm = onDismissNoInviteeConfirm
@@ -129,6 +149,22 @@ fileprivate struct NewGameContent: View {
 
                 SlotSelector(selected: Int(uiState.slots), onSelect: onSlotsChange)
                     .disabled(uiState.isSubmitting)
+
+                SectionLabel(GMR.strings().new_game_section_invitees.localized())
+
+                ForEach(uiState.invitees, id: \.self) { invitee in
+                    InviteeRow(invitee: invitee, onRemove: { onRemoveInvitee(invitee) })
+                        .disabled(uiState.isSubmitting)
+                }
+
+                TtcOutlinedButton(
+                    uiState.addFromContactsLabel.localized(),
+                    color: .primary,
+                    icon: .symbol(.personBadgePlus),
+                    fullWidth: true,
+                    action: onAddFromContactsClick
+                )
+                .disabled(uiState.isSubmitting)
             }
             .padding(.horizontal, NewGameDefaults.horizontalPadding)
             .padding(.bottom, NewGameDefaults.horizontalPadding)
@@ -288,6 +324,47 @@ fileprivate struct SlotSelector: View {
     }
 }
 
+/// Someone picked to invite: their avatar, name and number, and an ✕ that removes them at once.
+fileprivate struct InviteeRow: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    private let invitee: NewInvitee
+    private let onRemove: () -> Void
+
+    init(invitee: NewInvitee, onRemove: @escaping () -> Void) {
+        self.invitee = invitee
+        self.onRemove = onRemove
+    }
+
+    var body: some View {
+        TtcCard(contentPadding: NewGameDefaults.inviteeRowPadding) {
+            HStack(spacing: NewGameDefaults.inviteeRowSpacing) {
+                TtcAvatar(invitee.initial, color: invitee.avatarTone.toColorRole())
+                VStack(alignment: .leading, spacing: NewGameDefaults.inviteeTextSpacing) {
+                    Text(invitee.name)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(theme.colorScheme.onSurface)
+                    Text(invitee.formattedPhone)
+                        .font(.footnote)
+                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                }
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button(action: onRemove) {
+                    Image(SfSymbol.xmark)
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                        .frame(width: NewGameDefaults.removeButtonSize, height: NewGameDefaults.removeButtonSize)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(GMR.strings().new_game_remove_invitee.localized(invitee.name))
+            }
+        }
+    }
+}
+
 /// Spacing, sizes and seeds for the New game form — the twin of `NewGameDefaults` on Android.
 fileprivate enum NewGameDefaults {
     static let horizontalPadding: CGFloat = 16
@@ -297,6 +374,10 @@ fileprivate enum NewGameDefaults {
     static let sectionLabelTopPadding: CGFloat = 12
     static let slotLabelSpacing: CGFloat = 10
     static let slotSpacing: CGFloat = 8
+    static let inviteeRowPadding = EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 4)
+    static let inviteeRowSpacing: CGFloat = 12
+    static let inviteeTextSpacing: CGFloat = 1
+    static let removeButtonSize: CGFloat = 36
 
     /// With no time set, the time picker opens at 7:00 AM.
     static var seedTime: Date {
@@ -322,6 +403,8 @@ fileprivate struct NewGameContentPreviews: View {
             onDateSelected: { _ in },
             onTimeSelected: { _ in },
             onSlotsChange: { _ in },
+            onAddFromContactsClick: {},
+            onRemoveInvitee: { _ in },
             onPublishClick: {},
             onKeepEditing: {},
             onDismissNoInviteeConfirm: {},

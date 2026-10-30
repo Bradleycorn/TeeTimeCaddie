@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.android.theme
 
 import androidx.compose.material3.MaterialTheme
+import net.bradball.teetimecaddie.core.models.AvatarTone
 
 /**
  * The semantic color role a Ttc component renders itself in — the app's single tonal vocabulary,
@@ -52,4 +53,11 @@ enum class TtcColorRole {
 
     /** The ambient surface treatment — no tint. The quiet default for containers. */
     Neutral
+}
+
+/** The role an initial avatar in this tone is drawn in. Twin of `AvatarTone.toColorRole()` on iOS. */
+fun AvatarTone.toColorRole(): TtcColorRole = when (this) {
+    AvatarTone.PRIMARY -> TtcColorRole.Primary
+    AvatarTone.SECONDARY -> TtcColorRole.Secondary
+    AvatarTone.TERTIARY -> TtcColorRole.Tertiary
 }

@@ -13,11 +13,16 @@ import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
+import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
+import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
+import net.bradball.teetimecaddie.core.models.InviteStatus
+import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.Player
+import net.bradball.teetimecaddie.core.models.TtcLookup
 import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
@@ -37,11 +42,18 @@ interface GamesRepository {
      * course reuses it, keeping that course's stored spelling, and any other name records a new
      * course. The organizer automatically takes the tee time's first slot.
      *
+     * Each invitee's number is normalized and matched against players' numbers: a match is
+     * recorded as an app-user invitee, anyone else as an invitee the organizer manages. The
+     * caller never says which is which. A number listed twice is invited once, under the first
+     * name it came with, and the organizer's own number is skipped — they are already playing.
+     *
      * @param organizer The player publishing the game.
      * @param courseName The course as typed. Leading and trailing spaces are ignored.
      * @param slots How many players the tee time holds, from 1 to 4.
+     * @param invitees The people to invite, in the order they were added. May outnumber the slots.
      * @return The published game, carrying the stored course spelling. [GameErrors.NO_COURSE] for
-     *   a blank course and [GameErrors.INVALID_SLOTS] for an out-of-range slot count, both reported
+     *   a blank course, [GameErrors.INVALID_SLOTS] for an out-of-range slot count and
+     *   [GameErrors.INVALID_INVITEE] for an invitee without a name or a usable number, all reported
      *   without writing anything.
      */
     suspend fun publishGame(
@@ -49,7 +61,8 @@ interface GamesRepository {
         courseName: String,
         date: LocalDate,
         time: LocalTime,
-        slots: Int
+        slots: Int,
+        invitees: List<NewInvitee>
     ): TtcResult<Game>
 
     /**
@@ -72,9 +85,18 @@ interface GamesRepository {
 /** The most players a tee time can hold. */
 const val MAX_TEE_TIME_SLOTS = 4
 
+// The digit counts the `players` and `games` rules accept for a stored phone number.
+internal val STORED_PHONE_LENGTHS = 10..15
+
+/**
+ * @param findPlayerByPhone Looks up the player who owns a phone number, as
+ *   `PlayerRepository.findPlayerByPhone` does. A function rather than the repository so this
+ *   module does not depend on another feature module.
+ */
 class GamesRepositoryImpl(
     private val eventManager: EventManager,
-    private val gameStorage: GameStorage
+    private val gameStorage: GameStorage,
+    private val findPlayerByPhone: suspend (phone: String) -> TtcLookup<Player>
 ) : GamesRepository {
 
     override suspend fun publishGame(
@@ -82,11 +104,20 @@ class GamesRepositoryImpl(
         courseName: String,
         date: LocalDate,
         time: LocalTime,
-        slots: Int
+        slots: Int,
+        invitees: List<NewInvitee>
     ): TtcResult<Game> {
         if (courseName.isBlank()) return TtcResult.Failure(GameException(GameErrors.NO_COURSE))
         if (slots !in 1..MAX_TEE_TIME_SLOTS) {
             return TtcResult.Failure(GameException(GameErrors.INVALID_SLOTS))
+        }
+        val cleanInvitees = invitees.map { it.name.trim() to it.phone.toPhoneDigits() }
+        if (cleanInvitees.any { (name, phone) -> name.isEmpty() || phone.length !in STORED_PHONE_LENGTHS }) {
+            return TtcResult.Failure(GameException(GameErrors.INVALID_INVITEE))
+        }
+        val gameInvitees = when (val classified = classify(organizer, cleanInvitees)) {
+            is TtcResult.Success -> classified.data
+            is TtcResult.Failure -> return classified
         }
 
         val key = courseKey(courseName)
@@ -105,7 +136,9 @@ class GamesRepositoryImpl(
                     courseName = course.name,
                     date = date,
                     teeTimes = listOf(teeTime.toDocument()),
-                    playerIds = listOf(organizer.id)
+                    playerIds = listOf(organizer.id),
+                    invitees = gameInvitees.map { it.toDocument() },
+                    invitedPhones = gameInvitees.map { it.phone }
                 )
             }
             TtcResult.Success(game.toModel())
@@ -132,6 +165,34 @@ class GamesRepositoryImpl(
                 TtcResult.Success(document.toModel())
             }
         }
+
+    /**
+     * Turn the cleaned invitees into [GameInvitee]s, recording which numbers belong to a player.
+     *
+     * One lookup per number: the `players` rules allow only single-result queries. Done before the
+     * publish transaction, which cannot run queries. A failed lookup fails the publish rather
+     * than recording an app user as someone the organizer manages.
+     */
+    private suspend fun classify(
+        organizer: Player,
+        invitees: List<Pair<String, String>>
+    ): TtcResult<List<GameInvitee>> {
+        val unique = invitees
+            .distinctBy { (_, phone) -> phone }
+            .filter { (_, phone) -> phone != organizer.phone.toPhoneDigits() }
+
+        return TtcResult.Success(
+            unique.map { (name, phone) ->
+                val playerId = when (val match = findPlayerByPhone(phone)) {
+                    is TtcLookup.Success -> match.data?.id
+                    is TtcLookup.Failure -> return TtcResult.Failure(
+                        GameException(GameErrors.PUBLISH_FAILED, cause = match.error as? Exception)
+                    )
+                }
+                GameInvitee(name = name, phone = phone, playerId = playerId, status = InviteStatus.PENDING)
+            }
+        )
+    }
 
     /**
      * Run a storage call, turning anything it throws into a [failure] result. [block] reports its

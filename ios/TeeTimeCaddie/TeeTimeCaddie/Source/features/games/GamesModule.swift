@@ -12,6 +12,16 @@ final class GamesModule: SharedContainer {
             .singleton
     }
 
+    /// Builds a `ContactsRepository` over a reader: in practice, a ``PickedContactsReader`` for
+    /// each set of numbers the system picker returns. The twin of Android's
+    /// `ContactsRepositoryFactory`, and a seam so ViewModel tests can build one over a fake.
+    var contactsRepositoryFactory: Factory<(any DeviceContactsReader) -> any ContactsRepository> {
+        self {
+            let sdk = AppModule.shared.teeTimeCaddieSdk()
+            return { sdk.contactsRepository(reader: $0) }
+        }
+    }
+
     /// The signed-in player, read when asked.
     ///
     /// A seam rather than a convenience: `SessionManager`'s constructor is internal to the SDK, so
