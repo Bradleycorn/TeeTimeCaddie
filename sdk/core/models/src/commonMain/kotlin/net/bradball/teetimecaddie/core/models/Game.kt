@@ -56,13 +56,16 @@ data class GameTeeTime(
  * @property course Where the game is played.
  * @property date The day of the game.
  * @property teeTimes The game's tee times, earliest first.
+ * @property invitees Everyone invited, in the order the organizer added them. Not capped by the
+ *   slot count: inviting more people than there are slots is allowed.
  */
 data class Game(
     val id: String,
     val organizerId: String,
     val course: Course,
     val date: LocalDate,
-    val teeTimes: List<GameTeeTime>
+    val teeTimes: List<GameTeeTime>,
+    val invitees: List<GameInvitee>
 ) {
     /** Whether [playerId] organized this game. */
     fun isOrganizer(playerId: String): Boolean = playerId == organizerId
@@ -86,7 +89,8 @@ val previewGame = Game(
     organizerId = previewPlayer.id,
     course = previewCourse,
     date = LocalDate.today.plus(DatePeriod(days = 1)),
-    teeTimes = listOf(previewGameTeeTime)
+    teeTimes = listOf(previewGameTeeTime),
+    invitees = emptyList()
 )
 
 val previewGameList = listOf(

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
+import net.bradball.teetimecaddie.android.theme.toColorRole
 import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
@@ -46,9 +47,11 @@ import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.state.GameUiState
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.GameSlotUiState
 import net.bradball.teetimecaddie.features.games.state.GameTeeTimeUiState
+import net.bradball.teetimecaddie.features.games.state.TeeTimePlayerRowUiState
+import net.bradball.teetimecaddie.features.games.state.TeeTimePlayerStatus
 import net.bradball.teetimecaddie.features.games.state.previewGameUiState
+import net.bradball.teetimecaddie.features.games.state.previewGameWithInviteesUiState
 import net.bradball.teetimecaddie.features.games.state.toUiState
 
 @Composable
@@ -168,21 +171,20 @@ private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifi
             )
         }
 
-        val rows = uiState.players.map<GameSlotUiState, GameSlotUiState?> { it } + List(uiState.openSlots) { null }
-        rows.forEachIndexed { index, player ->
-            val showDivider = index < rows.lastIndex
-            if (player == null) {
-                EmptySlotRow(showDivider = showDivider)
-            } else {
-                PlayerSlotRow(uiState = player, showDivider = showDivider)
-            }
+        // The roster, then the empty slots that are left. Every row but the last carries a divider.
+        val lastRow = uiState.players.size + uiState.openSlots - 1
+        uiState.players.forEachIndexed { i, player ->
+            PlayerRow(uiState = player, showDivider = i < lastRow)
+        }
+        repeat(uiState.openSlots) { i ->
+            EmptySlotRow(showDivider = uiState.players.size + i < lastRow)
         }
     }
 }
 
 @Composable
-private fun PlayerSlotRow(
-    uiState: GameSlotUiState,
+private fun PlayerRow(
+    uiState: TeeTimePlayerRowUiState,
     showDivider: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -192,7 +194,7 @@ private fun PlayerSlotRow(
         avatar = {
             TtcAvatar(
                 initials = uiState.initial,
-                color = if (uiState.isOrganizer) TtcColorRole.Secondary else TtcColorRole.Primary,
+                color = uiState.tone.toColorRole(),
                 size = GameDetailsDefaults.AvatarSize,
             )
         },
@@ -202,12 +204,18 @@ private fun PlayerSlotRow(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
         )
-        if (uiState.isOrganizer) {
-            Text(
+        when (uiState.status) {
+            TeeTimePlayerStatus.ORGANIZER -> Text(
                 text = stringResource(GMR.strings.game_details_organizer_label.resourceId),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )
+            TeeTimePlayerStatus.INVITED -> Text(
+                text = stringResource(GMR.strings.game_details_invited_label.resourceId),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TeeTimePlayerStatus.CONFIRMED -> Unit
         }
     }
 }
@@ -283,6 +291,17 @@ private fun GameDetailsOrganizerPreview() {
     MyApplicationTheme {
         GameDetailsContent(
             uiState = GameDetailsUiState.Content(previewGameUiState),
+            onBack = {},
+        )
+    }
+}
+
+@ScreenPreviews
+@Composable
+private fun GameDetailsWithInviteesPreview() {
+    MyApplicationTheme {
+        GameDetailsContent(
+            uiState = GameDetailsUiState.Content(previewGameWithInviteesUiState),
             onBack = {},
         )
     }

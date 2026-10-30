@@ -2,12 +2,15 @@ package net.bradball.teetimecaddie.features.games
 
 import net.bradbal.teetimecaddie.core.storage.documents.CourseDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
+import net.bradbal.teetimecaddie.core.storage.documents.GameInviteeDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GamePlayerDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameTeeTimeDocument
 import net.bradball.teetimecaddie.core.models.Course
 import net.bradball.teetimecaddie.core.models.Game
+import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
+import net.bradball.teetimecaddie.core.models.InviteStatus
 
 // Every mapper here is `internal` on purpose: `:sdk:core:storage` is an implementation-only
 // dependency of `:sdk`, so a document type in any public signature would drag storage types across
@@ -46,6 +49,22 @@ internal fun GameTeeTime.toDocument(): GameTeeTimeDocument = GameTeeTimeDocument
     players = players.map { it.toDocument() }
 )
 
+// An unrecognised status — written by a newer app version — reads as PENDING rather than failing
+// the whole game.
+internal fun GameInviteeDocument.toModel(): GameInvitee = GameInvitee(
+    name = name,
+    phone = phone,
+    playerId = playerId,
+    status = InviteStatus.entries.firstOrNull { it.name == status } ?: InviteStatus.PENDING
+)
+
+internal fun GameInvitee.toDocument(): GameInviteeDocument = GameInviteeDocument(
+    name = name,
+    phone = phone,
+    playerId = playerId,
+    status = status.name
+)
+
 internal fun GameDocument.toModel(): Game = Game(
     id = requireNotNull(id) {
         "GameDocument.id was not populated. Read games through GameStorage, which sets it."
@@ -53,5 +72,6 @@ internal fun GameDocument.toModel(): Game = Game(
     organizerId = organizerId,
     course = Course(id = courseId, name = courseName),
     date = date,
-    teeTimes = teeTimes.map { it.toModel() }.sortedBy { it.time }
+    teeTimes = teeTimes.map { it.toModel() }.sortedBy { it.time },
+    invitees = invitees.map { it.toModel() }
 )

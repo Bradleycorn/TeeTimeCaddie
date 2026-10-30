@@ -34,6 +34,13 @@ rules_version = '2';
 //           - playerId: string (required, a uid)
 //           - name: string (required, 1-100) - copy of that player's profile name
 //   - playerIds: list of strings (required) - everyone holding a slot; drives reads
+//   - invitees: list (required, may be empty, <= 50) of maps, in the order added:
+//       - name: string (1-100) - the name the organizer invited them by
+//       - phone: string (digits only, 10-15) - the number they were invited by
+//       - playerId: string or null - the player who owned that number at publish, if any
+//       - status: string - "PENDING" until responses arrive
+//   - invitedPhones: list of strings (required, one per invitee) - copies of each invitee's
+//       phone, for the array-contains query that finds a number's invitations
 //   - createdAt: timestamp (required, the server's time at creation)
 //
 // ===============================================================
@@ -106,14 +113,39 @@ service cloud.firestore {
         && isOrganizerSlot(teeTime.players[0]);
     }
 
+    // Rules have no loops, so a list's elements can't each be checked. This checks what can be:
+    // a bounded list, and an invitedPhones that pairs one number with each invitee. Per-invitee
+    // shape (name, digits-only phone, PENDING) is the SDK's job, in GamesRepository.publishGame.
+    // An invitee's playerId is the organizer's claim and grants nothing: invitations are found
+    // by phone number, and reading a game still requires being in playerIds.
+    function isValidNewInvitees(data) {
+      return data.invitees is list
+        && data.invitees.size() <= 50
+        && data.invitedPhones is list
+        && data.invitedPhones.size() == data.invitees.size()
+        && (data.invitees.size() == 0 || (
+          data.invitees[0] is map
+          && data.invitees[0].keys().hasOnly(['name', 'phone', 'playerId', 'status'])
+          && data.invitees[0].keys().hasAll(['name', 'phone', 'playerId', 'status'])
+          && isStringOfLength(data.invitees[0].name, 1, 100)
+          && data.invitees[0].phone is string
+          && data.invitees[0].phone.matches('^[0-9]{10,15}$')
+          && data.invitees[0].status == 'PENDING'
+          && data.invitedPhones[0] == data.invitees[0].phone
+        ));
+    }
+
     // A game as it is first published: one tee time, holding only the organizer, at a course that
     // exists once this write lands (it may be created in the same transaction, hence getAfter).
+    // Invitees don't hold slots until they say yes, so they aren't in playerIds.
     function isValidNewGame(data) {
       return data.keys().hasOnly([
-          'organizerId', 'courseId', 'courseName', 'date', 'teeTimes', 'playerIds', 'createdAt'
+          'organizerId', 'courseId', 'courseName', 'date', 'teeTimes', 'playerIds',
+          'invitees', 'invitedPhones', 'createdAt'
         ])
         && data.keys().hasAll([
-          'organizerId', 'courseId', 'courseName', 'date', 'teeTimes', 'playerIds', 'createdAt'
+          'organizerId', 'courseId', 'courseName', 'date', 'teeTimes', 'playerIds',
+          'invitees', 'invitedPhones', 'createdAt'
         ])
         && data.organizerId == request.auth.uid
         && isStringOfLength(data.courseId, 1, 100)
@@ -127,6 +159,7 @@ service cloud.firestore {
         && data.teeTimes.size() == 1
         && isValidNewTeeTime(data.teeTimes[0])
         && data.playerIds == [request.auth.uid]
+        && isValidNewInvitees(data)
         && data.createdAt == request.time;
     }
 
@@ -145,8 +178,7 @@ service cloud.firestore {
       // field a query filters on, only its shape. Capping the limit blocks a bulk dump and makes
       // scraping slow and expensive, but an authenticated attacker can still page through players
       // one document at a time. Enumeration is mitigated, not eliminated. Closing it properly
-      // means a key-addressed uniqueness collection or a callable function, both out of scope for
-      // TTC-67.
+      // means a key-addressed uniqueness collection or a callable function.
       allow list: if isSignedIn() && request.query.limit <= 1;
 
       allow create: if isSelf(playerId)
