@@ -3,7 +3,6 @@ package net.bradball.teetimecaddie.android.feature.games.newGame
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,42 +23,9 @@ import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.DeviceContactsReader
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
-import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
+import net.bradball.teetimecaddie.features.games.state.NewGameUiState
 import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
-
-/**
- * State of the New game form.
- *
- * A data class rather than a sealed hierarchy, because its parts are independent: the confirmation
- * opens over a filled-in form, and a failed publish leaves the form as it was.
- *
- * @property invitees The people picked so far, in the order they were added. Never affects
- *   [canSubmit], and may outnumber [slots].
- * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Only a
- *   publish with no invitees asks.
- */
-data class NewGameUiState(
-    val course: String = "",
-    val date: LocalDate? = null,
-    val time: LocalTime? = null,
-    val slots: Int = MAX_TEE_TIME_SLOTS,
-    val invitees: List<NewInvitee> = emptyList(),
-    val showNoInviteeConfirm: Boolean = false,
-    val isSubmitting: Boolean = false,
-) {
-    /** A course of only spaces doesn't count. Slots never block publishing; they start at 4. */
-    val canSubmit: Boolean
-        get() = course.isNotBlank() && date != null && time != null && !isSubmitting
-
-    /** "Add from contacts", or "Add more from contacts" once anyone has been added. */
-    val addFromContactsLabel: StringResource
-        get() = if (invitees.isEmpty()) {
-            GMR.strings.new_game_add_from_contacts
-        } else {
-            GMR.strings.new_game_add_more_from_contacts
-        }
-}
 
 sealed interface NewGameEvent {
     /** The game is published; leave the form. */
@@ -67,6 +33,12 @@ sealed interface NewGameEvent {
 
     /** Open the system contact picker, and report how it closed to `onContactPickerDismissed`. */
     data object PickContacts : NewGameEvent
+
+    /**
+     * Ask "Publish with no invitees?", and report the answer to `onKeepEditing` or
+     * `onPublishAnyway`. Dismissing it any other way leaves the form as it was.
+     */
+    data object ConfirmNoInvitees : NewGameEvent
 }
 
 @HiltViewModel
@@ -152,30 +124,20 @@ class NewGameViewModel @Inject constructor(
         val state = _uiState.value
         if (!state.canSubmit) return
         if (state.invitees.isEmpty()) {
-            _uiState.update { it.copy(showNoInviteeConfirm = true) }
+            viewModelScope.launch { _events.send(NewGameEvent.ConfirmNoInvitees) }
         } else {
             submit()
         }
     }
 
-    /** "Keep editing": close the alert and leave the form exactly as it was. */
+    /** "Keep editing": the form stays exactly as it was. */
     fun onKeepEditing() {
         eventManager.logEvent(AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.KEEP_EDITING))
-        onDismissNoInviteeConfirm()
-    }
-
-    /**
-     * The alert was dismissed without a button — a tap outside it, or back. Same outcome as
-     * "Keep editing", but it isn't a button press, so it isn't logged as one.
-     */
-    fun onDismissNoInviteeConfirm() {
-        _uiState.update { it.copy(showNoInviteeConfirm = false) }
     }
 
     /** "Publish anyway". */
     fun onPublishAnyway() {
         eventManager.logEvent(AnalyticsEvent.NoInvites(AnalyticsEvent.NoInvites.Response.PUBLISH_ANYWAY))
-        _uiState.update { it.copy(showNoInviteeConfirm = false) }
         submit()
     }
 
