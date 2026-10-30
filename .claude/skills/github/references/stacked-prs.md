@@ -10,7 +10,7 @@ extension. The story branch is the stack's **trunk**:
 
 ```
 epic/TTC-100-user-management
- └── story/TTC-101-login-screen          trunk; story PR → epic, opened once the stack is merged
+ └── story/TTC-101-login-screen          trunk; draft story PR → epic until the stack merges
       └── subtask/TTC-102-login-model    layer 1; PR → story branch
            └── subtask/TTC-103-login-ui  layer 2; PR → layer 1
 ```
@@ -23,7 +23,8 @@ built and earlier ones get fixes.
 
 - `gh stack --help` must work. If it doesn't, stop and ask the user to run
   `gh extension install github/gh-stack`. Don't install it yourself.
-- The story branch is pushed to `origin` (see `branching.md`). The bottom PR targets it.
+- The story branch is pushed to `origin` with its draft story PR open (see `branching.md`). The
+  bottom PR targets it.
 - If `submit` reports that stacked PRs aren't available for the repo, stop and tell the user.
   Don't fall back to plain PRs on your own.
 

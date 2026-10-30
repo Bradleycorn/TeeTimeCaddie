@@ -44,11 +44,13 @@ suggesting `main`.
 git checkout epic/TTC-100-user-management   # or whatever base was agreed
 git pull
 git checkout -b story/TTC-101-login-screen
+git commit --allow-empty -m "TTC-101 Start the story branch"   # stacked stories only
 git push -u origin story/TTC-101-login-screen
 ```
 
-Push it right away, empty: it is the trunk of the story's sub-task stack, and the first sub-task
-PR targets it. Sub-task branches are created by `gh stack`, not by hand — see `stacked-prs.md`.
+For a stacked story, push it right away with that one empty commit. The commit gives the branch a
+diff, so the draft story PR can open now (`pull-requests.md`), and the branch is the trunk of the
+sub-task stack. Sub-task branches are created by `gh stack`, not by hand — see `stacked-prs.md`.
 
 For a one-sub-task issue (see SKILL.md, "One PR or a stack") there is no stack: commit the work
 directly on the story branch.

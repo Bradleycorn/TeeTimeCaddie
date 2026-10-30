@@ -3,9 +3,9 @@
 Read this when it's time to open a story (or hotfix) PR.
 
 Sub-task PRs are different: they are stacked on the story branch and covered in `stacked-prs.md`.
-A story worked in sub-tasks gets its story PR, ready for review, after the user merges the whole
-approved stack into the story branch. Before that the story branch has no commits of its own, and
-GitHub refuses a PR with no diff. Review status lives on the sub-task PRs until then.
+A story worked in sub-tasks gets its story PR as a draft as soon as the story branch is created
+and pushed; its empty first commit (`branching.md`) gives GitHub a diff. The stack sits on top of
+it, and it stays a draft until the user merges the approved stack.
 
 A one-sub-task issue has no stack. Its story PR is its only PR: open it **ready, not as a draft**,
 once the sub-task's work is committed on the story branch. Title it with the story key
@@ -47,7 +47,20 @@ The body covers:
 - **Test plan:** what you ran, or what the reviewer should exercise
 - **Breaking changes / migration notes**, when there are any
 - **Screenshots** for any UI change — both platforms if both changed
-- **Sub-task PRs**, for a stacked story: each one's link, already reviewed and merged
+
+### Opening it as a draft
+
+Same steps, with `--draft` added to `gh pr create`. While the PR is a draft, **the body is a
+living checklist** of the sub-tasks: `- [x] TTC-76 …` once its sub-task PR is approved,
+`- [ ] TTC-77 …` until then, each linked to its sub-task PR once it has one. Update it on every
+resume (see "Updating the PR body").
+
+When the user has merged the approved stack into the story branch:
+
+1. Rewrite the body to describe what was actually built — the sections from step 3, not the
+   checklist.
+2. `gh pr ready <n>`
+3. Confirm: `gh pr view <n> --json isDraft,body`
 
 ## 4. Stop
 

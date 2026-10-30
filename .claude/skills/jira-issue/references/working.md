@@ -11,8 +11,9 @@ at the end.
 Every time you start or resume, before touching the next sub-task:
 
 1. Check every sub-task PR in the stack for new review comments and approvals (github
-   `references/stacked-prs.md`, "Checking the stack"). Unresolved feedback on any layer comes
-   first — see "Review comments and rework".
+   `references/stacked-prs.md`, "Checking the stack"), and tick approved ones in the draft story
+   PR's checklist. Unresolved feedback on any layer comes first — see "Review comments and
+   rework".
 2. If the user's own work landed on the epic branch, merge the epic into the story branch, push,
    and `gh stack sync`.
 
@@ -48,8 +49,8 @@ In step 4, also clear every `TODO(<story key>)`. After step 7, also move the sto
 then stop.
 
 When every sub-task PR is approved, the user merges the stack into the story branch. When resumed
-after that: `gh stack sync --prune`, move every sub-task → Done, and open the story PR ready for
-review, describing what was built (github `references/pull-requests.md`).
+after that: `gh stack sync --prune`, move every sub-task → Done, rewrite the story PR description
+to describe what was built, and mark it ready (github `references/pull-requests.md`).
 
 ## User-owned sub-tasks
 

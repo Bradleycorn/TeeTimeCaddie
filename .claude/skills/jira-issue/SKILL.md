@@ -28,11 +28,12 @@ Copy this checklist and track progress (stacked issues):
 - [ ] Read the story (custom fields included) and its epic
 - [ ] Plan: every AC covered, branches named; propose sub-tasks
 - [ ] After approval: create and assign sub-tasks; story → In Progress
-- [ ] Set up and push the story branch
+- [ ] Set up the story branch (empty commit), push it, open the draft story PR
 - [ ] Each sub-task: catch up on reviews → In Progress → work → clear its TODOs → commit
       → stacked PR → IN REVIEW → stop
 - [ ] Final sub-task's PR up: story → IN REVIEW, stop
-- [ ] User has merged the approved stack: sub-tasks Done, open the story PR ready for review
+- [ ] User has merged the approved stack: sub-tasks Done, rewrite the story PR description,
+      mark it ready
 ```
 
 Stop there. Merging PRs and closing the story are the user's.

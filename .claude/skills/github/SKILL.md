@@ -16,7 +16,7 @@ key from Jira.
 | You are about to | Read |
 |---|---|
 | Find or create a branch, update it from its base, or place out-of-scope changes | `references/branching.md` |
-| Open the story PR or update its description | `references/pull-requests.md` |
+| Open the story PR (draft or ready), update its description, or mark it ready | `references/pull-requests.md` |
 | Create a sub-task's branch and stacked PR, push a fix up the stack, or check the stack's reviews | `references/stacked-prs.md` |
 | Address review comments or feedback on a PR | `references/pr-feedback.md` |
 
