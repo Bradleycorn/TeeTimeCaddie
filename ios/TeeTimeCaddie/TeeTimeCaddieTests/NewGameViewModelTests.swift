@@ -41,20 +41,7 @@ final class NewGameViewModelTests: XCTestCase {
     // MARK: - The form
 
     func testSlotsDefaultToTheSdkMaximum() {
-        XCTAssertEqual(viewModel.uiState.slots, 4)
-        XCTAssertEqual(NewGameUiState.maxSlots, Int(GamesRepositoryKt.MAX_TEE_TIME_SLOTS))
-    }
-
-    func testCanSubmitNeedsACourseADateAndATime() {
-        XCTAssertFalse(NewGameUiState().canSubmit)
-        XCTAssertFalse(NewGameUiState(course: "Pebble Beach", date: date).canSubmit)
-        XCTAssertFalse(NewGameUiState(course: "Pebble Beach", time: time).canSubmit)
-        XCTAssertFalse(NewGameUiState(date: date, time: time).canSubmit)
-        XCTAssertTrue(NewGameUiState(course: "Pebble Beach", date: date, time: time).canSubmit)
-    }
-
-    func testCanSubmitIgnoresACourseOfOnlySpaces() {
-        XCTAssertFalse(NewGameUiState(course: "   ", date: date, time: time).canSubmit)
+        XCTAssertEqual(viewModel.uiState.slots, GamesRepositoryKt.MAX_TEE_TIME_SLOTS)
     }
 
     func testChosenValuesReadAsTheyAreDisplayed() {
@@ -91,9 +78,7 @@ final class NewGameViewModelTests: XCTestCase {
 
         viewModel.onKeepEditing()
 
-        var expected = before
-        expected.showNoInviteeConfirm = false
-        XCTAssertEqual(viewModel.uiState, expected)
+        XCTAssertEqual(viewModel.uiState, before.withNoInviteeConfirm(showNoInviteeConfirm: false))
         XCTAssertTrue(repository.publishRequests.isEmpty)
     }
 

@@ -106,7 +106,7 @@ fileprivate struct NewGameContent: View {
                     onActivate: {
                         courseFocused = false
                         // Reopening starts on the date already chosen.
-                        draftDate = uiState.date ?? .today
+                        draftDate = uiState.date?.toDate() ?? .today
                         showDatePicker = true
                     }
                 )
@@ -119,7 +119,7 @@ fileprivate struct NewGameContent: View {
                     placeholder: GMR.strings().new_game_field_tee_time_placeholder.localized(),
                     onActivate: {
                         courseFocused = false
-                        draftTime = uiState.time ?? NewGameDefaults.seedTime
+                        draftTime = uiState.time?.toDate() ?? NewGameDefaults.seedTime
                         showTimePicker = true
                     }
                 )
@@ -127,7 +127,7 @@ fileprivate struct NewGameContent: View {
 
                 SectionLabel(GMR.strings().new_game_section_players.localized())
 
-                SlotSelector(selected: uiState.slots, onSelect: onSlotsChange)
+                SlotSelector(selected: Int(uiState.slots), onSelect: onSlotsChange)
                     .disabled(uiState.isSubmitting)
             }
             .padding(.horizontal, NewGameDefaults.horizontalPadding)
@@ -275,7 +275,7 @@ fileprivate struct SlotSelector: View {
                     .foregroundStyle(theme.colorScheme.onSurfaceVariant)
 
                 HStack(spacing: NewGameDefaults.slotSpacing) {
-                    ForEach(1...NewGameUiState.maxSlots, id: \.self) { slots in
+                    ForEach(1...Int(GamesRepositoryKt.MAX_TEE_TIME_SLOTS), id: \.self) { slots in
                         if slots == selected {
                             TtcButton(String(slots), fullWidth: true, action: { onSelect(slots) })
                         } else {
@@ -332,20 +332,13 @@ fileprivate struct NewGameContentPreviews: View {
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        NewGameContentPreviews(uiState: NewGameUiState())
+        NewGameContentPreviews(uiState: NewGameUiState.companion.defaultValue)
     }
 }
 
 #Preview("Filled - Dark") {
     TeeTimeCaddieTheme {
-        NewGameContentPreviews(uiState: NewGameUiState(
-            course: "Pebble Beach",
-            date: .today,
-            dateText: "Sat, Jun 13",
-            time: .today,
-            timeText: "9:00 AM",
-            slots: 3
-        ))
+        NewGameContentPreviews(uiState: NewGameUiStateKt.previewNewGameUiState)
     }
     .preferredColorScheme(.dark)
 }

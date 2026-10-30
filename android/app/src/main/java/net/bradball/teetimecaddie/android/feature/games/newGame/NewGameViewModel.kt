@@ -19,31 +19,9 @@ import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
-import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
+import net.bradball.teetimecaddie.features.games.state.NewGameUiState
 import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
-
-/**
- * State of the New game form.
- *
- * A data class rather than a sealed hierarchy, because its parts are independent: the confirmation
- * opens over a filled-in form, and a failed publish leaves the form as it was.
- *
- * @property showNoInviteeConfirm Whether the "Publish with no invitees?" alert is up. Until
- *   invitees arrive (TTC-69) every publish asks.
- */
-data class NewGameUiState(
-    val course: String = "",
-    val date: LocalDate? = null,
-    val time: LocalTime? = null,
-    val slots: Int = MAX_TEE_TIME_SLOTS,
-    val showNoInviteeConfirm: Boolean = false,
-    val isSubmitting: Boolean = false,
-) {
-    /** A course of only spaces doesn't count. Slots never block publishing; they start at 4. */
-    val canSubmit: Boolean
-        get() = course.isNotBlank() && date != null && time != null && !isSubmitting
-}
 
 sealed interface NewGameEvent {
     /** The game is published; leave the form. */

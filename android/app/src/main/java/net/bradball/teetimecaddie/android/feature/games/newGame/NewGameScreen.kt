@@ -46,10 +46,10 @@ import net.bradball.teetimecaddie.android.ui.common.pickers.TtcDatePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.pickers.TtcTimePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
-import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
+import net.bradball.teetimecaddie.features.games.state.NewGameUiState
+import net.bradball.teetimecaddie.features.games.state.previewNewGameUiState
 
 @Composable
 fun NewGameScreen(
@@ -157,7 +157,7 @@ private fun NewGameContent(
             )
 
             TtcTextField(
-                value = uiState.date?.weekdayMonthDay.orEmpty(),
+                value = uiState.dateText.orEmpty(),
                 onValueChange = {},
                 label = stringResource(GMR.strings.new_game_field_date.resourceId),
                 leadingIcon = TtcIcons.CALENDAR,
@@ -169,7 +169,7 @@ private fun NewGameContent(
             )
 
             TtcTextField(
-                value = uiState.time?.formattedTime.orEmpty(),
+                value = uiState.timeText.orEmpty(),
                 onValueChange = {},
                 label = stringResource(GMR.strings.new_game_field_tee_time.resourceId),
                 leadingIcon = TtcIcons.SCHEDULE,
@@ -324,12 +324,7 @@ private fun NewGameEmptyPreview() {
 private fun NewGameFilledPreview() {
     MyApplicationTheme {
         NewGameContent(
-            uiState = NewGameUiState(
-                course = "Pebble Beach",
-                date = LocalDate(2026, 6, 13),
-                time = LocalTime(9, 0),
-                slots = 3,
-            ),
+            uiState = previewNewGameUiState,
             onCancel = {},
             onCourseChange = {},
             onDateSelected = {},

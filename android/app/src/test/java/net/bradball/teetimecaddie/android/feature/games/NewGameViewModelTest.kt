@@ -10,7 +10,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameEvent
-import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameUiState
 import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
 import net.bradball.teetimecaddie.android.testing.RecordingEventManager
@@ -20,6 +19,7 @@ import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GameErrors
+import net.bradball.teetimecaddie.features.games.state.NewGameUiState
 import net.bradball.teetimecaddie.session.SessionState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -61,27 +61,6 @@ class NewGameViewModelTest {
     @Test
     fun slotsDefaultToFour() {
         assertEquals(4, viewModel.uiState.value.slots)
-    }
-
-    @Test
-    fun canSubmit_needsACourseADateAndATime() {
-        assertFalse(NewGameUiState().canSubmit)
-        assertFalse(NewGameUiState(course = "Pebble Beach", date = date).canSubmit)
-        assertFalse(NewGameUiState(course = "Pebble Beach", time = time).canSubmit)
-        assertFalse(NewGameUiState(date = date, time = time).canSubmit)
-        assertTrue(NewGameUiState(course = "Pebble Beach", date = date, time = time).canSubmit)
-    }
-
-    @Test
-    fun canSubmit_ignoresACourseOfOnlySpaces() {
-        assertFalse(NewGameUiState(course = "   ", date = date, time = time).canSubmit)
-    }
-
-    @Test
-    fun canSubmit_isFalseWhilePublishing() {
-        assertFalse(
-            NewGameUiState(course = "Pebble Beach", date = date, time = time, isSubmitting = true).canSubmit
-        )
     }
 
     @Test
