@@ -17,7 +17,7 @@ key from Jira.
 |---|---|
 | Find or create a branch, update it from its base, or place out-of-scope changes | `references/branching.md` |
 | Open the story PR (draft or ready), update its description, or mark it ready | `references/pull-requests.md` |
-| Create a sub-task's branch and stacked PR, push a fix up the stack, or catch up after merges | `references/stacked-prs.md` |
+| Create a sub-task's branch and stacked PR, push a fix up the stack, or check the stack's reviews | `references/stacked-prs.md` |
 | Address review comments or feedback on a PR | `references/pr-feedback.md` |
 
 ## One PR or a stack
@@ -46,4 +46,5 @@ they never get a branch or PR.
 - **Query `gh` with `--json` and explicit fields.** Default human-readable output varies by `gh`
   version and can fail silently; `--json` and `gh api` do not.
 - **Stop at "PR created."** That includes each sub-task PR in a stack. Merging a PR and deleting
-  the branch are the user's, not yours.
+  the branch are the user's, not yours. A stack is approved layer by layer and merged by the user
+  only once every layer is approved; never ask for or offer a merge.

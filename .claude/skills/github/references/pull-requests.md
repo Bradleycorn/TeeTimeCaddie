@@ -1,18 +1,15 @@
 # Opening the PR
 
-Read this when it's time to open a story (or hotfix) PR — either a ready PR for finished code, or
-a draft opened early so the user can review while work continues (see "Opening it as a draft"
-below). When to open a draft is the caller's decision; this file covers how.
+Read this when it's time to open a story (or hotfix) PR.
 
 Sub-task PRs are different: they are stacked on the story branch and covered in `stacked-prs.md`.
-A story worked in sub-tasks gets its story PR as a draft once the first sub-task PR has been
-merged into the story branch. Before that the story branch has no commits of its own, and GitHub
-refuses a PR with no diff.
+A story worked in sub-tasks gets its story PR as a draft as soon as the story branch is created
+and pushed; its empty first commit (`branching.md`) gives GitHub a diff. The stack sits on top of
+it, and it stays a draft until the user merges the approved stack.
 
 A one-sub-task issue has no stack. Its story PR is its only PR: open it **ready, not as a draft**,
 once the sub-task's work is committed on the story branch. Title it with the story key
-(`TTC-101: Login screen`), link both the story and the sub-task in the body, and skip the draft
-checklist below.
+(`TTC-101: Login screen`) and link both the story and the sub-task in the body.
 
 ## 1. Confirm the base branch
 
@@ -53,14 +50,12 @@ The body covers:
 
 ### Opening it as a draft
 
-Same steps, with `--draft` added to `gh pr create`. While the PR is a draft:
+Same steps, with `--draft` added to `gh pr create`. While the PR is a draft, **the body is a
+living checklist** of the sub-tasks: `- [x] TTC-76 …` once its sub-task PR is approved,
+`- [ ] TTC-77 …` until then, each linked to its sub-task PR once it has one. Update it on every
+resume (see "Updating the PR body").
 
-- **The body is a living checklist** of the issue's sub-tasks — `- [x] TTC-76 …` for merged into
-  the story branch, `- [ ] TTC-77 …` for not yet, each linked to its sub-task PR once it has one.
-  Update it as sub-task PRs merge (see "Updating the PR body").
-- The PR updates itself as sub-task PRs merge into the story branch.
-
-When every sub-task PR is merged into the story branch:
+When the user has merged the approved stack into the story branch:
 
 1. Rewrite the body to describe what was actually built — the sections from step 3, not the
    checklist.
