@@ -1,0 +1,11 @@
+changelog:
+  categories:
+    - title: Features
+      labels:
+        - Epic
+    - title: Changes
+      labels:
+        - Story
+    - title: Fixes
+      labels:
+        - Defect

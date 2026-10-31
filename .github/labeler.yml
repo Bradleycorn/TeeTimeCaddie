@@ -1,0 +1,11 @@
+# Place at: .github/labeler.yml
+# Maps a PR's source (head) branch to a label. Patterns are regular expressions.
+
+Epic:
+  - head-branch: ['^epic/']
+
+Story:
+  - head-branch: ['^story/']
+
+Defect:
+  - head-branch: ['^hotfix/']
