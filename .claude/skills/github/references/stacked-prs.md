@@ -1,7 +1,7 @@
 # Stacked sub-task PRs
 
-Read this when a sub-task needs its branch and PR, when a fix must reach the layers above it, or
-when the user has merged part of a stack.
+Read this when a sub-task needs its branch and PR, when a fix must reach the layers above it, when
+checking the stack for reviews, or when the user has merged the stack.
 
 A one-sub-task issue has no stack and skips this file (SKILL.md, "One PR or a stack").
 
@@ -10,19 +10,21 @@ extension. The story branch is the stack's **trunk**:
 
 ```
 epic/TTC-100-user-management
- └── story/TTC-101-login-screen          trunk; story PR → epic, draft until the stack is merged
+ └── story/TTC-101-login-screen          trunk; draft story PR → epic until the stack merges
       └── subtask/TTC-102-login-model    layer 1; PR → story branch
            └── subtask/TTC-103-login-ui  layer 2; PR → layer 1
 ```
 
-`gh stack submit` sets every base. Merging is the user's; when a layer merges, GitHub retargets
-the PR above it.
+`gh stack submit` sets every base. The user approves each layer as it comes up and merges the
+whole stack only once every layer is approved, so the stack stays open while later layers are
+built and earlier ones get fixes.
 
 ## Prerequisites
 
 - `gh stack --help` must work. If it doesn't, stop and ask the user to run
   `gh extension install github/gh-stack`. Don't install it yourself.
-- The story branch is pushed to `origin` (see `branching.md`). The bottom PR targets it.
+- The story branch is pushed to `origin` with its draft story PR open (see `branching.md`). The
+  bottom PR targets it.
 - If `submit` reports that stacked PRs aren't available for the repo, stop and tell the user.
   Don't fall back to plain PRs on your own.
 
@@ -93,12 +95,12 @@ gh stack push
 allowed, and only through `gh stack`. If `rebase` stops on a conflict, resolve it and run
 `gh stack rebase --continue`, or `gh stack rebase --abort` and ask the user.
 
-If the owning layer is already merged, the fix goes on the story branch instead (see below).
+This applies to approved layers too; the fix needs a fresh review.
 
 ## When the story branch moves
 
-The story branch moves when the user merges a layer, when the epic is merged into it, or when a
-fix lands on it directly. Plain-push anything you committed on it, then:
+The story branch moves when the epic is merged into it, or when a fix lands on it directly.
+Plain-push anything you committed on it, then:
 
 ```bash
 gh stack sync
@@ -107,17 +109,23 @@ gh stack sync
 `sync` fast-forwards the trunk, rebases the open layers onto it, pushes, and relinks the PRs. If it
 reports the stack has diverged, stop and ask; don't force anything.
 
-## After the user merges
+## Checking the stack
 
-Find which sub-task PRs have landed:
+On every resume, list each layer's review state:
 
 ```bash
-gh pr list --state merged --limit 50 --json number,title,headRefName,baseRefName,mergedAt \
+gh pr list --state all --limit 50 --json number,title,headRefName,state,reviewDecision \
   --jq '.[] | select(.headRefName | startswith("subtask/TTC-"))'
 gh stack view --json
 ```
 
-Then `gh stack sync --prune` to update the local stack and drop branches for merged layers.
+For any layer with new comments, fetch them as in `pr-feedback.md`. `APPROVED` means that layer is
+finished; nothing more is owed on it unless it gets new feedback.
+
+## After the user merges the stack
+
+Every layer shows `MERGED`. Run `gh stack sync --prune` to update the story branch and drop the
+layer branches.
 
 ## Never
 

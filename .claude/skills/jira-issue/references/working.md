@@ -10,29 +10,47 @@ at the end.
 
 Every time you start or resume, before touching the next sub-task:
 
-1. Find which sub-task PRs the user has merged since you last stopped, and `gh stack sync --prune`.
-2. Move each merged sub-task to Done.
-3. If no story PR exists yet and a sub-task PR has merged into the story branch, open the story PR
-   as a draft (github `references/pull-requests.md`). Otherwise update its checklist.
-4. If the user's own work landed on the epic branch, merge the epic into the story branch, push,
+1. Check every sub-task PR in the stack for new review comments and approvals (github
+   `references/stacked-prs.md`, "Checking the stack"), and tick approved ones in the draft story
+   PR's checklist. Unresolved feedback on any layer comes first — see "Review comments and
+   rework".
+2. If the user's own work landed on the epic branch, merge the epic into the story branch, push,
    and `gh stack sync`.
+
+Approved sub-tasks stay IN REVIEW. Nothing merges, and nothing goes to Done, until the user merges
+the whole stack.
 
 ## Each sub-task
 
 1. `Atlassian:transitionJiraIssue` → In Progress.
 2. Add its layer on top of the stack.
-3. Do the work.
-4. Commit, following the repo's commit conventions.
-5. Submit the stack so the sub-task's PR opens ready for review; set its title and body.
-6. → IN REVIEW.
-7. **Stop.** Report the PR URL and the next sub-task. Wait to be told to continue.
+3. Do the work. See "Comments that point at later work".
+4. Search the code for `TODO(<this sub-task's key>)` and resolve every match. Fix any older
+   comment this work made untrue, whichever ticket wrote it.
+5. Commit, following the repo's commit conventions.
+6. Submit the stack so the sub-task's PR opens ready for review; set its title and body.
+7. → IN REVIEW.
+8. **Stop.** Report the PR URL and the next sub-task. Wait to be told to continue — approval is
+   not a cue to merge or to start the next one.
+
+## Comments that point at later work
+
+Code comments describe the code as it is now. Never narrate another ticket's work in a comment
+("TTC-100 opens the contacts flow from here", "responses arrive with TTC-70").
+
+When a stub must point at later work, mark it `TODO(<key>): <what to do>` in the file's comment
+syntax, with the key of the sub-task or story that will do it. Then comment on that issue in
+Jira, naming the file, so whoever picks it up knows to clear it. This is the only form a future
+ticket key takes in code.
 
 ## The final sub-task
 
-After step 6, also move the story → IN REVIEW, then stop.
+In step 4, also clear every `TODO(<story key>)`. After step 7, also move the story → IN REVIEW,
+then stop.
 
-When resumed after the user has merged every sub-task PR into the story branch: catch up (all
-sub-tasks → Done), rewrite the story PR description to describe what was built, and mark it ready.
+When every sub-task PR is approved, the user merges the stack into the story branch. When resumed
+after that: `gh stack sync --prune`, move every sub-task → Done, rewrite the story PR description
+to describe what was built, and mark it ready (github `references/pull-requests.md`).
 
 ## User-owned sub-tasks
 
@@ -45,12 +63,14 @@ work may have landed on the epic branch.
 Handle review comments using the repo's PR-feedback conventions. Each fix belongs to the
 sub-task that owns the changed code:
 
-- Reopen that sub-task (In Progress) and commit the fix under its key.
-- **Its PR is still open:** commit on its layer and push the stack up from there. → IN REVIEW.
-- **Its PR is already merged:** commit on the story branch, push, and `gh stack sync`. → Done.
-- Never create a new sub-task or fold the work into another one.
+1. Reopen that sub-task (In Progress), even if its PR is approved.
+2. Commit the fix on its layer, under its key.
+3. `gh stack rebase --upstack`, then `gh stack push`.
+4. → IN REVIEW.
 
-The same applies to any rework after a sub-task is IN REVIEW or Done.
+Fixes to an earlier layer are the normal case, not an exception. Never create a new sub-task or
+fold the work into another one. After the stack is merged, fixes from the story PR's review go on
+the story branch under the owning sub-task's key; that sub-task stays Done.
 
 ## Jira comments
 
@@ -63,7 +83,8 @@ The same applies to any rework after a sub-task is IN REVIEW or Done.
 No stack, no `subtask/` branch, no `gh stack`.
 
 1. Sub-task and story → In Progress.
-2. Do the work on the story branch, committing under the sub-task's key.
+2. Do the work on the story branch, committing under the sub-task's key. Before pushing, search
+   the code for `TODO(<sub-task key>)` and `TODO(<story key>)` and resolve every match.
 3. Push and open the story PR, ready for review, against the story's base (github
    `references/pull-requests.md`).
 4. Sub-task and story → IN REVIEW.
