@@ -13,7 +13,6 @@ import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.theme.toColorRole
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
 import net.bradball.teetimecaddie.core.models.NewInvitee
-import net.bradball.teetimecaddie.core.models.previewNewInviteeList
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,10 +58,10 @@ import net.bradball.teetimecaddie.android.ui.common.pickers.TtcDatePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.pickers.TtcTimePickerDialog
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
-import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
-import net.bradball.teetimecaddie.core.extensions.formattedTime
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
+import net.bradball.teetimecaddie.features.games.state.NewGameUiState
+import net.bradball.teetimecaddie.features.games.state.previewNewGameUiState
 
 @Composable
 fun NewGameScreen(
@@ -76,11 +75,14 @@ fun NewGameScreen(
         viewModel.onContactPickerDismissed(uri?.let { PickedContactsReader(context.applicationContext, it) })
     }
 
+    var showNoInviteeConfirm by rememberSaveable { mutableStateOf(false) }
+
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 NewGameEvent.Published -> onPublished()
                 NewGameEvent.PickContacts -> pickContacts.launch(Unit)
+                NewGameEvent.ConfirmNoInvitees -> showNoInviteeConfirm = true
             }
         }
     }
@@ -99,9 +101,16 @@ fun NewGameScreen(
             onAddFromContactsClick = viewModel::onAddFromContactsClick,
             onRemoveInvitee = viewModel::onRemoveInvitee,
             onPublishClick = viewModel::onPublishClick,
-            onKeepEditing = viewModel::onKeepEditing,
-            onDismissNoInviteeConfirm = viewModel::onDismissNoInviteeConfirm,
-            onPublishAnyway = viewModel::onPublishAnyway,
+            showNoInviteeConfirm = showNoInviteeConfirm,
+            onKeepEditing = {
+                showNoInviteeConfirm = false
+                viewModel.onKeepEditing()
+            },
+            onDismissNoInviteeConfirm = { showNoInviteeConfirm = false },
+            onPublishAnyway = {
+                showNoInviteeConfirm = false
+                viewModel.onPublishAnyway()
+            },
             onDateInputToggle = viewModel::onDateInputToggle,
             onTimeInputToggle = viewModel::onTimeInputToggle,
         )
@@ -120,6 +129,7 @@ private fun NewGameContent(
     onAddFromContactsClick: () -> Unit,
     onRemoveInvitee: (NewInvitee) -> Unit,
     onPublishClick: () -> Unit,
+    showNoInviteeConfirm: Boolean,
     onKeepEditing: () -> Unit,
     onDismissNoInviteeConfirm: () -> Unit,
     onPublishAnyway: () -> Unit,
@@ -179,7 +189,7 @@ private fun NewGameContent(
             )
 
             TtcTextField(
-                value = uiState.date?.weekdayMonthDay.orEmpty(),
+                value = uiState.dateText.orEmpty(),
                 onValueChange = {},
                 label = stringResource(GMR.strings.new_game_field_date.resourceId),
                 leadingIcon = TtcIcons.CALENDAR,
@@ -191,7 +201,7 @@ private fun NewGameContent(
             )
 
             TtcTextField(
-                value = uiState.time?.formattedTime.orEmpty(),
+                value = uiState.timeText.orEmpty(),
                 onValueChange = {},
                 label = stringResource(GMR.strings.new_game_field_tee_time.resourceId),
                 leadingIcon = TtcIcons.SCHEDULE,
@@ -249,8 +259,7 @@ private fun NewGameContent(
         )
     }
 
-    // Not drawn in the design: the platform's own alert, as the story specifies.
-    if (uiState.showNoInviteeConfirm) {
+    if (showNoInviteeConfirm) {
         AlertDialog(
             onDismissRequest = onDismissNoInviteeConfirm,
             title = { Text(stringResource(GMR.strings.new_game_no_invitees_title.resourceId)) },
@@ -399,6 +408,7 @@ private fun NewGameEmptyPreview() {
             onAddFromContactsClick = {},
             onRemoveInvitee = {},
             onPublishClick = {},
+            showNoInviteeConfirm = false,
             onKeepEditing = {},
             onDismissNoInviteeConfirm = {},
             onPublishAnyway = {},
@@ -413,13 +423,7 @@ private fun NewGameEmptyPreview() {
 private fun NewGameFilledPreview() {
     MyApplicationTheme {
         NewGameContent(
-            uiState = NewGameUiState(
-                course = "Pebble Beach",
-                date = LocalDate(2026, 6, 13),
-                time = LocalTime(9, 0),
-                slots = 3,
-                invitees = previewNewInviteeList,
-            ),
+            uiState = previewNewGameUiState,
             onCancel = {},
             onCourseChange = {},
             onDateSelected = {},
@@ -428,6 +432,7 @@ private fun NewGameFilledPreview() {
             onAddFromContactsClick = {},
             onRemoveInvitee = {},
             onPublishClick = {},
+            showNoInviteeConfirm = false,
             onKeepEditing = {},
             onDismissNoInviteeConfirm = {},
             onPublishAnyway = {},

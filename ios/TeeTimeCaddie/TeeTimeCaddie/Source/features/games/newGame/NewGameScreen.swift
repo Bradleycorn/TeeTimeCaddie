@@ -13,6 +13,7 @@ struct NewGameScreen: View {
 
     @State private var viewModel = NewGameViewModel()
     @State private var showContactPicker = false
+    @State private var showNoInviteeConfirm = false
 
     init(onPublished: @escaping () -> Void) {
         self.onPublished = onPublished
@@ -31,10 +32,15 @@ struct NewGameScreen: View {
                 },
                 onRemoveInvitee: viewModel.onRemoveInvitee,
                 onPublishClick: {
-                    Task { await viewModel.onPublishClick(onPublished: onPublished) }
+                    Task {
+                        await viewModel.onPublishClick(
+                            confirmNoInvitees: { showNoInviteeConfirm = true },
+                            onPublished: onPublished
+                        )
+                    }
                 },
+                showNoInviteeConfirm: $showNoInviteeConfirm,
                 onKeepEditing: viewModel.onKeepEditing,
-                onDismissNoInviteeConfirm: viewModel.onDismissNoInviteeConfirm,
                 onPublishAnyway: {
                     Task { await viewModel.onPublishAnyway(onPublished: onPublished) }
                 }
@@ -69,10 +75,10 @@ fileprivate struct NewGameContent: View {
     private let onTimeSelected: (Date) -> Void
     private let onSlotsChange: (Int) -> Void
     private let onAddFromContactsClick: () -> Void
-    private let onRemoveInvitee: (NewGameInviteeRow.ID) -> Void
+    private let onRemoveInvitee: (NewInvitee) -> Void
     private let onPublishClick: () -> Void
+    @Binding private var showNoInviteeConfirm: Bool
     private let onKeepEditing: () -> Void
-    private let onDismissNoInviteeConfirm: () -> Void
     private let onPublishAnyway: () -> Void
 
     init(
@@ -82,10 +88,10 @@ fileprivate struct NewGameContent: View {
         onTimeSelected: @escaping (Date) -> Void,
         onSlotsChange: @escaping (Int) -> Void,
         onAddFromContactsClick: @escaping () -> Void,
-        onRemoveInvitee: @escaping (NewGameInviteeRow.ID) -> Void,
+        onRemoveInvitee: @escaping (NewInvitee) -> Void,
         onPublishClick: @escaping () -> Void,
+        showNoInviteeConfirm: Binding<Bool>,
         onKeepEditing: @escaping () -> Void,
-        onDismissNoInviteeConfirm: @escaping () -> Void,
         onPublishAnyway: @escaping () -> Void
     ) {
         self.uiState = uiState
@@ -96,8 +102,8 @@ fileprivate struct NewGameContent: View {
         self.onAddFromContactsClick = onAddFromContactsClick
         self.onRemoveInvitee = onRemoveInvitee
         self.onPublishClick = onPublishClick
+        self._showNoInviteeConfirm = showNoInviteeConfirm
         self.onKeepEditing = onKeepEditing
-        self.onDismissNoInviteeConfirm = onDismissNoInviteeConfirm
         self.onPublishAnyway = onPublishAnyway
     }
 
@@ -126,7 +132,7 @@ fileprivate struct NewGameContent: View {
                     onActivate: {
                         courseFocused = false
                         // Reopening starts on the date already chosen.
-                        draftDate = uiState.date ?? .today
+                        draftDate = uiState.date?.toDate() ?? .today
                         showDatePicker = true
                     }
                 )
@@ -139,7 +145,7 @@ fileprivate struct NewGameContent: View {
                     placeholder: GMR.strings().new_game_field_tee_time_placeholder.localized(),
                     onActivate: {
                         courseFocused = false
-                        draftTime = uiState.time ?? NewGameDefaults.seedTime
+                        draftTime = uiState.time?.toDate() ?? NewGameDefaults.seedTime
                         showTimePicker = true
                     }
                 )
@@ -147,13 +153,13 @@ fileprivate struct NewGameContent: View {
 
                 SectionLabel(GMR.strings().new_game_section_players.localized())
 
-                SlotSelector(selected: uiState.slots, onSelect: onSlotsChange)
+                SlotSelector(selected: Int(uiState.slots), onSelect: onSlotsChange)
                     .disabled(uiState.isSubmitting)
 
                 SectionLabel(GMR.strings().new_game_section_invitees.localized())
 
-                ForEach(uiState.invitees) { invitee in
-                    InviteeRow(invitee: invitee, onRemove: { onRemoveInvitee(invitee.id) })
+                ForEach(uiState.invitees, id: \.self) { invitee in
+                    InviteeRow(invitee: invitee, onRemove: { onRemoveInvitee(invitee) })
                         .disabled(uiState.isSubmitting)
                 }
 
@@ -206,15 +212,9 @@ fileprivate struct NewGameContent: View {
             )
             .presentationDetents([.height(TtcTimePickerStyle.sheetHeight)])
         }
-        // Not drawn in the design: the platform's own alert, as the story specifies.
         .alert(
             GMR.strings().new_game_no_invitees_title.localized(),
-            isPresented: Binding(
-                get: { uiState.showNoInviteeConfirm },
-                // Fires for every way the alert closes, buttons included, so it only closes it;
-                // the buttons log which one was tapped.
-                set: { isPresented in if !isPresented { onDismissNoInviteeConfirm() } }
-            )
+            isPresented: $showNoInviteeConfirm
         ) {
             Button(GMR.strings().new_game_no_invitees_keep_editing.localized(), role: .cancel) {
                 onKeepEditing()
@@ -311,7 +311,7 @@ fileprivate struct SlotSelector: View {
                     .foregroundStyle(theme.colorScheme.onSurfaceVariant)
 
                 HStack(spacing: NewGameDefaults.slotSpacing) {
-                    ForEach(1...NewGameUiState.maxSlots, id: \.self) { slots in
+                    ForEach(1...Int(GamesRepositoryKt.MAX_TEE_TIME_SLOTS), id: \.self) { slots in
                         if slots == selected {
                             TtcButton(String(slots), fullWidth: true, action: { onSelect(slots) })
                         } else {
@@ -328,10 +328,10 @@ fileprivate struct SlotSelector: View {
 fileprivate struct InviteeRow: View {
     @EnvironmentObject private var theme: AppTheme
 
-    private let invitee: NewGameInviteeRow
+    private let invitee: NewInvitee
     private let onRemove: () -> Void
 
-    init(invitee: NewGameInviteeRow, onRemove: @escaping () -> Void) {
+    init(invitee: NewInvitee, onRemove: @escaping () -> Void) {
         self.invitee = invitee
         self.onRemove = onRemove
     }
@@ -339,12 +339,12 @@ fileprivate struct InviteeRow: View {
     var body: some View {
         TtcCard(contentPadding: NewGameDefaults.inviteeRowPadding) {
             HStack(spacing: NewGameDefaults.inviteeRowSpacing) {
-                TtcAvatar(invitee.initial, color: invitee.tone)
+                TtcAvatar(invitee.initial, color: invitee.avatarTone.toColorRole())
                 VStack(alignment: .leading, spacing: NewGameDefaults.inviteeTextSpacing) {
                     Text(invitee.name)
                         .font(.body.weight(.medium))
                         .foregroundStyle(theme.colorScheme.onSurface)
-                    Text(invitee.phone)
+                    Text(invitee.formattedPhone)
                         .font(.footnote)
                         .foregroundStyle(theme.colorScheme.onSurfaceVariant)
                 }
@@ -406,8 +406,8 @@ fileprivate struct NewGameContentPreviews: View {
             onAddFromContactsClick: {},
             onRemoveInvitee: { _ in },
             onPublishClick: {},
+            showNoInviteeConfirm: .constant(false),
             onKeepEditing: {},
-            onDismissNoInviteeConfirm: {},
             onPublishAnyway: {}
         )
     }
@@ -415,28 +415,13 @@ fileprivate struct NewGameContentPreviews: View {
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        NewGameContentPreviews(uiState: NewGameUiState())
+        NewGameContentPreviews(uiState: NewGameUiState.companion.defaultValue)
     }
 }
 
 #Preview("Filled - Dark") {
     TeeTimeCaddieTheme {
-        NewGameContentPreviews(uiState: NewGameUiState(
-            course: "Pebble Beach",
-            date: .today,
-            dateText: "Sat, Jun 13",
-            time: .today,
-            timeText: "9:00 AM",
-            slots: 3,
-            invitees: [
-                NewGameInviteeRow(
-                    id: "matt", name: "Matt Chen", initial: "M", phone: "(415) 555-0188", tone: .primary
-                ),
-                NewGameInviteeRow(
-                    id: "jeff", name: "Jeff Morrison", initial: "J", phone: "(415) 555-0142", tone: .secondary
-                ),
-            ]
-        ))
+        NewGameContentPreviews(uiState: NewGameUiStateKt.previewNewGameUiState)
     }
     .preferredColorScheme(.dark)
 }

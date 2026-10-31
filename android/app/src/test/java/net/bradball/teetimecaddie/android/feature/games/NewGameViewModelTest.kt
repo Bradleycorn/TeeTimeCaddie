@@ -10,7 +10,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameEvent
-import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameUiState
 import net.bradball.teetimecaddie.android.feature.games.newGame.NewGameViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
 import net.bradball.teetimecaddie.android.testing.RecordingEventManager
@@ -26,6 +25,7 @@ import net.bradball.teetimecaddie.features.games.DeviceContactsReader
 import net.bradball.teetimecaddie.features.games.DevicePhone
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GameErrors
+import net.bradball.teetimecaddie.features.games.state.NewGameUiState
 import net.bradball.teetimecaddie.session.SessionState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -86,27 +86,6 @@ class NewGameViewModelTest {
     @Test
     fun slotsDefaultToFour() {
         assertEquals(4, viewModel.uiState.value.slots)
-    }
-
-    @Test
-    fun canSubmit_needsACourseADateAndATime() {
-        assertFalse(NewGameUiState().canSubmit)
-        assertFalse(NewGameUiState(course = "Pebble Beach", date = date).canSubmit)
-        assertFalse(NewGameUiState(course = "Pebble Beach", time = time).canSubmit)
-        assertFalse(NewGameUiState(date = date, time = time).canSubmit)
-        assertTrue(NewGameUiState(course = "Pebble Beach", date = date, time = time).canSubmit)
-    }
-
-    @Test
-    fun canSubmit_ignoresACourseOfOnlySpaces() {
-        assertFalse(NewGameUiState(course = "   ", date = date, time = time).canSubmit)
-    }
-
-    @Test
-    fun canSubmit_isFalseWhilePublishing() {
-        assertFalse(
-            NewGameUiState(course = "Pebble Beach", date = date, time = time, isSubmitting = true).canSubmit
-        )
     }
 
     @Test
@@ -238,46 +217,49 @@ class NewGameViewModelTest {
 
         viewModel.onPublishClick()
 
-        assertFalse(viewModel.uiState.value.showNoInviteeConfirm)
         assertEquals(listOf(matt, jeff), repository.publishRequests.single().invitees)
         assertEquals(listOf<NewGameEvent>(NewGameEvent.Published), events)
     }
 
     @Test
-    fun publishClick_asksAgainOnceEveryInviteeIsRemoved() {
+    fun publishClick_asksAgainOnceEveryInviteeIsRemoved() = runTest {
+        val events = events()
         fillIn()
         invite(matt)
         viewModel.onRemoveInvitee(matt)
 
         viewModel.onPublishClick()
 
-        assertTrue(viewModel.uiState.value.showNoInviteeConfirm)
+        assertEquals(listOf<NewGameEvent>(NewGameEvent.ConfirmNoInvitees), events)
         assertTrue(repository.publishRequests.isEmpty())
     }
 
     // MARK: publishing
 
     @Test
-    fun publishClick_asksFirstAndPublishesNothing() {
+    fun publishClick_asksFirstAndPublishesNothing() = runTest {
+        val events = events()
         fillIn()
 
         viewModel.onPublishClick()
 
-        assertTrue(viewModel.uiState.value.showNoInviteeConfirm)
+        assertEquals(listOf<NewGameEvent>(NewGameEvent.ConfirmNoInvitees), events)
         assertTrue(repository.publishRequests.isEmpty())
     }
 
     @Test
-    fun publishClick_doesNothingWhenTheFormIsIncomplete() {
+    fun publishClick_doesNothingWhenTheFormIsIncomplete() = runTest {
+        val events = events()
         viewModel.onCourseChange("Pebble Beach")
 
         viewModel.onPublishClick()
 
-        assertFalse(viewModel.uiState.value.showNoInviteeConfirm)
+        assertTrue(events.isEmpty())
+        assertTrue(repository.publishRequests.isEmpty())
     }
 
     @Test
-    fun keepEditing_closesTheAlertAndLeavesTheForm() {
+    fun keepEditing_leavesTheFormAsItWas() {
         fillIn()
         viewModel.onSlotsChange(3)
         viewModel.onPublishClick()
@@ -316,7 +298,7 @@ class NewGameViewModelTest {
         viewModel.onPublishAnyway()
 
         assertEquals(listOf(TtcMessage(GMR.strings.new_game_published_message, listOf("Pebble Beach"))), messages)
-        assertEquals(listOf<NewGameEvent>(NewGameEvent.Published), events)
+        assertEquals(listOf(NewGameEvent.ConfirmNoInvitees, NewGameEvent.Published), events)
     }
 
     @Test
@@ -328,7 +310,6 @@ class NewGameViewModelTest {
         viewModel.onPublishAnyway()
 
         assertTrue(viewModel.uiState.value.isSubmitting)
-        assertFalse(viewModel.uiState.value.showNoInviteeConfirm)
         repository.publishGate?.complete(Unit)
     }
 
@@ -343,7 +324,8 @@ class NewGameViewModelTest {
         viewModel.onPublishAnyway()
 
         assertEquals(listOf(TtcMessage(GameErrors.PUBLISH_FAILED.message)), messages)
-        assertTrue(events.isEmpty())
+        // Asked first, but never left the form.
+        assertEquals(listOf<NewGameEvent>(NewGameEvent.ConfirmNoInvitees), events)
         assertFalse(viewModel.uiState.value.isSubmitting)
         assertEquals("Pebble Beach", viewModel.uiState.value.course)
     }
@@ -434,16 +416,5 @@ class NewGameViewModelTest {
             ),
             analytics.events
         )
-    }
-
-    @Test
-    fun dismissingTheAlertWithoutAButtonClosesItButLogsNothing() {
-        fillIn()
-        viewModel.onPublishClick()
-
-        viewModel.onDismissNoInviteeConfirm()
-
-        assertFalse(viewModel.uiState.value.showNoInviteeConfirm)
-        assertTrue(analytics.events.isEmpty())
     }
 }
