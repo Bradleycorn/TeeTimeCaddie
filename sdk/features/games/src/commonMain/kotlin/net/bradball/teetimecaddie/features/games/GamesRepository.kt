@@ -137,7 +137,7 @@ class GamesRepositoryImpl(
                     date = date,
                     teeTimes = listOf(teeTime.toDocument()),
                     playerIds = listOf(organizer.id),
-                    invitees = gameInvitees.map { it.toDocument() },
+                    invitees = gameInvitees.toInviteesDocument(),
                     invitedPhones = gameInvitees.map { it.phone }
                 )
             }

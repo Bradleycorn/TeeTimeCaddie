@@ -51,19 +51,24 @@ internal fun GameTeeTime.toDocument(): GameTeeTimeDocument = GameTeeTimeDocument
 
 // An unrecognised status — written by a newer app version — reads as PENDING rather than failing
 // the whole game.
-internal fun GameInviteeDocument.toModel(): GameInvitee = GameInvitee(
+internal fun GameInviteeDocument.toModel(phone: String): GameInvitee = GameInvitee(
     name = name,
     phone = phone,
     playerId = playerId,
     status = InviteStatus.entries.firstOrNull { it.name == status } ?: InviteStatus.PENDING
 )
 
-internal fun GameInvitee.toDocument(): GameInviteeDocument = GameInviteeDocument(
+/** @param order Where the invitee falls in the order the organizer added people. */
+internal fun GameInvitee.toDocument(order: Int): GameInviteeDocument = GameInviteeDocument(
     name = name,
-    phone = phone,
     playerId = playerId,
-    status = status.name
+    status = status.name,
+    order = order
 )
+
+/** The stored `invitees` map for these invitees: keyed by phone, each carrying its position. */
+internal fun List<GameInvitee>.toInviteesDocument(): Map<String, GameInviteeDocument> =
+    mapIndexed { order, invitee -> invitee.phone to invitee.toDocument(order) }.toMap()
 
 internal fun GameDocument.toModel(): Game = Game(
     id = requireNotNull(id) {
@@ -73,5 +78,7 @@ internal fun GameDocument.toModel(): Game = Game(
     course = Course(id = courseId, name = courseName),
     date = date,
     teeTimes = teeTimes.map { it.toModel() }.sortedBy { it.time },
-    invitees = invitees.map { it.toModel() }
+    invitees = invitees.entries
+        .sortedBy { (_, invitee) -> invitee.order }
+        .map { (phone, invitee) -> invitee.toModel(phone) }
 )

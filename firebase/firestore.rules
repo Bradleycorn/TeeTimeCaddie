@@ -34,13 +34,16 @@ rules_version = '2';
 //           - playerId: string (required, a uid)
 //           - name: string (required, 1-100) - copy of that player's profile name
 //   - playerIds: list of strings (required) - everyone holding a slot; drives reads
-//   - invitees: list (required, may be empty, <= 50) of maps, in the order added:
+//   - invitees: map (required, may be empty, <= 50 entries), keyed by the phone number each
+//       person was invited by (digits only, 10-15). A map rather than a list so the rules can
+//       pick out one invitee's entry and prove an answer changed only that one. Each value:
 //       - name: string (1-100) - the name the organizer invited them by
-//       - phone: string (digits only, 10-15) - the number they were invited by
-//       - playerId: string or null - the player who owned that number at publish, if any
-//       - status: string - "PENDING" until responses arrive
-//   - invitedPhones: list of strings (required, one per invitee) - copies of each invitee's
-//       phone, for the array-contains query that finds a number's invitations
+//       - playerId: string or null - the player who owned that number at publish, if any; the
+//           answering player's uid once they answer
+//       - status: string - "PENDING", then "ACCEPTED" or "DECLINED" once they answer
+//       - order: int - the position the organizer added them in, since maps are unordered
+//   - invitedPhones: list of strings (required) - exactly the invitees map's keys, for the
+//       array-contains query that finds a number's invitations. Written once, at publish.
 //   - createdAt: timestamp (required, the server's time at creation)
 //
 // ===============================================================
@@ -113,26 +116,31 @@ service cloud.firestore {
         && isOrganizerSlot(teeTime.players[0]);
     }
 
-    // Rules have no loops, so a list's elements can't each be checked. This checks what can be:
-    // a bounded list, and an invitedPhones that pairs one number with each invitee. Per-invitee
-    // shape (name, digits-only phone, PENDING) is the SDK's job, in GamesRepository.publishGame.
-    // An invitee's playerId is the organizer's claim and grants nothing: invitations are found
-    // by phone number, and reading a game still requires being in playerIds.
+    // Rules have no loops, so each map value can't be checked. This checks what can be:
+    // invitedPhones holds exactly the map's keys, every one a digits-only number (checked at once
+    // by joining them), and the first invitee is well formed. Per-invitee shape beyond that is the
+    // SDK's job, in GamesRepository.publishGame. An invitee's playerId is the organizer's claim
+    // and grants nothing: invitations are found and answered by phone number.
     function isValidNewInvitees(data) {
-      return data.invitees is list
-        && data.invitees.size() <= 50
+      return data.invitees is map
         && data.invitedPhones is list
-        && data.invitedPhones.size() == data.invitees.size()
-        && (data.invitees.size() == 0 || (
-          data.invitees[0] is map
-          && data.invitees[0].keys().hasOnly(['name', 'phone', 'playerId', 'status'])
-          && data.invitees[0].keys().hasAll(['name', 'phone', 'playerId', 'status'])
-          && isStringOfLength(data.invitees[0].name, 1, 100)
-          && data.invitees[0].phone is string
-          && data.invitees[0].phone.matches('^[0-9]{10,15}$')
-          && data.invitees[0].status == 'PENDING'
-          && data.invitedPhones[0] == data.invitees[0].phone
+        && data.invitedPhones.size() <= 50
+        && data.invitees.size() == data.invitedPhones.size()
+        && data.invitees.keys().toSet() == data.invitedPhones.toSet()
+        && (data.invitedPhones.size() == 0 || (
+          data.invitedPhones.join(',').matches('^[0-9]{10,15}(,[0-9]{10,15})*$')
+          && isValidNewInvitee(data.invitees[data.invitedPhones[0]])
         ));
+    }
+
+    function isValidNewInvitee(invitee) {
+      return invitee is map
+        && invitee.keys().hasOnly(['name', 'playerId', 'status', 'order'])
+        && invitee.keys().hasAll(['name', 'playerId', 'status', 'order'])
+        && isStringOfLength(invitee.name, 1, 100)
+        && (invitee.playerId == null || isStringOfLength(invitee.playerId, 1, 128))
+        && invitee.status == 'PENDING'
+        && invitee.order is int;
     }
 
     // A game as it is first published: one tee time, holding only the organizer, at a course that
@@ -161,6 +169,56 @@ service cloud.firestore {
         && data.playerIds == [request.auth.uid]
         && isValidNewInvitees(data)
         && data.createdAt == request.time;
+    }
+
+    // The signed-in player's profile. Invitations are matched against its phone number.
+    function myProfile() {
+      return get(playerPath(request.auth.uid)).data;
+    }
+
+    // Whether the signed-in player was invited to this game, by their profile's number.
+    function isInvited(data) {
+      return myProfile().phone in data.invitedPhones;
+    }
+
+    // An invitee's first answer to a game. Only their own entry in the invitees map changes, and
+    // in it only the status (PENDING to ACCEPTED or DECLINED) and the playerId, which becomes
+    // their own uid. A Yes also takes a seat (isTakingASeat); a No changes nothing else.
+    // Changing an answer, or answering for someone else, is not allowed.
+    function isValidAnswer(before, after) {
+      let phone = myProfile().phone;
+      let pending = before.invitees[phone];
+      let answer = after.invitees[phone];
+      return phone in before.invitedPhones
+        && after.invitees is map
+        && after.invitees.diff(before.invitees).affectedKeys().hasOnly([phone])
+        && pending.status == 'PENDING'
+        && answer is map
+        && answer.diff(pending).affectedKeys().hasOnly(['status', 'playerId'])
+        && answer.playerId == request.auth.uid
+        && (
+          (answer.status == 'DECLINED'
+            && after.diff(before).affectedKeys().hasOnly(['invitees']))
+          || (answer.status == 'ACCEPTED' && isTakingASeat(before, after))
+        );
+    }
+
+    // A Yes: the player is appended to the tee time's slot holders, under their profile name, and
+    // to playerIds, and nothing else about the game changes. Refused once every slot is taken.
+    function isTakingASeat(before, after) {
+      let teeTime = before.teeTimes[0];
+      return after.diff(before).affectedKeys().hasOnly(['invitees', 'teeTimes', 'playerIds'])
+        && !(request.auth.uid in before.playerIds)
+        && teeTime.players.size() < teeTime.slots
+        && after.playerIds == before.playerIds.concat([request.auth.uid])
+        && after.teeTimes == [{
+          'time': teeTime.time,
+          'slots': teeTime.slots,
+          'players': teeTime.players.concat([{
+            'playerId': request.auth.uid,
+            'name': myProfile().name
+          }])
+        }];
     }
 
     // ===============================================================
@@ -212,16 +270,20 @@ service cloud.firestore {
     }
 
     match /games/{gameId} {
-      // Only the players in a game can see it. The Games tab queries
-      // `playerIds array-contains <uid>`, which this rule can prove for every result, so the
-      // query is allowed and no other game is ever returned.
-      allow read: if isSignedIn() && request.auth.uid in resource.data.playerIds;
+      // The players in a game can see it, and so can anyone invited by the number on their
+      // profile. The Games tab queries `playerIds array-contains <uid>` and
+      // `invitedPhones array-contains <their phone>`, which this rule can prove for every result,
+      // so both queries are allowed and no other game is ever returned.
+      allow read: if isSignedIn()
+        && (request.auth.uid in resource.data.playerIds || isInvited(resource.data));
 
       allow create: if isSignedIn() && isValidNewGame(request.resource.data);
 
-      // Nothing edits or cancels a game yet. Later work opens this with immutable-field checks
-      // on organizerId and createdAt.
-      allow update, delete: if false;
+      // The only change allowed so far is an invitee answering. Organizers can't edit or cancel
+      // a game yet.
+      allow update: if isSignedIn() && isValidAnswer(resource.data, request.resource.data);
+
+      allow delete: if false;
     }
 
     // Anything not matched above is denied. Previously this block allowed unrestricted read and
