@@ -4,6 +4,7 @@ import net.bradbal.teetimecaddie.core.storage.documents.CourseDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameInviteeDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GamePlayerDocument
+import net.bradbal.teetimecaddie.core.storage.documents.GameRosterDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameTeeTimeDocument
 import net.bradball.teetimecaddie.core.models.Course
 import net.bradball.teetimecaddie.core.models.Game
@@ -11,6 +12,7 @@ import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
 import net.bradball.teetimecaddie.core.models.InviteStatus
+import net.bradball.teetimecaddie.core.models.Player
 
 // Every mapper here is `internal` on purpose: `:sdk:core:storage` is an implementation-only
 // dependency of `:sdk`, so a document type in any public signature would drag storage types across
@@ -82,3 +84,49 @@ internal fun GameDocument.toModel(): Game = Game(
         .sortedBy { (_, invitee) -> invitee.order }
         .map { (phone, invitee) -> invitee.toModel(phone) }
 )
+
+/** What answering an invitation to a game would do to it. */
+internal sealed interface InviteAnswer {
+    /** The answer is valid: write [roster]. */
+    data class Write(val roster: GameRosterDocument) : InviteAnswer
+
+    /** A yes, but every slot is taken. Nothing is written; the invitation stays pending. */
+    data object Full : InviteAnswer
+
+    /** The invitation was already answered, perhaps from another device. Nothing is written. */
+    data object AlreadyAnswered : InviteAnswer
+
+    /** Nobody was invited by that number. Nothing is written. */
+    data object NotInvited : InviteAnswer
+}
+
+/**
+ * Answer the invitation [phone] received to this game, as [player].
+ *
+ * Mirrors the `games` update rule in firebase/firestore.rules: only the invitee's own entry
+ * changes, taking their answer and their player id, and a yes also takes the tee time's next free
+ * slot under their profile name.
+ *
+ * @param phone Digits only, as the invitees map is keyed.
+ */
+internal fun GameDocument.answer(phone: String, player: Player, accept: Boolean): InviteAnswer {
+    val invitee = invitees[phone] ?: return InviteAnswer.NotInvited
+    if (invitee.status != InviteStatus.PENDING.name) return InviteAnswer.AlreadyAnswered
+
+    val status = if (accept) InviteStatus.ACCEPTED else InviteStatus.DECLINED
+    val answered = invitees + (phone to invitee.copy(status = status.name, playerId = player.id))
+    if (!accept) return InviteAnswer.Write(GameRosterDocument(teeTimes, playerIds, answered))
+
+    // Every game has exactly one tee time for now, and it is the one an invitee joins.
+    val teeTime = teeTimes.firstOrNull() ?: return InviteAnswer.Full
+    if (teeTime.players.size >= teeTime.slots) return InviteAnswer.Full
+    val seated = teeTime.copy(players = teeTime.players + GamePlayerDocument(player.id, player.name))
+
+    return InviteAnswer.Write(
+        GameRosterDocument(
+            teeTimes = listOf(seated) + teeTimes.drop(1),
+            playerIds = playerIds + player.id,
+            invitees = answered
+        )
+    )
+}
