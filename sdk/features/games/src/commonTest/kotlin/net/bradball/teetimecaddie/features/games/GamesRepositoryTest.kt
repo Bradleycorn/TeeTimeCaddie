@@ -19,7 +19,6 @@ import net.bradball.teetimecaddie.core.analytics.EventPlugin
 import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GamePlayer
-import net.bradball.teetimecaddie.core.models.GamesTab
 import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.InviteStatus
 import net.bradball.teetimecaddie.core.models.NewInvitee
@@ -373,95 +372,82 @@ class GamesRepositoryTest {
         createdAt = null
     ).also { it.id = id }
 
-    private fun GamesTab.ids() = invitations.map { it.id } to upcoming.map { it.id }
+    private suspend fun GamesRepositoryImpl.gameIds(player: Player) =
+        observeGames(player).first().map { it.id }
 
     @Test
-    fun gamesTab_findsAnInvitationByPhoneEvenWithoutAPlayerIdOnTheInvitee() = runTest {
+    fun observeGames_findsAnInvitationByPhoneEvenWithoutAPlayerIdOnTheInvitee() = runTest {
         val storage = FakeGameStorage().apply { seed(storedGame()) }
 
-        val tab = repository(storage).gamesTab(dana).first()
-
-        assertEquals(listOf("game-1") to emptyList(), tab.ids())
+        assertEquals(listOf("game-1"), repository(storage).gameIds(dana))
     }
 
     @Test
-    fun gamesTab_listsGamesThePlayerHoldsASlotInAsUpcoming() = runTest {
+    fun observeGames_includesGamesThePlayerHoldsASlotIn() = runTest {
         val storage = FakeGameStorage().apply { seed(storedGame()) }
 
-        val tab = repository(storage).gamesTab(organizer).first()
-
-        assertEquals(emptyList<String>() to listOf("game-1"), tab.ids())
+        assertEquals(listOf("game-1"), repository(storage).gameIds(organizer))
     }
 
     @Test
-    fun gamesTab_listsAnAcceptedInvitationOnceAsUpcoming() = runTest {
+    fun observeGames_listsAnAcceptedInvitationOnce() = runTest {
         // An accepted invitee is in both queries: they hold a slot, and their number is invited.
         val accepted = storedGame(players = listOf(dana), invitees = mapOf(dana to InviteStatus.ACCEPTED))
         val storage = FakeGameStorage().apply { seed(accepted) }
 
-        val tab = repository(storage).gamesTab(dana).first()
-
-        assertEquals(emptyList<String>() to listOf("game-1"), tab.ids())
+        assertEquals(listOf("game-1"), repository(storage).gameIds(dana))
     }
 
     @Test
-    fun gamesTab_keepsADeclinedGameInUpcoming() = runTest {
+    fun observeGames_keepsADeclinedGame() = runTest {
         val storage = FakeGameStorage().apply {
             seed(storedGame(invitees = mapOf(dana to InviteStatus.DECLINED)))
         }
 
-        val tab = repository(storage).gamesTab(dana).first()
-
-        assertEquals(emptyList<String>() to listOf("game-1"), tab.ids())
+        assertEquals(listOf("game-1"), repository(storage).gameIds(dana))
     }
 
     @Test
-    fun gamesTab_ordersEachListEarliestFirstAcrossBothQueries() = runTest {
+    fun observeGames_ordersEarliestFirstAcrossBothQueries() = runTest {
         val storage = FakeGameStorage().apply {
             seed(
-                storedGame(id = "later-invite", date = gameDate.plus(DatePeriod(days = 5))),
-                storedGame(id = "playing", date = gameDate.plus(DatePeriod(days = 3)), players = listOf(dana), invitees = emptyMap()),
-                storedGame(id = "declined", date = gameDate, invitees = mapOf(dana to InviteStatus.DECLINED)),
-                storedGame(id = "sooner-invite", date = gameDate.plus(DatePeriod(days = 1)))
+                storedGame(id = "fifth-day", date = gameDate.plus(DatePeriod(days = 5))),
+                storedGame(id = "third-day", date = gameDate.plus(DatePeriod(days = 3)), players = listOf(dana), invitees = emptyMap()),
+                storedGame(id = "first-day", date = gameDate, invitees = mapOf(dana to InviteStatus.DECLINED)),
+                storedGame(id = "second-day", date = gameDate.plus(DatePeriod(days = 1)))
             )
         }
 
-        val tab = repository(storage).gamesTab(dana).first()
-
         assertEquals(
-            listOf("sooner-invite", "later-invite") to listOf("declined", "playing"),
-            tab.ids()
+            listOf("first-day", "second-day", "third-day", "fifth-day"),
+            repository(storage).gameIds(dana)
         )
     }
 
     @Test
-    fun gamesTab_leavesOutGamesBeforeToday() = runTest {
+    fun observeGames_leavesOutGamesBeforeToday() = runTest {
         val storage = FakeGameStorage().apply {
             seed(storedGame(date = LocalDate.today.plus(DatePeriod(days = -1))))
         }
 
-        val tab = repository(storage).gamesTab(dana).first()
-
-        assertEquals(emptyList<String>() to emptyList(), tab.ids())
+        assertEquals(emptyList(), repository(storage).gameIds(dana))
     }
 
     @Test
-    fun gamesTab_carriesOnWithoutInvitationsWhenTheyCantBeRead() = runTest {
+    fun observeGames_carriesOnWithoutInvitationsWhenTheyCantBeRead() = runTest {
         val storage = FakeGameStorage().apply {
-            seed(storedGame(players = listOf(dana), invitees = emptyMap()))
+            seed(storedGame(players = listOf(dana), invitees = emptyMap()), storedGame(id = "invited"))
             invitationsFailure = IllegalStateException("no index")
         }
 
-        val tab = repository(storage).gamesTab(dana).first()
-
-        assertEquals(emptyList<String>() to listOf("game-1"), tab.ids())
+        assertEquals(listOf("game-1"), repository(storage).gameIds(dana))
     }
 
     @Test
-    fun gamesTab_endsQuietlyWhenTheGamesCantBeRead() = runTest {
+    fun observeGames_endsQuietlyWhenTheGamesCantBeRead() = runTest {
         val storage = FakeGameStorage().apply { failure = IllegalStateException("offline") }
 
-        val emissions = repository(storage).gamesTab(dana).toList()
+        val emissions = repository(storage).observeGames(dana).toList()
 
         assertTrue(emissions.isEmpty())
     }

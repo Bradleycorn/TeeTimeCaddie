@@ -20,7 +20,6 @@ import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
-import net.bradball.teetimecaddie.core.models.GamesTab
 import net.bradball.teetimecaddie.core.models.InviteStatus
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.Player
@@ -67,7 +66,7 @@ interface GamesRepository {
         invitees: List<NewInvitee>
     ): TtcResult<Game>
 
-    // TODO(TTC-109): Remove once both apps' Games tabs read gamesTab instead.
+    // TODO(TTC-109): Remove once both apps' Games tabs read observeGames instead.
     /**
      * Observe the games a player holds a slot in, from today on, earliest first.
      *
@@ -77,18 +76,16 @@ interface GamesRepository {
     fun upcomingGames(playerId: String): Flow<List<Game>>
 
     /**
-     * Observe what [player]'s Games tab lists, from today on: the invitations waiting for their
-     * answer, and the games they hold a slot in or have answered.
+     * Observe every game [player] is part of from today on: the ones they're playing in, and the
+     * ones they've been invited to, whether or not they've answered yet.
      *
-     * Invitations are found by [player]'s phone number, not by the player id recorded on an
-     * invitee, so an invitation finds an account created after the game was published. A game
-     * they declined stays in [GamesTab.upcoming].
+     * Updates whenever one of those games changes, or the player is invited to another.
      *
-     * A flow, so it reports values rather than results. If the games they play in can't be read,
-     * the failure is logged and nothing more is emitted. If only the invitations can't be read,
-     * that is logged and the tab carries on without them.
+     * @param player The signed-in player.
+     * @return The player's games, earliest first, each listed once. If the games can't be read,
+     *   nothing more is emitted.
      */
-    fun gamesTab(player: Player): Flow<GamesTab>
+    fun observeGames(player: Player): Flow<List<Game>>
 
     // TODO(TTC-110): Remove once both apps' Game details observe the game instead.
     /**
@@ -197,10 +194,13 @@ class GamesRepositoryImpl(
                 )
             }
 
-    override fun gamesTab(player: Player): Flow<GamesTab> {
-        val phone = player.phone.toPhoneDigits()
+    // Invitations are found by the player's phone number, not by the player id on an invitee, so
+    // an account created after a game was published still finds its invitation. A player who said
+    // yes is in both queries, hence the distinctBy. If only the invitations can't be read — the
+    // index missing, say — that is logged and the player's other games still come through.
+    override fun observeGames(player: Player): Flow<List<Game>> {
         val today = LocalDate.today
-        val invitations = gameStorage.invitationsFlow(phone, today).catch { ex ->
+        val invitations = gameStorage.invitationsFlow(player.phone.toPhoneDigits(), today).catch { ex ->
             eventManager.logException(
                 ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "invitations")
             )
@@ -208,14 +208,12 @@ class GamesRepositoryImpl(
         }
 
         return combine(gameStorage.gamesFlow(player.id, today), invitations) { playing, invited ->
-            val games = (playing + invited)
+            (playing + invited)
                 .distinctBy { it.id }
                 .map { it.toModel() }
                 .sortedWith(compareBy({ it.date }, { it.teeTimes.firstOrNull()?.time }))
-            val (waiting, upcoming) = games.partition { it.isAwaitingAnswer(player.id, phone) }
-            GamesTab(invitations = waiting, upcoming = upcoming)
         }.catch { ex ->
-            eventManager.logException(ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "games_tab"))
+            eventManager.logException(ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "observe_games"))
         }
     }
 
@@ -273,10 +271,6 @@ class GamesRepositoryImpl(
             }
         }
     }
-
-    /** Whether [phone]'s invitation to this game still waits for [playerId]'s answer. */
-    private fun Game.isAwaitingAnswer(playerId: String, phone: String): Boolean =
-        inviteeFor(phone)?.status == InviteStatus.PENDING && !holdsSlot(playerId)
 
     /**
      * Turn the cleaned invitees into [GameInvitee]s, recording which numbers belong to a player.

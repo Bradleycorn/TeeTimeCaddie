@@ -164,7 +164,19 @@ class FirestoreGameStorage : GameStorage {
     // array-contains plus a range on `date` needs a composite index per array field, declared in
     // firebase/firestore.indexes.json. Filtering on the server keeps reads from growing with every
     // game a player has ever played.
-    private fun gamesContaining(arrayField: String, value: String, from: LocalDate) =
+    /**
+     * Observe the games whose [arrayField] list holds [value], on or after [from].
+     *
+     * @param arrayField The name of a list field on the game, such as `playerIds`.
+     * @param value The entry to look for in that list, such as a player's id.
+     * @param from The earliest game date to include.
+     * @return The matching games, earliest first, updated whenever they change.
+     */
+    private fun gamesContaining(
+        arrayField: String,
+        value: String,
+        from: LocalDate
+    ): Flow<List<GameDocument>> =
         gamesCollection
             .where {
                 all(

@@ -11,7 +11,6 @@ import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
-import net.bradball.teetimecaddie.core.models.GamesTab
 import net.bradball.teetimecaddie.core.models.InviteStatus
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.Player
@@ -96,13 +95,8 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
             ?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
 
-    override fun gamesTab(player: Player): Flow<GamesTab> = games.map { all ->
-        val (invitations, upcoming) = all
-            .filter { it.holdsSlot(player.id) || it.inviteeFor(player.phone) != null }
-            .partition {
-                it.inviteeFor(player.phone)?.status == InviteStatus.PENDING && !it.holdsSlot(player.id)
-            }
-        GamesTab(invitations, upcoming)
+    override fun observeGames(player: Player): Flow<List<Game>> = games.map { all ->
+        all.filter { it.holdsSlot(player.id) || it.inviteeFor(player.phone) != null }
     }
 
     override fun observeGame(gameId: String): Flow<TtcResult<Game>> = games.map { all ->

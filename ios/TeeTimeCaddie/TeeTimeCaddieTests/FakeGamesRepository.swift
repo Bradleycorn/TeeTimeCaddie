@@ -141,7 +141,7 @@ final class FakeGamesRepository: GamesRepository {
         fatalError("Kotlin Flows can't be built from Swift; see GamesListViewModelTests.")
     }
 
-    func gamesTab(player: Player) -> SkieSwiftFlow<GamesTab> {
+    func observeGames(player: Player) -> SkieSwiftFlow<[Game]> {
         fatalError("Kotlin Flows can't be built from Swift; see GamesListViewModelTests.")
     }
 
