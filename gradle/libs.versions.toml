@@ -35,6 +35,8 @@ kotlinx-coroutines="1.10.2"
 kotlinx-datetime = "0.7.1"
 kotlinx-serialization="1.9.0"
 
+kover = "0.9.11"
+
 ksp="2.2.21-2.0.4"
 
 ktor="3.3.3"
@@ -183,5 +185,6 @@ mokoresources = { id="dev.icerock.mobile.multiplatform-resources", version.ref="
 ksp = { id="com.google.devtools.ksp", version.ref="ksp" }
 gradleDependencyUpdates = { id = "com.github.ben-manes.versions", version = "0.53.0" }
 skie = { id="co.touchlab.skie", version.ref="skie" }
+kover = { id="org.jetbrains.kotlinx.kover", version.ref="kover" }
 
 #dokka = { id="org.jetbrains.dokka", version="1.6.10" }
