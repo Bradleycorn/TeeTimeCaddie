@@ -52,7 +52,7 @@ class GameDetailsViewModelTest {
     fun showsTheGame() = runTest {
         val state = loaded(viewModel(previewGame.id))
 
-        assertEquals(GameDetailsUiState.Content(previewGame.toUiState(viewerId = previewPlayer.id)), state)
+        assertEquals(GameDetailsUiState.Content(previewGame.toUiState(viewer = previewPlayer)), state)
     }
 
     @Test

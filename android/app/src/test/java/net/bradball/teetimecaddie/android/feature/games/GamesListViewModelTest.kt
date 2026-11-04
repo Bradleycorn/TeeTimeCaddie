@@ -54,7 +54,7 @@ class GamesListViewModelTest {
         val viewModel = viewModel(FakeGamesRepository(*previewGameList.toTypedArray()))
         collect(viewModel)
 
-        assertEquals(previewGameList.toGamesListUiState(), viewModel.uiState.value)
+        assertEquals(previewGameList.toGamesListUiState(previewPlayer), viewModel.uiState.value)
     }
 
     @Test
@@ -65,7 +65,7 @@ class GamesListViewModelTest {
 
         repository.setGames(previewGame)
 
-        assertEquals(listOf(previewGame).toGamesListUiState(), viewModel.uiState.value)
+        assertEquals(listOf(previewGame).toGamesListUiState(previewPlayer), viewModel.uiState.value)
     }
 
     @Test

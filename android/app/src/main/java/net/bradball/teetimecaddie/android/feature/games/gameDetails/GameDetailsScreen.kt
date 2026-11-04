@@ -44,6 +44,7 @@ import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.android.ui.common.text.stringResource
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.models.previewGame
+import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.state.GameUiState
 import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
@@ -215,7 +216,8 @@ private fun PlayerRow(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            TeeTimePlayerStatus.CONFIRMED -> Unit
+            // TODO(TTC-108): Label ACCEPTED rows "Accepted", in green.
+            TeeTimePlayerStatus.CONFIRMED, TeeTimePlayerStatus.ACCEPTED -> Unit
         }
     }
 }
@@ -315,7 +317,7 @@ private fun GameDetailsSingleSlotPreview() {
             uiState = GameDetailsUiState.Content(
                 previewGame
                     .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
-                    .toUiState(viewerId = previewGame.organizerId)
+                    .toUiState(viewer = previewPlayer)
             ),
             onBack = {},
         )

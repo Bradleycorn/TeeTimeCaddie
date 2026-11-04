@@ -167,7 +167,8 @@ fileprivate struct PlayerRow: View {
                     Text(GMR.strings().game_details_invited_label.localized())
                         .font(.caption)
                         .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-                case .confirmed:
+                // TODO(TTC-110): Label accepted rows "Accepted", in green.
+                case .confirmed, .accepted:
                     EmptyView()
                 }
             }

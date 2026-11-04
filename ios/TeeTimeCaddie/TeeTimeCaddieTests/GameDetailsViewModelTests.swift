@@ -45,7 +45,7 @@ final class GameDetailsViewModelTests: XCTestCase {
         XCTAssertEqual(teeTime.filledCount.localized(), "1/4 filled")
         XCTAssertEqual(
             teeTime.players,
-            [TeeTimePlayerRowUiState(initial: "D", name: "Dana Park", tone: .secondary, status: .organizer)]
+            [TeeTimePlayerRowUiState(initial: "D", name: "Dana Park", tone: .secondary, status: .organizer, viewerName: nil)]
         )
         XCTAssertEqual(teeTime.openSlots, 3)
     }

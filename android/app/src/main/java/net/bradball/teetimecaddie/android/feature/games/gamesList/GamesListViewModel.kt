@@ -28,13 +28,13 @@ class GamesListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<GamesListUiState> = sessionState
-        .map { (it as? SessionState.SignedIn)?.player?.id }
+        .map { (it as? SessionState.SignedIn)?.player }
         .distinctUntilChanged()
-        .flatMapLatest { playerId ->
-            if (playerId == null) {
+        .flatMapLatest { player ->
+            if (player == null) {
                 flowOf(GamesListUiState.Loading)
             } else {
-                gamesRepository.upcomingGames(playerId).map { it.toGamesListUiState() }
+                gamesRepository.upcomingGames(player.id).map { it.toGamesListUiState(player) }
             }
         }
         .stateIn(

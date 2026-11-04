@@ -42,8 +42,8 @@ class GameDetailsViewModel @AssistedInject constructor(
     private suspend fun loadGame(): GameDetailsUiState =
         when (val result = gamesRepository.getGame(gameId)) {
             is TtcResult.Success -> {
-                val viewerId = (sessionState.value as? SessionState.SignedIn)?.player?.id
-                GameDetailsUiState.Content(result.data.toUiState(viewerId))
+                val viewer = (sessionState.value as? SessionState.SignedIn)?.player
+                GameDetailsUiState.Content(result.data.toUiState(viewer))
             }
 
             is TtcResult.Failure -> GameDetailsUiState.Error(result.error)
