@@ -2,7 +2,7 @@
 #
 # Runs the iOS unit tests with code coverage and prints a summary for the app target.
 #
-# Usage: scripts/ios-coverage.sh [destination]
+# Usage: ios/scripts/coverage.sh [destination]
 #   destination  xcodebuild -destination value (default: the first available iPhone simulator)
 #
 # Coverage is limited to TeeTimeCaddie.app (see the TeeTimeCaddie scheme's Test action). The shared
@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 if [ $# -ge 1 ]; then
   DESTINATION="$1"
 else

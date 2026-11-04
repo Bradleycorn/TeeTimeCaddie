@@ -72,7 +72,7 @@ The Xcode build runs the KMP framework build as a build phase, so you do NOT nee
   generated code (Hilt, moko `MR`, `BuildConfig`) are excluded in the root `build.gradle.kts`. A new
   module needs the plugin, its `kover { … createVariant("coverage") … }` block, and a `kover(project(…))`
   entry in the root.
-- **iOS app (Xcode):** `scripts/ios-coverage.sh [destination]` runs `TeeTimeCaddieTests` with
+- **iOS app (Xcode):** `ios/scripts/coverage.sh [destination]` runs `TeeTimeCaddieTests` with
   coverage for `TeeTimeCaddie.app` only, on the first available iPhone simulator by default, then writes a per-file summary to
   `build/reports/ios/coverage.txt`. Open `build/reports/ios/TeeTimeCaddie.xcresult` in Xcode for
   line-by-line coverage.
