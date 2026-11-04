@@ -62,6 +62,21 @@ xcodebuild -project ios/TeeTimeCaddie/TeeTimeCaddie.xcodeproj -scheme TeeTimeCad
 The Xcode build runs the KMP framework build as a build phase, so you do NOT need to run
 `./gradlew linkDebugFramework...` first. Bundle id: `net.bradball.teetimecaddie`.
 
+### Test coverage
+
+- **Shared SDK + Android app (Kover):** `./gradlew :koverHtmlReportCoverage` writes one merged report
+  to `build/reports/kover/htmlCoverage/index.html`. `:koverXmlReportCoverage` and `:koverLogCoverage`
+  give XML and a console total. Use the root-qualified `:` task, or every module also writes its
+  own report. Shared code is measured on the JVM through the Android `debug` unit tests, because the
+  iOS test binaries cannot be linked (see `sdk/build.gradle.kts`). `@Composable` functions and
+  generated code (Hilt, moko `MR`, `BuildConfig`) are excluded in the root `build.gradle.kts`. A new
+  module needs the plugin, its `kover { … createVariant("coverage") … }` block, and a `kover(project(…))`
+  entry in the root.
+- **iOS app (Xcode):** `scripts/ios-coverage.sh [destination]` runs `TeeTimeCaddieTests` with
+  coverage for `TeeTimeCaddie.app` only, on the first available iPhone simulator by default, then writes a per-file summary to
+  `build/reports/ios/coverage.txt`. Open `build/reports/ios/TeeTimeCaddie.xcresult` in Xcode for
+  line-by-line coverage.
+
 ---
 
 # KMP Shared Logic Architecture

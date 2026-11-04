@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.androidx.compose.compiler)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kover)
 }
 
 android {
@@ -109,4 +110,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.bundles.android.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
+}
+
+// Feeds the "coverage" variant that the root project merges into one report.
+kover {
+    currentProject {
+        createVariant("coverage") { add("debug") }
+    }
 }
