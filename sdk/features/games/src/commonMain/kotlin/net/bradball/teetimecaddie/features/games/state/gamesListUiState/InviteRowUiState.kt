@@ -7,6 +7,7 @@ import net.bradball.teetimecaddie.core.models.previewGameInvitee
 import net.bradball.teetimecaddie.core.models.previewGameList
 import net.bradball.teetimecaddie.core.models.previewGamePlayerList
 import net.bradball.teetimecaddie.core.models.previewPlayer
+import net.bradball.teetimecaddie.features.games.dateAndTime
 
 /**
  * One invitation waiting for the player's answer, already formatted.

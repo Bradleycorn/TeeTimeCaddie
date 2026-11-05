@@ -6,13 +6,23 @@ import net.bradbal.teetimecaddie.core.storage.documents.GameInviteeDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GamePlayerDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameRosterDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameTeeTimeDocument
+import net.bradball.teetimecaddie.core.extensions.formattedTime
+import net.bradball.teetimecaddie.core.extensions.weekdayMonthDay
 import net.bradball.teetimecaddie.core.models.Course
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
 import net.bradball.teetimecaddie.core.models.InviteStatus
+import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.core.models.Player
+
+/** The game's date and first tee time, e.g. "Sat, Jun 13 · 9:00 AM". */
+internal fun Game.dateAndTime(): LocalizedText = LocalizedText(
+    GMR.strings.games_row_date_time,
+    listOf(date.weekdayMonthDay, teeTimes.firstOrNull()?.time?.formattedTime.orEmpty())
+)
+
 
 // Every mapper here is `internal` on purpose: `:sdk:core:storage` is an implementation-only
 // dependency of `:sdk`, so a document type in any public signature would drag storage types across

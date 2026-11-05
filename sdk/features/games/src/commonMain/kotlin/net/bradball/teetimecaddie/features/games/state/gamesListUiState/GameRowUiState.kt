@@ -7,6 +7,7 @@ import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewGameList
 import net.bradball.teetimecaddie.features.games.GMR
+import net.bradball.teetimecaddie.features.games.dateAndTime
 
 /**
  * One game on the Games tab, already formatted.
@@ -25,12 +26,6 @@ internal fun Game.toRowUiState(): GameRowUiState = GameRowUiState(
     id = id,
     course = course.name,
     dateAndTime = dateAndTime()
-)
-
-/** The game's date and first tee time, e.g. "Sat, Jun 13 · 9:00 AM". */
-internal fun Game.dateAndTime(): LocalizedText = LocalizedText(
-    GMR.strings.games_row_date_time,
-    listOf(date.weekdayMonthDay, teeTimes.firstOrNull()?.time?.formattedTime.orEmpty())
 )
 
 val previewGameRowUiState = previewGame.toRowUiState()
