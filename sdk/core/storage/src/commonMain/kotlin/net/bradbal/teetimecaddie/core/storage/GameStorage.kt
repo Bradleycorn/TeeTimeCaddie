@@ -45,13 +45,6 @@ interface GameStorage {
     ): GameDocument
 
     /**
-     * Read a single game.
-     *
-     * @return The game, or null if no game has [id].
-     */
-    suspend fun getGame(id: String): GameDocument?
-
-    /**
      * Observe a single game.
      *
      * Emits null if no game has [id], or once it is deleted.
@@ -117,15 +110,6 @@ class FirestoreGameStorage : GameStorage {
             val game = buildGame(course)
             set(gameRef, game)
             game.also { it.id = gameRef.id }
-        }
-    }
-
-    override suspend fun getGame(id: String): GameDocument? {
-        val doc = gamesCollection.document(id).get()
-        return if (doc.exists) {
-            doc.data<GameDocument>().apply { this.id = doc.id }
-        } else {
-            null
         }
     }
 

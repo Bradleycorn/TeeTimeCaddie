@@ -113,13 +113,6 @@ final class FakeGamesRepository: GamesRepository {
         return TtcResultSuccess(data: game)
     }
 
-    func __getGame(gameId: String) async throws -> TtcResult<Game> {
-        if let game = games.first(where: { $0.id == gameId }) {
-            return TtcResultSuccess(data: game)
-        }
-        return failure(.notFound)
-    }
-
     /// Kotlin's `Failure` is a `TtcResult<Nothing>`. Objective-C generics are erased at runtime,
     /// so viewing it as a `TtcResult<Game>` is exactly what Kotlin's covariance does.
     private func failure(_ error: GameErrors) -> TtcResult<Game> {

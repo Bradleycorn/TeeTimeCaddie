@@ -6,6 +6,7 @@ enum SfSymbol: String {
     case calendar = "calendar"
     case calendarAdd = "calendar.add"
     case camera = "camera"
+    case checkmarkCircleFill = "checkmark.circle.fill"
     case chevronLeft = "chevron.left"
     case chevronRight = "chevron.right"
     case clock = "clock"
@@ -27,5 +28,6 @@ enum SfSymbol: String {
     case starFill = "star.fill"
     case trash = "trash"
     case xmark = "xmark"
+    case xmarkCircleFill = "xmark.circle.fill"
 }
 
