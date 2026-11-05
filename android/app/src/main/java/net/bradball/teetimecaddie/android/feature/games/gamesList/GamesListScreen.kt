@@ -41,7 +41,9 @@ import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GameRowUiState
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.InviteRowUiState
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.previewGameRowUiStateList
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.previewInviteRowUiStateList
 
 @Composable
 fun GamesListScreen(
@@ -62,6 +64,7 @@ fun GamesListScreen(
                 viewModel.onGameClick()
                 onGameClick(gameId)
             },
+            onAnswerInvite = viewModel::onAnswerInvite,
         )
     }
 }
@@ -72,6 +75,7 @@ private fun GamesListContent(
     uiState: GamesListUiState,
     onNewGameClick: (AnalyticsEvent.AddGameClick.Source) -> Unit,
     onGameClick: (String) -> Unit,
+    onAnswerInvite: (InviteRowUiState, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -137,13 +141,20 @@ private fun GamesListContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(GamesListDefaults.Spacing),
             ) {
-                item {
-                    Text(
-                        text = stringResource(GMR.strings.games_upcoming_header.resourceId),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = GamesListDefaults.HeaderTopPadding),
-                    )
+                if (uiState.invites.isNotEmpty()) {
+                    item(key = "invites") {
+                        InviteCard(uiState = uiState, onInviteClick = onGameClick, onAnswer = onAnswerInvite)
+                    }
+                }
+                if (uiState.showsUpcomingHeader) {
+                    item(key = "upcoming-header") {
+                        Text(
+                            text = stringResource(GMR.strings.games_upcoming_header.resourceId),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = GamesListDefaults.HeaderTopPadding),
+                        )
+                    }
                 }
                 items(uiState.games, key = { it.id }) { game ->
                     GameRow(uiState = game, onClick = { onGameClick(game.id) })
@@ -206,9 +217,23 @@ private object GamesListDefaults {
 private fun GamesListContentPreview() {
     MyApplicationTheme {
         GamesListContent(
-            uiState = GamesListUiState.Content(previewGameRowUiStateList),
+            uiState = GamesListUiState.Content(previewGameRowUiStateList, previewInviteRowUiStateList),
             onNewGameClick = {},
             onGameClick = {},
+            onAnswerInvite = { _, _ -> },
+        )
+    }
+}
+
+@ScreenPreviews
+@Composable
+private fun GamesListInvitesOnlyPreview() {
+    MyApplicationTheme {
+        GamesListContent(
+            uiState = GamesListUiState.Content(games = emptyList(), invites = previewInviteRowUiStateList.take(1)),
+            onNewGameClick = {},
+            onGameClick = {},
+            onAnswerInvite = { _, _ -> },
         )
     }
 }
@@ -221,6 +246,7 @@ private fun GamesListEmptyPreview() {
             uiState = GamesListUiState.Empty,
             onNewGameClick = {},
             onGameClick = {},
+            onAnswerInvite = { _, _ -> },
         )
     }
 }
