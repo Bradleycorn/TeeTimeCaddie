@@ -17,9 +17,12 @@ struct GameDetailsScreen: View {
 
     var body: some View {
         Screen(.GameDetails(viewName: self.viewName)) {
-            GameDetailsContent(uiState: viewModel.uiState)
+            GameDetailsContent(
+                uiState: viewModel.uiState,
+                onAnswer: { accept in Task { await viewModel.onAnswer(accept: accept) } }
+            )
         }
-        .task { await viewModel.load() }
+        .task { await viewModel.observeGame() }
     }
 }
 
@@ -29,9 +32,11 @@ fileprivate struct GameDetailsContent: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let uiState: any GameDetailsUiState
+    private let onAnswer: (Bool) -> Void
 
-    init(uiState: any GameDetailsUiState) {
+    init(uiState: any GameDetailsUiState, onAnswer: @escaping (Bool) -> Void) {
         self.uiState = uiState
+        self.onAnswer = onAnswer
     }
 
     var body: some View {
@@ -46,7 +51,7 @@ fileprivate struct GameDetailsContent: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             case .content(let content):
-                GameDetailsBody(uiState: content.game)
+                GameDetailsBody(uiState: content.game, onAnswer: onAnswer)
             }
         }
         .background(theme.colorScheme.surface)
@@ -55,13 +60,18 @@ fileprivate struct GameDetailsContent: View {
 
 /// The game itself. Editing, adding tee times, inviting, managing, slot menus and the activity log
 /// are all later work, and are left out rather than shown inert.
+///
+/// The organizer gets the "You are the organizer" chip. Everyone else gets the invitee view: who
+/// organized the game, and the RSVP card when they were invited.
 fileprivate struct GameDetailsBody: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let uiState: GameUiState
+    private let onAnswer: (Bool) -> Void
 
-    init(uiState: GameUiState) {
+    init(uiState: GameUiState, onAnswer: @escaping (Bool) -> Void) {
         self.uiState = uiState
+        self.onAnswer = onAnswer
     }
 
     var body: some View {
@@ -79,9 +89,13 @@ fileprivate struct GameDetailsBody: View {
                     Text(uiState.course)
                         .font(.largeTitle.weight(.bold))
                         .foregroundStyle(theme.colorScheme.onSurface)
-                    Text(uiState.date)
+                    Text(uiState.organizedBy?.localized() ?? uiState.date)
                         .font(.body)
                         .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                }
+
+                if let rsvp = uiState.rsvp {
+                    RsvpCard(uiState: rsvp, onAnswer: onAnswer)
                 }
 
                 ForEach(Array(uiState.teeTimes.enumerated()), id: \.offset) { _, teeTime in
@@ -155,7 +169,7 @@ fileprivate struct PlayerRow: View {
             )
         } text: {
             VStack(alignment: .leading, spacing: GameDetailsDefaults.nameStatusSpacing) {
-                Text(uiState.name)
+                Text(uiState.viewerName?.localized() ?? uiState.name)
                     .font(.body.weight(.medium))
                     .foregroundStyle(theme.colorScheme.onSurface)
                 switch uiState.status {
@@ -167,8 +181,11 @@ fileprivate struct PlayerRow: View {
                     Text(GMR.strings().game_details_invited_label.localized())
                         .font(.caption)
                         .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-                // TODO(TTC-110): Label accepted rows "Accepted", in green.
-                case .confirmed, .accepted:
+                case .accepted:
+                    Text(GMR.strings().game_details_accepted_label.localized())
+                        .font(.caption)
+                        .foregroundStyle(theme.colorScheme.primary)
+                case .confirmed:
                     EmptyView()
                 }
             }
@@ -254,21 +271,41 @@ fileprivate let previewDetails = GameDetailsUiStateContent(game: GameUiStateKt.p
 
 #Preview("Organizer") {
     TeeTimeCaddieTheme {
-        GameDetailsContent(uiState: previewDetails)
+        GameDetailsContent(uiState: previewDetails, onAnswer: { _ in })
     }
 }
 
 #Preview("With invitees") {
     TeeTimeCaddieTheme {
         GameDetailsContent(
-            uiState: GameDetailsUiStateContent(game: GameUiStateKt.previewGameWithInviteesUiState)
+            uiState: GameDetailsUiStateContent(game: GameUiStateKt.previewGameWithInviteesUiState),
+            onAnswer: { _ in }
         )
     }
 }
 
+#Preview("Invitee") {
+    TeeTimeCaddieTheme {
+        GameDetailsContent(
+            uiState: GameDetailsUiStateContent(game: GameUiStateKt.previewInvitedGameUiState),
+            onAnswer: { _ in }
+        )
+    }
+}
+
+#Preview("Accepted - Dark") {
+    TeeTimeCaddieTheme {
+        GameDetailsContent(
+            uiState: GameDetailsUiStateContent(game: GameUiStateKt.previewAcceptedGameUiState),
+            onAnswer: { _ in }
+        )
+    }
+    .preferredColorScheme(.dark)
+}
+
 #Preview("Organizer - Dark") {
     TeeTimeCaddieTheme {
-        GameDetailsContent(uiState: previewDetails)
+        GameDetailsContent(uiState: previewDetails, onAnswer: { _ in })
     }
     .preferredColorScheme(.dark)
 }

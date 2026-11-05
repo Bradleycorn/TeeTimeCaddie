@@ -52,11 +52,6 @@ class FakeGameStorage(vararg existingCourses: CourseDocument) : GameStorage {
         return game
     }
 
-    override suspend fun getGame(id: String): GameDocument? {
-        failure?.let { throw it }
-        return games.value.firstOrNull { it.id == id }
-    }
-
     override fun gameFlow(id: String): Flow<GameDocument?> =
         games.map { all ->
             failure?.let { throw it }

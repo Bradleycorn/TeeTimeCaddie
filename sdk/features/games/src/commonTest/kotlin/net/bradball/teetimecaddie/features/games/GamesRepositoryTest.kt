@@ -294,27 +294,11 @@ class GamesRepositoryTest {
     // MARK: reading games
 
     @Test
-    fun getGame_readsAPublishedGame() = runTest {
+    fun observeGame_readsAPublishedGame() = runTest {
         val repo = repository(FakeGameStorage())
         val published = repo.publish().game()
 
-        assertEquals(published, repo.getGame(published.id).game())
-    }
-
-    @Test
-    fun getGame_reportsAMissingGameAsNotFound() = runTest {
-        val result = repository(FakeGameStorage()).getGame("nope")
-
-        assertEquals(GameErrors.NOT_FOUND, result.error())
-    }
-
-    @Test
-    fun getGame_reportsAReadFailure() = runTest {
-        val storage = FakeGameStorage().apply { failure = IllegalStateException("offline") }
-
-        val result = repository(storage).getGame("game-1")
-
-        assertEquals(GameErrors.LOAD_FAILED, result.error())
+        assertEquals(published, repo.observeGame(published.id).first().game())
     }
 
     // MARK: invitations

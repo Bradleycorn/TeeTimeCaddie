@@ -78,15 +78,6 @@ interface GamesRepository {
      */
     fun observeGames(player: Player): Flow<List<Game>>
 
-    // TODO(TTC-110): Remove once both apps' Game details observe the game instead.
-    /**
-     * Read a single game.
-     *
-     * A [TtcResult] rather than a `TtcLookup`, because the id came from somewhere that said the
-     * game exists: a missing game is [GameErrors.NOT_FOUND].
-     */
-    suspend fun getGame(gameId: String): TtcResult<Game>
-
     /**
      * Observe a single game, emitting again whenever it changes — when someone answers, say.
      *
@@ -198,16 +189,6 @@ class GamesRepositoryImpl(
             eventManager.logException(ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "observe_games"))
         }
     }
-
-    override suspend fun getGame(gameId: String): TtcResult<Game> =
-        tryStorage("get_game", GameErrors.LOAD_FAILED) {
-            val document = gameStorage.getGame(gameId)
-            if (document == null) {
-                TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
-            } else {
-                TtcResult.Success(document.toModel())
-            }
-        }
 
     override fun observeGame(gameId: String): Flow<TtcResult<Game>> =
         gameStorage.gameFlow(gameId)
