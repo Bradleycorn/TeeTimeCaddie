@@ -67,6 +67,10 @@
     <string name="game_details_accepted_label">Accepted</string>
     <!-- The signed-in player's own row: their first name. "Dana (you)" -->
     <string name="game_details_viewer_name">%s (you)</string>
+    <!-- Under the course in the invitee view: the date, then the organizer's first name. "Sat, Jun 13 · Organized by Brad" -->
+    <string name="game_details_organized_by">%1$s · Organized by %2$s</string>
+    <!-- The RSVP card's title, with the organizer's first name. "Brad invited you to play" -->
+    <string name="game_details_rsvp_title">%s invited you to play</string>
     <!-- The RSVP card, while the viewer hasn't answered. -->
     <string name="game_details_rsvp_prompt">Can you make it?</string>
     <!-- Replaces the prompt when confirmed players fill every slot. "All 4 spots are taken." -->

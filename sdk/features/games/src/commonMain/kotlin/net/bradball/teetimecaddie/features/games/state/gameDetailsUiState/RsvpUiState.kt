@@ -10,11 +10,17 @@ sealed interface RsvpUiState {
     /**
      * Not answered yet: the card asks, with Yes and No.
      *
+     * @property title Who's asking, e.g. "Brad invited you to play". Null if the organizer isn't
+     *   known.
      * @property prompt "Can you make it?", or, once confirmed players fill every slot, "All 4
      *   spots are taken."
      * @property canAccept False once every slot is taken. Yes is then disabled; No still works.
      */
-    data class Pending(val prompt: LocalizedText, val canAccept: Boolean) : RsvpUiState
+    data class Pending(
+        val prompt: LocalizedText,
+        val canAccept: Boolean,
+        val title: LocalizedText? = null
+    ) : RsvpUiState
 
     /** Said yes, and holds a slot. The card collapses to "You're in". */
     data object Accepted : RsvpUiState {
@@ -36,13 +42,19 @@ internal fun Game.rsvpFor(phone: String): RsvpUiState? {
         InviteStatus.PENDING -> {
             // Every game has exactly one tee time for now, and it is the one an invitee joins.
             val teeTime = teeTimes.firstOrNull()
+            val title = organizerFirstName()?.let { LocalizedText(GMR.strings.game_details_rsvp_title, listOf(it)) }
             if (teeTime == null || teeTime.openSlots == 0) {
                 RsvpUiState.Pending(
                     prompt = LocalizedText(GMR.strings.game_details_rsvp_full, listOf(teeTime?.slots?.toString().orEmpty())),
-                    canAccept = false
+                    canAccept = false,
+                    title = title
                 )
             } else {
-                RsvpUiState.Pending(prompt = LocalizedText(GMR.strings.game_details_rsvp_prompt), canAccept = true)
+                RsvpUiState.Pending(
+                    prompt = LocalizedText(GMR.strings.game_details_rsvp_prompt),
+                    canAccept = true,
+                    title = title
+                )
             }
         }
     }

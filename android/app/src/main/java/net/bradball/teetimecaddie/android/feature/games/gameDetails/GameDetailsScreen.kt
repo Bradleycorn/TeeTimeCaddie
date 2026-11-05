@@ -53,6 +53,8 @@ import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.TeeTim
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.TeeTimePlayerStatus
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewGameUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewGameWithInviteesUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewAcceptedGameUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewInvitedGameUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toUiState
 
 @Composable
@@ -63,7 +65,7 @@ fun GameDetailsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Screen(AnalyticsScreen.GameDetails("GameDetailsScreen")) {
-        GameDetailsContent(uiState = uiState, onBack = onBack)
+        GameDetailsContent(uiState = uiState, onBack = onBack, onAnswer = viewModel::onAnswer)
     }
 }
 
@@ -71,6 +73,7 @@ fun GameDetailsScreen(
 private fun GameDetailsContent(
     uiState: GameDetailsUiState,
     onBack: () -> Unit,
+    onAnswer: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -98,7 +101,11 @@ private fun GameDetailsContent(
                 )
             }
 
-            is GameDetailsUiState.Content -> GameDetailsBody(uiState = uiState.game, modifier = contentModifier)
+            is GameDetailsUiState.Content -> GameDetailsBody(
+                uiState = uiState.game,
+                onAnswer = onAnswer,
+                modifier = contentModifier,
+            )
         }
     }
 }
@@ -106,9 +113,16 @@ private fun GameDetailsContent(
 /**
  * The game itself. Editing, adding tee times, inviting, managing, slot menus and the activity log
  * are all later work, and are left out rather than shown inert.
+ *
+ * The organizer gets the "You are the organizer" chip. Everyone else gets the invitee view: who
+ * organized the game, and the RSVP card when they were invited.
  */
 @Composable
-private fun GameDetailsBody(uiState: GameUiState, modifier: Modifier = Modifier) {
+private fun GameDetailsBody(
+    uiState: GameUiState,
+    onAnswer: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -130,10 +144,14 @@ private fun GameDetailsBody(uiState: GameUiState, modifier: Modifier = Modifier)
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = uiState.date,
+                text = uiState.organizedBy?.let { stringResource(it) } ?: uiState.date,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        uiState.rsvp?.let { rsvp ->
+            RsvpCard(uiState = rsvp, onAnswer = onAnswer)
         }
 
         uiState.teeTimes.forEach { teeTime ->
@@ -201,7 +219,7 @@ private fun PlayerRow(
         },
     ) {
         Text(
-            text = uiState.name,
+            text = uiState.viewerName?.let { stringResource(it) } ?: uiState.name,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
         )
@@ -216,8 +234,12 @@ private fun PlayerRow(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            // TODO(TTC-108): Label ACCEPTED rows "Accepted", in green.
-            TeeTimePlayerStatus.CONFIRMED, TeeTimePlayerStatus.ACCEPTED -> Unit
+            TeeTimePlayerStatus.ACCEPTED -> Text(
+                text = stringResource(GMR.strings.game_details_accepted_label.resourceId),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            TeeTimePlayerStatus.CONFIRMED -> Unit
         }
     }
 }
@@ -294,6 +316,7 @@ private fun GameDetailsOrganizerPreview() {
         GameDetailsContent(
             uiState = GameDetailsUiState.Content(previewGameUiState),
             onBack = {},
+            onAnswer = {},
         )
     }
 }
@@ -305,6 +328,7 @@ private fun GameDetailsWithInviteesPreview() {
         GameDetailsContent(
             uiState = GameDetailsUiState.Content(previewGameWithInviteesUiState),
             onBack = {},
+            onAnswer = {},
         )
     }
 }
@@ -320,6 +344,31 @@ private fun GameDetailsSingleSlotPreview() {
                     .toUiState(viewer = previewPlayer)
             ),
             onBack = {},
+            onAnswer = {},
+        )
+    }
+}
+
+@ScreenPreviews
+@Composable
+private fun GameDetailsInviteePreview() {
+    MyApplicationTheme {
+        GameDetailsContent(
+            uiState = GameDetailsUiState.Content(previewInvitedGameUiState),
+            onBack = {},
+            onAnswer = {},
+        )
+    }
+}
+
+@ScreenPreviews
+@Composable
+private fun GameDetailsAcceptedPreview() {
+    MyApplicationTheme {
+        GameDetailsContent(
+            uiState = GameDetailsUiState.Content(previewAcceptedGameUiState),
+            onBack = {},
+            onAnswer = {},
         )
     }
 }

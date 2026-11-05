@@ -86,12 +86,8 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
     override fun upcomingGames(playerId: String): Flow<List<Game>> =
         games.map { all -> all.filter { game -> game.teeTimes.any { t -> t.players.any { it.playerId == playerId } } } }
 
-    /** How many times [getGame] was called. */
-    var getGameCalls = 0
-        private set
-
     override suspend fun getGame(gameId: String): TtcResult<Game> =
-        also { getGameCalls++ }.games.value.firstOrNull { it.id == gameId }
+        games.value.firstOrNull { it.id == gameId }
             ?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
 
@@ -99,7 +95,10 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
         all.filter { it.holdsSlot(player.id) || it.inviteeFor(player.phone) != null }
     }
 
-    override fun observeGame(gameId: String): Flow<TtcResult<Game>> = games.map { all ->
+    /** Each game id [observeGame] was asked for, in order. */
+    val observedGameIds = mutableListOf<String>()
+
+    override fun observeGame(gameId: String): Flow<TtcResult<Game>> = also { observedGameIds += gameId }.games.map { all ->
         all.firstOrNull { it.id == gameId }
             ?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
