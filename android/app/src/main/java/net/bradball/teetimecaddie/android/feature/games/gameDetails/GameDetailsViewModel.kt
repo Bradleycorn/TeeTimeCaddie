@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GamesRepository
-import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.toUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameDetailsUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toUiState
 import net.bradball.teetimecaddie.session.SessionState
 
 @AssistedFactory
@@ -42,8 +42,8 @@ class GameDetailsViewModel @AssistedInject constructor(
     private suspend fun loadGame(): GameDetailsUiState =
         when (val result = gamesRepository.getGame(gameId)) {
             is TtcResult.Success -> {
-                val viewerId = (sessionState.value as? SessionState.SignedIn)?.player?.id
-                GameDetailsUiState.Content(result.data.toUiState(viewerId))
+                val viewer = (sessionState.value as? SessionState.SignedIn)?.player
+                GameDetailsUiState.Content(result.data.toUiState(viewer))
             }
 
             is TtcResult.Failure -> GameDetailsUiState.Error(result.error)

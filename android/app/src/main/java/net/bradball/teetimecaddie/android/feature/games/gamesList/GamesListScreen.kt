@@ -39,9 +39,9 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.games.GMR
-import net.bradball.teetimecaddie.features.games.state.GameRowUiState
-import net.bradball.teetimecaddie.features.games.state.GamesListUiState
-import net.bradball.teetimecaddie.features.games.state.previewGameRowUiStateList
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GameRowUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.previewGameRowUiStateList
 
 @Composable
 fun GamesListScreen(

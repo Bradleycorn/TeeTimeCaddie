@@ -44,15 +44,16 @@ import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.android.ui.common.text.stringResource
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.models.previewGame
+import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.games.GMR
-import net.bradball.teetimecaddie.features.games.state.GameUiState
-import net.bradball.teetimecaddie.features.games.state.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.GameTeeTimeUiState
-import net.bradball.teetimecaddie.features.games.state.TeeTimePlayerRowUiState
-import net.bradball.teetimecaddie.features.games.state.TeeTimePlayerStatus
-import net.bradball.teetimecaddie.features.games.state.previewGameUiState
-import net.bradball.teetimecaddie.features.games.state.previewGameWithInviteesUiState
-import net.bradball.teetimecaddie.features.games.state.toUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameDetailsUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameTeeTimeUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.TeeTimePlayerRowUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.TeeTimePlayerStatus
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewGameUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewGameWithInviteesUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toUiState
 
 @Composable
 fun GameDetailsScreen(
@@ -215,7 +216,8 @@ private fun PlayerRow(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            TeeTimePlayerStatus.CONFIRMED -> Unit
+            // TODO(TTC-108): Label ACCEPTED rows "Accepted", in green.
+            TeeTimePlayerStatus.CONFIRMED, TeeTimePlayerStatus.ACCEPTED -> Unit
         }
     }
 }
@@ -315,7 +317,7 @@ private fun GameDetailsSingleSlotPreview() {
             uiState = GameDetailsUiState.Content(
                 previewGame
                     .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
-                    .toUiState(viewerId = previewGame.organizerId)
+                    .toUiState(viewer = previewPlayer)
             ),
             onBack = {},
         )

@@ -12,8 +12,8 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewGameList
 import net.bradball.teetimecaddie.core.models.previewPlayer
-import net.bradball.teetimecaddie.features.games.state.GamesListUiState
-import net.bradball.teetimecaddie.features.games.state.toGamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.toGamesListUiState
 import net.bradball.teetimecaddie.session.SessionState
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -54,7 +54,7 @@ class GamesListViewModelTest {
         val viewModel = viewModel(FakeGamesRepository(*previewGameList.toTypedArray()))
         collect(viewModel)
 
-        assertEquals(previewGameList.toGamesListUiState(), viewModel.uiState.value)
+        assertEquals(previewGameList.toGamesListUiState(previewPlayer), viewModel.uiState.value)
     }
 
     @Test
@@ -65,7 +65,7 @@ class GamesListViewModelTest {
 
         repository.setGames(previewGame)
 
-        assertEquals(listOf(previewGame).toGamesListUiState(), viewModel.uiState.value)
+        assertEquals(listOf(previewGame).toGamesListUiState(previewPlayer), viewModel.uiState.value)
     }
 
     @Test

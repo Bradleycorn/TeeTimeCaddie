@@ -30,9 +30,9 @@ final class GamesListViewModel {
 
     /// Follows the signed-in player's upcoming games for as long as the screen is up.
     func observeGames() async {
-        guard let playerId = currentPlayer()?.id else { return }
-        for await games in gamesRepository.upcomingGames(playerId: playerId) {
-            uiState = GamesListUiStateKt.toGamesListUiState(games)
+        guard let player = currentPlayer() else { return }
+        for await games in gamesRepository.upcomingGames(playerId: player.id) {
+            uiState = GamesListUiStateKt.toGamesListUiState(games, viewer: player)
         }
     }
 

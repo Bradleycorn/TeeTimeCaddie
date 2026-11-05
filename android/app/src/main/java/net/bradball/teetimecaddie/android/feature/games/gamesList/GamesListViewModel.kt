@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.features.games.GamesRepository
-import net.bradball.teetimecaddie.features.games.state.GamesListUiState
-import net.bradball.teetimecaddie.features.games.state.toGamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.toGamesListUiState
 import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
 
@@ -28,13 +28,13 @@ class GamesListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<GamesListUiState> = sessionState
-        .map { (it as? SessionState.SignedIn)?.player?.id }
+        .map { (it as? SessionState.SignedIn)?.player }
         .distinctUntilChanged()
-        .flatMapLatest { playerId ->
-            if (playerId == null) {
+        .flatMapLatest { player ->
+            if (player == null) {
                 flowOf(GamesListUiState.Loading)
             } else {
-                gamesRepository.upcomingGames(playerId).map { it.toGamesListUiState() }
+                gamesRepository.upcomingGames(player.id).map { it.toGamesListUiState(player) }
             }
         }
         .stateIn(
