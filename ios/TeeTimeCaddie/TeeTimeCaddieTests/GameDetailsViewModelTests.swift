@@ -8,66 +8,66 @@ import TeeTimeCaddieKit
 @testable import TeeTimeCaddie
 
 /// The Swift twin of `GameDetailsViewModelTest.kt`.
+///
+/// The live game isn't driven here: `observeGame` returns a Kotlin `Flow`, and SKIE gives Swift no
+/// public way to build one, so a Swift fake can't serve it. What the screen shows for a given game
+/// and viewer is `Game.toUiState(viewer:)`, which the SDK tests cover.
 @MainActor
 final class GameDetailsViewModelTests: XCTestCase {
 
-    private func loaded(
-        _ gameId: String,
-        games: [Game] = [TestData.game()],
-        viewer: Player = TestData.organizer
-    ) async -> any GameDetailsUiState {
-        let viewModel = GameDetailsViewModel(
+    private func viewModel(
+        _ repository: FakeGamesRepository,
+        _ toastPresenter: TtcToastPresenter,
+        gameId: String = "game-1"
+    ) -> GameDetailsViewModel {
+        GameDetailsViewModel(
             gameId: gameId,
-            gamesRepository: FakeGamesRepository(games: games),
-            currentPlayer: { viewer }
+            gamesRepository: repository,
+            currentPlayer: { TestData.otherPlayer },
+            toastPresenter: toastPresenter
         )
-        await viewModel.load()
-        return viewModel.uiState
     }
 
-    private func loadedGame(
-        _ gameId: String = "game-1",
-        games: [Game] = [TestData.game()],
-        viewer: Player = TestData.organizer
-    ) async throws -> GameUiState {
-        let state = await loaded(gameId, games: games, viewer: viewer)
-        return try XCTUnwrap(state as? GameDetailsUiStateContent, "Expected content, got \(state)").game
+    func testStartsLoading() {
+        let viewModel = viewModel(FakeGamesRepository(), TtcToastPresenter())
+
+        XCTAssertTrue(viewModel.uiState is GameDetailsUiStateLoading)
     }
 
-    func testShowsTheGameWithTheOrganizerInTheFirstSlot() async throws {
-        let game = try await loadedGame()
+    func testAYesIsSentAndConfirmedWithTheCourse() async {
+        let repository = FakeGamesRepository(games: [TestData.game(course: "Pebble Beach")])
+        let toastPresenter = TtcToastPresenter()
 
-        XCTAssertEqual(game.course, "Pebble Beach")
-        XCTAssertEqual(game.date, "Sat, Jun 13")
-        XCTAssertTrue(game.isOrganizer)
-        let teeTime = try XCTUnwrap(game.teeTimes.first)
-        XCTAssertEqual(teeTime.time, "9:00 AM")
-        XCTAssertEqual(teeTime.filledCount.localized(), "1/4 filled")
-        XCTAssertEqual(
-            teeTime.players,
-            [TeeTimePlayerRowUiState(initial: "D", name: "Dana Park", tone: .secondary, status: .organizer)]
-        )
-        XCTAssertEqual(teeTime.openSlots, 3)
+        await viewModel(repository, toastPresenter).onAnswer(accept: true)
+
+        XCTAssertEqual(repository.respondRequests.map(\.gameId), ["game-1"])
+        XCTAssertEqual(repository.respondRequests.map(\.accept), [true])
+        XCTAssertEqual(toastPresenter.message, "Pebble Beach confirmed")
     }
 
-    func testAOneSlotGameHasNoOpenSlots() async throws {
-        let game = try await loadedGame(games: [TestData.game(slots: 1)])
+    func testANoIsConfirmedWithoutTheCourse() async {
+        let toastPresenter = TtcToastPresenter()
 
-        XCTAssertEqual(game.teeTimes.first?.filledCount.localized(), "1/1 filled")
-        XCTAssertEqual(game.teeTimes.first?.openSlots, 0)
+        await viewModel(FakeGamesRepository(games: [TestData.game()]), toastPresenter).onAnswer(accept: false)
+
+        XCTAssertEqual(toastPresenter.message, "Invite declined")
     }
 
-    func testSomeoneElseIsNotTheOrganizer() async throws {
-        let game = try await loadedGame(viewer: TestData.otherPlayer)
+    func testAYesThatLosesTheLastSlotSaysTheGameJustFilledUp() async {
+        let repository = FakeGamesRepository(games: [TestData.game()])
+        repository.respondFailure = .gameFull
+        let toastPresenter = TtcToastPresenter()
 
-        XCTAssertFalse(game.isOrganizer)
+        await viewModel(repository, toastPresenter).onAnswer(accept: true)
+
+        XCTAssertEqual(toastPresenter.message, "This game just filled up")
     }
 
-    func testAMissingGameIsAnError() async throws {
-        let state = await loaded("nope")
+    func testAMissingGameShowsItsOwnMessage() async {
+        let toastPresenter = TtcToastPresenter()
 
-        let error = try XCTUnwrap(state as? GameDetailsUiStateError, "Expected an error, got \(state)")
-        XCTAssertEqual(error.title.localized(), GameErrors.notFound.title.localized())
-        XCTAssertEqual(error.message.localized(), GameErrors.notFound.message.localized())
+        await viewModel(FakeGamesRepository(), toastPresenter, gameId: "nope").onAnswer(accept: true)
+
+        XCTAssertEqual(toastPresenter.message, GameErrors.notFound.message.localized())
     }
 }

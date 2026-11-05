@@ -83,15 +83,30 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
         return TtcResult.Success(game)
     }
 
-    override fun upcomingGames(playerId: String): Flow<List<Game>> =
-        games.map { all -> all.filter { game -> game.teeTimes.any { t -> t.players.any { it.playerId == playerId } } } }
+    override fun observeGames(player: Player): Flow<List<Game>> = games.map { all ->
+        all.filter { it.holdsSlot(player.id) || it.inviteeFor(player.phone) != null }
+    }
 
-    /** How many times [getGame] was called. */
-    var getGameCalls = 0
-        private set
+    /** Each game id [observeGame] was asked for, in order. */
+    val observedGameIds = mutableListOf<String>()
 
-    override suspend fun getGame(gameId: String): TtcResult<Game> =
-        also { getGameCalls++ }.games.value.firstOrNull { it.id == gameId }
+    override fun observeGame(gameId: String): Flow<TtcResult<Game>> = also { observedGameIds += gameId }.games.map { all ->
+        all.firstOrNull { it.id == gameId }
             ?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+    }
+
+    /** Each answer, in order: the game's id and whether it was a yes. */
+    val respondRequests = mutableListOf<Pair<String, Boolean>>()
+
+    /** When set, [respondToInvite] fails with this instead of answering. */
+    var respondFailure: GameErrors? = null
+
+    override suspend fun respondToInvite(gameId: String, player: Player, accept: Boolean): TtcResult<Game> {
+        respondRequests += gameId to accept
+        respondFailure?.let { return TtcResult.Failure(GameException(it)) }
+        return games.value.firstOrNull { it.id == gameId }
+            ?.let { TtcResult.Success(it) }
+            ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+    }
 }

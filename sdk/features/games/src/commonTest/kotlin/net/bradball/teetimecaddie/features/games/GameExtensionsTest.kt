@@ -3,9 +3,12 @@ package net.bradball.teetimecaddie.features.games
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
+import net.bradbal.teetimecaddie.core.storage.documents.GameInviteeDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GamePlayerDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameTeeTimeDocument
 import net.bradball.teetimecaddie.core.models.Course
+import net.bradball.teetimecaddie.core.models.GameInvitee
+import net.bradball.teetimecaddie.core.models.InviteStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -45,10 +48,45 @@ class GameExtensionsTest {
         date = LocalDate(2026, 6, 13),
         teeTimes = teeTimes.toList(),
         playerIds = listOf("brad"),
-        invitees = emptyList(),
+        invitees = emptyMap(),
         invitedPhones = emptyList(),
         createdAt = null
     ).also { it.id = "game-1" }
+
+    @Test
+    fun gameDocument_toModel_listsInviteesInTheOrderTheyWereAdded() {
+        val invitees = mapOf(
+            "4155550188" to GameInviteeDocument("Matt Chen", null, "PENDING", order = 1),
+            "4155550142" to GameInviteeDocument("Jeff Morrison", "jeff", "ACCEPTED_LATER", order = 0)
+        )
+
+        val game = document().copy(invitees = invitees).also { it.id = "game-1" }.toModel()
+
+        assertEquals(
+            listOf(
+                // An unrecognised status reads as PENDING.
+                GameInvitee("Jeff Morrison", "4155550142", "jeff", InviteStatus.PENDING),
+                GameInvitee("Matt Chen", "4155550188", null, InviteStatus.PENDING)
+            ),
+            game.invitees
+        )
+    }
+
+    @Test
+    fun toInviteesDocument_keysEachInviteeByPhoneAndRecordsTheirPosition() {
+        val invitees = listOf(
+            GameInvitee("Jeff Morrison", "4155550142", "jeff", InviteStatus.PENDING),
+            GameInvitee("Matt Chen", "4155550188", null, InviteStatus.PENDING)
+        )
+
+        assertEquals(
+            mapOf(
+                "4155550142" to GameInviteeDocument("Jeff Morrison", "jeff", "PENDING", order = 0),
+                "4155550188" to GameInviteeDocument("Matt Chen", null, "PENDING", order = 1)
+            ),
+            invitees.toInviteesDocument()
+        )
+    }
 
     @Test
     fun gameDocument_toModel_carriesTheCourseAndOrganizer() {

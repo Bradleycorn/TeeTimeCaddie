@@ -1,10 +1,12 @@
 
 /// An enum to list and define SF Symbols that are used in this app.
 enum SfSymbol: String {
+    case envelopeBadgeFill = "envelope.badge.fill"
     case envelopeFill = "envelope"
     case calendar = "calendar"
     case calendarAdd = "calendar.add"
     case camera = "camera"
+    case checkmarkCircleFill = "checkmark.circle.fill"
     case chevronLeft = "chevron.left"
     case chevronRight = "chevron.right"
     case clock = "clock"
@@ -26,5 +28,6 @@ enum SfSymbol: String {
     case starFill = "star.fill"
     case trash = "trash"
     case xmark = "xmark"
+    case xmarkCircleFill = "xmark.circle.fill"
 }
 

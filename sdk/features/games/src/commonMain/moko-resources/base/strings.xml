@@ -13,6 +13,16 @@
     <!-- A row's second line: the formatted date, then the tee time. "Sat, Jun 13 · 9:00 AM" -->
     <string name="games_row_date_time">%1$s · %2$s</string>
 
+    <!-- ==== Invitations (TTC-70) ==== -->
+    <!-- The invite card's header, for one pending invitation and for more. -->
+    <string name="games_invites_header_one">New invite</string>
+    <string name="games_invites_header_many">%s new invites</string>
+    <!-- Chip beside the course on an invite whose tee time is already full. -->
+    <string name="games_invite_full_chip">Full</string>
+    <!-- Confirmations after answering, from the list or from Game details. "Pebble Beach confirmed" -->
+    <string name="game_invite_accepted_message">%s confirmed</string>
+    <string name="game_invite_declined_message">Invite declined</string>
+
     <!-- ==== New game (TTC-68) ==== -->
     <string name="new_game_title">New game</string>
     <string name="new_game_section_where_when">Where &amp; when</string>
@@ -53,6 +63,21 @@
     <string name="game_details_empty_slot">Empty slot</string>
     <!-- A tee time's fill count: players, then slots. "1/4 filled" -->
     <string name="game_details_filled_count">%1$s/%2$s filled</string>
+    <!-- Label on a row for someone who said yes to their invitation. -->
+    <string name="game_details_accepted_label">Accepted</string>
+    <!-- The signed-in player's own row: their first name. "Dana (you)" -->
+    <string name="game_details_viewer_name">%s (you)</string>
+    <!-- Under the course in the invitee view: the date, then the organizer's first name. "Sat, Jun 13 · Organized by Brad" -->
+    <string name="game_details_organized_by">%1$s · Organized by %2$s</string>
+    <!-- The RSVP card's title, with the organizer's first name. "Brad invited you to play" -->
+    <string name="game_details_rsvp_title">%s invited you to play</string>
+    <!-- The RSVP card, while the viewer hasn't answered. -->
+    <string name="game_details_rsvp_prompt">Can you make it?</string>
+    <!-- Replaces the prompt when confirmed players fill every slot. "All 4 spots are taken." -->
+    <string name="game_details_rsvp_full">All %s spots are taken.</string>
+    <!-- The RSVP card once answered. -->
+    <string name="game_details_rsvp_accepted">You\'re in</string>
+    <string name="game_details_rsvp_declined">You declined</string>
 
     <!-- ==== Errors ==== -->
     <string name="game_error_title">We couldn\'t publish your game</string>
@@ -66,4 +91,9 @@
     <string name="game_error_load_failed_title">We couldn\'t load that game</string>
     <string name="game_error_load_failed_message">Something went wrong reading it.</string>
     <string name="game_error_load_failed_recovery">Try again.</string>
+    <string name="game_error_game_full_title">This game just filled up</string>
+    <string name="game_error_game_full_message">Every spot was taken before your answer arrived.</string>
+    <string name="game_error_respond_failed_title">We couldn\'t send your answer</string>
+    <string name="game_error_respond_failed_message">Something went wrong saving it.</string>
+    <string name="game_error_respond_failed_recovery">Try again.</string>
 </resources>

@@ -69,6 +69,13 @@ data class Game(
 ) {
     /** Whether [playerId] organized this game. */
     fun isOrganizer(playerId: String): Boolean = playerId == organizerId
+
+    /** Whether [playerId] holds a slot in any of the game's tee times. */
+    fun holdsSlot(playerId: String): Boolean =
+        teeTimes.any { teeTime -> teeTime.players.any { it.playerId == playerId } }
+
+    /** The invitee invited by [phone], digits only, or null if nobody was. */
+    fun inviteeFor(phone: String): GameInvitee? = invitees.firstOrNull { it.phone == phone }
 }
 
 val previewGamePlayer = GamePlayer(

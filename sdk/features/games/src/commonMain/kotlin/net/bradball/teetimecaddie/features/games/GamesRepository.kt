@@ -4,6 +4,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -26,7 +27,7 @@ import net.bradball.teetimecaddie.core.models.TtcLookup
 import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
- * Games: publishing them, and reading them back.
+ * Games: publishing them, reading them back, and answering invitations to them.
  *
  * Like `PlayerRepository`, this takes players as parameters and knows nothing about who is signed
  * in — that is `SessionManager`'s concern.
@@ -66,20 +67,39 @@ interface GamesRepository {
     ): TtcResult<Game>
 
     /**
-     * Observe the games a player holds a slot in, from today on, earliest first.
+     * Observe every game [player] is part of from today on: the ones they're playing in, and the
+     * ones they've been invited to, whether or not they've answered yet.
      *
-     * A flow, so it reports values rather than results; a read failure is logged and simply
-     * means no further emission.
+     * Updates whenever one of those games changes, or the player is invited to another.
+     *
+     * @param player The signed-in player.
+     * @return The player's games, earliest first, each listed once. If the games can't be read,
+     *   nothing more is emitted.
      */
-    fun upcomingGames(playerId: String): Flow<List<Game>>
+    fun observeGames(player: Player): Flow<List<Game>>
 
     /**
-     * Read a single game.
+     * Observe a single game, emitting again whenever it changes — when someone answers, say.
      *
-     * A [TtcResult] rather than a `TtcLookup`, because the id came from somewhere that said the
-     * game exists: a missing game is [GameErrors.NOT_FOUND].
+     * Emits [GameErrors.NOT_FOUND] while no game has [gameId]. A read failure emits
+     * [GameErrors.LOAD_FAILED] and ends the flow.
      */
-    suspend fun getGame(gameId: String): TtcResult<Game>
+    fun observeGame(gameId: String): Flow<TtcResult<Game>>
+
+    /**
+     * Answer [player]'s invitation to a game: yes ([accept]) or no.
+     *
+     * The invitation is matched by [player]'s phone number. A yes takes the tee time's next free
+     * slot. The answer is read and written in one transaction, so two invitees racing for the
+     * last slot can't both get it.
+     *
+     * @return The game as it stands after the answer. An invitation already answered, perhaps
+     *   from another device, isn't changed and returns the game as it is.
+     *   [GameErrors.GAME_FULL] for a yes once every slot is taken, which leaves the invitation
+     *   pending. [GameErrors.NOT_FOUND] when no game has [gameId] or [player] wasn't invited to
+     *   it. [GameErrors.RESPOND_FAILED] when the write fails.
+     */
+    suspend fun respondToInvite(gameId: String, player: Player, accept: Boolean): TtcResult<Game>
 }
 
 /** The most players a tee time can hold. */
@@ -137,7 +157,7 @@ class GamesRepositoryImpl(
                     date = date,
                     teeTimes = listOf(teeTime.toDocument()),
                     playerIds = listOf(organizer.id),
-                    invitees = gameInvitees.map { it.toDocument() },
+                    invitees = gameInvitees.toInviteesDocument(),
                     invitedPhones = gameInvitees.map { it.phone }
                 )
             }
@@ -147,24 +167,73 @@ class GamesRepositoryImpl(
         }
     }
 
-    override fun upcomingGames(playerId: String): Flow<List<Game>> =
-        gameStorage.gamesFlow(playerId, LocalDate.today)
-            .map { documents -> documents.map { it.toModel() } }
+    // Invitations are found by the player's phone number, not by the player id on an invitee, so
+    // an account created after a game was published still finds its invitation. A player who said
+    // yes is in both queries, hence the distinctBy. If only the invitations can't be read — the
+    // index missing, say — that is logged and the player's other games still come through.
+    override fun observeGames(player: Player): Flow<List<Game>> {
+        val today = LocalDate.today
+        val invitations = gameStorage.invitationsFlow(player.phone.toPhoneDigits(), today).catch { ex ->
+            eventManager.logException(
+                ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "invitations")
+            )
+            emit(emptyList())
+        }
+
+        return combine(gameStorage.gamesFlow(player.id, today), invitations) { playing, invited ->
+            (playing + invited)
+                .distinctBy { it.id }
+                .map { it.toModel() }
+                .sortedWith(compareBy({ it.date }, { it.teeTimes.firstOrNull()?.time }))
+        }.catch { ex ->
+            eventManager.logException(ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "observe_games"))
+        }
+    }
+
+    override fun observeGame(gameId: String): Flow<TtcResult<Game>> =
+        gameStorage.gameFlow(gameId)
+            .map<_, TtcResult<Game>> { document ->
+                if (document == null) {
+                    TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+                } else {
+                    TtcResult.Success(document.toModel())
+                }
+            }
             .catch { ex ->
                 eventManager.logException(
-                    ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "upcoming_games")
+                    ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "observe_game")
                 )
+                emit(TtcResult.Failure(GameException(GameErrors.LOAD_FAILED, cause = ex as? Exception)))
             }
 
-    override suspend fun getGame(gameId: String): TtcResult<Game> =
-        tryStorage("get_game", GameErrors.LOAD_FAILED) {
-            val document = gameStorage.getGame(gameId)
-            if (document == null) {
-                TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
-            } else {
-                TtcResult.Success(document.toModel())
+    override suspend fun respondToInvite(
+        gameId: String,
+        player: Player,
+        accept: Boolean
+    ): TtcResult<Game> {
+        val phone = player.phone.toPhoneDigits()
+        // The transaction may run its change more than once; the last run's answer is the one
+        // that was written.
+        var answer: InviteAnswer? = null
+
+        return tryStorage("answer_invite", GameErrors.RESPOND_FAILED) {
+            val game = gameStorage.updateRoster(gameId) { document ->
+                document.answer(phone, player, accept)
+                    .also { answer = it }
+                    .let { (it as? InviteAnswer.Write)?.roster }
+            }
+            when {
+                game == null || answer == InviteAnswer.NotInvited ->
+                    TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+                answer == InviteAnswer.Full -> TtcResult.Failure(GameException(GameErrors.GAME_FULL))
+                else -> TtcResult.Success(game.toModel())
+            }
+        }.also {
+            if (it is TtcResult.Success && answer is InviteAnswer.Write) {
+                eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept))
             }
         }
+    }
 
     /**
      * Turn the cleaned invitees into [GameInvitee]s, recording which numbers belong to a player.
