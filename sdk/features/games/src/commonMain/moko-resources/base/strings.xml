@@ -19,9 +19,6 @@
     <string name="games_invites_header_many">%s new invites</string>
     <!-- Chip beside the course on an invite whose tee time is already full. -->
     <string name="games_invite_full_chip">Full</string>
-    <!-- Confirmations after answering, from the list or from Game details. "Pebble Beach confirmed" -->
-    <string name="game_invite_accepted_message">%s confirmed</string>
-    <string name="game_invite_declined_message">Invite declined</string>
 
     <!-- ==== New game (TTC-68) ==== -->
     <string name="new_game_title">New game</string>

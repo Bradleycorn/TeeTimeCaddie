@@ -102,16 +102,4 @@ class GamesListUiStateTest {
 
         assertTrue(state.invites.single().isFull)
     }
-
-    @Test
-    fun theAnswerConfirmationNamesTheCourseOnlyForAYes() {
-        assertEquals(
-            LocalizedText(GMR.strings.game_invite_accepted_message, listOf("Pebble Beach")),
-            inviteAnsweredMessage("Pebble Beach", accepted = true)
-        )
-        assertEquals(
-            LocalizedText(GMR.strings.game_invite_declined_message),
-            inviteAnsweredMessage("Pebble Beach", accepted = false)
-        )
-    }
 }
