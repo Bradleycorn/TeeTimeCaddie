@@ -7,7 +7,8 @@ import SwiftUI
 import ThemeUI
 import TeeTimeCaddieKit
 
-/// The Games tab: the signed-in player's upcoming games, or the empty state.
+/// The Games tab: the invitations waiting for the signed-in player's answer and their upcoming
+/// games, or the empty state.
 struct GamesListScreen: View {
     private let onNewGameClick: () -> Void
     private let onGameClick: (String) -> Void
@@ -30,6 +31,9 @@ struct GamesListScreen: View {
                 onGameClick: { gameId in
                     viewModel.onGameClick()
                     onGameClick(gameId)
+                },
+                onAnswerInvite: { invite, accept in
+                    Task { await viewModel.onAnswerInvite(invite, accept: accept) }
                 }
             )
         }
@@ -45,17 +49,20 @@ fileprivate struct GamesListContent: View {
     private let uiState: any GamesListUiState
     private let onCreateGameClick: () -> Void
     private let onGameClick: (String) -> Void
+    private let onAnswerInvite: (InviteRowUiState, Bool) -> Void
 
     /// - Parameter onCreateGameClick: The empty state's "Create a game". The bar's + belongs to the
     ///   navigation layer (`GamesDestinations`), which handles it there.
     init(
         uiState: any GamesListUiState,
         onCreateGameClick: @escaping () -> Void,
-        onGameClick: @escaping (String) -> Void
+        onGameClick: @escaping (String) -> Void,
+        onAnswerInvite: @escaping (InviteRowUiState, Bool) -> Void
     ) {
         self.uiState = uiState
         self.onCreateGameClick = onCreateGameClick
         self.onGameClick = onGameClick
+        self.onAnswerInvite = onAnswerInvite
     }
 
     var body: some View {
@@ -82,9 +89,14 @@ fileprivate struct GamesListContent: View {
             case .content(let content):
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: GamesListDefaults.spacing) {
-                        Text(GMR.strings().games_upcoming_header.localized())
-                            .font(.headline)
-                            .padding(.top, GamesListDefaults.headerTopPadding)
+                        if !content.invites.isEmpty {
+                            InviteCard(uiState: content, onInviteClick: onGameClick, onAnswer: onAnswerInvite)
+                        }
+                        if content.showsUpcomingHeader {
+                            Text(GMR.strings().games_upcoming_header.localized())
+                                .font(.headline)
+                                .padding(.top, GamesListDefaults.headerTopPadding)
+                        }
 
                         ForEach(content.games, id: \.id) { game in
                             GameRow(uiState: game, onClick: { onGameClick(game.id) })
@@ -143,23 +155,37 @@ fileprivate enum GamesListDefaults {
 
 // MARK: - Previews
 
-fileprivate let previewContent = GamesListUiStateContent(games: GameRowUiStateKt.previewGameRowUiStateList, invites: [])
+fileprivate let previewContent = GamesListUiStateContent(
+    games: GameRowUiStateKt.previewGameRowUiStateList,
+    invites: InviteRowUiStateKt.previewInviteRowUiStateList
+)
+
+fileprivate let previewInvitesOnly = GamesListUiStateContent(
+    games: [],
+    invites: [InviteRowUiStateKt.previewInviteRowUiState]
+)
 
 #Preview("Content") {
     TeeTimeCaddieTheme {
-        GamesListContent(uiState: previewContent, onCreateGameClick: {}, onGameClick: { _ in })
+        GamesListContent(uiState: previewContent, onCreateGameClick: {}, onGameClick: { _ in }, onAnswerInvite: { _, _ in })
+    }
+}
+
+#Preview("Invites only") {
+    TeeTimeCaddieTheme {
+        GamesListContent(uiState: previewInvitesOnly, onCreateGameClick: {}, onGameClick: { _ in }, onAnswerInvite: { _, _ in })
     }
 }
 
 #Preview("Empty") {
     TeeTimeCaddieTheme {
-        GamesListContent(uiState: GamesListUiStateEmpty.shared, onCreateGameClick: {}, onGameClick: { _ in })
+        GamesListContent(uiState: GamesListUiStateEmpty.shared, onCreateGameClick: {}, onGameClick: { _ in }, onAnswerInvite: { _, _ in })
     }
 }
 
 #Preview("Content - Dark") {
     TeeTimeCaddieTheme {
-        GamesListContent(uiState: previewContent, onCreateGameClick: {}, onGameClick: { _ in })
+        GamesListContent(uiState: previewContent, onCreateGameClick: {}, onGameClick: { _ in }, onAnswerInvite: { _, _ in })
     }
     .preferredColorScheme(.dark)
 }

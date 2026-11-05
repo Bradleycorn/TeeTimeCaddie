@@ -66,15 +66,6 @@ interface GamesRepository {
         invitees: List<NewInvitee>
     ): TtcResult<Game>
 
-    // TODO(TTC-109): Remove once both apps' Games tabs read observeGames instead.
-    /**
-     * Observe the games a player holds a slot in, from today on, earliest first.
-     *
-     * A flow, so it reports values rather than results; a read failure is logged and simply
-     * means no further emission.
-     */
-    fun upcomingGames(playerId: String): Flow<List<Game>>
-
     /**
      * Observe every game [player] is part of from today on: the ones they're playing in, and the
      * ones they've been invited to, whether or not they've answered yet.
@@ -184,15 +175,6 @@ class GamesRepositoryImpl(
             if (it is TtcResult.Success) eventManager.logEvent(AnalyticsEvent.PublishGame(slots))
         }
     }
-
-    override fun upcomingGames(playerId: String): Flow<List<Game>> =
-        gameStorage.gamesFlow(playerId, LocalDate.today)
-            .map { documents -> documents.map { it.toModel() } }
-            .catch { ex ->
-                eventManager.logException(
-                    ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "upcoming_games")
-                )
-            }
 
     // Invitations are found by the player's phone number, not by the player id on an invitee, so
     // an account created after a game was published still finds its invitation. A player who said

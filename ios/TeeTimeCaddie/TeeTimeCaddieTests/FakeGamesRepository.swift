@@ -129,16 +129,18 @@ final class FakeGamesRepository: GamesRepository {
     /// Each answer, in order: the game's id and whether it was a yes.
     private(set) var respondRequests: [(gameId: String, accept: Bool)] = []
 
+    /// When set, ``__respondToInvite`` fails with this instead of answering.
+    var respondFailure: GameErrors?
+
     func __respondToInvite(gameId: String, player: Player, accept: Bool) async throws -> TtcResult<Game> {
         respondRequests.append((gameId, accept))
+        if let respondFailure {
+            return failure(respondFailure)
+        }
         if let game = games.first(where: { $0.id == gameId }) {
             return TtcResultSuccess(data: game)
         }
         return failure(.notFound)
-    }
-
-    func upcomingGames(playerId: String) -> SkieSwiftFlow<[Game]> {
-        fatalError("Kotlin Flows can't be built from Swift; see GamesListViewModelTests.")
     }
 
     func observeGames(player: Player) -> SkieSwiftFlow<[Game]> {
