@@ -1,6 +1,7 @@
 
 /// An enum to list and define SF Symbols that are used in this app.
 enum SfSymbol: String {
+    case envelopeBadgeFill = "envelope.badge.fill"
     case envelopeFill = "envelope"
     case calendar = "calendar"
     case calendarAdd = "calendar.add"

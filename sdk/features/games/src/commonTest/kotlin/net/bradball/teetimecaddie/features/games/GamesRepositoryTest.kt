@@ -34,7 +34,7 @@ import kotlin.test.assertTrue
 
 class GamesRepositoryTest {
 
-    // Relative to the real clock, because upcomingGames only returns games from today on.
+    // Relative to the real clock, because observeGames only returns games from today on.
     private val gameDate = LocalDate.today.plus(DatePeriod(days = 1))
     private val teeTime = LocalTime(9, 0)
     private val organizer = previewPlayer
@@ -315,24 +315,6 @@ class GamesRepositoryTest {
         val result = repository(storage).getGame("game-1")
 
         assertEquals(GameErrors.LOAD_FAILED, result.error())
-    }
-
-    @Test
-    fun upcomingGames_emitsThePlayersGamesAsModels() = runTest {
-        val repo = repository(FakeGameStorage())
-        val published = repo.publish().game()
-
-        assertEquals(listOf(published), repo.upcomingGames(organizer.id).first())
-        assertEquals(emptyList(), repo.upcomingGames("someone-else").first())
-    }
-
-    @Test
-    fun upcomingGames_endsQuietlyWhenTheReadFails() = runTest {
-        val storage = FakeGameStorage().apply { failure = IllegalStateException("no index") }
-
-        val emissions = repository(storage).upcomingGames(organizer.id).toList()
-
-        assertTrue(emissions.isEmpty())
     }
 
     // MARK: invitations
