@@ -162,4 +162,16 @@ class GameDetailsViewModelTest {
 
         assertEquals(listOf(TtcMessage(GameErrors.GAME_FULL.title)), messages)
     }
+
+    @Test
+    fun onlyProfileChangesTheScreenUsesRestartTheListener() = runTest {
+        val repository = FakeGamesRepository(invitation)
+        loaded(viewModel(invitation.id, repository))
+
+        session.value = SessionState.SignedIn(previewPlayer.copy(photoUrl = "https://example.test/new.jpg"))
+        assertEquals(listOf("invitation"), repository.observedGameIds)
+
+        session.value = SessionState.SignedIn(previewPlayer.copy(phone = "5025550000"))
+        assertEquals(listOf("invitation", "invitation"), repository.observedGameIds)
+    }
 }

@@ -9,16 +9,19 @@ import net.bradball.teetimecaddie.features.games.GameException
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.inviteAnsweredMessage
 
 /**
- * Shows the outcome of answering an invitation to [course]: "Pebble Beach confirmed" or "Invite
- * declined" when it went through, "This game just filled up" when a yes lost the last slot, and
- * the failure's own message otherwise.
+ * Shows the outcome of answering an invitation: "Pebble Beach confirmed" or "Invite declined" when
+ * it went through, "This game just filled up" when a yes lost the last slot, and the failure's own
+ * message otherwise.
  *
  * Shared by the Games tab and Game details, which show the same confirmations.
+ *
+ * @param result What answering returned. The confirmation names the course of the game as written.
+ * @param accepted Whether the answer was Yes.
  */
-fun TtcMessenger.showInviteAnswer(result: TtcResult<Game>, course: String, accepted: Boolean) {
+fun TtcMessenger.showInviteAnswer(result: TtcResult<Game>, accepted: Boolean) {
     when (result) {
         is TtcResult.Success -> {
-            val message = inviteAnsweredMessage(course, accepted)
+            val message = inviteAnsweredMessage(result.data.course.name, accepted)
             show(TtcMessage(message.resource, message.args))
         }
 

@@ -9,12 +9,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.bradball.teetimecaddie.android.feature.games.common.showInviteAnswer
+import net.bradball.teetimecaddie.android.feature.games.common.signedInViewer
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GamesRepository
@@ -44,8 +44,7 @@ class GameDetailsViewModel @AssistedInject constructor(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<GameDetailsUiState> = sessionState
-        .map { (it as? SessionState.SignedIn)?.player }
-        .distinctUntilChanged()
+        .signedInViewer()
         .flatMapLatest { viewer ->
             gamesRepository.observeGame(gameId).map { result ->
                 when (result) {
@@ -69,13 +68,12 @@ class GameDetailsViewModel @AssistedInject constructor(
      */
     fun onAnswer(accept: Boolean) {
         val player = (sessionState.value as? SessionState.SignedIn)?.player ?: return
-        val course = (uiState.value as? GameDetailsUiState.Content)?.game?.course ?: return
         if (answering) return
         answering = true
 
         viewModelScope.launch {
             val result = gamesRepository.respondToInvite(gameId, player, accept)
-            messenger.showInviteAnswer(result, course, accept)
+            messenger.showInviteAnswer(result, accept)
             answering = false
         }
     }

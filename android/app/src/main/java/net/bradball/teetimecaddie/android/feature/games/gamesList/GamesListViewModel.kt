@@ -6,13 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.bradball.teetimecaddie.android.feature.games.common.showInviteAnswer
+import net.bradball.teetimecaddie.android.feature.games.common.signedInViewer
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
@@ -33,8 +33,7 @@ class GamesListViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<GamesListUiState> = sessionState
-        .map { (it as? SessionState.SignedIn)?.player }
-        .distinctUntilChanged()
+        .signedInViewer()
         .flatMapLatest { player ->
             if (player == null) {
                 flowOf(GamesListUiState.Loading)
@@ -71,7 +70,7 @@ class GamesListViewModel @Inject constructor(
 
         viewModelScope.launch {
             val result = gamesRepository.respondToInvite(invite.id, player, accept)
-            messenger.showInviteAnswer(result, invite.course, accept)
+            messenger.showInviteAnswer(result, accept)
             answering.remove(invite.id)
         }
     }
