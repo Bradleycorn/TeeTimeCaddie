@@ -4,7 +4,7 @@ import dev.icerock.moko.resources.StringResource
 import net.bradball.teetimecaddie.core.models.GR
 
 /**
- * The ways publishing or reading a game, or reading contacts to invite, can fail.
+ * The ways publishing, reading or answering a game, or reading contacts to invite, can fail.
  */
 enum class GameErrors(
     val title: StringResource,
@@ -47,6 +47,22 @@ enum class GameErrors(
         GMR.strings.game_error_load_failed_title,
         GMR.strings.game_error_load_failed_message,
         GMR.strings.game_error_load_failed_recovery
+    ),
+
+    /**
+     * A yes arrived after every slot in the tee time was taken. The invitation is still waiting
+     * for an answer, so the invitee can still say no.
+     */
+    GAME_FULL(
+        GMR.strings.game_error_game_full_title,
+        GMR.strings.game_error_game_full_message
+    ),
+
+    /** Saving an answer failed. Nothing was saved, so a retry is clean. */
+    RESPOND_FAILED(
+        GMR.strings.game_error_respond_failed_title,
+        GMR.strings.game_error_respond_failed_message,
+        GMR.strings.game_error_respond_failed_recovery
     ),
 
     /**

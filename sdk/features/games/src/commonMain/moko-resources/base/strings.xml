@@ -66,4 +66,9 @@
     <string name="game_error_load_failed_title">We couldn\'t load that game</string>
     <string name="game_error_load_failed_message">Something went wrong reading it.</string>
     <string name="game_error_load_failed_recovery">Try again.</string>
+    <string name="game_error_game_full_title">This game just filled up</string>
+    <string name="game_error_game_full_message">Every spot was taken before your answer arrived.</string>
+    <string name="game_error_respond_failed_title">We couldn\'t send your answer</string>
+    <string name="game_error_respond_failed_message">Something went wrong saving it.</string>
+    <string name="game_error_respond_failed_recovery">Try again.</string>
 </resources>

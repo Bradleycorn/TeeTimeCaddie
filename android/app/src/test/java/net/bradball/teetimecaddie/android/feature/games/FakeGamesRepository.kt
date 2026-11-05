@@ -94,4 +94,28 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
         also { getGameCalls++ }.games.value.firstOrNull { it.id == gameId }
             ?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+
+    override fun observeGames(player: Player): Flow<List<Game>> = games.map { all ->
+        all.filter { it.holdsSlot(player.id) || it.inviteeFor(player.phone) != null }
+    }
+
+    override fun observeGame(gameId: String): Flow<TtcResult<Game>> = games.map { all ->
+        all.firstOrNull { it.id == gameId }
+            ?.let { TtcResult.Success(it) }
+            ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+    }
+
+    /** Each answer, in order: the game's id and whether it was a yes. */
+    val respondRequests = mutableListOf<Pair<String, Boolean>>()
+
+    /** When set, [respondToInvite] fails with this instead of answering. */
+    var respondFailure: GameErrors? = null
+
+    override suspend fun respondToInvite(gameId: String, player: Player, accept: Boolean): TtcResult<Game> {
+        respondRequests += gameId to accept
+        respondFailure?.let { return TtcResult.Failure(GameException(it)) }
+        return games.value.firstOrNull { it.id == gameId }
+            ?.let { TtcResult.Success(it) }
+            ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+    }
 }

@@ -55,8 +55,8 @@ enum TestData {
 /// A hand-written `GamesRepository` for ViewModel tests — the twin of the Android fake.
 ///
 /// SKIE turns the Kotlin interface's suspend functions into `__`-prefixed async requirements; the
-/// clean `publishGame(...)` callers use is an extension on top. ``upcomingGames(playerId:)`` is not
-/// usable from Swift tests (see ``GamesListViewModelTests``), so it traps.
+/// clean `publishGame(...)` callers use is an extension on top. Kotlin Flows can't be built from
+/// Swift (see ``GamesListViewModelTests``), so the flow requirements trap.
 final class FakeGamesRepository: GamesRepository {
 
     struct PublishRequest: Equatable {
@@ -126,7 +126,26 @@ final class FakeGamesRepository: GamesRepository {
         TtcResultFailure(error: GameException(error: error, messageArgs: [], cause: nil)) as Any as! TtcResult<Game>
     }
 
+    /// Each answer, in order: the game's id and whether it was a yes.
+    private(set) var respondRequests: [(gameId: String, accept: Bool)] = []
+
+    func __respondToInvite(gameId: String, player: Player, accept: Bool) async throws -> TtcResult<Game> {
+        respondRequests.append((gameId, accept))
+        if let game = games.first(where: { $0.id == gameId }) {
+            return TtcResultSuccess(data: game)
+        }
+        return failure(.notFound)
+    }
+
     func upcomingGames(playerId: String) -> SkieSwiftFlow<[Game]> {
+        fatalError("Kotlin Flows can't be built from Swift; see GamesListViewModelTests.")
+    }
+
+    func observeGames(player: Player) -> SkieSwiftFlow<[Game]> {
+        fatalError("Kotlin Flows can't be built from Swift; see GamesListViewModelTests.")
+    }
+
+    func observeGame(gameId: String) -> SkieSwiftFlow<TtcResult<Game>> {
         fatalError("Kotlin Flows can't be built from Swift; see GamesListViewModelTests.")
     }
 }

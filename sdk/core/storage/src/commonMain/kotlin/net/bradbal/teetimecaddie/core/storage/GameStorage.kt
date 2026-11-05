@@ -9,10 +9,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import net.bradbal.teetimecaddie.core.storage.documents.CourseDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
+import net.bradbal.teetimecaddie.core.storage.documents.GameRosterDocument
 
 private const val GAMES_COLLECTION = "games"
 private const val COURSES_COLLECTION = "courses"
 private const val PLAYER_IDS_FIELD = "playerIds"
+private const val INVITED_PHONES_FIELD = "invitedPhones"
 private const val DATE_FIELD = "date"
 
 /**
@@ -50,9 +52,36 @@ interface GameStorage {
     suspend fun getGame(id: String): GameDocument?
 
     /**
+     * Observe a single game.
+     *
+     * Emits null if no game has [id], or once it is deleted.
+     */
+    fun gameFlow(id: String): Flow<GameDocument?>
+
+    /**
      * Observe the games [playerId] holds a slot in, on or after [from], earliest first.
      */
     fun gamesFlow(playerId: String, from: LocalDate): Flow<List<GameDocument>>
+
+    /**
+     * Observe the games [phone] was invited to, on or after [from], earliest first, whether or not
+     * the invitation has been answered.
+     *
+     * @param phone Digits only, as stored in `invitedPhones`.
+     */
+    fun invitationsFlow(phone: String, from: LocalDate): Flow<List<GameDocument>>
+
+    /**
+     * Change who is invited to and playing in a game, in one transaction.
+     *
+     * Reads the game, then writes whatever [change] returns. A transaction is retried when the game
+     * changes under it, so [change] can run more than once and must only compute.
+     *
+     * @param change Builds the game's new roster from the game as read, or returns null to leave it
+     *   unchanged.
+     * @return The game as written, or as read when [change] returned null. Null if no game has [id].
+     */
+    suspend fun updateRoster(id: String, change: (GameDocument) -> GameRosterDocument?): GameDocument?
 }
 
 /**
@@ -100,14 +129,58 @@ class FirestoreGameStorage : GameStorage {
         }
     }
 
-    // array-contains plus a range on `date` needs the composite index declared in
+    override fun gameFlow(id: String): Flow<GameDocument?> =
+        gamesCollection.document(id)
+            .snapshots(includeMetadataChanges = false)
+            .map { doc ->
+                if (doc.exists) doc.data<GameDocument>().apply { this.id = doc.id } else null
+            }
+
+    override fun gamesFlow(playerId: String, from: LocalDate): Flow<List<GameDocument>> =
+        gamesContaining(PLAYER_IDS_FIELD, playerId, from)
+
+    override fun invitationsFlow(phone: String, from: LocalDate): Flow<List<GameDocument>> =
+        gamesContaining(INVITED_PHONES_FIELD, phone, from)
+
+    override suspend fun updateRoster(
+        id: String,
+        change: (GameDocument) -> GameRosterDocument?
+    ): GameDocument? {
+        val gameRef = gamesCollection.document(id)
+
+        return store.runTransaction {
+            val snapshot = get(gameRef)
+            if (!snapshot.exists) return@runTransaction null
+
+            val game = snapshot.data<GameDocument>().apply { this.id = snapshot.id }
+            val roster = change(game) ?: return@runTransaction game
+
+            update(gameRef, GameRosterDocument.serializer(), roster)
+            game.copy(teeTimes = roster.teeTimes, playerIds = roster.playerIds, invitees = roster.invitees)
+                .also { it.id = snapshot.id }
+        }
+    }
+
+    // array-contains plus a range on `date` needs a composite index per array field, declared in
     // firebase/firestore.indexes.json. Filtering on the server keeps reads from growing with every
     // game a player has ever played.
-    override fun gamesFlow(playerId: String, from: LocalDate): Flow<List<GameDocument>> =
+    /**
+     * Observe the games whose [arrayField] list holds [value], on or after [from].
+     *
+     * @param arrayField The name of a list field on the game, such as `playerIds`.
+     * @param value The entry to look for in that list, such as a player's id.
+     * @param from The earliest game date to include.
+     * @return The matching games, earliest first, updated whenever they change.
+     */
+    private fun gamesContaining(
+        arrayField: String,
+        value: String,
+        from: LocalDate
+    ): Flow<List<GameDocument>> =
         gamesCollection
             .where {
                 all(
-                    PLAYER_IDS_FIELD contains playerId,
+                    arrayField contains value,
                     // Dates are stored as ISO strings, so compare against the same form.
                     DATE_FIELD greaterThanOrEqualTo from.toString()
                 )

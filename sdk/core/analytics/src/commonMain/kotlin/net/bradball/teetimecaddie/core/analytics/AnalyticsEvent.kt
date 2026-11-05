@@ -86,6 +86,9 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** An organizer published a new Game. [slots] is how many players its tee time holds. */
     @Serializable
     data class PublishGame(val slots: Int): AnalyticsEvent("publish_game", EventType.OPERATION)
+    /** An invitee answered a Game's invitation: yes ([accepted]) or no. */
+    @Serializable
+    data class AnswerInvite(val accepted: Boolean): AnalyticsEvent("answer_invite", EventType.OPERATION)
     /** A Game was tapped on the Games tab, opening its details. */
     @Serializable
     object GameListItemClick: AnalyticsEvent("game_list_item_click", EventType.CLICK)
