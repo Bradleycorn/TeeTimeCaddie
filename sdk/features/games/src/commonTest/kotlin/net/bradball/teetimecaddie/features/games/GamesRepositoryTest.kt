@@ -207,6 +207,7 @@ class GamesRepositoryTest {
         )
         val written = storage.writtenGames.single()
         assertEquals(listOf("4155550142", "4155550188"), written.invitedPhones)
+        assertEquals(written.invitedPhones.toSet(), written.invitees.keys)
         // Invitees don't hold slots until they say yes.
         assertEquals(listOf(organizer.id), written.playerIds)
         assertEquals(1, game.teeTimes.single().filled)

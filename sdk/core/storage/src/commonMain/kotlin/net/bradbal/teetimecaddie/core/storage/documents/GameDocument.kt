@@ -15,9 +15,10 @@ import kotlinx.serialization.Transient
  *   instant, and ISO dates still sort and range-compare correctly as strings.
  * @property playerIds Everyone holding a slot, across all tee times. It exists for the
  *   `array-contains` query that finds a player's games, and the read rule checks it.
- * @property invitees Everyone invited, in the order the organizer added them.
- * @property invitedPhones The invitees' numbers, a copy of each [GameInviteeDocument.phone]. It
- *   exists for the `array-contains` query that finds the invitations waiting for a phone number.
+ * @property invitees Everyone invited, keyed by the phone number (digits only) they were invited
+ *   by. [GameInviteeDocument.order] records the order the organizer added them in.
+ * @property invitedPhones Exactly the keys of [invitees]. It exists for the `array-contains` query
+ *   that finds the invitations waiting for a phone number, and is never changed after publish.
  * @property createdAt Set by the server on write. Null when read back from a pending local write,
  *   before the server has assigned it.
  */
@@ -29,7 +30,7 @@ data class GameDocument(
     val date: LocalDate,
     val teeTimes: List<GameTeeTimeDocument>,
     val playerIds: List<String>,
-    val invitees: List<GameInviteeDocument>,
+    val invitees: Map<String, GameInviteeDocument>,
     val invitedPhones: List<String>,
     val createdAt: BaseTimestamp? = Timestamp.ServerTimestamp
 ) {
