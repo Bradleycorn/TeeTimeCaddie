@@ -24,6 +24,9 @@ import kotlin.test.assertTrue
 
 class GameUiStateTest {
 
+    // Brad organized every game here; his profile name is "brad Ball".
+    private val bradInvitedYou = LocalizedText(GMR.strings.game_details_rsvp_title, listOf("brad"))
+
     // MARK: Game details
 
     @Test
@@ -121,7 +124,7 @@ class GameUiStateTest {
     @Test
     fun anUnansweredInvitationAsksWithYesEnabled() {
         assertEquals(
-            RsvpUiState.Pending(LocalizedText(GMR.strings.game_details_rsvp_prompt), canAccept = true),
+            RsvpUiState.Pending(LocalizedText(GMR.strings.game_details_rsvp_prompt), canAccept = true, title = bradInvitedYou),
             invitedGame.toUiState(viewer = samViewer).rsvp
         )
     }
@@ -133,7 +136,7 @@ class GameUiStateTest {
         )
 
         assertEquals(
-            RsvpUiState.Pending(LocalizedText(GMR.strings.game_details_rsvp_full, listOf("2")), canAccept = false),
+            RsvpUiState.Pending(LocalizedText(GMR.strings.game_details_rsvp_full, listOf("2")), canAccept = false, title = bradInvitedYou),
             full.toUiState(viewer = samViewer).rsvp
         )
     }
@@ -204,5 +207,30 @@ class GameUiStateTest {
 
         assertEquals(listOf(TeeTimePlayerStatus.ORGANIZER), teeTime.players.map { it.status })
         assertEquals(3, teeTime.openSlots)
+    }
+
+    @Test
+    fun theInviteeViewSaysWhoOrganizedTheGame() {
+        assertEquals(
+            LocalizedText(GMR.strings.game_details_organized_by, listOf("Sat, Jun 13", "brad")),
+            invitedGame.toUiState(viewer = samViewer).organizedBy
+        )
+    }
+
+    @Test
+    fun theOrganizersViewKeepsThePlainDate() {
+        assertEquals(null, invitedGame.toUiState(viewer = bradViewer).organizedBy)
+    }
+
+    @Test
+    fun anInvitationWithNoOrganizerSlotHasNoTitle() {
+        val noOrganizerSlot = invitedGame.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = emptyList()))
+        )
+
+        val state = noOrganizerSlot.toUiState(viewer = samViewer)
+
+        assertEquals(null, (state.rsvp as RsvpUiState.Pending).title)
+        assertEquals(null, state.organizedBy)
     }
 }

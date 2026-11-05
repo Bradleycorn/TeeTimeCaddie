@@ -23,6 +23,8 @@ import kotlin.collections.plus
  *
  * @property course The course name.
  * @property date The game's date, e.g. "Sat, Jun 13".
+ * @property organizedBy Shown in place of [date] in the invitee view: the date and who organized
+ *   the game, e.g. "Sat, Jun 13 · Organized by Brad". Null in the organizer's view.
  * @property isOrganizer Whether the signed-in player organized the game. The organizer gets the
  *   "You are the organizer" chip; everyone else gets the invitee view, without it.
  * @property rsvp The signed-in player's answer to their invitation, for the RSVP card. Null when
@@ -34,7 +36,8 @@ data class GameUiState(
     val date: String,
     val isOrganizer: Boolean,
     val teeTimes: List<GameTeeTimeUiState>,
-    val rsvp: RsvpUiState? = null
+    val rsvp: RsvpUiState? = null,
+    val organizedBy: LocalizedText? = null
 )
 
 /**
@@ -101,9 +104,18 @@ fun Game.toUiState(viewer: Player?): GameUiState {
                 openSlots = (teeTime.openSlots - invited.size).coerceAtLeast(0)
             )
         },
-        rsvp = viewerPhone?.let { rsvpFor(it) }
+        rsvp = viewerPhone?.let { rsvpFor(it) },
+        organizedBy = organizerFirstName()
+            ?.takeUnless { isOrganizer }
+            ?.let { LocalizedText(GMR.strings.game_details_organized_by, listOf(date.weekdayMonthDay, it)) }
     )
 }
+
+/** The organizer's first name, from the slot they hold, e.g. "Brad". Null if they hold none. */
+internal fun Game.organizerFirstName(): String? = teeTimes
+    .flatMap { it.players }
+    .firstOrNull { it.playerId == organizerId }
+    ?.name?.trim()?.substringBefore(' ')
 
 /** [previewGame] as its organizer sees it: one player and three open slots. */
 val previewGameUiState = previewGame.toUiState(viewer = previewPlayer)

@@ -13,6 +13,8 @@ enum class TtcIcons(val resource: Int) {
     ARROW_FORWARD(R.drawable.icon_arrow_forward),
     CALENDAR(R.drawable.icon_calendar),
     CALENDAR_CLOCK(R.drawable.icon_calendar_clock),
+    CANCEL(R.drawable.icon_cancel),
+    CHECK_CIRCLE(R.drawable.icon_check_circle),
     CLOSE(R.drawable.icon_close),
     EDIT(R.drawable.icon_edit),
     EMAIL(R.drawable.icon_email),
