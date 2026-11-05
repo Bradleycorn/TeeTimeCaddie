@@ -143,7 +143,7 @@ fileprivate enum GamesListDefaults {
 
 // MARK: - Previews
 
-fileprivate let previewContent = GamesListUiStateContent(games: GamesListUiStateKt.previewGameRowUiStateList, invites: [])
+fileprivate let previewContent = GamesListUiStateContent(games: GameRowUiStateKt.previewGameRowUiStateList, invites: [])
 
 #Preview("Content") {
     TeeTimeCaddieTheme {

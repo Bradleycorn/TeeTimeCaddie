@@ -250,7 +250,7 @@ fileprivate enum GameDetailsDefaults {
 
 // MARK: - Previews
 
-fileprivate let previewDetails = GameDetailsUiStateContent(game: GameDetailsUiStateKt.previewGameUiState)
+fileprivate let previewDetails = GameDetailsUiStateContent(game: GameUiStatePreviewsKt.previewGameUiState)
 
 #Preview("Organizer") {
     TeeTimeCaddieTheme {
@@ -261,7 +261,7 @@ fileprivate let previewDetails = GameDetailsUiStateContent(game: GameDetailsUiSt
 #Preview("With invitees") {
     TeeTimeCaddieTheme {
         GameDetailsContent(
-            uiState: GameDetailsUiStateContent(game: GameDetailsUiStateKt.previewGameWithInviteesUiState)
+            uiState: GameDetailsUiStateContent(game: GameUiStatePreviewsKt.previewGameWithInviteesUiState)
         )
     }
 }

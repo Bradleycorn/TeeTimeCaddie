@@ -12,8 +12,8 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewGameList
 import net.bradball.teetimecaddie.core.models.previewPlayer
-import net.bradball.teetimecaddie.features.games.state.GamesListUiState
-import net.bradball.teetimecaddie.features.games.state.toGamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.toGamesListUiState
 import net.bradball.teetimecaddie.session.SessionState
 import org.junit.Assert.assertEquals
 import org.junit.Rule

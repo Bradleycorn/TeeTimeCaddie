@@ -1,65 +1,28 @@
-package net.bradball.teetimecaddie.features.games.state
+package net.bradball.teetimecaddie.features.games.state.gameDetailsUiState
 
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import net.bradball.teetimecaddie.core.models.AvatarTone
-import net.bradball.teetimecaddie.core.models.Course
-import net.bradball.teetimecaddie.core.models.Game
-import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameTeeTime
 import net.bradball.teetimecaddie.core.models.InviteStatus
 import net.bradball.teetimecaddie.core.models.LocalizedText
-import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GameErrors
 import net.bradball.teetimecaddie.features.games.GameException
+import net.bradball.teetimecaddie.features.games.state.bradViewer
+import net.bradball.teetimecaddie.features.games.state.danaViewer
+import net.bradball.teetimecaddie.features.games.state.game
+import net.bradball.teetimecaddie.features.games.state.guest
+import net.bradball.teetimecaddie.features.games.state.invitedGame
+import net.bradball.teetimecaddie.features.games.state.invitee
+import net.bradball.teetimecaddie.features.games.state.organizer
+import net.bradball.teetimecaddie.features.games.state.samViewer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class GameUiStateTest {
-
-    private val organizer = GamePlayer(playerId = "brad", name = "brad Ball")
-    private val guest = GamePlayer(playerId = "dana", name = "Dana Park")
-
-    // The players as signed in, for the viewer-dependent state.
-    private val bradViewer = Player(id = "brad", name = "brad Ball", email = "brad@golf.app", phone = "5025551234")
-    private val danaViewer = Player(id = "dana", name = "Dana Park", email = "dana@golf.app", phone = "5025552345")
-    private val samViewer = Player(id = "sam", name = "Sam Ortiz", email = "sam@golf.app", phone = "5025553456")
-
-    private val game = Game(
-        id = "game1",
-        organizerId = organizer.playerId,
-        course = Course(id = "pebble beach", name = "Pebble Beach"),
-        date = LocalDate(2026, 6, 13),
-        teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest))),
-        invitees = emptyList()
-    )
-
-    // MARK: Games list
-
-    @Test
-    fun noGamesIsTheEmptyState() {
-        assertEquals(GamesListUiState.Empty, emptyList<Game>().toGamesListUiState(bradViewer))
-    }
-
-    @Test
-    fun aGameBecomesARowWithItsDateAndFirstTeeTime() {
-        assertEquals(
-            GamesListUiState.Content(
-                listOf(
-                    GameRowUiState(
-                        id = "game1",
-                        course = "Pebble Beach",
-                        dateAndTime = LocalizedText(GMR.strings.games_row_date_time, listOf("Sat, Jun 13", "9:00 AM"))
-                    )
-                )
-            ),
-            listOf(game).toGamesListUiState(bradViewer)
-        )
-    }
 
     // MARK: Game details
 
@@ -128,9 +91,6 @@ class GameUiStateTest {
         assertEquals(4, teeTimes[1].openSlots)
     }
 
-    private fun invitee(name: String, phone: String = "4155550188", status: InviteStatus = InviteStatus.PENDING, playerId: String? = null) =
-        GameInvitee(name = name, phone = phone, playerId = playerId, status = status)
-
     @Test
     fun onlyTheOrganizerSeesThemselvesAsOrganizer() {
         assertTrue(game.toUiState(viewer = bradViewer).isOrganizer)
@@ -148,83 +108,6 @@ class GameUiStateTest {
                 message = LocalizedText(error.displayMessage, error.messageArgs)
             ),
             GameDetailsUiState.Error(error)
-        )
-    }
-
-    // MARK: Invitations on the Games list
-
-    // Brad organized it; Dana holds no slot yet. Sam was invited and hasn't answered.
-    private val invitedGame = game.copy(
-        teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer))),
-        invitees = listOf(invitee("Sam", phone = samViewer.phone))
-    )
-
-    @Test
-    fun aPendingInvitationIsListedApartFromTheOtherGames() {
-        val state = listOf(invitedGame).toGamesListUiState(samViewer) as GamesListUiState.Content
-
-        assertEquals(
-            listOf(
-                InviteRowUiState(
-                    id = "game1",
-                    course = "Pebble Beach",
-                    dateAndTime = LocalizedText(GMR.strings.games_row_date_time, listOf("Sat, Jun 13", "9:00 AM")),
-                    players = listOf(PlayerAvatarUiState("B", AvatarTone.SECONDARY)),
-                    isFull = false
-                )
-            ),
-            state.invites
-        )
-        assertEquals(emptyList(), state.games)
-    }
-
-    @Test
-    fun onlyInvitationsHidesTheUpcomingHeader() {
-        val state = listOf(invitedGame).toGamesListUiState(samViewer) as GamesListUiState.Content
-
-        assertFalse(state.showsUpcomingHeader)
-        assertTrue((listOf(game).toGamesListUiState(bradViewer) as GamesListUiState.Content).showsUpcomingHeader)
-    }
-
-    @Test
-    fun theInviteHeaderCountsTheInvitations() {
-        val one = listOf(invitedGame).toGamesListUiState(samViewer) as GamesListUiState.Content
-        val two = listOf(invitedGame, invitedGame.copy(id = "game2")).toGamesListUiState(samViewer) as GamesListUiState.Content
-
-        assertEquals(LocalizedText(GMR.strings.games_invites_header_one), one.invitesHeader)
-        assertEquals(LocalizedText(GMR.strings.games_invites_header_many, listOf("2")), two.invitesHeader)
-    }
-
-    @Test
-    fun answeredInvitationsAreListedWithTheOtherGames() {
-        val declined = invitedGame.copy(invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.DECLINED)))
-
-        val state = listOf(declined).toGamesListUiState(samViewer) as GamesListUiState.Content
-
-        assertEquals(emptyList(), state.invites)
-        assertEquals(listOf("game1"), state.games.map { it.id })
-    }
-
-    @Test
-    fun aFullGamesInvitationIsMarkedFull() {
-        val full = invitedGame.copy(
-            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 2, players = listOf(organizer, guest)))
-        )
-
-        val state = listOf(full).toGamesListUiState(samViewer) as GamesListUiState.Content
-
-        assertTrue(state.invites.single().isFull)
-    }
-
-    @Test
-    fun theAnswerConfirmationNamesTheCourseOnlyForAYes() {
-        assertEquals(
-            LocalizedText(GMR.strings.game_invite_accepted_message, listOf("Pebble Beach")),
-            inviteAnsweredMessage("Pebble Beach", accepted = true)
-        )
-        assertEquals(
-            LocalizedText(GMR.strings.game_invite_declined_message),
-            inviteAnsweredMessage("Pebble Beach", accepted = false)
         )
     }
 

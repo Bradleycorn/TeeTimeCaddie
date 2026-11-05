@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.stateIn
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.features.games.GamesRepository
-import net.bradball.teetimecaddie.features.games.state.GamesListUiState
-import net.bradball.teetimecaddie.features.games.state.toGamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GamesListUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.toGamesListUiState
 import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
 
