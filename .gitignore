@@ -26,3 +26,4 @@ Package.resolved
 /.idea/assetWizardSettings.xml
 # Claude Code machine-local settings
 .claude/settings.local.json
+.claude/settings.local.json.pre-bot

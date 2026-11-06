@@ -10,7 +10,7 @@ replying to or posting comments, stacks, `api` calls, and read-only queries alik
 plain `gh`. `gh-bot` lives at `~/dev/tooling/scripts/github-claude-app/gh-bot` and is **not on the
 PATH**, so always invoke it by that full path. It wraps `gh` with the Claude GitHub App's token,
 so it takes exactly the same arguments and extensions (`gh-bot stack ...` works), and the work is
-attributed to the bot rather than to the user. Wherever this skill or its references say `gh-bot`,
+attributed to the bot rather than to the user. Wherever this skill or its references say `gh-bot` or `gh`,
 run `~/dev/tooling/scripts/github-claude-app/gh-bot`.
 
 `gh-bot` resolves the repo from the checkout — the `{owner}` and `{repo}` placeholders below are
