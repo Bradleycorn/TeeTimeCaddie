@@ -55,7 +55,7 @@ import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previe
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewGameWithInviteesUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewAcceptedGameUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewInvitedGameUiState
-import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toDetailsUiState
 
 @Composable
 fun GameDetailsScreen(
@@ -111,11 +111,9 @@ private fun GameDetailsContent(
 }
 
 /**
- * The game itself. Editing, adding tee times, inviting, managing, slot menus and the activity log
- * are all later work, and are left out rather than shown inert.
- *
- * The organizer gets the "You are the organizer" chip. Everyone else gets the invitee view: who
- * organized the game, and the RSVP card when they were invited.
+ * The game itself, in the organizer's view or an invitee's. Editing, adding tee times, inviting,
+ * managing, slot menus and the activity log are all later work, and are left out rather than
+ * shown inert.
  */
 @Composable
 private fun GameDetailsBody(
@@ -129,34 +127,51 @@ private fun GameDetailsBody(
             .padding(GameDetailsDefaults.Padding),
         verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.SectionSpacing),
     ) {
-        if (uiState.isOrganizer) {
-            TtcChip(
-                text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
-                color = TtcColorRole.Secondary,
-                icon = TtcIcons.STAR_FILLED,
-            )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.TitleSpacing)) {
-            Text(
-                text = uiState.course,
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = uiState.organizedBy?.let { stringResource(it) } ?: uiState.date,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        uiState.rsvp?.let { rsvp ->
-            RsvpCard(uiState = rsvp, onAnswer = onAnswer)
+        when (uiState) {
+            is GameUiState.Organizer -> OrganizerHeader(uiState)
+            is GameUiState.Invitee -> InviteeHeader(uiState, onAnswer = onAnswer)
         }
 
         uiState.teeTimes.forEach { teeTime ->
             TeeTimeCard(uiState = teeTime)
         }
+    }
+}
+
+/** The "You are the organizer" chip, the course and the date. */
+@Composable
+private fun OrganizerHeader(uiState: GameUiState.Organizer) {
+    TtcChip(
+        text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
+        color = TtcColorRole.Secondary,
+        icon = TtcIcons.STAR_FILLED,
+    )
+    GameTitle(course = uiState.course, subtitle = uiState.date)
+}
+
+/** The course, who organized the game, and the RSVP card. */
+@Composable
+private fun InviteeHeader(uiState: GameUiState.Invitee, onAnswer: (Boolean) -> Unit) {
+    GameTitle(
+        course = uiState.course,
+        subtitle = uiState.organizedBy?.let { stringResource(it) } ?: uiState.date,
+    )
+    RsvpCard(uiState = uiState.rsvp, onAnswer = onAnswer)
+}
+
+@Composable
+private fun GameTitle(course: String, subtitle: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.TitleSpacing)) {
+        Text(
+            text = course,
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -338,11 +353,9 @@ private fun GameDetailsWithInviteesPreview() {
 private fun GameDetailsSingleSlotPreview() {
     MyApplicationTheme {
         GameDetailsContent(
-            uiState = GameDetailsUiState.Content(
-                previewGame
-                    .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
-                    .toUiState(viewer = previewPlayer)
-            ),
+            uiState = previewGame
+                .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
+                .toDetailsUiState(viewer = previewPlayer),
             onBack = {},
             onAnswer = {},
         )
