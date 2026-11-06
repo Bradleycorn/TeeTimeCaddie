@@ -18,7 +18,8 @@ import net.bradball.teetimecaddie.features.games.GameErrors
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.RsvpUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameDetailsUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.TeeTimePlayerStatus
-import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toDetailsUiState
 import net.bradball.teetimecaddie.session.SessionState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -75,7 +76,7 @@ class GameDetailsViewModelTest {
     fun showsTheGame() = runTest {
         val state = loaded(viewModel(previewGame.id))
 
-        assertEquals(GameDetailsUiState.Content(previewGame.toUiState(viewer = previewPlayer)), state)
+        assertEquals(previewGame.toDetailsUiState(viewer = previewPlayer), state)
     }
 
     @Test
@@ -98,12 +99,23 @@ class GameDetailsViewModelTest {
     }
 
     @Test
-    fun someoneElseIsNotTheOrganizer() = runTest {
+    fun someoneWithNoPartInTheGameSeesTheNotFoundError() = runTest {
+        // Neither the organizer nor invited.
         session.value = SessionState.SignedIn(previewPlayerList[1])
 
-        val state = loaded(viewModel(previewGame.id)) as GameDetailsUiState.Content
+        val state = loaded(viewModel(previewGame.id))
 
-        assertFalse(state.game.isOrganizer)
+        assertEquals(LocalizedText(GameErrors.NOT_FOUND.message), (state as GameDetailsUiState.Error).message)
+    }
+
+    @Test
+    fun signingOutKeepsTheGameOnScreen() = runTest {
+        val viewModel = viewModel(previewGame.id)
+        val before = loaded(viewModel)
+
+        session.value = SessionState.SignedOut
+
+        assertEquals(before, viewModel.uiState.value)
     }
 
     @Test
@@ -118,8 +130,8 @@ class GameDetailsViewModelTest {
     fun anInviteeSeesTheRsvpCard() = runTest {
         val state = loaded(viewModel(invitation.id, FakeGamesRepository(invitation))) as GameDetailsUiState.Content
 
-        assertFalse(state.game.isOrganizer)
-        assertTrue((state.game.rsvp as RsvpUiState.Pending).canAccept)
+        val invitee = state.game as GameUiState.Invitee
+        assertTrue((invitee.rsvp as RsvpUiState.Pending).canAccept)
     }
 
     @Test
@@ -134,7 +146,7 @@ class GameDetailsViewModelTest {
         )
         repository.setGames(full)
 
-        val rsvp = (viewModel.uiState.value as GameDetailsUiState.Content).game.rsvp as RsvpUiState.Pending
+        val rsvp = ((viewModel.uiState.value as GameDetailsUiState.Content).game as GameUiState.Invitee).rsvp as RsvpUiState.Pending
         assertFalse(rsvp.canAccept)
     }
 

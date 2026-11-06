@@ -108,7 +108,7 @@ fileprivate enum RsvpCardStyle {
                     GameUiStateKt.previewFullGameUiState.rsvp,
                     GameUiStateKt.previewAcceptedGameUiState.rsvp,
                     RsvpUiStateDeclined.shared,
-                ].compactMap { $0 }.enumerated()),
+                ].enumerated()),
                 id: \.offset
             ) { _, rsvp in
                 RsvpCard(uiState: rsvp, onAnswer: { _ in })

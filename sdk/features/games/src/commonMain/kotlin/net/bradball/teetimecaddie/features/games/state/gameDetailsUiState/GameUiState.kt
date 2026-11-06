@@ -16,45 +16,71 @@ import net.bradball.teetimecaddie.core.models.previewGamePlayerList
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.core.models.previewPlayerList
 import net.bradball.teetimecaddie.features.games.GMR
-import kotlin.collections.plus
+import net.bradball.teetimecaddie.features.games.GameErrors
+import net.bradball.teetimecaddie.features.games.GameException
 
 /**
- * A game's details, already formatted.
+ * A game's details, already formatted, as the signed-in player sees them. The case is the view:
+ * the organizer's, or an invitee's.
  *
  * @property course The course name.
  * @property date The game's date, e.g. "Sat, Jun 13".
- * @property organizedBy Shown in place of [date] in the invitee view: the date and who organized
- *   the game, e.g. "Sat, Jun 13 · Organized by Brad". Null in the organizer's view.
- * @property isOrganizer Whether the signed-in player organized the game. The organizer gets the
- *   "You are the organizer" chip; everyone else gets the invitee view, without it.
- * @property rsvp The signed-in player's answer to their invitation, for the RSVP card. Null when
- *   they weren't invited — the organizer, say.
  * @property teeTimes The game's tee times, earliest first.
  */
-data class GameUiState(
-    val course: String,
-    val date: String,
-    val isOrganizer: Boolean,
-    val teeTimes: List<GameTeeTimeUiState>,
-    val rsvp: RsvpUiState? = null,
-    val organizedBy: LocalizedText? = null
-)
+sealed interface GameUiState {
+    val course: String
+    val date: String
+    val teeTimes: List<GameTeeTimeUiState>
+
+    /** The organizer's view, with the "You are the organizer" chip. */
+    data class Organizer(
+        override val course: String,
+        override val date: String,
+        override val teeTimes: List<GameTeeTimeUiState>
+    ) : GameUiState
+
+    /**
+     * An invitee's view, with the RSVP card.
+     *
+     * @property rsvp The invitee's answer to their invitation, for the RSVP card.
+     * @property organizedBy Shown in place of [date]: the date and who organized the game, e.g.
+     *   "Sat, Jun 13 · Organized by Brad". Null if the organizer isn't known.
+     */
+    data class Invitee(
+        override val course: String,
+        override val date: String,
+        override val teeTimes: List<GameTeeTimeUiState>,
+        val rsvp: RsvpUiState,
+        val organizedBy: LocalizedText? = null
+    ) : GameUiState
+}
 
 /**
- * This game's details as [viewer] sees them. A null [viewer] is never the organizer, and has no
- * invitation to answer.
+ * This game's details as [viewer] sees them: [GameDetailsUiState.Content], or, for a viewer who
+ * neither organized the game nor was invited to it, the same error as a game that doesn't exist.
+ */
+fun Game.toDetailsUiState(viewer: Player): GameDetailsUiState =
+    toUiState(viewer)
+        ?.let { GameDetailsUiState.Content(it) }
+        ?: GameDetailsUiState.Error(GameException(GameErrors.NOT_FOUND))
+
+/**
+ * This game's details as [viewer] sees them, or null if [viewer] has no part in the game: they
+ * neither organized it nor were invited to it.
  *
  * Invitees belong to the game rather than to a tee time, so they are listed under the first tee
  * time — for now every game has exactly one. Someone who said yes holds a slot and is listed with
  * the slot holders; someone who said no isn't listed at all. Only the tee time's players count
  * toward how full it is.
  */
-fun Game.toUiState(viewer: Player?): GameUiState {
-    val viewerPhone = viewer?.phone?.toPhoneDigits()
-    val isOrganizer = viewer != null && isOrganizer(viewer.id)
-    val viewerName = viewer
-        ?.takeUnless { isOrganizer }
-        ?.let { LocalizedText(GMR.strings.game_details_viewer_name, listOf(it.firstName)) }
+fun Game.toUiState(viewer: Player): GameUiState? {
+    val viewerPhone = viewer.phone.toPhoneDigits()
+    val isOrganizer = isOrganizer(viewer.id)
+    val rsvp = rsvpFor(viewerPhone)
+    if (!isOrganizer && rsvp == null) return null
+
+    val viewerName = LocalizedText(GMR.strings.game_details_viewer_name, listOf(viewer.firstName))
+        .takeUnless { isOrganizer }
     val acceptedIds = invitees
         .filter { it.status == InviteStatus.ACCEPTED }
         .mapNotNull { it.playerId }
@@ -71,44 +97,48 @@ fun Game.toUiState(viewer: Player?): GameUiState {
                 playerId in acceptedIds -> TeeTimePlayerStatus.ACCEPTED
                 else -> TeeTimePlayerStatus.CONFIRMED
             },
-            viewerName = viewerName.takeIf { playerId == viewer?.id }
+            viewerName = viewerName.takeIf { playerId == viewer.id }
         )
     }
 
     val pending = invitees.filter { it.status == InviteStatus.PENDING }
-    return GameUiState(
-        course = course.name,
-        date = date.weekdayMonthDay,
-        isOrganizer = isOrganizer,
-        teeTimes = teeTimes.mapIndexed { index, teeTime ->
-            val invited = if (index == 0) {
-                pending.map {
-                    TeeTimePlayerRowUiState(
-                        initial = it.initial,
-                        name = it.name,
-                        tone = it.avatarTone,
-                        status = TeeTimePlayerStatus.INVITED,
-                        viewerName = viewerName.takeIf { _ -> it.phone == viewerPhone }
-                    )
-                }
-            } else {
-                emptyList()
+    val teeTimes = teeTimes.mapIndexed { index, teeTime ->
+        val invited = if (index == 0) {
+            pending.map {
+                TeeTimePlayerRowUiState(
+                    initial = it.initial,
+                    name = it.name,
+                    tone = it.avatarTone,
+                    status = TeeTimePlayerStatus.INVITED,
+                    viewerName = viewerName.takeIf { _ -> it.phone == viewerPhone }
+                )
             }
-            GameTeeTimeUiState(
-                time = teeTime.time.formattedTime,
-                filledCount = LocalizedText(
-                    GMR.strings.game_details_filled_count,
-                    listOf(teeTime.filled.toString(), teeTime.slots.toString())
-                ),
-                players = teeTime.players.map { it.toRow() } + invited,
-                openSlots = (teeTime.openSlots - invited.size).coerceAtLeast(0)
-            )
-        },
-        rsvp = viewerPhone?.let { rsvpFor(it) },
-        organizedBy = organizerFirstName()
-            ?.takeUnless { isOrganizer }
-            ?.let { LocalizedText(GMR.strings.game_details_organized_by, listOf(date.weekdayMonthDay, it)) }
-    )
+        } else {
+            emptyList()
+        }
+        GameTeeTimeUiState(
+            time = teeTime.time.formattedTime,
+            filledCount = LocalizedText(
+                GMR.strings.game_details_filled_count,
+                listOf(teeTime.filled.toString(), teeTime.slots.toString())
+            ),
+            players = teeTime.players.map { it.toRow() } + invited,
+            openSlots = (teeTime.openSlots - invited.size).coerceAtLeast(0)
+        )
+    }
+
+    return if (isOrganizer) {
+        GameUiState.Organizer(course = course.name, date = date.weekdayMonthDay, teeTimes = teeTimes)
+    } else {
+        GameUiState.Invitee(
+            course = course.name,
+            date = date.weekdayMonthDay,
+            teeTimes = teeTimes,
+            rsvp = requireNotNull(rsvp),
+            organizedBy = organizerFirstName()
+                ?.let { LocalizedText(GMR.strings.game_details_organized_by, listOf(date.weekdayMonthDay, it)) }
+        )
+    }
 }
 
 /** The organizer's first name, from the slot they hold, e.g. "Brad". Null if they hold none. */
@@ -118,12 +148,12 @@ internal fun Game.organizerFirstName(): String? = teeTimes
     ?.name?.trim()?.substringBefore(' ')
 
 /** [previewGame] as its organizer sees it: one player and three open slots. */
-val previewGameUiState = previewGame.toUiState(viewer = previewPlayer)
+val previewGameUiState = previewGame.toUiState(viewer = previewPlayer) as GameUiState.Organizer
 
 /** [previewGame] with three invitees, as its organizer sees it: no open slots left to show. */
 val previewGameWithInviteesUiState = previewGame
     .copy(invitees = previewGameInviteeList)
-    .toUiState(viewer = previewPlayer)
+    .toUiState(viewer = previewPlayer) as GameUiState.Organizer
 
 // The invitee the invitee-view previews are seen by: invited by the number on their profile.
 private val previewInviteeViewer = previewPlayerList.last()
@@ -132,7 +162,7 @@ private val previewInvitation = previewGameInvitee.copy(name = previewInviteeVie
 /** [previewGame] as an invitee sees it before answering: the RSVP card asks. */
 val previewInvitedGameUiState = previewGame
     .copy(invitees = listOf(previewInvitation) + previewGameInviteeList.drop(1))
-    .toUiState(viewer = previewInviteeViewer)
+    .toUiState(viewer = previewInviteeViewer) as GameUiState.Invitee
 
 /** [previewGame] as an invitee sees it after saying yes: they hold a slot, labelled "Accepted". */
 val previewAcceptedGameUiState = previewGame
@@ -144,7 +174,7 @@ val previewAcceptedGameUiState = previewGame
         ),
         invitees = listOf(previewInvitation.copy(playerId = previewInviteeViewer.id, status = InviteStatus.ACCEPTED))
     )
-    .toUiState(viewer = previewInviteeViewer)
+    .toUiState(viewer = previewInviteeViewer) as GameUiState.Invitee
 
 /** [previewGame] as an invitee sees it once confirmed players fill every slot. */
 val previewFullGameUiState = previewGame
@@ -152,4 +182,4 @@ val previewFullGameUiState = previewGame
         teeTimes = listOf(previewGame.teeTimes.single().copy(slots = 2, players = previewGamePlayerList.take(2))),
         invitees = listOf(previewInvitation)
     )
-    .toUiState(viewer = previewInviteeViewer)
+    .toUiState(viewer = previewInviteeViewer) as GameUiState.Invitee
