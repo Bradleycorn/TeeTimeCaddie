@@ -50,7 +50,7 @@ git push -u origin story/TTC-101-login-screen
 
 For a stacked story, push it right away with that one empty commit. The commit gives the branch a
 diff, so the draft story PR can open now (`pull-requests.md`), and the branch is the trunk of the
-sub-task stack. Sub-task branches are created by `gh stack`, not by hand — see `stacked-prs.md`.
+sub-task stack. Sub-task branches are created by `gh-bot stack`, not by hand — see `stacked-prs.md`.
 
 For a one-sub-task issue (see SKILL.md, "One PR or a stack") there is no stack: commit the work
 directly on the story branch.
@@ -68,11 +68,11 @@ git checkout story/TTC-101-login-screen
 git fetch origin
 git merge origin/epic/TTC-100-user-management
 git push
-gh stack sync    # if the story has open sub-task layers: rebases them onto the new story branch
+~/dev/tooling/scripts/github-claude-app/gh-bot stack sync    # if the story has open sub-task layers: rebases them onto the new story branch
 ```
 
 Never rebase a branch that has been pushed — that needs a force-push. The only exception is
-sub-task layer branches, and only through `gh stack` (see `stacked-prs.md`).
+sub-task layer branches, and only through `gh-bot stack` (see `stacked-prs.md`).
 
 ## Changes outside the issue's scope
 

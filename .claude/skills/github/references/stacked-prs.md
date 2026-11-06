@@ -5,7 +5,7 @@ checking the stack for reviews, or when the user has merged the stack.
 
 A one-sub-task issue has no stack and skips this file (SKILL.md, "One PR or a stack").
 
-Each sub-task of a story gets its own branch and PR, linked as a GitHub stack with the `gh stack`
+Each sub-task of a story gets its own branch and PR, linked as a GitHub stack with the `gh-bot stack`
 extension. The story branch is the stack's **trunk**:
 
 ```
@@ -15,13 +15,13 @@ epic/TTC-100-user-management
            └── subtask/TTC-103-login-ui  layer 2; PR → layer 1
 ```
 
-`gh stack submit` sets every base. The user approves each layer as it comes up and merges the
+`gh-bot stack submit` sets every base. The user approves each layer as it comes up and merges the
 whole stack only once every layer is approved, so the stack stays open while later layers are
 built and earlier ones get fixes.
 
 ## Prerequisites
 
-- `gh stack --help` must work. If it doesn't, stop and ask the user to run
+- `gh-bot stack --help` must work. If it doesn't, stop and ask the user to run
   `gh extension install github/gh-stack`. Don't install it yourself.
 - The story branch is pushed to `origin` with its draft story PR open (see `branching.md`). The
   bottom PR targets it.
@@ -41,15 +41,15 @@ First sub-task of the story:
 ```bash
 git checkout story/TTC-101-login-screen
 git pull
-gh stack init -b story/TTC-101-login-screen subtask/TTC-102-login-model
+~/dev/tooling/scripts/github-claude-app/gh-bot stack init -b story/TTC-101-login-screen subtask/TTC-102-login-model
 ```
 
 Every later sub-task goes on top of the stack:
 
 ```bash
-gh stack view --json            # find the top layer
-gh stack checkout subtask/TTC-102-login-model
-gh stack add subtask/TTC-103-login-ui
+~/dev/tooling/scripts/github-claude-app/gh-bot stack view --json            # find the top layer
+~/dev/tooling/scripts/github-claude-app/gh-bot stack checkout subtask/TTC-102-login-model
+~/dev/tooling/scripts/github-claude-app/gh-bot stack add subtask/TTC-103-login-ui
 ```
 
 `init` and `add` create and check out the new branch. Commit the sub-task's work there, staging
@@ -58,7 +58,7 @@ named files only.
 ## Publishing the layer
 
 ```bash
-gh stack submit --auto --open
+~/dev/tooling/scripts/github-claude-app/gh-bot stack submit --auto --open
 ```
 
 `--auto` skips the interactive editor (it needs a terminal). `--open` makes new PRs ready for
@@ -73,8 +73,8 @@ review; without it they are drafts. Sub-task PRs open ready.
 Patch over REST, as in `pull-requests.md` ("Updating the PR body"), then confirm:
 
 ```bash
-gh api --method PATCH repos/{owner}/{repo}/pulls/<n> -f title='TTC-102 Add the login model' -F body=@pr-body.md
-gh pr view <n> --json number,title,baseRefName,headRefName,isDraft,url
+~/dev/tooling/scripts/github-claude-app/gh-bot api --method PATCH repos/{owner}/{repo}/pulls/<n> -f title='TTC-102 Add the login model' -F body=@pr-body.md
+~/dev/tooling/scripts/github-claude-app/gh-bot pr view <n> --json number,title,baseRefName,headRefName,isDraft,url
 ```
 
 Check `baseRefName` is the layer below (or the story branch for layer 1). Report the PR URL.
@@ -85,15 +85,15 @@ Review fixes and rework go on the layer that owns the code. The layers above mus
 onto it:
 
 ```bash
-gh stack checkout subtask/TTC-102-login-model
+~/dev/tooling/scripts/github-claude-app/gh-bot stack checkout subtask/TTC-102-login-model
 # commit the fix
-gh stack rebase --upstack
-gh stack push
+~/dev/tooling/scripts/github-claude-app/gh-bot stack rebase --upstack
+~/dev/tooling/scripts/github-claude-app/gh-bot stack push
 ```
 
-`gh stack push` uses `--force-with-lease` on the layer branches. That is the only force-push
-allowed, and only through `gh stack`. If `rebase` stops on a conflict, resolve it and run
-`gh stack rebase --continue`, or `gh stack rebase --abort` and ask the user.
+`gh-bot stack push` uses `--force-with-lease` on the layer branches. That is the only force-push
+allowed, and only through `gh-bot stack`. If `rebase` stops on a conflict, resolve it and run
+`gh-bot stack rebase --continue`, or `gh-bot stack rebase --abort` and ask the user.
 
 This applies to approved layers too; the fix needs a fresh review.
 
@@ -103,7 +103,7 @@ The story branch moves when the epic is merged into it, or when a fix lands on i
 Plain-push anything you committed on it, then:
 
 ```bash
-gh stack sync
+~/dev/tooling/scripts/github-claude-app/gh-bot stack sync
 ```
 
 `sync` fast-forwards the trunk, rebases the open layers onto it, pushes, and relinks the PRs. If it
@@ -114,9 +114,9 @@ reports the stack has diverged, stop and ask; don't force anything.
 On every resume, list each layer's review state:
 
 ```bash
-gh pr list --state all --limit 50 --json number,title,headRefName,state,reviewDecision \
+~/dev/tooling/scripts/github-claude-app/gh-bot pr list --state all --limit 50 --json number,title,headRefName,state,reviewDecision \
   --jq '.[] | select(.headRefName | startswith("subtask/TTC-"))'
-gh stack view --json
+~/dev/tooling/scripts/github-claude-app/gh-bot stack view --json
 ```
 
 For any layer with new comments, fetch them as in `pr-feedback.md`. `APPROVED` means that layer is
@@ -124,12 +124,12 @@ finished; nothing more is owed on it unless it gets new feedback.
 
 ## After the user merges the stack
 
-Every layer shows `MERGED`. Run `gh stack sync --prune` to update the story branch and drop the
+Every layer shows `MERGED`. Run `gh-bot stack sync --prune` to update the story branch and drop the
 layer branches.
 
 ## Never
 
-- `gh stack merge`, or merging any layer. The user merges.
-- `gh stack modify` (interactive and rewrites the stack) without asking.
+- `gh-bot stack merge`, or merging any layer. The user merges.
+- `gh-bot stack modify` (interactive and rewrites the stack) without asking.
 - `git push --force` or `--force-with-lease` by hand, on any branch.
 - Rebasing the story or epic branch.
