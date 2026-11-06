@@ -5,22 +5,22 @@ Read this when asked to handle feedback on a PR.
 ## 1. Find every comment — there are three separate sources
 
 Missing comments is the main failure mode here, because feedback lives in three places and no
-single command shows all of them. `gh pr view` shows **none** of the inline review comments on any
+single command shows all of them. `gh-bot pr view` shows **none** of the inline review comments on any
 version, and its default non-`--json` form can fail silently on some versions (see
 `pull-requests.md`). The REST calls below behave the same across versions — use them.
 
 ```bash
 # a) Review summaries — the APPROVED / CHANGES_REQUESTED / COMMENTED verdict and its body
-gh api repos/{owner}/{repo}/pulls/<n>/reviews \
+~/dev/tooling/scripts/github-claude-app/gh-bot api repos/{owner}/{repo}/pulls/<n>/reviews \
   --jq '.[] | "\(.id)\t\(.state)\t\(.user.login)\t\(.body)"'
 
 # b) Inline comments on code — the bulk of real feedback. Note the review id to map each
 #    comment back to the review whose state decides whether it is mandatory.
-gh api repos/{owner}/{repo}/pulls/<n>/comments --paginate \
+~/dev/tooling/scripts/github-claude-app/gh-bot api repos/{owner}/{repo}/pulls/<n>/comments --paginate \
   --jq '.[] | "\(.id)\t\(.pull_request_review_id)\t\(.path):\(.line)\n\(.body)\n"'
 
 # c) Top-level conversation comments, which are issue comments, not review comments
-gh api repos/{owner}/{repo}/issues/<n>/comments \
+~/dev/tooling/scripts/github-claude-app/gh-bot api repos/{owner}/{repo}/issues/<n>/comments \
   --jq '.[] | "\(.id)\t\(.user.login)\n\(.body)\n"'
 ```
 
@@ -28,7 +28,7 @@ gh api repos/{owner}/{repo}/issues/<n>/comments \
 way to tell what is still outstanding:
 
 ```bash
-gh api graphql -F owner='{owner}' -F repo='{repo}' -F pr=<n> -f query='
+~/dev/tooling/scripts/github-claude-app/gh-bot api graphql -F owner='{owner}' -F repo='{repo}' -F pr=<n> -f query='
 query($owner:String!, $repo:String!, $pr:Int!) {
   repository(owner:$owner, name:$repo) {
     pullRequest(number:$pr) {
@@ -72,12 +72,12 @@ Post it as a **threaded reply to that comment**, not a new top-level comment, so
 stays readable and on record. Start the reply with `From Claude: `.
 
 ```bash
-gh api --method POST repos/{owner}/{repo}/pulls/<n>/comments/<comment_id>/replies \
+~/dev/tooling/scripts/github-claude-app/gh-bot api --method POST repos/{owner}/{repo}/pulls/<n>/comments/<comment_id>/replies \
   -f body='From Claude: ...'
 ```
 
 `<comment_id>` is the `id` from the inline-comments listing, or `databaseId` from the GraphQL
-query. `gh pr comment` posts to the main conversation instead and breaks the thread — use it only
+query. `gh-bot pr comment` posts to the main conversation instead and breaks the thread — use it only
 for genuinely PR-wide remarks.
 
 ## 4. Close the loop
@@ -85,6 +85,6 @@ for genuinely PR-wide remarks.
 Commit and push the fixes to the same branch, then reply on each comment you acted on saying what
 changed. Leaving a thread silently fixed makes the reviewer re-read the whole diff.
 
-If the PR is a sub-task layer in a stack, push with `gh stack`, not `git push`: run
-`gh stack rebase --upstack` then `gh stack push`, so the layers above pick up the fix (see
+If the PR is a sub-task layer in a stack, push with `gh-bot stack`, not `git push`: run
+`gh-bot stack rebase --upstack` then `gh-bot stack push`, so the layers above pick up the fix (see
 `stacked-prs.md`).
