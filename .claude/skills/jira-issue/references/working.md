@@ -15,7 +15,7 @@ Every time you start or resume, before touching the next sub-task:
    PR's checklist. Unresolved feedback on any layer comes first — see "Review comments and
    rework".
 2. If the user's own work landed on the epic branch, merge the epic into the story branch, push,
-   and `gh stack sync`.
+   and `gh-bot stack sync`.
 
 Approved sub-tasks stay IN REVIEW. Nothing merges, and nothing goes to Done, until the user merges
 the whole stack.
@@ -49,7 +49,7 @@ In step 4, also clear every `TODO(<story key>)`. After step 7, also move the sto
 then stop.
 
 When every sub-task PR is approved, the user merges the stack into the story branch. When resumed
-after that: `gh stack sync --prune`, move every sub-task → Done, rewrite the story PR description
+after that: `gh-bot stack sync --prune`, move every sub-task → Done, rewrite the story PR description
 to describe what was built, and mark it ready (github `references/pull-requests.md`).
 
 ## User-owned sub-tasks
@@ -65,7 +65,7 @@ sub-task that owns the changed code:
 
 1. Reopen that sub-task (In Progress), even if its PR is approved.
 2. Commit the fix on its layer, under its key.
-3. `gh stack rebase --upstack`, then `gh stack push`.
+3. `gh-bot stack rebase --upstack`, then `gh-bot stack push`.
 4. → IN REVIEW.
 
 Fixes to an earlier layer are the normal case, not an exception. Never create a new sub-task or
@@ -80,7 +80,7 @@ the story branch under the owning sub-task's key; that sub-task stays Done.
 
 ## Single-sub-task issues
 
-No stack, no `subtask/` branch, no `gh stack`.
+No stack, no `subtask/` branch, no `gh-bot stack`.
 
 1. Sub-task and story → In Progress.
 2. Do the work on the story branch, committing under the sub-task's key. Before pushing, search

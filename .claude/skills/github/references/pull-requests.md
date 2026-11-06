@@ -20,7 +20,7 @@ If you no longer have it from `branching.md`, recover it rather than guessing:
 
 ```bash
 git log --oneline --decorate -1 $(git merge-base HEAD origin/main)   # rough starting point
-gh pr list --state all --limit 20 --json number,headRefName,baseRefName   # what past PRs targeted
+~/dev/tooling/scripts/github-claude-app/gh-bot pr list --state all --limit 20 --json number,headRefName,baseRefName   # what past PRs targeted
 ```
 
 Ask the user if it is still ambiguous. A story PR merged into the wrong base is painful to undo.
@@ -34,7 +34,7 @@ git push -u origin story/TTC-101-login-screen
 ## 3. Create the PR
 
 ```bash
-gh pr create --base epic/TTC-100-user-management --title "TTC-101: Login screen" --body "$(cat <<'BODY'
+~/dev/tooling/scripts/github-claude-app/gh-bot pr create --base epic/TTC-100-user-management --title "TTC-101: Login screen" --body "$(cat <<'BODY'
 ...
 BODY
 )"
@@ -50,7 +50,7 @@ The body covers:
 
 ### Opening it as a draft
 
-Same steps, with `--draft` added to `gh pr create`. While the PR is a draft, **the body is a
+Same steps, with `--draft` added to `gh-bot pr create`. While the PR is a draft, **the body is a
 living checklist** of the sub-tasks: `- [x] TTC-76 …` once its sub-task PR is approved,
 `- [ ] TTC-77 …` until then, each linked to its sub-task PR once it has one. Update it on every
 resume (see "Updating the PR body").
@@ -59,8 +59,8 @@ When the user has merged the approved stack into the story branch:
 
 1. Rewrite the body to describe what was actually built — the sections from step 3, not the
    checklist.
-2. `gh pr ready <n>`
-3. Confirm: `gh pr view <n> --json isDraft,body`
+2. `gh-bot pr ready <n>`
+3. Confirm: `gh-bot pr view <n> --json isDraft,body`
 
 ## 4. Stop
 
@@ -72,12 +72,12 @@ the updated base.
 
 ## Updating the PR body
 
-Don't use `gh pr edit`. It can hit the same Projects (classic) deprecation error described below
+Don't use `gh-bot pr edit`. It can hit the same Projects (classic) deprecation error described below
 and exit 0 without changing anything. Patch the PR over REST instead, then re-read it to confirm:
 
 ```bash
-gh api --method PATCH repos/{owner}/{repo}/pulls/<n> -F body=@pr-body.md
-gh pr view <n> --json body --jq .body
+~/dev/tooling/scripts/github-claude-app/gh-bot api --method PATCH repos/{owner}/{repo}/pulls/<n> -F body=@pr-body.md
+~/dev/tooling/scripts/github-claude-app/gh-bot pr view <n> --json body --jq .body
 ```
 
 Write the body to a scratch file first; `-F body=@file` reads it verbatim, which avoids shell
@@ -86,13 +86,13 @@ quoting problems with long markdown.
 ## Follow-ups that are not merges
 
 ```bash
-gh pr view <n> --json number,title,state,baseRefName,headRefName,reviewDecision,url
-gh pr checks <n>
-gh pr diff <n>
+~/dev/tooling/scripts/github-claude-app/gh-bot pr view <n> --json number,title,state,baseRefName,headRefName,reviewDecision,url
+~/dev/tooling/scripts/github-claude-app/gh-bot pr checks <n>
+~/dev/tooling/scripts/github-claude-app/gh-bot pr diff <n>
 ```
 
 Without `--json`, some `gh` versions print only a `Projects (classic) is being deprecated` error
 **and exit 0**, so the PR looks empty. Reissue with `--json`; if that fails too, use
-`gh api repos/{owner}/{repo}/pulls/<n>`.
+`gh-bot api repos/{owner}/{repo}/pulls/<n>`.
 
 To add to an open PR, commit and push to the same branch; the PR updates itself.
