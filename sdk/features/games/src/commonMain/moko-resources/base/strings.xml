@@ -12,6 +12,13 @@
     <string name="games_new_game_action">New game</string>
     <!-- A row's second line: the formatted date, then the tee time. "Sat, Jun 13 · 9:00 AM" -->
     <string name="games_row_date_time">%1$s · %2$s</string>
+    <!-- A row's player count: the organizer and everyone who said yes. -->
+    <string name="games_row_player_count_one">1 player</string>
+    <string name="games_row_player_count_many">%s players</string>
+    <!-- A row's status chip. -->
+    <string name="games_status_open">Open</string>
+    <string name="games_status_pending">Pending</string>
+    <string name="games_status_full">Full</string>
 
     <!-- ==== Invitations (TTC-70) ==== -->
     <!-- The invite card's header, for one pending invitation and for more. -->

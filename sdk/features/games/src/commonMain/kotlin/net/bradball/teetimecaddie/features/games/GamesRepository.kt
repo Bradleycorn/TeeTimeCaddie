@@ -1,10 +1,12 @@
 package net.bradball.teetimecaddie.features.games
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -15,7 +17,6 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
-import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.GamePlayer
@@ -70,7 +71,8 @@ interface GamesRepository {
      * Observe every game [player] is part of from today on: the ones they're playing in, and the
      * ones they've been invited to, whether or not they've answered yet.
      *
-     * Updates whenever one of those games changes, or the player is invited to another.
+     * Updates whenever one of those games changes, or the player is invited to another. At
+     * midnight, "today" moves on, and the day's games drop out.
      *
      * @param player The signed-in player.
      * @return The player's games, earliest first, each listed once. If the games can't be read,
@@ -109,6 +111,8 @@ const val MAX_TEE_TIME_SLOTS = 4
 internal val STORED_PHONE_LENGTHS = 10..15
 
 /**
+ * @param dates Today's date, and each new one as midnight passes. [observeGames] lists games from
+ *   the latest one on.
  * @param findPlayerByPhone Looks up the player who owns a phone number, as
  *   `PlayerRepository.findPlayerByPhone` does. A function rather than the repository so this
  *   module does not depend on another feature module.
@@ -116,6 +120,7 @@ internal val STORED_PHONE_LENGTHS = 10..15
 class GamesRepositoryImpl(
     private val eventManager: EventManager,
     private val gameStorage: GameStorage,
+    private val dates: Flow<LocalDate> = localDates(),
     private val findPlayerByPhone: suspend (phone: String) -> TtcLookup<Player>
 ) : GamesRepository {
 
@@ -171,8 +176,8 @@ class GamesRepositoryImpl(
     // an account created after a game was published still finds its invitation. A player who said
     // yes is in both queries, hence the distinctBy. If only the invitations can't be read — the
     // index missing, say — that is logged and the player's other games still come through.
-    override fun observeGames(player: Player): Flow<List<Game>> {
-        val today = LocalDate.today
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun observeGames(player: Player): Flow<List<Game>> = dates.flatMapLatest { today ->
         val invitations = gameStorage.invitationsFlow(player.phone.toPhoneDigits(), today).catch { ex ->
             eventManager.logException(
                 ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "invitations")
@@ -180,15 +185,15 @@ class GamesRepositoryImpl(
             emit(emptyList())
         }
 
-        return combine(gameStorage.gamesFlow(player.id, today), invitations) { playing, invited ->
+        combine(gameStorage.gamesFlow(player.id, today), invitations) { playing, invited ->
             (playing + invited)
                 .distinctBy { it.id }
                 .map { it.toModel() }
                 .sortedWith(compareBy({ it.date }, { it.teeTimes.firstOrNull()?.time }))
-        }.catch { ex ->
+        }
+    }.catch { ex ->
             eventManager.logException(ex, LoggableExceptionTypes.GAMES, hashMapOf("action" to "observe_games"))
         }
-    }
 
     override fun observeGame(gameId: String): Flow<TtcResult<Game>> =
         gameStorage.gameFlow(gameId)
