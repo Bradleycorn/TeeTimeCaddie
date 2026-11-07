@@ -56,15 +56,6 @@ sealed interface GameUiState {
 }
 
 /**
- * This game's details as [viewer] sees them: [GameDetailsUiState.Content], or, for a viewer who
- * neither organized the game nor was invited to it, the same error as a game that doesn't exist.
- */
-fun Game.toDetailsUiState(viewer: Player): GameDetailsUiState =
-    toUiState(viewer)
-        ?.let { GameDetailsUiState.Content(it) }
-        ?: GameDetailsUiState.Error(GameException(GameErrors.NOT_FOUND))
-
-/**
  * This game's details as [viewer] sees them, or null if [viewer] has no part in the game: they
  * neither organized it nor were invited to it.
  *
