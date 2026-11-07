@@ -83,11 +83,6 @@ fun Game.toUiState(viewer: Player): GameUiState? {
 
     val viewerName = LocalizedText(GMR.strings.game_details_viewer_name, listOf(viewer.firstName))
         .takeUnless { isOrganizer }
-    // Where each invited player falls in invite order. Anyone holding a slot uninvited sorts last.
-    val inviteOrder = invitees
-        .mapIndexedNotNull { index, invitee -> invitee.playerId?.let { it to index } }
-        .toMap()
-
     fun GamePlayer.toRow(): TeeTimePlayerRowUiState {
         val organizedGame = playerId == organizerId
         return TeeTimePlayerRowUiState(
@@ -101,11 +96,10 @@ fun Game.toUiState(viewer: Player): GameUiState? {
 
     val pending = invitees.filter { it.status == InviteStatus.PENDING }
     val teeTimes = teeTimes.mapIndexed { index, teeTime ->
+        // A yes takes the next free slot, so slot order is the order people said yes. The sort is
+        // stable: everyone but the organizer keeps it.
         val holders = teeTime.players
-            .sortedWith(
-                compareBy<GamePlayer> { it.playerId != organizerId }
-                    .thenBy { inviteOrder[it.playerId] ?: Int.MAX_VALUE }
-            )
+            .sortedBy { it.playerId != organizerId }
             .map { it.toRow() }
         val invited = if (index == 0) {
             pending.map {

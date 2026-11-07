@@ -111,10 +111,10 @@ class GameUiStateTest {
     }
 
     @Test
-    fun confirmedPlayersAreInInviteOrderNotSlotOrder() {
+    fun confirmedPlayersAreInTheOrderTheySaidYesNotInviteOrder() {
         val matt = GamePlayer("matt", "Matt Chen")
         val jeff = GamePlayer("jeff", "Jeff Morrison")
-        // Jeff said yes first and took the earlier slot, but Matt was invited first.
+        // Matt was invited first, but Jeff said yes first and took the earlier slot.
         val answered = game.copy(
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest, jeff, matt))),
             invitees = listOf(
@@ -126,8 +126,7 @@ class GameUiStateTest {
 
         val rows = answered.organizerView().teeTimes.single().players
 
-        // Dana holds a slot without an invitation, so she follows the invited players.
-        assertEquals(listOf("brad Ball", "Matt Chen", "Jeff Morrison", "Dana Park", "Sam Ortiz"), rows.map { it.name })
+        assertEquals(listOf("brad Ball", "Dana Park", "Jeff Morrison", "Matt Chen", "Sam Ortiz"), rows.map { it.name })
         assertEquals(
             listOf(
                 TeeTimePlayerStatus.ORGANIZER,
@@ -137,6 +136,38 @@ class GameUiStateTest {
                 TeeTimePlayerStatus.INVITED
             ),
             rows.map { it.status }
+        )
+    }
+
+    @Test
+    fun aNewYesMovesOnlyThatPersonsRow() {
+        val jeff = GamePlayer("jeff", "Jeff Morrison")
+        val matt = GamePlayer("matt", "Matt Chen")
+        val before = invitedGame.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, jeff))),
+            invitees = listOf(
+                invitee("Matt Chen"),
+                invitee("Sam Ortiz", phone = samViewer.phone),
+                invitee("Jeff Morrison", status = InviteStatus.ACCEPTED, playerId = "jeff")
+            )
+        )
+        // Matt, invited before Jeff, says yes after him.
+        val after = before.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, jeff, matt))),
+            invitees = listOf(
+                invitee("Matt Chen", status = InviteStatus.ACCEPTED, playerId = "matt"),
+                invitee("Sam Ortiz", phone = samViewer.phone),
+                invitee("Jeff Morrison", status = InviteStatus.ACCEPTED, playerId = "jeff")
+            )
+        )
+
+        assertEquals(
+            listOf("brad Ball", "Jeff Morrison", "Matt Chen", "Sam Ortiz"),
+            before.organizerView().teeTimes.single().players.map { it.name }
+        )
+        assertEquals(
+            listOf("brad Ball", "Jeff Morrison", "Matt Chen", "Sam Ortiz"),
+            after.organizerView().teeTimes.single().players.map { it.name }
         )
     }
 
