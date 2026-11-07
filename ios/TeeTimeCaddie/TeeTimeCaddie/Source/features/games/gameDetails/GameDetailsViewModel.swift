@@ -36,12 +36,15 @@ final class GameDetailsViewModel {
 
     /// Follows the game for as long as the screen is up, as the signed-in player sees it: someone
     /// answering, or the game filling, shows here without a refresh.
+    ///
+    /// With nobody signed in there is no view of the game to show. Signing out tears this screen
+    /// down, so until it does the screen keeps what it had.
     func observeGame() async {
-        let viewer = currentPlayer()
+        guard let viewer = currentPlayer() else { return }
         for await result in gamesRepository.observeGame(gameId: gameId) {
             switch onEnum(of: result) {
             case .success(let success):
-                uiState = GameDetailsUiStateContent(game: success.data.toUiState(viewer: viewer))
+                uiState = success.data.toDetailsUiState(viewer: viewer)
             case .failure(let failure):
                 uiState = GameDetailsUiStateError(error: failure.error)
             }

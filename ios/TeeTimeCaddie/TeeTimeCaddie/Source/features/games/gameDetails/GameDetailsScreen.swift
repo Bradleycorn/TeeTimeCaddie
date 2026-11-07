@@ -58,14 +58,10 @@ fileprivate struct GameDetailsContent: View {
     }
 }
 
-/// The game itself. Editing, adding tee times, inviting, managing, slot menus and the activity log
-/// are all later work, and are left out rather than shown inert.
-///
-/// The organizer gets the "You are the organizer" chip. Everyone else gets the invitee view: who
-/// organized the game, and the RSVP card when they were invited.
+/// The game itself, in the organizer's view or an invitee's. Editing, adding tee times, inviting,
+/// managing, slot menus and the activity log are all later work, and are left out rather than
+/// shown inert.
 fileprivate struct GameDetailsBody: View {
-    @EnvironmentObject private var theme: AppTheme
-
     private let uiState: GameUiState
     private let onAnswer: (Bool) -> Void
 
@@ -77,25 +73,11 @@ fileprivate struct GameDetailsBody: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: GameDetailsDefaults.sectionSpacing) {
-                if uiState.isOrganizer {
-                    TtcChip(
-                        GMR.strings().game_details_organizer_chip.localized(),
-                        color: .secondary,
-                        icon: .symbol(.starFill)
-                    )
-                }
-
-                VStack(alignment: .leading, spacing: GameDetailsDefaults.titleSpacing) {
-                    Text(uiState.course)
-                        .font(.largeTitle.weight(.bold))
-                        .foregroundStyle(theme.colorScheme.onSurface)
-                    Text(uiState.organizedBy?.localized() ?? uiState.date)
-                        .font(.body)
-                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-                }
-
-                if let rsvp = uiState.rsvp {
-                    RsvpCard(uiState: rsvp, onAnswer: onAnswer)
+                switch onEnum(of: uiState) {
+                case .organizer(let organizer):
+                    OrganizerHeader(uiState: organizer)
+                case .invitee(let invitee):
+                    InviteeHeader(uiState: invitee, onAnswer: onAnswer)
                 }
 
                 ForEach(Array(uiState.teeTimes.enumerated()), id: \.offset) { _, teeTime in
@@ -104,6 +86,51 @@ fileprivate struct GameDetailsBody: View {
             }
             .padding(GameDetailsDefaults.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+/// The "You are the organizer" chip, the course and the date.
+fileprivate struct OrganizerHeader: View {
+    let uiState: GameUiStateOrganizer
+
+    var body: some View {
+        TtcChip(
+            GMR.strings().game_details_organizer_chip.localized(),
+            color: .secondary,
+            icon: .symbol(.starFill)
+        )
+        GameTitle(course: uiState.course, subtitle: uiState.date)
+    }
+}
+
+/// The course, who organized the game, and the RSVP card when there is an invitation to show.
+fileprivate struct InviteeHeader: View {
+    let uiState: GameUiStateInvitee
+    let onAnswer: (Bool) -> Void
+
+    var body: some View {
+        GameTitle(course: uiState.course, subtitle: uiState.organizedBy?.localized() ?? uiState.date)
+        if let rsvp = uiState.rsvp {
+            RsvpCard(uiState: rsvp, onAnswer: onAnswer)
+        }
+    }
+}
+
+fileprivate struct GameTitle: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    let course: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: GameDetailsDefaults.titleSpacing) {
+            Text(course)
+                .font(.largeTitle.weight(.bold))
+                .foregroundStyle(theme.colorScheme.onSurface)
+            Text(subtitle)
+                .font(.body)
+                .foregroundStyle(theme.colorScheme.onSurfaceVariant)
         }
     }
 }
