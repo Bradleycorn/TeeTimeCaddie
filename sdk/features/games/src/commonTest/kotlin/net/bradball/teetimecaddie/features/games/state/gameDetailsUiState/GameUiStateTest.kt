@@ -99,6 +99,75 @@ class GameUiStateTest {
     }
 
     @Test
+    fun theOrganizerIsListedFirstWhicheverSlotTheyHold() {
+        val organizerSecond = game.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(guest, organizer)))
+        )
+
+        val rows = organizerSecond.organizerView().teeTimes.single().players
+
+        assertEquals(listOf("brad Ball", "Dana Park"), rows.map { it.name })
+        assertEquals(listOf(TeeTimePlayerStatus.ORGANIZER, TeeTimePlayerStatus.CONFIRMED), rows.map { it.status })
+    }
+
+    @Test
+    fun confirmedPlayersAreInInviteOrderNotSlotOrder() {
+        val matt = GamePlayer("matt", "Matt Chen")
+        val jeff = GamePlayer("jeff", "Jeff Morrison")
+        // Jeff said yes first and took the earlier slot, but Matt was invited first.
+        val answered = game.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest, jeff, matt))),
+            invitees = listOf(
+                invitee("Matt Chen", status = InviteStatus.ACCEPTED, playerId = "matt"),
+                invitee("Sam Ortiz", phone = samViewer.phone),
+                invitee("Jeff Morrison", status = InviteStatus.ACCEPTED, playerId = "jeff")
+            )
+        )
+
+        val rows = answered.organizerView().teeTimes.single().players
+
+        // Dana holds a slot without an invitation, so she follows the invited players.
+        assertEquals(listOf("brad Ball", "Matt Chen", "Jeff Morrison", "Dana Park", "Sam Ortiz"), rows.map { it.name })
+        assertEquals(
+            listOf(
+                TeeTimePlayerStatus.ORGANIZER,
+                TeeTimePlayerStatus.CONFIRMED,
+                TeeTimePlayerStatus.CONFIRMED,
+                TeeTimePlayerStatus.CONFIRMED,
+                TeeTimePlayerStatus.INVITED
+            ),
+            rows.map { it.status }
+        )
+    }
+
+    @Test
+    fun theOrganizerSeesWhoDeclinedInInviteOrder() {
+        val declines = invitedGame.copy(
+            invitees = listOf(
+                invitee("Matt Chen", status = InviteStatus.DECLINED),
+                invitee("Sam Ortiz", phone = samViewer.phone),
+                invitee("jeff Morrison", status = InviteStatus.DECLINED)
+            )
+        )
+
+        val view = declines.organizerView()
+
+        assertEquals(
+            listOf(DeclinedInviteeUiState(initial = "M", name = "Matt Chen"), DeclinedInviteeUiState(initial = "J", name = "jeff Morrison")),
+            view.declined
+        )
+        assertEquals(LocalizedText(GMR.strings.game_details_declined_heading, listOf("2")), view.declinedHeading)
+        // Nobody who declined is on the tee time, and they leave its slots open.
+        assertEquals(listOf("brad Ball", "Sam Ortiz"), view.teeTimes.single().players.map { it.name })
+        assertEquals(2, view.teeTimes.single().openSlots)
+    }
+
+    @Test
+    fun withNoDeclinesTheDeclinedListIsEmpty() {
+        assertEquals(emptyList(), invitedGame.organizerView().declined)
+    }
+
+    @Test
     fun theOrganizerGetsTheOrganizersViewAndAnInviteeGetsTheirs() {
         assertTrue(invitedGame.toUiState(viewer = bradViewer) is GameUiState.Organizer)
         assertTrue(invitedGame.toUiState(viewer = samViewer) is GameUiState.Invitee)
@@ -181,7 +250,7 @@ class GameUiStateTest {
     }
 
     @Test
-    fun aYesMovesTheInviteeIntoTheSlotsAsAcceptedAndCountsTowardFilled() {
+    fun aYesMovesTheInviteeIntoTheSlotsAsConfirmedAndCountsTowardFilled() {
         val accepted = invitedGame.copy(
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz")))),
             invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED, playerId = "sam"))
@@ -189,14 +258,14 @@ class GameUiStateTest {
 
         val teeTime = accepted.inviteeView(samViewer).teeTimes.single()
 
-        assertEquals(listOf(TeeTimePlayerStatus.ORGANIZER, TeeTimePlayerStatus.ACCEPTED), teeTime.players.map { it.status })
+        assertEquals(listOf(TeeTimePlayerStatus.ORGANIZER, TeeTimePlayerStatus.CONFIRMED), teeTime.players.map { it.status })
         assertEquals(LocalizedText(GMR.strings.game_details_viewer_name, listOf("Sam")), teeTime.players.last().viewerName)
         assertEquals(LocalizedText(GMR.strings.game_details_filled_count, listOf("2", "4")), teeTime.filledCount)
         assertEquals(2, teeTime.openSlots)
     }
 
     @Test
-    fun anotherPlayersYesIsAlsoLabelledAccepted() {
+    fun anotherPlayersYesIsAlsoConfirmed() {
         val danaAccepted = invitedGame.copy(
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest))),
             invitees = listOf(
@@ -208,7 +277,7 @@ class GameUiStateTest {
         val rows = danaAccepted.inviteeView(samViewer).teeTimes.single().players
 
         assertEquals(
-            listOf(TeeTimePlayerStatus.ORGANIZER, TeeTimePlayerStatus.ACCEPTED, TeeTimePlayerStatus.INVITED),
+            listOf(TeeTimePlayerStatus.ORGANIZER, TeeTimePlayerStatus.CONFIRMED, TeeTimePlayerStatus.INVITED),
             rows.map { it.status }
         )
     }

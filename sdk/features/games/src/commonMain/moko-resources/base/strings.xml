@@ -63,8 +63,10 @@
     <string name="game_details_empty_slot">Empty slot</string>
     <!-- A tee time's fill count: players, then slots. "1/4 filled" -->
     <string name="game_details_filled_count">%1$s/%2$s filled</string>
-    <!-- Label on a row for someone who said yes to their invitation. -->
-    <string name="game_details_accepted_label">Accepted</string>
+    <!-- Label on a row for someone holding a slot, other than the organizer. -->
+    <string name="game_details_confirmed_label">Confirmed</string>
+    <!-- The organizer's Declined section heading, with how many declined. "Declined · 2" -->
+    <string name="game_details_declined_heading">Declined · %s</string>
     <!-- The signed-in player's own row: their first name. "Dana (you)" -->
     <string name="game_details_viewer_name">%s (you)</string>
     <!-- Under the course in the invitee view: the date, then the organizer's first name. "Sat, Jun 13 · Organized by Brad" -->

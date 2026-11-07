@@ -208,12 +208,10 @@ fileprivate struct PlayerRow: View {
                     Text(GMR.strings().game_details_invited_label.localized())
                         .font(.caption)
                         .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-                case .accepted:
-                    Text(GMR.strings().game_details_accepted_label.localized())
-                        .font(.caption)
-                        .foregroundStyle(theme.colorScheme.primary)
                 case .confirmed:
-                    EmptyView()
+                    Text(GMR.strings().game_details_confirmed_label.localized())
+                        .font(.caption)
+                        .foregroundStyle(theme.colorScheme.tertiary)
                 }
             }
         }
