@@ -19,7 +19,7 @@ sealed interface GamesListUiState {
 
     /**
      * @property games The upcoming games, earliest first: those the player holds a slot in, and
-     *   those they were invited to and have answered.
+     *   those they were invited to and said yes to.
      * @property invites The invitations still waiting for the player's answer, earliest first.
      *   Shown together in one card above [games].
      */
@@ -46,13 +46,17 @@ sealed interface GamesListUiState {
  * invitations still waiting for their answer and a row for every other game.
  *
  * An invitation is waiting when [viewer]'s number was invited and hasn't answered yet. A game
- * they declined is listed with the rest.
+ * they declined isn't listed at all, unless they hold a slot in it; with nothing else to list,
+ * the tab shows its empty state.
  */
 fun List<Game>.toGamesListUiState(viewer: Player): GamesListUiState {
-    if (isEmpty()) return GamesListUiState.Empty
-
     val phone = viewer.phone.toPhoneDigits()
-    val (waiting, others) = partition { game ->
+    val listed = filterNot { game ->
+        game.inviteeFor(phone)?.status == InviteStatus.DECLINED && !game.holdsSlot(viewer.id)
+    }
+    if (listed.isEmpty()) return GamesListUiState.Empty
+
+    val (waiting, others) = listed.partition { game ->
         game.inviteeFor(phone)?.status == InviteStatus.PENDING && !game.holdsSlot(viewer.id)
     }
     return GamesListUiState.Content(

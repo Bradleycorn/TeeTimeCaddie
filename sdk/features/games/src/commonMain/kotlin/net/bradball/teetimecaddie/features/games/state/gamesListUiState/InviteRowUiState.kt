@@ -1,6 +1,5 @@
 package net.bradball.teetimecaddie.features.games.state.gamesListUiState
 
-import net.bradball.teetimecaddie.core.models.AvatarTone
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.core.models.previewGameInvitee
@@ -27,22 +26,14 @@ data class InviteRowUiState(
     val isFull: Boolean
 )
 
-internal fun Game.toInviteRowUiState(): InviteRowUiState {
+internal fun Game.toInviteRowUiState(): InviteRowUiState = InviteRowUiState(
+    id = id,
+    course = course.name,
+    dateAndTime = dateAndTime(),
     // Every game has exactly one tee time for now, and it is the one an invitee joins.
-    val teeTime = teeTimes.firstOrNull()
-    return InviteRowUiState(
-        id = id,
-        course = course.name,
-        dateAndTime = dateAndTime(),
-        players = teeTime?.players.orEmpty().map { player ->
-            PlayerAvatarUiState(
-                initial = player.initial,
-                tone = if (player.playerId == organizerId) AvatarTone.SECONDARY else AvatarTone.forName(player.name)
-            )
-        },
-        isFull = teeTime == null || teeTime.openSlots == 0
-    )
-}
+    players = teeTimes.firstOrNull()?.players.orEmpty().map { it.toAvatarUiState(organizerId) },
+    isFull = isFull
+)
 
 /** An invitation to a game with three of its four slots taken. */
 val previewInviteRowUiState = previewGameList[1]
