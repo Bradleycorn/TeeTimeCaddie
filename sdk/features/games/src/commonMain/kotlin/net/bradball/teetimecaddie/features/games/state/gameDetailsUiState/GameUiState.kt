@@ -42,7 +42,8 @@ sealed interface GameUiState {
     /**
      * An invitee's view, with the RSVP card.
      *
-     * @property rsvp The invitee's answer to their invitation, for the RSVP card.
+     * @property rsvp The invitee's answer to their invitation, for the RSVP card. Null only if no
+     *   invitation is found for them, which shouldn't happen; the card is then left out.
      * @property organizedBy Shown in place of [date]: the date and who organized the game, e.g.
      *   "Sat, Jun 13 · Organized by Brad". Null if the organizer isn't known.
      */
@@ -50,7 +51,7 @@ sealed interface GameUiState {
         override val course: String,
         override val date: String,
         override val teeTimes: List<GameTeeTimeUiState>,
-        val rsvp: RsvpUiState,
+        val rsvp: RsvpUiState?,
         val organizedBy: LocalizedText? = null
     ) : GameUiState
 }
@@ -125,7 +126,7 @@ fun Game.toUiState(viewer: Player): GameUiState? {
             course = course.name,
             date = date.weekdayMonthDay,
             teeTimes = teeTimes,
-            rsvp = requireNotNull(rsvp),
+            rsvp = rsvp,
             organizedBy = organizerFirstName()
                 ?.let { LocalizedText(GMR.strings.game_details_organized_by, listOf(date.weekdayMonthDay, it)) }
         )

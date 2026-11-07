@@ -104,14 +104,16 @@ fileprivate struct OrganizerHeader: View {
     }
 }
 
-/// The course, who organized the game, and the RSVP card.
+/// The course, who organized the game, and the RSVP card when there is an invitation to show.
 fileprivate struct InviteeHeader: View {
     let uiState: GameUiStateInvitee
     let onAnswer: (Bool) -> Void
 
     var body: some View {
         GameTitle(course: uiState.course, subtitle: uiState.organizedBy?.localized() ?? uiState.date)
-        RsvpCard(uiState: uiState.rsvp, onAnswer: onAnswer)
+        if let rsvp = uiState.rsvp {
+            RsvpCard(uiState: rsvp, onAnswer: onAnswer)
+        }
     }
 }
 

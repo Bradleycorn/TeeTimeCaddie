@@ -149,14 +149,14 @@ private fun OrganizerHeader(uiState: GameUiState.Organizer) {
     GameTitle(course = uiState.course, subtitle = uiState.date)
 }
 
-/** The course, who organized the game, and the RSVP card. */
+/** The course, who organized the game, and the RSVP card when there is an invitation to show. */
 @Composable
 private fun InviteeHeader(uiState: GameUiState.Invitee, onAnswer: (Boolean) -> Unit) {
     GameTitle(
         course = uiState.course,
         subtitle = uiState.organizedBy?.let { stringResource(it) } ?: uiState.date,
     )
-    RsvpCard(uiState = uiState.rsvp, onAnswer = onAnswer)
+    uiState.rsvp?.let { RsvpCard(uiState = it, onAnswer = onAnswer) }
 }
 
 @Composable
