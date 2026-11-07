@@ -33,6 +33,7 @@ import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarDefaults
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarPlaceholder
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCardDefaults
@@ -46,6 +47,7 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.games.GMR
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.DeclinedInviteeUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameDetailsUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameTeeTimeUiState
@@ -134,6 +136,10 @@ private fun GameDetailsBody(
 
         uiState.teeTimes.forEach { teeTime ->
             TeeTimeCard(uiState = teeTime)
+        }
+
+        if (uiState is GameUiState.Organizer && uiState.declined.isNotEmpty()) {
+            DeclinedSection(uiState = uiState)
         }
     }
 }
@@ -258,6 +264,58 @@ private fun PlayerRow(
     }
 }
 
+/** Who said no, under a "Declined · N" heading. The organizer's view only. */
+@Composable
+private fun DeclinedSection(uiState: GameUiState.Organizer, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.DeclinedHeadingSpacing),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = GameDetailsDefaults.DeclinedHeadingInset),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GameDetailsDefaults.DeclinedHeadingSpacing),
+        ) {
+            Icon(
+                painter = TtcIcons.PERSON_OFF.painter,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(GameDetailsDefaults.DeclinedIconSize),
+            )
+            Text(
+                text = stringResource(uiState.declinedHeading),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TtcCard(contentPadding = GameDetailsDefaults.DeclinedListPadding) {
+            uiState.declined.forEach { DeclinedRow(uiState = it) }
+        }
+    }
+}
+
+@Composable
+private fun DeclinedRow(uiState: DeclinedInviteeUiState, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(GameDetailsDefaults.DeclinedRowPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GameDetailsDefaults.RowSpacing),
+    ) {
+        TtcAvatar(
+            initials = uiState.initial,
+            color = TtcColorRole.Neutral,
+            size = TtcAvatarDefaults.SmallSize,
+        )
+        Text(
+            text = uiState.name,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
 @Composable
 private fun EmptySlotRow(showDivider: Boolean, modifier: Modifier = Modifier) {
     SlotRow(
@@ -321,6 +379,11 @@ private object GameDetailsDefaults {
     val RowVerticalPadding = 12.dp
     val RowSpacing = 12.dp
     val AvatarSize = 36.dp
+    val DeclinedHeadingInset = 4.dp
+    val DeclinedHeadingSpacing = 8.dp
+    val DeclinedIconSize = 18.dp
+    val DeclinedListPadding = PaddingValues(vertical = 4.dp)
+    val DeclinedRowPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
 }
 
 @ScreenPreviews
