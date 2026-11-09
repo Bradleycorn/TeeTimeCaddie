@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,6 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
+import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 
 /**
  * Wraps a single [TtcAvatar] in the Fairway Morning stack "separator ring" — a [ringColor] circle 2dp
@@ -54,8 +59,10 @@ fun TtcPlayerItem(
 /**
  * A horizontally overlapping row of [TtcPlayerItem]s — the Fairway Morning "player stack". It is a
  * thin [Row] with negative spacing, so its content block reads identically to the SwiftUI version and
- * children get full [RowScope] (e.g. `Modifier.align`). Overflow (`+N`) and an add slot are not part
- * of this component.
+ * children get full [RowScope] (e.g. `Modifier.align`).
+ *
+ * To end the stack with an overflow circle, add a [TtcPlayerOverflow] ("+N", more players than the
+ * stack shows) or a [TtcPlayerAddSlot] ("+", open slots to fill) as the last item.
  *
  * @param modifier Modifier for the stack.
  * @param overlap How much each avatar overlaps the previous one. Defaults to
@@ -75,6 +82,76 @@ fun TtcPlayerStack(
     )
 }
 
+/**
+ * A "+N" circle that ends a [TtcPlayerStack]: more players than the stack shows. It wears the same
+ * separator ring as a [TtcPlayerItem] and the [TtcColorRole.Neutral] avatar's colors.
+ *
+ * @param text The circle's text, e.g. "+2".
+ * @param modifier Modifier for the item.
+ * @param size The circle's diameter; match the stack's avatars. Defaults to
+ *   [TtcAvatarDefaults.SmallSize].
+ * @param ringColor The separator ring color, as on [TtcPlayerItem].
+ */
+@Composable
+fun TtcPlayerOverflow(
+    text: String,
+    modifier: Modifier = Modifier,
+    size: Dp = TtcAvatarDefaults.SmallSize,
+    ringColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+) {
+    OverflowCircle(modifier = modifier, size = size, ringColor = ringColor) { content ->
+        Text(text = text, color = content, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+    }
+}
+
+/**
+ * A "+" circle that ends a [TtcPlayerStack]: there are open slots to fill. It wears the same
+ * separator ring as a [TtcPlayerItem] and the [TtcColorRole.Neutral] avatar's colors.
+ *
+ * Not the same as a [TtcAvatarPlaceholder.Empty] avatar, which stands for one empty slot in a list
+ * of players and is drawn as a dashed ring.
+ *
+ * @param modifier Modifier for the item.
+ * @param size The circle's diameter; match the stack's avatars. Defaults to
+ *   [TtcAvatarDefaults.SmallSize].
+ * @param ringColor The separator ring color, as on [TtcPlayerItem].
+ */
+@Composable
+fun TtcPlayerAddSlot(
+    modifier: Modifier = Modifier,
+    size: Dp = TtcAvatarDefaults.SmallSize,
+    ringColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+) {
+    OverflowCircle(modifier = modifier, size = size, ringColor = ringColor) { content ->
+        Icon(
+            painter = TtcIcons.ADD.painter,
+            contentDescription = null,
+            tint = content,
+            modifier = Modifier.size(TtcAvatarDefaults.overflowIconSize(size)),
+        )
+    }
+}
+
+@Composable
+private fun OverflowCircle(
+    modifier: Modifier,
+    size: Dp,
+    ringColor: Color,
+    content: @Composable (contentColor: Color) -> Unit,
+) {
+    val (container, contentColor) = TtcAvatarDefaults.toneColors(TtcColorRole.Neutral)
+    TtcPlayerItem(modifier = modifier, ringColor = ringColor) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .background(container, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            content(contentColor)
+        }
+    }
+}
+
 @Preview(name = "Light", showBackground = true)
 @Preview(name = "Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -91,8 +168,12 @@ private fun TtcPlayerStackPreview() {
                     TtcPlayerItem { TtcAvatar(initials = "M", color = TtcColorRole.Primary, size = TtcAvatarDefaults.SmallSize) }
                 }
                 TtcPlayerStack {
-                    TtcPlayerItem { TtcAvatar(initials = "B", color = TtcColorRole.Secondary, size = TtcAvatarDefaults.SmallSize) }
                     TtcPlayerItem { TtcAvatar(placeholder = TtcAvatarPlaceholder.Guest, size = TtcAvatarDefaults.SmallSize) }
+                    TtcPlayerOverflow(text = "+2")
+                }
+                TtcPlayerStack {
+                    TtcPlayerItem { TtcAvatar(initials = "B", color = TtcColorRole.Secondary, size = TtcAvatarDefaults.SmallSize) }
+                    TtcPlayerAddSlot()
                 }
             }
         }

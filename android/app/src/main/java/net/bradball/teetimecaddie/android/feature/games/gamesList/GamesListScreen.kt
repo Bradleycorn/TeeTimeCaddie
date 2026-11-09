@@ -2,6 +2,7 @@ package net.bradball.teetimecaddie.android.feature.games.gamesList
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,10 +29,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
+import net.bradball.teetimecaddie.android.theme.TtcColorRole
+import net.bradball.teetimecaddie.android.theme.toColorRole
 import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarDefaults
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcPlayerAddSlot
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcPlayerItem
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcPlayerOverflow
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcPlayerStack
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcButton
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
+import net.bradball.teetimecaddie.android.ui.common.cards.TtcCardDefaults
+import net.bradball.teetimecaddie.android.ui.common.chips.TtcChip
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
@@ -39,9 +51,11 @@ import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
 import net.bradball.teetimecaddie.features.auth.AR
 import net.bradball.teetimecaddie.features.games.GMR
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GameFillStatus
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GameRowUiState
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.GamesListUiState
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.InviteRowUiState
+import net.bradball.teetimecaddie.features.games.state.gamesListUiState.PlayerStackOverflow
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.previewGameRowUiStateList
 import net.bradball.teetimecaddie.features.games.state.gamesListUiState.previewInviteRowUiStateList
 
@@ -165,38 +179,95 @@ private fun GamesListContent(
 }
 
 /**
- * A game on the Games tab: its course, then its date and first tee time.
- *
- * The status chip, player count and avatar stack in the design arrive with later stories.
+ * A game on the Games tab. The top section has its course and its date and first tee time, with a
+ * chip saying how full it is. Below a divider are how many players are in and their avatars.
  */
 @Composable
 private fun GameRow(uiState: GameRowUiState, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    TtcCard(modifier = modifier, onClick = onClick) {
-        Text(
-            text = uiState.course,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
+    TtcCard(modifier = modifier, onClick = onClick, contentPadding = TtcCardDefaults.NoContentPadding) {
         Row(
-            modifier = Modifier.padding(top = GamesListDefaults.RowLineSpacing),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(GamesListDefaults.RowIconSpacing),
+            modifier = Modifier.padding(GamesListDefaults.RowHeaderPadding),
+            horizontalArrangement = Arrangement.spacedBy(GamesListDefaults.RowHeaderSpacing),
         ) {
-            Icon(
-                painter = TtcIcons.SCHEDULE.painter,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(GamesListDefaults.RowIconSize),
-            )
-            Text(
-                text = stringResource(uiState.dateAndTime),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = uiState.course,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(
+                    modifier = Modifier.padding(top = GamesListDefaults.RowLineSpacing),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(GamesListDefaults.RowIconSpacing),
+                ) {
+                    Icon(
+                        painter = TtcIcons.SCHEDULE.painter,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(GamesListDefaults.RowIconSize),
+                    )
+                    Text(
+                        text = stringResource(uiState.dateAndTime),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            GameStatusChip(status = uiState.status)
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Row(
+            modifier = Modifier.padding(GamesListDefaults.RowFooterPadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(GamesListDefaults.PlayerCountIconSpacing),
+            ) {
+                Icon(
+                    painter = TtcIcons.GROUP.painter,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(GamesListDefaults.PlayerCountIconSize),
+                )
+                Text(
+                    text = stringResource(uiState.playerCount),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            TtcPlayerStack {
+                uiState.players.forEach { player ->
+                    TtcPlayerItem {
+                        TtcAvatar(
+                            initials = player.initial,
+                            color = player.tone.toColorRole(),
+                            size = TtcAvatarDefaults.SmallSize,
+                        )
+                    }
+                }
+                when (val overflow = uiState.overflow) {
+                    PlayerStackOverflow.None -> Unit
+                    PlayerStackOverflow.Add -> TtcPlayerAddSlot()
+                    is PlayerStackOverflow.More -> TtcPlayerOverflow(text = overflow.label)
+                }
+            }
         }
     }
+}
+
+/** "Open", "Pending" or "Full", each in its own color with its own icon. */
+@Composable
+private fun GameStatusChip(status: GameFillStatus, modifier: Modifier = Modifier) {
+    val (color, icon) = when (status) {
+        GameFillStatus.OPEN -> TtcColorRole.Neutral to TtcIcons.PERSON_ADD
+        GameFillStatus.PENDING -> TtcColorRole.Secondary to TtcIcons.HOURGLASS_EMPTY
+        GameFillStatus.FULL -> TtcColorRole.Tertiary to TtcIcons.CHECK_CIRCLE
+    }
+    TtcChip(text = stringResource(status.label), modifier = modifier, color = color, icon = icon)
 }
 
 private object GamesListDefaults {
@@ -207,9 +278,15 @@ private object GamesListDefaults {
     val ListBottomPadding = 88.dp
     /** Centers the empty state in the space above the FAB, as the design does. */
     val EmptyStateFabClearance = 72.dp
+    /** 22dp at the bottom: the design's 16dp card padding plus 6dp before the divider. */
+    val RowHeaderPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 22.dp)
+    val RowHeaderSpacing = 12.dp
     val RowLineSpacing = 4.dp
     val RowIconSpacing = 6.dp
     val RowIconSize = 16.dp
+    val RowFooterPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+    val PlayerCountIconSpacing = 8.dp
+    val PlayerCountIconSize = 18.dp
 }
 
 @ScreenPreviews

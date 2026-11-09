@@ -13,7 +13,8 @@ import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 
 /**
- * Shared color, sizing and geometry values for [TtcAvatar], [TtcPlayerStack] and [TtcPhotoPicker],
+ * Shared color, sizing and geometry values for [TtcAvatar], [TtcPlayerStack] (with its
+ * [TtcPlayerOverflow] and [TtcPlayerAddSlot] circles) and [TtcPhotoPicker],
  * derived from the Fairway Morning "Avatars & players" spec. Colors always resolve to semantic
  * Material 3 roles.
  *
@@ -51,6 +52,9 @@ internal object TtcAvatarDefaults {
 
     /** Placeholder glyph size — ~half the avatar diameter. */
     fun iconSize(size: Dp): Dp = size * 0.5f
+
+    /** The "+" glyph in a [TtcPlayerAddSlot] — 16dp in the design's 28dp circle. */
+    fun overflowIconSize(size: Dp): Dp = size * (16f / 28f)
 
     /**
      * Background + content colors for an initials [TtcAvatar] in the given [color] role.
