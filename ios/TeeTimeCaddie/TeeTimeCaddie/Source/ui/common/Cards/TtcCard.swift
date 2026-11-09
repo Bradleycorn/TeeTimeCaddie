@@ -94,6 +94,7 @@ private struct TtcCardPreviewContent: View {
                 TtcCard(color: .secondary) { Text("Secondary container") }
                 TtcCard(color: .tertiary) { Text("Tertiary container") }
                 TtcCard(color: .error) { Text("Error container") }
+                TtcCard(color: .subtle) { Text("Subtle — surfaceContainerLow") }
                 TtcCard(onClick: {}) { Text("Tappable card") }
 
                 // A "list card": no card padding, so the header and dividers run edge to edge.

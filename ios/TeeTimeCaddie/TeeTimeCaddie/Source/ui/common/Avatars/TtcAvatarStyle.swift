@@ -46,7 +46,8 @@ enum TtcAvatarStyle {
     ///
     /// `.primary`/`.tertiary` use the solid role; `.secondary` uses the container tone (see the type
     /// doc). `.error` marks a player with a conflict — a declined invite, a scheduling clash — and
-    /// `.neutral` an inactive or unrecognized player who still has a name to show. For a player with
+    /// `.neutral` an inactive or unrecognized player who still has a name to show; `.subtle` is that
+    /// one rung quieter (`surfaceContainerHigh`). For a player with
     /// no name at all, use a ``TtcAvatarPlaceholder`` instead.
     static func toneColors(_ role: TtcColorRole, _ scheme: ThemeColors) -> (background: Color, foreground: Color) {
         switch role {
@@ -55,6 +56,7 @@ enum TtcAvatarStyle {
         case .tertiary:  (scheme.tertiary, scheme.onTertiary)
         case .error:     (scheme.errorContainer, scheme.onErrorContainer)
         case .neutral:   (scheme.surfaceContainerHighest, scheme.onSurfaceVariant)
+        case .subtle:    (scheme.surfaceContainerHigh, scheme.onSurfaceVariant)
         }
     }
 
