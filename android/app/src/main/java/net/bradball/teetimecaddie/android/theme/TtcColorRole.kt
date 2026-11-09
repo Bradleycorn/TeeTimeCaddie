@@ -19,7 +19,7 @@ import net.bradball.teetimecaddie.core.models.AvatarTone
  *   a `TtcChip` and a `TtcCard` paint it in the softer `primaryContainer`.
  * - [Neutral] lands on a different rung of the surface ramp per component — `surfaceContainer` for
  *   a card, `surfaceContainerHigh` for a chip, `surfaceContainerHighest` for a button — because a
- *   chip sits on a card sits on the screen canvas.
+ *   chip sits on a card sits on the screen canvas. [Subtle] is always the rung below that.
  *
  * Each component's `Ttc*Defaults` object owns that mapping and documents its own choices. Consult
  * those, not this enum, for what a role looks like in a given component.
@@ -27,8 +27,9 @@ import net.bradball.teetimecaddie.core.models.AvatarTone
  * ## Not every role is meaningful everywhere
  *
  * Components render every role, so this vocabulary is uniform across the design system. The one
- * exception is `TtcAccentCard`, whose rail has no [Neutral] treatment — a neutral rail against a
- * neutral card fill reads as no rail at all. `TtcCardDefaults.accentColor` documents the fallback.
+ * exception is `TtcAccentCard`, whose rail has no [Neutral] or [Subtle] treatment — a neutral rail
+ * against a neutral card fill reads as no rail at all. `TtcCardDefaults.accentColor` documents the
+ * fallback.
  *
  * ## Adding a role
  *
@@ -52,7 +53,17 @@ enum class TtcColorRole {
     Error,
 
     /** The ambient surface treatment — no tint. The quiet default for containers. */
-    Neutral
+    Neutral,
+
+    /**
+     * [Neutral], one step lower on the surface ramp than that component's [Neutral] — less contrast
+     * against whatever it sits on. Named for emphasis, not brightness: in light mode the lower
+     * surface is *lighter*, so it is deliberately not "Dim" (and is not Material's `surfaceDim`).
+     *
+     * Only a surface fill can step down. Where a component has none — an outlined variant, the
+     * `TtcAccentCard` rail — [Subtle] renders exactly as [Neutral].
+     */
+    Subtle
 }
 
 /** The role an initial avatar in this tone is drawn in. Twin of `AvatarTone.toColorRole()` on iOS. */

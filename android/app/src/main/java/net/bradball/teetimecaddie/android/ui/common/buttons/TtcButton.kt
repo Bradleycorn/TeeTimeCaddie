@@ -86,6 +86,8 @@ private fun TtcButtonPreview() {
                 TtcButton(text = "Book", onClick = {})
                 TtcButton(text = "Manage", onClick = {}, color = TtcColorRole.Secondary)
                 TtcButton(text = "Delete tee time", onClick = {}, color = TtcColorRole.Error)
+                TtcButton(text = "Neutral", onClick = {}, color = TtcColorRole.Neutral)
+                TtcButton(text = "Subtle", onClick = {}, color = TtcColorRole.Subtle)
                 TtcButton(text = "Add tee time", onClick = {}, icon = TtcIcons.ADD)
                 TtcButton(text = "New", onClick = {}, icon = TtcIcons.ADD, dense = true)
                 TtcButton(text = "Sign in", onClick = {}, modifier = Modifier.fillMaxWidth())

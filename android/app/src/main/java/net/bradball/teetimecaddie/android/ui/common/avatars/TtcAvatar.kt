@@ -165,6 +165,7 @@ private fun TtcAvatarPreview() {
                     TtcAvatar(initials = "J", color = TtcColorRole.Tertiary)
                     TtcAvatar(initials = "C", color = TtcColorRole.Error)
                     TtcAvatar(initials = "K", color = TtcColorRole.Neutral)
+                    TtcAvatar(initials = "S", color = TtcColorRole.Subtle)
                     TtcAvatar(photo = ColorPainter(MaterialTheme.colorScheme.tertiaryContainer))
                     TtcAvatar(placeholder = TtcAvatarPlaceholder.Guest)
                     TtcAvatar(placeholder = TtcAvatarPlaceholder.Empty)

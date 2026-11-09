@@ -289,7 +289,7 @@ private fun DeclinedSection(uiState: GameUiState.Organizer, modifier: Modifier =
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        TtcCard(contentPadding = GameDetailsDefaults.DeclinedListPadding) {
+        TtcCard(color = TtcColorRole.Subtle, contentPadding = GameDetailsDefaults.DeclinedListPadding) {
             uiState.declined.forEach { DeclinedRow(uiState = it) }
         }
     }
