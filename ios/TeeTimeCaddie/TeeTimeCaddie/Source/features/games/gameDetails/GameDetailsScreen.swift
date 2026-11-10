@@ -85,7 +85,7 @@ fileprivate struct GameDetailsBody: View {
                 }
 
                 if case .organizer(let organizer) = onEnum(of: uiState), !organizer.declined.isEmpty {
-                    DeclinedSection(uiState: organizer)
+                    DeclinedSection(heading: organizer.declinedHeading, declined: organizer.declined)
                 }
             }
             .padding(GameDetailsDefaults.padding)
@@ -285,14 +285,15 @@ fileprivate struct SlotRow<Avatar: View, Content: View>: View {
 fileprivate struct DeclinedSection: View {
     @EnvironmentObject private var theme: AppTheme
 
-    let uiState: GameUiStateOrganizer
+    let heading: LocalizedText
+    let declined: [DeclinedInviteeUiState]
 
     var body: some View {
         VStack(alignment: .leading, spacing: GameDetailsDefaults.declinedHeadingSpacing) {
             HStack(spacing: GameDetailsDefaults.declinedHeadingSpacing) {
                 Image(SfSymbol.personSlash)
                     .font(.subheadline)
-                Text(uiState.declinedHeading.localized())
+                Text(heading.localized())
                     .font(.subheadline.weight(.semibold))
             }
             .foregroundStyle(theme.colorScheme.onSurfaceVariant)
@@ -300,7 +301,7 @@ fileprivate struct DeclinedSection: View {
 
             TtcCard(color: .subtle, contentPadding: GameDetailsDefaults.declinedListPadding) {
                 VStack(spacing: 0) {
-                    ForEach(Array(uiState.declined.enumerated()), id: \.offset) { _, invitee in
+                    ForEach(Array(declined.enumerated()), id: \.offset) { _, invitee in
                         DeclinedRow(uiState: invitee)
                     }
                 }
