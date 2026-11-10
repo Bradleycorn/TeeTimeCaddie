@@ -9,8 +9,8 @@ import ThemeUI
 /// because a tinted fill carries a different meaning entirely and the two are never combined.
 ///
 /// Use `accent` to choose the signal the rail carries; `.primary` (the default) is the design's
-/// shipped treatment. `.neutral` is the one ``TtcColorRole`` with no meaning here — a neutral rail
-/// on a neutral fill reads as no rail at all — and falls back to `.primary`; see
+/// shipped treatment. `.neutral` and `.subtle` have no meaning here — a neutral rail on a neutral
+/// fill reads as no rail at all — and fall back to `.primary`; see
 /// ``TtcCardStyle/accentColor(_:_:)``.
 ///
 /// Everything else — the fill, the `radius-md` shape and clip, the press feedback, full width — comes from

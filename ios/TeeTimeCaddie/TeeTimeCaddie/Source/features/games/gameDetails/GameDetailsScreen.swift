@@ -83,6 +83,10 @@ fileprivate struct GameDetailsBody: View {
                 ForEach(Array(uiState.teeTimes.enumerated()), id: \.offset) { _, teeTime in
                     TeeTimeCard(uiState: teeTime)
                 }
+
+                if case .organizer(let organizer) = onEnum(of: uiState), !organizer.declined.isEmpty {
+                    DeclinedSection(heading: organizer.declinedHeading, declined: organizer.declined)
+                }
             }
             .padding(GameDetailsDefaults.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -277,6 +281,52 @@ fileprivate struct SlotRow<Avatar: View, Content: View>: View {
     }
 }
 
+/// Who said no, under a "Declined · N" heading. The organizer's view only.
+fileprivate struct DeclinedSection: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    let heading: LocalizedText
+    let declined: [DeclinedInviteeUiState]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: GameDetailsDefaults.declinedHeadingSpacing) {
+            HStack(spacing: GameDetailsDefaults.declinedHeadingSpacing) {
+                Image(SfSymbol.personSlash)
+                    .font(.subheadline)
+                Text(heading.localized())
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+            .padding(.horizontal, GameDetailsDefaults.declinedHeadingInset)
+
+            TtcCard(color: .subtle, contentPadding: GameDetailsDefaults.declinedListPadding) {
+                VStack(spacing: 0) {
+                    ForEach(Array(declined.enumerated()), id: \.offset) { _, invitee in
+                        DeclinedRow(uiState: invitee)
+                    }
+                }
+            }
+        }
+    }
+}
+
+fileprivate struct DeclinedRow: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    let uiState: DeclinedInviteeUiState
+
+    var body: some View {
+        HStack(spacing: GameDetailsDefaults.rowSpacing) {
+            TtcAvatar(uiState.initial, color: .neutral, size: TtcAvatarStyle.smallSize)
+            Text(uiState.name)
+                .font(.subheadline)
+                .foregroundStyle(theme.colorScheme.onSurface)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(GameDetailsDefaults.declinedRowPadding)
+    }
+}
+
 /// Spacing and sizes for Game details — the twin of `GameDetailsDefaults` on Android.
 fileprivate enum GameDetailsDefaults {
     static let padding: CGFloat = 16
@@ -288,6 +338,10 @@ fileprivate enum GameDetailsDefaults {
     static let rowSpacing: CGFloat = 12
     static let nameStatusSpacing: CGFloat = 1
     static let avatarSize: CGFloat = 36
+    static let declinedHeadingInset: CGFloat = 4
+    static let declinedHeadingSpacing: CGFloat = 8
+    static let declinedListPadding = EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)
+    static let declinedRowPadding = EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
 }
 
 // MARK: - Previews

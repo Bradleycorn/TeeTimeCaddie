@@ -50,6 +50,7 @@ enum TtcChipStyle {
         case .tertiary:  (scheme.tertiaryContainer, scheme.onTertiaryContainer)
         case .error:     (scheme.errorContainer, scheme.onErrorContainer)
         case .neutral:   (scheme.surfaceContainerHigh, scheme.onSurfaceVariant)
+        case .subtle:    (scheme.surfaceContainer, scheme.onSurfaceVariant)
         }
     }
 
@@ -62,7 +63,8 @@ enum TtcChipStyle {
         case .secondary: (scheme.secondary, scheme.secondary)
         case .tertiary:  (scheme.tertiary, scheme.tertiary)
         case .error:     (scheme.error, scheme.error)
-        case .neutral:   (scheme.onSurfaceVariant, scheme.outlineVariant)
+        // An outlined chip has no fill to step down, so `.subtle` renders as `.neutral`.
+        case .neutral, .subtle: (scheme.onSurfaceVariant, scheme.outlineVariant)
         }
     }
 }

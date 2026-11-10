@@ -16,7 +16,7 @@ import TeeTimeCaddieKit
 ///   while a ``TtcChip`` and a ``TtcCard`` paint it in the softer `primaryContainer`.
 /// - `.neutral` lands on a different rung of the surface ramp per component — `surfaceContainer` for
 ///   a card, `surfaceContainerHigh` for a chip, `surfaceContainerHighest` for a button — because a
-///   chip sits on a card sits on the screen canvas.
+///   chip sits on a card sits on the screen canvas. `.subtle` is always the rung below that.
 ///
 /// Each component's `Ttc*Style` namespace owns that mapping and documents its own choices. Consult
 /// those, not this enum, for what a role looks like in a given component.
@@ -24,8 +24,8 @@ import TeeTimeCaddieKit
 /// ## Not every role is meaningful everywhere
 ///
 /// Components render every role, so this vocabulary is uniform across the design system. The one
-/// exception is ``TtcAccentCard``, whose rail has no `.neutral` treatment — a neutral rail against a
-/// neutral card fill reads as no rail at all. ``TtcCardStyle/accentColor(_:_:)`` documents the
+/// exception is ``TtcAccentCard``, whose rail has no `.neutral` or `.subtle` treatment — a neutral
+/// rail against a neutral card fill reads as no rail at all. ``TtcCardStyle/accentColor(_:_:)`` documents the
 /// fallback.
 ///
 /// ## Adding a role
@@ -54,6 +54,15 @@ enum TtcColorRole {
 
     /// The ambient surface treatment — no tint. The quiet default for containers.
     case neutral
+
+    /// `.neutral`, one step lower on the surface ramp than that component's `.neutral` — less
+    /// contrast against whatever it sits on. Named for emphasis, not brightness: in light mode the
+    /// lower surface is *lighter*, so it is deliberately not "dim" (and is not Material's
+    /// `surfaceDim`).
+    ///
+    /// Only a surface fill can step down. Where a component has none — an outlined variant, the
+    /// ``TtcAccentCard`` rail — `.subtle` renders exactly as `.neutral`.
+    case subtle
 }
 
 extension AvatarTone {

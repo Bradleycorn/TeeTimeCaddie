@@ -116,6 +116,7 @@ private struct AvatarPreviewContent: View {
                 TtcAvatar("J", color: .tertiary)
                 TtcAvatar("C", color: .error)
                 TtcAvatar("K", color: .neutral)
+                TtcAvatar("S", color: .subtle)
                 TtcAvatar(placeholder: .guest)
                 TtcAvatar(placeholder: .empty)
             }
