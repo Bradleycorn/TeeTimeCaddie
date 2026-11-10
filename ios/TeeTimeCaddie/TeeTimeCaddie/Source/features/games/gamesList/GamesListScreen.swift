@@ -111,9 +111,8 @@ fileprivate struct GamesListContent: View {
     }
 }
 
-/// A game on the Games tab: its course, then its date and tee time.
-///
-/// The status chip, player count and avatar stack in the design arrive with later stories.
+/// A game on the Games tab. The top section has its course and its date and first tee time, with a
+/// chip saying how full it is. Below a divider are how many players are in and their avatars.
 fileprivate struct GameRow: View {
     @EnvironmentObject private var theme: AppTheme
 
@@ -126,22 +125,73 @@ fileprivate struct GameRow: View {
     }
 
     var body: some View {
-        TtcCard(onClick: onClick) {
-            VStack(alignment: .leading, spacing: GamesListDefaults.rowLineSpacing) {
-                Text(uiState.course)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(theme.colorScheme.onSurface)
-                    .lineLimit(2)
-                Label {
-                    Text(uiState.dateAndTime.localized())
-                } icon: {
-                    Image(SfSymbol.clock)
+        TtcCard(contentPadding: TtcCardStyle.noContentPadding, onClick: onClick) {
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: GamesListDefaults.rowHeaderSpacing) {
+                    VStack(alignment: .leading, spacing: GamesListDefaults.rowLineSpacing) {
+                        Text(uiState.course)
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(theme.colorScheme.onSurface)
+                            .lineLimit(2)
+                        Label {
+                            Text(uiState.dateAndTime.localized())
+                        } icon: {
+                            Image(SfSymbol.clock)
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    GameStatusChip(status: uiState.status)
                 }
-                .font(.subheadline)
-                .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                .padding(GamesListDefaults.rowHeaderPadding)
+
+                // The system divider, tinted to the theme's outline rather than the system separator.
+                Divider().overlay(theme.colorScheme.outlineVariant)
+
+                HStack {
+                    Label {
+                        Text(uiState.playerCount.localized())
+                    } icon: {
+                        Image(SfSymbol.person2)
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    TtcPlayerStack {
+                        ForEach(Array(uiState.players.enumerated()), id: \.offset) { _, player in
+                            TtcPlayerItem {
+                                TtcAvatar(player.initial, color: player.tone.toColorRole(), size: TtcAvatarStyle.smallSize)
+                            }
+                        }
+                        switch onEnum(of: uiState.overflow) {
+                        case .none:
+                            EmptyView()
+                        case .add:
+                            TtcPlayerAddSlot()
+                        case .more(let more):
+                            TtcPlayerOverflow(more.label)
+                        }
+                    }
+                }
+                .padding(GamesListDefaults.rowFooterPadding)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+/// "Open", "Pending" or "Full", each in its own color with its own symbol.
+fileprivate struct GameStatusChip: View {
+    let status: GameFillStatus
+
+    var body: some View {
+        let (color, symbol): (TtcColorRole, SfSymbol) = switch status {
+        case .open: (.neutral, .personBadgePlus)
+        case .pending: (.secondary, .hourglass)
+        case .full: (.tertiary, .checkmarkCircle)
+        }
+        TtcChip(status.label.localized(), color: color, icon: .symbol(symbol))
     }
 }
 
@@ -150,7 +200,11 @@ fileprivate enum GamesListDefaults {
     static let horizontalPadding: CGFloat = 16
     static let spacing: CGFloat = 16
     static let headerTopPadding: CGFloat = 8
+    /// 22pt at the bottom: the design's 16pt card padding plus 6pt before the divider.
+    static let rowHeaderPadding = EdgeInsets(top: 16, leading: 16, bottom: 22, trailing: 16)
+    static let rowHeaderSpacing: CGFloat = 12
     static let rowLineSpacing: CGFloat = 4
+    static let rowFooterPadding = EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
 }
 
 // MARK: - Previews
