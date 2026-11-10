@@ -249,12 +249,11 @@ private fun PlayerRow(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            TeeTimePlayerStatus.ACCEPTED -> Text(
-                text = stringResource(GMR.strings.game_details_accepted_label.resourceId),
+            TeeTimePlayerStatus.CONFIRMED -> Text(
+                text = stringResource(GMR.strings.game_details_confirmed_label.resourceId),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.tertiary,
             )
-            TeeTimePlayerStatus.CONFIRMED -> Unit
         }
     }
 }
