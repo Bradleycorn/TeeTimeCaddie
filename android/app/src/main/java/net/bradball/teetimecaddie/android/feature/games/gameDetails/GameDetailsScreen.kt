@@ -44,6 +44,7 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.android.ui.common.text.stringResource
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
+import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.games.GMR
@@ -139,7 +140,7 @@ private fun GameDetailsBody(
         }
 
         if (uiState is GameUiState.Organizer && uiState.declined.isNotEmpty()) {
-            DeclinedSection(uiState = uiState)
+            DeclinedSection(heading = uiState.declinedHeading, declined = uiState.declined)
         }
     }
 }
@@ -266,7 +267,11 @@ private fun PlayerRow(
 
 /** Who said no, under a "Declined · N" heading. The organizer's view only. */
 @Composable
-private fun DeclinedSection(uiState: GameUiState.Organizer, modifier: Modifier = Modifier) {
+private fun DeclinedSection(
+    heading: LocalizedText,
+    declined: List<DeclinedInviteeUiState>,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.DeclinedHeadingSpacing),
@@ -283,14 +288,14 @@ private fun DeclinedSection(uiState: GameUiState.Organizer, modifier: Modifier =
                 modifier = Modifier.size(GameDetailsDefaults.DeclinedIconSize),
             )
             Text(
-                text = stringResource(uiState.declinedHeading),
+                text = stringResource(heading),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         TtcCard(color = TtcColorRole.Subtle, contentPadding = GameDetailsDefaults.DeclinedListPadding) {
-            uiState.declined.forEach { DeclinedRow(uiState = it) }
+            declined.forEach { DeclinedRow(uiState = it) }
         }
     }
 }
