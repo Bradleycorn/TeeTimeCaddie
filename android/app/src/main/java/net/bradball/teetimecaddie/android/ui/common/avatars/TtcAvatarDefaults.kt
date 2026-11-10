@@ -57,7 +57,8 @@ internal object TtcAvatarDefaults {
      *
      * `Primary`/`Tertiary` use the solid role; `Secondary` uses the container tone (see the class
      * doc). `Error` marks a player with a conflict — a declined invite, a scheduling clash — and
-     * `Neutral` an inactive or unrecognized player who still has a name to show. For a player with
+     * `Neutral` an inactive or unrecognized player who still has a name to show; `Subtle` is that one
+     * rung quieter (`surfaceContainerHigh`). For a player with
      * no name at all, use a [TtcAvatarPlaceholder] instead.
      */
     @Composable
@@ -69,6 +70,7 @@ internal object TtcAvatarDefaults {
             TtcColorRole.Tertiary -> scheme.tertiary to scheme.onTertiary
             TtcColorRole.Error -> scheme.errorContainer to scheme.onErrorContainer
             TtcColorRole.Neutral -> scheme.surfaceContainerHighest to scheme.onSurfaceVariant
+            TtcColorRole.Subtle -> scheme.surfaceContainerHigh to scheme.onSurfaceVariant
         }
     }
 
