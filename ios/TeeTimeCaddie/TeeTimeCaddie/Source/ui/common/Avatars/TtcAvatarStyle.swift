@@ -1,7 +1,8 @@
 import SwiftUI
 import ThemeUI
 
-/// Shared sizing and geometry values for ``TtcAvatar``, ``TtcPlayerStack`` and ``TtcPhotoPicker``,
+/// Shared sizing and geometry values for ``TtcAvatar``, ``TtcPlayerStack`` (with its
+/// ``TtcPlayerOverflow`` and ``TtcPlayerAddSlot`` circles) and ``TtcPhotoPicker``,
 /// derived from the Fairway Morning "Avatars & players" spec. (Parallels `TtcChipStyle`.)
 ///
 /// The glyphs come from ``SfSymbol`` via ``ImageSource`` rather than from asset
@@ -42,11 +43,15 @@ enum TtcAvatarStyle {
     /// Placeholder glyph point size — ~half the avatar diameter.
     static func iconSize(_ size: CGFloat) -> CGFloat { size * 0.5 }
 
+    /// The "+" glyph in a ``TtcPlayerAddSlot`` — 16pt in the design's 28pt circle.
+    static func overflowIconSize(_ size: CGFloat) -> CGFloat { size * 16 / 28 }
+
     /// Background + content colors for an initials ``TtcAvatar`` in the given `role`.
     ///
     /// `.primary`/`.tertiary` use the solid role; `.secondary` uses the container tone (see the type
     /// doc). `.error` marks a player with a conflict — a declined invite, a scheduling clash — and
-    /// `.neutral` an inactive or unrecognized player who still has a name to show. For a player with
+    /// `.neutral` an inactive or unrecognized player who still has a name to show; `.subtle` is that
+    /// one rung quieter (`surfaceContainerHigh`). For a player with
     /// no name at all, use a ``TtcAvatarPlaceholder`` instead.
     static func toneColors(_ role: TtcColorRole, _ scheme: ThemeColors) -> (background: Color, foreground: Color) {
         switch role {
@@ -55,6 +60,7 @@ enum TtcAvatarStyle {
         case .tertiary:  (scheme.tertiary, scheme.onTertiary)
         case .error:     (scheme.errorContainer, scheme.onErrorContainer)
         case .neutral:   (scheme.surfaceContainerHighest, scheme.onSurfaceVariant)
+        case .subtle:    (scheme.surfaceContainerHigh, scheme.onSurfaceVariant)
         }
     }
 

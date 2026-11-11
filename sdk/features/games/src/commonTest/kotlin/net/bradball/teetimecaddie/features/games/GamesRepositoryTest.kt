@@ -1,8 +1,11 @@
 package net.bradball.teetimecaddie.features.games
 
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
@@ -397,6 +400,24 @@ class GamesRepositoryTest {
         }
 
         assertEquals(emptyList(), repository(storage).gameIds(dana))
+    }
+
+    @Test
+    fun observeGames_dropsTheDaysGamesAtMidnight() = runTest {
+        val dates = MutableStateFlow(gameDate)
+        val storage = FakeGameStorage().apply {
+            seed(storedGame(id = "today"), storedGame(id = "tomorrow", date = gameDate.plus(DatePeriod(days = 1))))
+        }
+        val repo = GamesRepositoryImpl(eventManager, storage, dates) { TtcLookup.Success(null) }
+
+        val emissions = mutableListOf<List<String>>()
+        val collecting = launch(UnconfinedTestDispatcher(testScheduler)) {
+            repo.observeGames(dana).collect { games -> emissions += games.map { it.id } }
+        }
+        dates.value = gameDate.plus(DatePeriod(days = 1))
+        collecting.cancel()
+
+        assertEquals(listOf(listOf("today", "tomorrow"), listOf("tomorrow")), emissions)
     }
 
     @Test

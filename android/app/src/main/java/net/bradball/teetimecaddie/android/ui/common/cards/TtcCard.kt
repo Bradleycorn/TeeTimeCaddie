@@ -169,6 +169,7 @@ private fun TtcCardPreview() {
                 TtcCard(color = TtcColorRole.Secondary) { Text("Secondary container") }
                 TtcCard(color = TtcColorRole.Tertiary) { Text("Tertiary container") }
                 TtcCard(color = TtcColorRole.Error) { Text("Error container") }
+                TtcCard(color = TtcColorRole.Subtle) { Text("Subtle — surfaceContainerLow") }
                 TtcCard(onClick = {}) { Text("Tappable card") }
             }
         }

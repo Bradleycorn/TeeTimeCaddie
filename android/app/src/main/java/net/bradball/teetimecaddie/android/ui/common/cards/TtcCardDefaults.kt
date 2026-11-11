@@ -63,7 +63,8 @@ internal object TtcCardDefaults {
     /**
      * Container + content colors for [color]. [TtcColorRole.Neutral] is the design's base card
      * (`surfaceContainer` / `onSurface` — note `onSurface`, not `onSurfaceVariant`; muted content
-     * inside a card picks the variant itself); every tinted role uses its *container* pair.
+     * inside a card picks the variant itself); [TtcColorRole.Subtle] steps down to
+     * `surfaceContainerLow`; every tinted role uses its *container* pair.
      */
     @Composable
     fun colors(color: TtcColorRole): CardColors {
@@ -91,6 +92,10 @@ internal object TtcCardDefaults {
                 container = scheme.surfaceContainer
                 content = scheme.onSurface
             }
+            TtcColorRole.Subtle -> {
+                container = scheme.surfaceContainerLow
+                content = scheme.onSurface
+            }
         }
         return CardDefaults.cardColors(containerColor = container, contentColor = content)
     }
@@ -107,7 +112,8 @@ internal object TtcCardDefaults {
      * component: a neutral rail on a neutral card fill reads as no rail at all, defeating the point
      * of an accent. It falls back to [TtcColorRole.Primary], the design's shipped treatment (the
      * "New invite" card). Handled as an explicit arm rather than an `else` so that adding a role to
-     * [TtcColorRole] still breaks the build here and forces a decision.
+     * [TtcColorRole] still breaks the build here and forces a decision. [TtcColorRole.Subtle] falls
+     * back the same way, for the same reason.
      */
     @Composable
     fun accentColor(accent: TtcColorRole): Color {
@@ -117,7 +123,8 @@ internal object TtcCardDefaults {
             TtcColorRole.Secondary -> scheme.secondary
             TtcColorRole.Tertiary -> scheme.tertiary
             TtcColorRole.Error -> scheme.error
-            TtcColorRole.Neutral -> scheme.primary
+            TtcColorRole.Neutral,
+            TtcColorRole.Subtle -> scheme.primary
         }
     }
 }

@@ -58,14 +58,10 @@ fileprivate struct GameDetailsContent: View {
     }
 }
 
-/// The game itself. Editing, adding tee times, inviting, managing, slot menus and the activity log
-/// are all later work, and are left out rather than shown inert.
-///
-/// The organizer gets the "You are the organizer" chip. Everyone else gets the invitee view: who
-/// organized the game, and the RSVP card when they were invited.
+/// The game itself, in the organizer's view or an invitee's. Editing, adding tee times, inviting,
+/// managing, slot menus and the activity log are all later work, and are left out rather than
+/// shown inert.
 fileprivate struct GameDetailsBody: View {
-    @EnvironmentObject private var theme: AppTheme
-
     private let uiState: GameUiState
     private let onAnswer: (Bool) -> Void
 
@@ -77,33 +73,68 @@ fileprivate struct GameDetailsBody: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: GameDetailsDefaults.sectionSpacing) {
-                if uiState.isOrganizer {
-                    TtcChip(
-                        GMR.strings().game_details_organizer_chip.localized(),
-                        color: .secondary,
-                        icon: .symbol(.starFill)
-                    )
-                }
-
-                VStack(alignment: .leading, spacing: GameDetailsDefaults.titleSpacing) {
-                    Text(uiState.course)
-                        .font(.largeTitle.weight(.bold))
-                        .foregroundStyle(theme.colorScheme.onSurface)
-                    Text(uiState.organizedBy?.localized() ?? uiState.date)
-                        .font(.body)
-                        .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-                }
-
-                if let rsvp = uiState.rsvp {
-                    RsvpCard(uiState: rsvp, onAnswer: onAnswer)
+                switch onEnum(of: uiState) {
+                case .organizer(let organizer):
+                    OrganizerHeader(uiState: organizer)
+                case .invitee(let invitee):
+                    InviteeHeader(uiState: invitee, onAnswer: onAnswer)
                 }
 
                 ForEach(Array(uiState.teeTimes.enumerated()), id: \.offset) { _, teeTime in
                     TeeTimeCard(uiState: teeTime)
                 }
+
+                if case .organizer(let organizer) = onEnum(of: uiState), !organizer.declined.isEmpty {
+                    DeclinedSection(heading: organizer.declinedHeading, declined: organizer.declined)
+                }
             }
             .padding(GameDetailsDefaults.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+/// The "You are the organizer" chip, the course and the date.
+fileprivate struct OrganizerHeader: View {
+    let uiState: GameUiStateOrganizer
+
+    var body: some View {
+        TtcChip(
+            GMR.strings().game_details_organizer_chip.localized(),
+            color: .secondary,
+            icon: .symbol(.starFill)
+        )
+        GameTitle(course: uiState.course, subtitle: uiState.date)
+    }
+}
+
+/// The course, who organized the game, and the RSVP card when there is an invitation to show.
+fileprivate struct InviteeHeader: View {
+    let uiState: GameUiStateInvitee
+    let onAnswer: (Bool) -> Void
+
+    var body: some View {
+        GameTitle(course: uiState.course, subtitle: uiState.organizedBy?.localized() ?? uiState.date)
+        if let rsvp = uiState.rsvp {
+            RsvpCard(uiState: rsvp, onAnswer: onAnswer)
+        }
+    }
+}
+
+fileprivate struct GameTitle: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    let course: String
+    let subtitle: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: GameDetailsDefaults.titleSpacing) {
+            Text(course)
+                .font(.largeTitle.weight(.bold))
+                .foregroundStyle(theme.colorScheme.onSurface)
+            Text(subtitle)
+                .font(.body)
+                .foregroundStyle(theme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -181,12 +212,10 @@ fileprivate struct PlayerRow: View {
                     Text(GMR.strings().game_details_invited_label.localized())
                         .font(.caption)
                         .foregroundStyle(theme.colorScheme.onSurfaceVariant)
-                case .accepted:
-                    Text(GMR.strings().game_details_accepted_label.localized())
-                        .font(.caption)
-                        .foregroundStyle(theme.colorScheme.primary)
                 case .confirmed:
-                    EmptyView()
+                    Text(GMR.strings().game_details_confirmed_label.localized())
+                        .font(.caption)
+                        .foregroundStyle(theme.colorScheme.tertiary)
                 }
             }
         }
@@ -252,6 +281,52 @@ fileprivate struct SlotRow<Avatar: View, Content: View>: View {
     }
 }
 
+/// Who said no, under a "Declined · N" heading. The organizer's view only.
+fileprivate struct DeclinedSection: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    let heading: LocalizedText
+    let declined: [DeclinedInviteeUiState]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: GameDetailsDefaults.declinedHeadingSpacing) {
+            HStack(spacing: GameDetailsDefaults.declinedHeadingSpacing) {
+                Image(SfSymbol.personSlash)
+                    .font(.subheadline)
+                Text(heading.localized())
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+            .padding(.horizontal, GameDetailsDefaults.declinedHeadingInset)
+
+            TtcCard(color: .subtle, contentPadding: GameDetailsDefaults.declinedListPadding) {
+                VStack(spacing: 0) {
+                    ForEach(Array(declined.enumerated()), id: \.offset) { _, invitee in
+                        DeclinedRow(uiState: invitee)
+                    }
+                }
+            }
+        }
+    }
+}
+
+fileprivate struct DeclinedRow: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    let uiState: DeclinedInviteeUiState
+
+    var body: some View {
+        HStack(spacing: GameDetailsDefaults.rowSpacing) {
+            TtcAvatar(uiState.initial, color: .neutral, size: TtcAvatarStyle.smallSize)
+            Text(uiState.name)
+                .font(.subheadline)
+                .foregroundStyle(theme.colorScheme.onSurface)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(GameDetailsDefaults.declinedRowPadding)
+    }
+}
+
 /// Spacing and sizes for Game details — the twin of `GameDetailsDefaults` on Android.
 fileprivate enum GameDetailsDefaults {
     static let padding: CGFloat = 16
@@ -263,6 +338,10 @@ fileprivate enum GameDetailsDefaults {
     static let rowSpacing: CGFloat = 12
     static let nameStatusSpacing: CGFloat = 1
     static let avatarSize: CGFloat = 36
+    static let declinedHeadingInset: CGFloat = 4
+    static let declinedHeadingSpacing: CGFloat = 8
+    static let declinedListPadding = EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)
+    static let declinedRowPadding = EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
 }
 
 // MARK: - Previews

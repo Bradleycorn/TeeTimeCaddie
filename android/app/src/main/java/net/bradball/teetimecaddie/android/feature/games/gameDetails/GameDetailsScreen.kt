@@ -33,6 +33,7 @@ import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
 import net.bradball.teetimecaddie.android.ui.common.appBars.TtcCenteredTopAppBar
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarDefaults
 import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarPlaceholder
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCardDefaults
@@ -43,9 +44,11 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
 import net.bradball.teetimecaddie.android.ui.common.text.stringResource
 import net.bradball.teetimecaddie.core.analytics.AnalyticsScreen
+import net.bradball.teetimecaddie.core.models.LocalizedText
 import net.bradball.teetimecaddie.core.models.previewGame
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import net.bradball.teetimecaddie.features.games.GMR
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.DeclinedInviteeUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameDetailsUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameTeeTimeUiState
@@ -55,7 +58,7 @@ import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previe
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewGameWithInviteesUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewAcceptedGameUiState
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.previewInvitedGameUiState
-import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toDetailsUiState
 
 @Composable
 fun GameDetailsScreen(
@@ -111,11 +114,9 @@ private fun GameDetailsContent(
 }
 
 /**
- * The game itself. Editing, adding tee times, inviting, managing, slot menus and the activity log
- * are all later work, and are left out rather than shown inert.
- *
- * The organizer gets the "You are the organizer" chip. Everyone else gets the invitee view: who
- * organized the game, and the RSVP card when they were invited.
+ * The game itself, in the organizer's view or an invitee's. Editing, adding tee times, inviting,
+ * managing, slot menus and the activity log are all later work, and are left out rather than
+ * shown inert.
  */
 @Composable
 private fun GameDetailsBody(
@@ -129,34 +130,55 @@ private fun GameDetailsBody(
             .padding(GameDetailsDefaults.Padding),
         verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.SectionSpacing),
     ) {
-        if (uiState.isOrganizer) {
-            TtcChip(
-                text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
-                color = TtcColorRole.Secondary,
-                icon = TtcIcons.STAR_FILLED,
-            )
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.TitleSpacing)) {
-            Text(
-                text = uiState.course,
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = uiState.organizedBy?.let { stringResource(it) } ?: uiState.date,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        uiState.rsvp?.let { rsvp ->
-            RsvpCard(uiState = rsvp, onAnswer = onAnswer)
+        when (uiState) {
+            is GameUiState.Organizer -> OrganizerHeader(uiState)
+            is GameUiState.Invitee -> InviteeHeader(uiState, onAnswer = onAnswer)
         }
 
         uiState.teeTimes.forEach { teeTime ->
             TeeTimeCard(uiState = teeTime)
         }
+
+        if (uiState is GameUiState.Organizer && uiState.declined.isNotEmpty()) {
+            DeclinedSection(heading = uiState.declinedHeading, declined = uiState.declined)
+        }
+    }
+}
+
+/** The "You are the organizer" chip, the course and the date. */
+@Composable
+private fun OrganizerHeader(uiState: GameUiState.Organizer) {
+    TtcChip(
+        text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
+        color = TtcColorRole.Secondary,
+        icon = TtcIcons.STAR_FILLED,
+    )
+    GameTitle(course = uiState.course, subtitle = uiState.date)
+}
+
+/** The course, who organized the game, and the RSVP card when there is an invitation to show. */
+@Composable
+private fun InviteeHeader(uiState: GameUiState.Invitee, onAnswer: (Boolean) -> Unit) {
+    GameTitle(
+        course = uiState.course,
+        subtitle = uiState.organizedBy?.let { stringResource(it) } ?: uiState.date,
+    )
+    uiState.rsvp?.let { RsvpCard(uiState = it, onAnswer = onAnswer) }
+}
+
+@Composable
+private fun GameTitle(course: String, subtitle: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.TitleSpacing)) {
+        Text(
+            text = course,
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -234,13 +256,68 @@ private fun PlayerRow(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            TeeTimePlayerStatus.ACCEPTED -> Text(
-                text = stringResource(GMR.strings.game_details_accepted_label.resourceId),
+            TeeTimePlayerStatus.CONFIRMED -> Text(
+                text = stringResource(GMR.strings.game_details_confirmed_label.resourceId),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.tertiary,
             )
-            TeeTimePlayerStatus.CONFIRMED -> Unit
         }
+    }
+}
+
+/** Who said no, under a "Declined · N" heading. The organizer's view only. */
+@Composable
+private fun DeclinedSection(
+    heading: LocalizedText,
+    declined: List<DeclinedInviteeUiState>,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(GameDetailsDefaults.DeclinedHeadingSpacing),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = GameDetailsDefaults.DeclinedHeadingInset),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GameDetailsDefaults.DeclinedHeadingSpacing),
+        ) {
+            Icon(
+                painter = TtcIcons.PERSON_OFF.painter,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(GameDetailsDefaults.DeclinedIconSize),
+            )
+            Text(
+                text = stringResource(heading),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TtcCard(color = TtcColorRole.Subtle, contentPadding = GameDetailsDefaults.DeclinedListPadding) {
+            declined.forEach { DeclinedRow(uiState = it) }
+        }
+    }
+}
+
+@Composable
+private fun DeclinedRow(uiState: DeclinedInviteeUiState, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(GameDetailsDefaults.DeclinedRowPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GameDetailsDefaults.RowSpacing),
+    ) {
+        TtcAvatar(
+            initials = uiState.initial,
+            color = TtcColorRole.Neutral,
+            size = TtcAvatarDefaults.SmallSize,
+        )
+        Text(
+            text = uiState.name,
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 
@@ -307,6 +384,11 @@ private object GameDetailsDefaults {
     val RowVerticalPadding = 12.dp
     val RowSpacing = 12.dp
     val AvatarSize = 36.dp
+    val DeclinedHeadingInset = 4.dp
+    val DeclinedHeadingSpacing = 8.dp
+    val DeclinedIconSize = 18.dp
+    val DeclinedListPadding = PaddingValues(vertical = 4.dp)
+    val DeclinedRowPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
 }
 
 @ScreenPreviews
@@ -338,11 +420,9 @@ private fun GameDetailsWithInviteesPreview() {
 private fun GameDetailsSingleSlotPreview() {
     MyApplicationTheme {
         GameDetailsContent(
-            uiState = GameDetailsUiState.Content(
-                previewGame
-                    .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
-                    .toUiState(viewer = previewPlayer)
-            ),
+            uiState = previewGame
+                .copy(teeTimes = previewGame.teeTimes.map { it.copy(slots = 1) })
+                .toDetailsUiState(viewer = previewPlayer),
             onBack = {},
             onAnswer = {},
         )

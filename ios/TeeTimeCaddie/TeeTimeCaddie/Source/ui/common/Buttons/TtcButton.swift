@@ -64,6 +64,8 @@ struct TtcButton: View {
             TtcButton("Book") {}
             TtcButton("Manage", color: .secondary) {}
             TtcButton("Delete tee time", color: .error) {}
+            TtcButton("Neutral", color: .neutral, action: {})
+            TtcButton("Subtle", color: .subtle, action: {})
             TtcButton("Add tee time", icon: .symbol(.calendarAdd)) {}
             TtcButton("New", icon: .symbol(.calendarAdd), dense: true) {}
             TtcButton("Sign in") {}.frame(maxWidth: .infinity)
@@ -80,6 +82,8 @@ struct TtcButton: View {
             TtcButton("Book") {}
             TtcButton("Manage", color: .secondary) {}
             TtcButton("Delete tee time", color: .error) {}
+            TtcButton("Neutral", color: .neutral, action: {})
+            TtcButton("Subtle", color: .subtle, action: {})
             TtcButton("Add tee time", icon: .symbol(.calendarAdd)) {}
             TtcButton("Disabled") {}.disabled(true)
             TtcButton("Loading", isLoading: true) {}
