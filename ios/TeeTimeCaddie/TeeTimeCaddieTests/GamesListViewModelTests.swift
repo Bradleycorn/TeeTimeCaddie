@@ -94,4 +94,38 @@ final class GamesListViewModelTests: XCTestCase {
 
         XCTAssertEqual(toastPresenter.message, GameErrors.notFound.message.localized())
     }
+
+    func testEachTapOnYesOrNoIsLoggedOnceWithItsResponseAndSource() async {
+        let analytics = RecordingEventManager()
+        let viewModel = GamesListViewModel(
+            gamesRepository: FakeGamesRepository(games: [TestData.game()]),
+            currentPlayer: { TestData.otherPlayer },
+            eventManager: analytics.eventManager,
+            toastPresenter: TtcToastPresenter()
+        )
+
+        await viewModel.onAnswerInvite(invite(), accept: true)
+        await viewModel.onAnswerInvite(invite(), accept: false)
+
+        XCTAssertEqual(analytics.events, [
+            AnalyticsEvent.AnswerInviteClick(response: .yes, source: .gamesList),
+            AnalyticsEvent.AnswerInviteClick(response: .no, source: .gamesList),
+        ])
+    }
+
+    func testTheClickIsLoggedEvenWhenTheAnswerFails() async {
+        let analytics = RecordingEventManager()
+        let repository = FakeGamesRepository(games: [TestData.game()])
+        repository.respondFailure = .gameFull
+        let viewModel = GamesListViewModel(
+            gamesRepository: repository,
+            currentPlayer: { TestData.otherPlayer },
+            eventManager: analytics.eventManager,
+            toastPresenter: TtcToastPresenter()
+        )
+
+        await viewModel.onAnswerInvite(invite(), accept: true)
+
+        XCTAssertEqual(analytics.events, [AnalyticsEvent.AnswerInviteClick(response: .yes, source: .gamesList)])
+    }
 }

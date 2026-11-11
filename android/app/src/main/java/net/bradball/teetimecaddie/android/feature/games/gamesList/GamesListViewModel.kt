@@ -65,6 +65,7 @@ class GamesListViewModel @Inject constructor(
      * games update; a message confirms the answer, or explains why it didn't go through.
      */
     fun onAnswerInvite(invite: InviteRowUiState, accept: Boolean) {
+        eventManager.logEvent(AnalyticsEvent.AnswerInviteClick(accept, AnalyticsEvent.AnswerInviteClick.Source.GAMES_LIST))
         val player = (sessionState.value as? SessionState.SignedIn)?.player ?: return
         if (!answering.add(invite.id)) return
 
