@@ -17,6 +17,7 @@ final class GameDetailsViewModel {
     private let gameId: String
     private let gamesRepository: GamesRepository
     private let currentPlayer: () -> Player?
+    private let eventManager: EventManager
     private let toastPresenter: TtcToastPresenter
 
     // Whether an answer is on its way, so a second tap doesn't send another.
@@ -26,11 +27,13 @@ final class GameDetailsViewModel {
         gameId: String,
         gamesRepository: GamesRepository = GamesModule.shared.gamesRepository(),
         currentPlayer: @escaping () -> Player? = GamesModule.shared.currentPlayer(),
+        eventManager: EventManager = AppModule.shared.eventManager(),
         toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter()
     ) {
         self.gameId = gameId
         self.gamesRepository = gamesRepository
         self.currentPlayer = currentPlayer
+        self.eventManager = eventManager
         self.toastPresenter = toastPresenter
     }
 
@@ -54,6 +57,7 @@ final class GameDetailsViewModel {
     /// Answers the signed-in player's invitation, staying on this screen. The RSVP card collapses
     /// when the game updates; a toast confirms the answer, or explains why it didn't go through.
     func onAnswer(accept: Bool) async {
+        eventManager.logEvent(event: AnalyticsEvent.AnswerInviteClick(accepted: accept, source: .gameDetails))
         guard let player = currentPlayer(), !answering else { return }
         answering = true
         defer { answering = false }
