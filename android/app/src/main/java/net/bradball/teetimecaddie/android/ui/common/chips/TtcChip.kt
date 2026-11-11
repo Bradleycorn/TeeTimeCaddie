@@ -102,6 +102,7 @@ private fun TtcChipPreview() {
                     TtcChip(text = "Organizer", color = TtcColorRole.Primary, icon = TtcIcons.ADD)
                     TtcChip(text = "Declined", color = TtcColorRole.Error, icon = TtcIcons.ADD)
                     TtcChip(text = "3/4 filled")
+                    TtcChip(text = "Subtle", color = TtcColorRole.Subtle)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TtcChip(text = "Confirmed", color = TtcColorRole.Tertiary, size = TtcChipSize.Small)

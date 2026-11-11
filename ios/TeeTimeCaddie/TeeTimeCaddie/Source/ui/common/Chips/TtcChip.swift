@@ -78,6 +78,7 @@ struct TtcChip: View {
                 TtcChip("Tertiary", color: .tertiary, icon: .symbol(.calendar))
                 TtcChip("Declined", color: .error, icon: .symbol(.calendar))
                 TtcChip("Neutral", icon: .symbol(.calendar))
+                TtcChip("Subtle", color: .subtle, icon: .symbol(.calendar))
             }
             VStack(alignment: .leading, spacing: 8) {
                 TtcChip("Primary Small", color: .primary, size: .small, icon: .symbol(.calendar))

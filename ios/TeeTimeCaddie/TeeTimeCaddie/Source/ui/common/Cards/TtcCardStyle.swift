@@ -37,7 +37,8 @@ enum TtcCardStyle {
     /// email is already in use" warning.
     ///
     /// `.neutral` is the design's base card (`surfaceContainer` / `onSurface` — note `onSurface`,
-    /// not `onSurfaceVariant`; muted content inside a card picks the variant itself).
+    /// not `onSurfaceVariant`; muted content inside a card picks the variant itself). `.subtle` steps
+    /// down to `surfaceContainerLow`.
     static func colors(_ role: TtcColorRole, _ scheme: ThemeColors) -> (background: Color, foreground: Color) {
         switch role {
         case .primary:   (scheme.primaryContainer, scheme.onPrimaryContainer)
@@ -45,6 +46,7 @@ enum TtcCardStyle {
         case .tertiary:  (scheme.tertiaryContainer, scheme.onTertiaryContainer)
         case .error:     (scheme.errorContainer, scheme.onErrorContainer)
         case .neutral:   (scheme.surfaceContainer, scheme.onSurface)
+        case .subtle:    (scheme.surfaceContainerLow, scheme.onSurface)
         }
     }
 
@@ -60,14 +62,14 @@ enum TtcCardStyle {
     /// rail on a neutral card fill reads as no rail at all, defeating the point of an accent. It
     /// falls back to `.primary`, the design's shipped treatment (the "New invite" card). Handled as
     /// an explicit case rather than a `default:` so that adding a ``TtcColorRole`` still breaks the
-    /// build here and forces a decision.
+    /// build here and forces a decision. `.subtle` falls back the same way, for the same reason.
     static func accentColor(_ role: TtcColorRole, _ scheme: ThemeColors) -> Color {
         switch role {
         case .primary:   scheme.primary
         case .secondary: scheme.secondary
         case .tertiary:  scheme.tertiary
         case .error:     scheme.error
-        case .neutral:   scheme.primary
+        case .neutral, .subtle: scheme.primary
         }
     }
 }

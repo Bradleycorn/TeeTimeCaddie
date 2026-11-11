@@ -42,7 +42,8 @@ internal object TtcChipDefaults {
 
     /**
      * Filled ([TtcChip]) container + content colors for [color]. Filled chips use the role's
-     * *container* tone; [TtcColorRole.Neutral] uses `surfaceContainerHigh` / `onSurfaceVariant`.
+     * *container* tone; [TtcColorRole.Neutral] uses `surfaceContainerHigh` / `onSurfaceVariant`, and
+     * [TtcColorRole.Subtle] the rung below it, `surfaceContainer`.
      */
     @Composable
     fun filledColors(color: TtcColorRole): Pair<Color, Color> {
@@ -53,6 +54,7 @@ internal object TtcChipDefaults {
             TtcColorRole.Tertiary -> scheme.tertiaryContainer to scheme.onTertiaryContainer
             TtcColorRole.Error -> scheme.errorContainer to scheme.onErrorContainer
             TtcColorRole.Neutral -> scheme.surfaceContainerHigh to scheme.onSurfaceVariant
+            TtcColorRole.Subtle -> scheme.surfaceContainer to scheme.onSurfaceVariant
         }
     }
 
@@ -69,7 +71,9 @@ internal object TtcChipDefaults {
             TtcColorRole.Secondary -> scheme.secondary to scheme.secondary
             TtcColorRole.Tertiary -> scheme.tertiary to scheme.tertiary
             TtcColorRole.Error -> scheme.error to scheme.error
-            TtcColorRole.Neutral -> scheme.onSurfaceVariant to scheme.outlineVariant
+            // An outlined chip has no fill to step down, so Subtle renders as Neutral.
+            TtcColorRole.Neutral,
+            TtcColorRole.Subtle -> scheme.onSurfaceVariant to scheme.outlineVariant
         }
     }
 }

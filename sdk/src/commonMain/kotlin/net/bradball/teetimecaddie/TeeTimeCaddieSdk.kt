@@ -47,7 +47,7 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
         GamesRepositoryImpl(
             eventManager,
             storageModule.provideGameStorage(),
-            playerRepository::findPlayerByPhone
+            findPlayerByPhone = playerRepository::findPlayerByPhone
         )
     }
 

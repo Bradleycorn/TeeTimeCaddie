@@ -36,6 +36,7 @@ enum TtcButtonStyle {
         case .tertiary:  (scheme.tertiaryContainer, scheme.onTertiaryContainer)
         case .error:     (scheme.error, scheme.onError)
         case .neutral:   (scheme.surfaceContainerHighest, scheme.onSurfaceVariant)
+        case .subtle:    (scheme.surfaceContainerHigh, scheme.onSurfaceVariant)
         }
     }
 
@@ -47,7 +48,8 @@ enum TtcButtonStyle {
         case .secondary: scheme.secondary
         case .tertiary:  scheme.tertiary
         case .error:     scheme.error
-        case .neutral:   scheme.onSurface
+        // An outlined button has no fill to step down, so `.subtle` renders as `.neutral`.
+        case .neutral, .subtle: scheme.onSurface
         }
     }
 
@@ -60,7 +62,7 @@ enum TtcButtonStyle {
     static func outlinedBorder(_ role: TtcColorRole, _ scheme: ThemeColors) -> Color {
         switch role {
         case .primary, .secondary, .tertiary, .error: outlinedForeground(role, scheme)
-        case .neutral: scheme.outline
+        case .neutral, .subtle: scheme.outline
         }
     }
 }

@@ -37,8 +37,8 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  * a tinted fill carries a different meaning entirely and the two are never combined.
  *
  * Use [accent] to choose the signal the rail carries; [TtcColorRole.Primary] (the default) is the
- * design's shipped treatment. [TtcColorRole.Neutral] is the one role with no meaning here — a
- * neutral rail on a neutral fill reads as no rail at all — and falls back to
+ * design's shipped treatment. [TtcColorRole.Neutral] and [TtcColorRole.Subtle] have no meaning
+ * here — a neutral rail on a neutral fill reads as no rail at all — and fall back to
  * [TtcColorRole.Primary]; see [TtcCardDefaults.accentColor].
  *
  * Everything else — the fill, the 12dp shape and clip, zero elevation, the ripple, full width — comes

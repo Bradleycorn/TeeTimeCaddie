@@ -85,6 +85,10 @@ internal object TtcButtonDefaults {
                 container = scheme.surfaceContainerHighest
                 content = scheme.onSurfaceVariant
             }
+            TtcColorRole.Subtle -> {
+                container = scheme.surfaceContainerHigh
+                content = scheme.onSurfaceVariant
+            }
         }
         return ButtonDefaults.buttonColors(
             containerColor = container,
@@ -103,7 +107,9 @@ internal object TtcButtonDefaults {
             TtcColorRole.Secondary -> scheme.secondary
             TtcColorRole.Tertiary -> scheme.tertiary
             TtcColorRole.Error -> scheme.error
-            TtcColorRole.Neutral -> scheme.onSurface
+            // An outlined button has no fill to step down, so Subtle renders as Neutral.
+            TtcColorRole.Neutral,
+            TtcColorRole.Subtle -> scheme.onSurface
         }
     }
 
@@ -131,7 +137,8 @@ internal object TtcButtonDefaults {
             TtcColorRole.Error -> outlinedContentColor(color)
             // Distinct from the neutral *text* color (`onSurface`) — the design's default outlined
             // button pairs strong text with a subtle border.
-            TtcColorRole.Neutral -> scheme.outline
+            TtcColorRole.Neutral,
+            TtcColorRole.Subtle -> scheme.outline
         }
         return BorderStroke(1.dp, if (enabled) roleBorder else scheme.outlineVariant)
     }

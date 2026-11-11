@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -19,7 +20,7 @@ import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GamesRepository
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameDetailsUiState
-import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toUiState
+import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.toDetailsUiState
 import net.bradball.teetimecaddie.session.SessionState
 
 @AssistedFactory
@@ -45,10 +46,12 @@ class GameDetailsViewModel @AssistedInject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<GameDetailsUiState> = sessionState
         .signedInViewer()
+        // Signing out tears this screen down; until it does, keep showing the game as it was.
+        .filterNotNull()
         .flatMapLatest { viewer ->
             gamesRepository.observeGame(gameId).map { result ->
                 when (result) {
-                    is TtcResult.Success -> GameDetailsUiState.Content(result.data.toUiState(viewer))
+                    is TtcResult.Success -> result.data.toDetailsUiState(viewer)
                     is TtcResult.Failure -> GameDetailsUiState.Error(result.error)
                 }
             }
