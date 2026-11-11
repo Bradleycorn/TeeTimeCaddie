@@ -55,6 +55,7 @@ final class GamesListViewModel {
     /// Answers `invite` at once, with no confirmation step. The invitation leaves the card when the
     /// games update; a toast confirms the answer, or explains why it didn't go through.
     func onAnswerInvite(_ invite: InviteRowUiState, accept: Bool) async {
+        eventManager.logEvent(event: AnalyticsEvent.AnswerInviteClick(accepted: accept, source: .gamesList))
         guard let player = currentPlayer(), !answering.contains(invite.id) else { return }
         answering.insert(invite.id)
         defer { answering.remove(invite.id) }
