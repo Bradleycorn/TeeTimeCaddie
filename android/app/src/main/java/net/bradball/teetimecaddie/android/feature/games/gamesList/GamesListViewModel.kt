@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.bradball.teetimecaddie.android.feature.games.common.showInviteAnswer
 import net.bradball.teetimecaddie.android.feature.games.common.signedInViewer
+import net.bradball.teetimecaddie.android.feature.games.common.toResponse
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
@@ -65,6 +66,7 @@ class GamesListViewModel @Inject constructor(
      * games update; a message confirms the answer, or explains why it didn't go through.
      */
     fun onAnswerInvite(invite: InviteRowUiState, accept: Boolean) {
+        eventManager.logEvent(AnalyticsEvent.AnswerInviteClick(accept.toResponse(), AnalyticsEvent.AnswerInviteClick.Source.GAMES_LIST))
         val player = (sessionState.value as? SessionState.SignedIn)?.player ?: return
         if (!answering.add(invite.id)) return
 

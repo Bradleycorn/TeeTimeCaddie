@@ -170,4 +170,39 @@ class GamesListViewModelTest {
 
         assertEquals(listOf(TtcMessage(GameErrors.GAME_FULL.title)), messages)
     }
+
+    @Test
+    fun eachTapOnYesOrNoIsLoggedOnceWithItsResponseAndSource() = runTest {
+        val viewModel = viewModel(FakeGamesRepository(invitation))
+        collect(viewModel)
+        val invite = (viewModel.uiState.value as GamesListUiState.Content).invites.single()
+
+        viewModel.onAnswerInvite(invite, accept = true)
+        viewModel.onAnswerInvite(invite, accept = false)
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.AnswerInviteClick(
+                    AnalyticsEvent.AnswerInviteClick.Response.YES,
+                    AnalyticsEvent.AnswerInviteClick.Source.GAMES_LIST
+                ),
+                AnalyticsEvent.AnswerInviteClick(
+                    AnalyticsEvent.AnswerInviteClick.Response.NO,
+                    AnalyticsEvent.AnswerInviteClick.Source.GAMES_LIST
+                ),
+            ),
+            analytics.events.filterIsInstance<AnalyticsEvent.AnswerInviteClick>()
+        )
+    }
+
+    @Test
+    fun theClickIsLoggedEvenWhenTheAnswerFails() = runTest {
+        val repository = FakeGamesRepository(invitation).apply { respondFailure = GameErrors.GAME_FULL }
+        val viewModel = viewModel(repository)
+        collect(viewModel)
+
+        viewModel.onAnswerInvite((viewModel.uiState.value as GamesListUiState.Content).invites.single(), accept = true)
+
+        assertEquals(1, analytics.events.filterIsInstance<AnalyticsEvent.AnswerInviteClick>().size)
+    }
 }
