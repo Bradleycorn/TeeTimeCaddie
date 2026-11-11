@@ -4,6 +4,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.toList
 import net.bradball.teetimecaddie.android.feature.games.gameDetails.GameDetailsViewModel
 import net.bradball.teetimecaddie.android.testing.MainDispatcherRule
+import net.bradball.teetimecaddie.android.testing.RecordingEventManager
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessage
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.models.GameInvitee
@@ -38,10 +40,12 @@ class GameDetailsViewModelTest {
 
     private val session = MutableStateFlow<SessionState>(SessionState.SignedIn(previewPlayer))
 
+    private val analytics = RecordingEventManager()
+
     private val messenger = TtcMessenger()
 
     private fun viewModel(gameId: String, repository: FakeGamesRepository = FakeGamesRepository(previewGame)) =
-        GameDetailsViewModel(gameId, session, repository, messenger)
+        GameDetailsViewModel(gameId, session, repository, analytics.eventManager, messenger)
 
     /** Collects every message the ViewModel shows, from now on. */
     private fun TestScope.messages(): List<TtcMessage> = mutableListOf<TtcMessage>().also { list ->
@@ -173,6 +177,43 @@ class GameDetailsViewModelTest {
         viewModel.onAnswer(accept = true)
 
         assertEquals(listOf(TtcMessage(GameErrors.GAME_FULL.title)), messages)
+    }
+
+    @Test
+    fun eachTapOnYesOrNoIsLoggedOnceWithItsResponseAndSource() = runTest {
+        val viewModel = viewModel(invitation.id, FakeGamesRepository(invitation))
+        loaded(viewModel)
+
+        viewModel.onAnswer(accept = false)
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.AnswerInviteClick(
+                    AnalyticsEvent.AnswerInviteClick.Response.NO,
+                    AnalyticsEvent.AnswerInviteClick.Source.GAME_DETAILS
+                )
+            ),
+            analytics.events.filterIsInstance<AnalyticsEvent.AnswerInviteClick>()
+        )
+    }
+
+    @Test
+    fun aYesIsLoggedEvenWhenTheAnswerFails() = runTest {
+        val repository = FakeGamesRepository(invitation).apply { respondFailure = GameErrors.GAME_FULL }
+        val viewModel = viewModel(invitation.id, repository)
+        loaded(viewModel)
+
+        viewModel.onAnswer(accept = true)
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.AnswerInviteClick(
+                    AnalyticsEvent.AnswerInviteClick.Response.YES,
+                    AnalyticsEvent.AnswerInviteClick.Source.GAME_DETAILS
+                )
+            ),
+            analytics.events.filterIsInstance<AnalyticsEvent.AnswerInviteClick>()
+        )
     }
 
     @Test

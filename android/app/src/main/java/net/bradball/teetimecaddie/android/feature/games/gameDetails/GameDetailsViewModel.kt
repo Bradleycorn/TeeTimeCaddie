@@ -17,6 +17,8 @@ import kotlinx.coroutines.launch
 import net.bradball.teetimecaddie.android.feature.games.common.showInviteAnswer
 import net.bradball.teetimecaddie.android.feature.games.common.signedInViewer
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
+import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
+import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.TtcResult
 import net.bradball.teetimecaddie.features.games.GamesRepository
 import net.bradball.teetimecaddie.features.games.state.gameDetailsUiState.GameDetailsUiState
@@ -33,6 +35,7 @@ class GameDetailsViewModel @AssistedInject constructor(
     @Assisted private val gameId: String,
     private val sessionState: StateFlow<@JvmSuppressWildcards SessionState>,
     private val gamesRepository: GamesRepository,
+    private val eventManager: EventManager,
     private val messenger: TtcMessenger,
 ) : ViewModel() {
 
@@ -70,6 +73,7 @@ class GameDetailsViewModel @AssistedInject constructor(
      * when the game updates; a message confirms the answer, or explains why it didn't go through.
      */
     fun onAnswer(accept: Boolean) {
+        eventManager.logEvent(AnalyticsEvent.AnswerInviteClick(accept, AnalyticsEvent.AnswerInviteClick.Source.GAME_DETAILS))
         val player = (sessionState.value as? SessionState.SignedIn)?.player ?: return
         if (answering) return
         answering = true
