@@ -84,17 +84,17 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
 
     init {
         if (useLocalResources) {
-            Firebase.auth.useEmulator(FirebaseConfig.debugHost, FirebaseConfig.authDebugPort)
-            Firebase.firestore.useEmulator(FirebaseConfig.debugHost, FirebaseConfig.firestoreDebugPort)
+            Firebase.auth.useEmulator(FirebaseConfig.debugHost.ip, FirebaseConfig.authDebugPort)
+            Firebase.firestore.useEmulator(FirebaseConfig.debugHost.ip, FirebaseConfig.firestoreDebugPort)
             Firebase.firestore.setSettings(
-                host = "${FirebaseConfig.debugHost}:${FirebaseConfig.firestoreDebugPort}",
+                host = "${FirebaseConfig.debugHost.ip}:${FirebaseConfig.firestoreDebugPort}",
                 persistenceEnabled = false,
-                sslEnabled = false 
+                sslEnabled = false
             )
             // Avatars are the only thing we put in Cloud Storage, and they were going to the real
             // bucket in debug builds because this line was missing — the emulator suite was only
             // ever wired up for auth and firestore.
-            Firebase.storage.useEmulator(FirebaseConfig.debugHost, FirebaseConfig.storageDebugPort)
+            Firebase.storage.useEmulator(FirebaseConfig.debugHost.ip, FirebaseConfig.storageDebugPort)
         }
     }
 
