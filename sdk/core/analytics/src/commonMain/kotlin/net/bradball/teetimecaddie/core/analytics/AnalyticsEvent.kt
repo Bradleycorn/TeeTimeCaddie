@@ -89,6 +89,23 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** An invitee answered a Game's invitation: yes ([accepted]) or no. */
     @Serializable
     data class AnswerInvite(val accepted: Boolean): AnalyticsEvent("answer_invite", EventType.OPERATION)
+    /**
+     * Yes or No was tapped on a Game's invitation. Logged for every tap, whether or not the answer
+     * is then saved; [AnswerInvite] records the ones that were.
+     */
+    @Serializable
+    data class AnswerInviteClick(val response: Response, val source: Source): AnalyticsEvent("answer_invite_click", EventType.CLICK) {
+        @Serializable
+        enum class Response {
+            @SerialName("yes") YES,
+            @SerialName("no") NO
+        }
+        @Serializable
+        enum class Source {
+            @SerialName("games_list") GAMES_LIST,
+            @SerialName("game_details") GAME_DETAILS
+        }
+    }
     /** A Game was tapped on the Games tab, opening its details. */
     @Serializable
     object GameListItemClick: AnalyticsEvent("game_list_item_click", EventType.CLICK)
