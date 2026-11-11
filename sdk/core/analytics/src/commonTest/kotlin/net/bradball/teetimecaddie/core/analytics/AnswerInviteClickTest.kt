@@ -30,5 +30,19 @@ class AnswerInviteClickTest {
         assertEquals(mapOf("response" to "no", "source" to "game_details"), noFromDetails.parameters())
     }
 
+    @Test
+    fun anAcceptedFlagIsYesAndAnythingElseIsNo() {
+        val source = AnalyticsEvent.AnswerInviteClick.Source.GAME_DETAILS
+
+        assertEquals(
+            AnalyticsEvent.AnswerInviteClick(AnalyticsEvent.AnswerInviteClick.Response.YES, source),
+            AnalyticsEvent.AnswerInviteClick(accepted = true, source = source)
+        )
+        assertEquals(
+            AnalyticsEvent.AnswerInviteClick(AnalyticsEvent.AnswerInviteClick.Response.NO, source),
+            AnalyticsEvent.AnswerInviteClick(accepted = false, source = source)
+        )
+    }
+
     private fun AnalyticsEvent.parameters() = asMap.filterKeys { it != "type" && it != "name" }
 }

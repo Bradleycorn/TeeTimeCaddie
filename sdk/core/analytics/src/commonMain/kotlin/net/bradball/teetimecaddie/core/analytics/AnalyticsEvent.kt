@@ -95,6 +95,9 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
      */
     @Serializable
     data class AnswerInviteClick(val response: Response, val source: Source): AnalyticsEvent("answer_invite_click", EventType.CLICK) {
+        /** For callers that have the answer as a Boolean: [accepted] is Yes, otherwise No. */
+        constructor(accepted: Boolean, source: Source) : this(if (accepted) Response.YES else Response.NO, source)
+
         @Serializable
         enum class Response {
             @SerialName("yes") YES,
