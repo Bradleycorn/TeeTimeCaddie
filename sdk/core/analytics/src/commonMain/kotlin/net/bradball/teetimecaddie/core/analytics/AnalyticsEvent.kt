@@ -91,7 +91,7 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     data class AnswerInvite(val accepted: Boolean): AnalyticsEvent("answer_invite", EventType.OPERATION)
     /**
      * Yes or No was tapped on a Game's invitation. Logged for every tap, whether or not the answer
-     * is then saved; [AnswerInvite] records the ones that were.
+     * is then saved. [AnswerInvite] records the ones that were.
      */
     @Serializable
     data class AnswerInviteClick(val response: Response, val source: Source): AnalyticsEvent("answer_invite_click", EventType.CLICK) {
