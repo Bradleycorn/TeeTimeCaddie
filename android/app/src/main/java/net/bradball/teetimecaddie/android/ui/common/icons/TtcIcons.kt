@@ -27,6 +27,7 @@ enum class TtcIcons(val resource: Int) {
     LOCK_PERSON(R.drawable.icon_lock_person),
     LOGOUT(R.drawable.icon_logout),
     MARK_EMAIL_UNREAD(R.drawable.icon_mark_email_unread),
+    MORE_VERT(R.drawable.icon_more_vert),
     PERSON_ADD(R.drawable.icon_person_add),
     PERSON_FILL(R.drawable.icon_person_fill),
     PERSON_OFF(R.drawable.icon_person_off),
