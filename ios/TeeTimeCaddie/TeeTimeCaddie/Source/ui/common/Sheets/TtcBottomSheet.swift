@@ -110,10 +110,27 @@ extension View {
             content().modifier(TtcBottomSheetPresentation(size: size))
         }
     }
+
+    /// Presents `content` for `item`, usually a ``TtcBottomSheet``, as a Fairway Morning bottom
+    /// sheet, while `item` isn't nil.
+    ///
+    /// Like SwiftUI's `sheet(item:)`: setting `item` to nil closes the sheet, and the sheet keeps
+    /// showing the last item while it slides away. A new item with a different `id` closes the
+    /// sheet and presents another.
+    func ttcBottomSheet<Item: Identifiable, Content: View>(
+        item: Binding<Item?>,
+        size: TtcBottomSheetSize = .fitted,
+        onDismiss: (() -> Void)? = nil,
+        @ViewBuilder content: @escaping (Item) -> Content
+    ) -> some View {
+        sheet(item: item, onDismiss: onDismiss) { item in
+            content(item).modifier(TtcBottomSheetPresentation(size: size))
+        }
+    }
 }
 
 /// The presentation settings ``SwiftUI/View/ttcBottomSheet(isPresented:size:onDismiss:content:)``
-/// applies inside the sheet.
+/// and ``SwiftUI/View/ttcBottomSheet(item:size:onDismiss:content:)`` apply inside the sheet.
 private struct TtcBottomSheetPresentation: ViewModifier {
     @EnvironmentObject private var theme: AppTheme
 
