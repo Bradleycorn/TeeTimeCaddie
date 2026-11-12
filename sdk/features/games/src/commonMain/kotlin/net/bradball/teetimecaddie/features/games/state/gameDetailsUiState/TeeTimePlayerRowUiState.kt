@@ -14,14 +14,22 @@ import net.bradball.teetimecaddie.core.models.LocalizedText
  * @property viewerName Set only on the signed-in player's own row in the invitee view, which
  *   shows this in place of [name]: their first name, marked "Dana (you)". The organizer's own row
  *   keeps their name and the "Organizer" label.
+ * @property responseSheet Set only in the organizer's view, on the row of an invitee who hasn't
+ *   answered: the row gets a ⋮, and tapping it or the row opens this sheet to record a Yes or No
+ *   for them. Null on every other row, which has no ⋮ and does nothing when tapped.
  */
 data class TeeTimePlayerRowUiState(
     val initial: String,
     val name: String,
     val tone: AvatarTone,
     val status: TeeTimePlayerStatus,
-    val viewerName: LocalizedText? = null
-)
+    val viewerName: LocalizedText? = null,
+    val responseSheet: ResponseSheetUiState? = null
+) {
+    /** Whether the organizer can record a response from this row. */
+    val canRecordResponse: Boolean
+        get() = responseSheet != null
+}
 
 /** Where a person on a tee time's roster stands, which decides how their row is labelled. */
 enum class TeeTimePlayerStatus {

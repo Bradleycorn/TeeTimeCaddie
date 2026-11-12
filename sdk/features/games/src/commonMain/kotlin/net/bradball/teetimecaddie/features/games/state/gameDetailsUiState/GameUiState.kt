@@ -73,7 +73,8 @@ sealed interface GameUiState {
  * Invitees belong to the game rather than to a tee time, so those who haven't answered are listed
  * under the first tee time — for now every game has exactly one. Someone who said yes holds a slot
  * and is listed with the slot holders; someone who said no is listed only in the organizer's
- * Declined section. Only the tee time's players count toward how full it is.
+ * Declined section. Only the tee time's players count toward how full it is. In the organizer's
+ * view, each invitee who hasn't answered carries the sheet for recording their answer.
  */
 fun Game.toUiState(viewer: Player): GameUiState? {
     val viewerPhone = viewer.phone.toPhoneDigits()
@@ -90,7 +91,9 @@ fun Game.toUiState(viewer: Player): GameUiState? {
             name = name,
             tone = if (organizedGame) AvatarTone.SECONDARY else AvatarTone.forName(name),
             status = if (organizedGame) TeeTimePlayerStatus.ORGANIZER else TeeTimePlayerStatus.CONFIRMED,
-            viewerName = viewerName.takeIf { playerId == viewer.id }
+            // By number rather than id: a seat the organizer filled for someone before they had
+            // an account carries no id, but it carries the number they were invited by.
+            viewerName = viewerName.takeIf { phone == viewerPhone }
         )
     }
 
@@ -108,7 +111,8 @@ fun Game.toUiState(viewer: Player): GameUiState? {
                     name = it.name,
                     tone = it.avatarTone,
                     status = TeeTimePlayerStatus.INVITED,
-                    viewerName = viewerName.takeIf { _ -> it.phone == viewerPhone }
+                    viewerName = viewerName.takeIf { _ -> it.phone == viewerPhone },
+                    responseSheet = if (isOrganizer) responseSheetFor(it, teeTime) else null
                 )
             }
         } else {

@@ -66,7 +66,8 @@ class GameUiStateTest {
                 TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", tone = AvatarTone.forName("matt Chen"), status = TeeTimePlayerStatus.INVITED),
                 TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", tone = AvatarTone.forName("Jeff Morrison"), status = TeeTimePlayerStatus.INVITED),
             ),
-            teeTime.players
+            // The organizer's response sheets on the invited rows are covered on their own below.
+            teeTime.players.map { it.copy(responseSheet = null) }
         )
         // Two players and two invitees use all four rows; the count still says two are filled.
         assertEquals(0, teeTime.openSlots)
@@ -348,5 +349,75 @@ class GameUiStateTest {
 
         assertEquals(null, (state.rsvp as RsvpUiState.Pending).title)
         assertEquals(null, state.organizedBy)
+    }
+
+    // MARK: Recording a response for an invitee
+
+    @Test
+    fun anInviteeWhoHasNotAnsweredCarriesTheOrganizersResponseSheet() {
+        val row = invitedGame.organizerView().teeTimes.single().players.last()
+
+        assertTrue(row.canRecordResponse)
+        assertEquals(
+            ResponseSheetUiState(
+                inviteePhone = samViewer.phone,
+                title = LocalizedText(GMR.strings.game_details_response_title, listOf("Sam")),
+                prompt = LocalizedText(GMR.strings.game_details_response_prompt, listOf("Sam", "9:00 AM")),
+                yesDetail = LocalizedText(GMR.strings.game_details_response_yes_detail, listOf("9:00 AM")),
+                canAccept = true,
+                inviteeName = "Sam"
+            ),
+            row.responseSheet
+        )
+    }
+
+    @Test
+    fun theResponseSheetTurnsYesOffOnceYesAnswersFillEverySlot() {
+        val full = invitedGame.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 2, players = listOf(organizer, guest)))
+        )
+
+        val sheet = full.organizerView().teeTimes.single().players.last().responseSheet
+
+        assertEquals(false, sheet?.canAccept)
+        assertEquals(LocalizedText(GMR.strings.game_details_response_yes_full, listOf("9:00 AM")), sheet?.yesDetail)
+    }
+
+    @Test
+    fun onlyInvitedRowsInTheOrganizersViewCanRecordAResponse() {
+        val organizerRows = invitedGame.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest)))
+        ).organizerView().teeTimes.single().players
+
+        assertEquals(listOf(false, false, true), organizerRows.map { it.canRecordResponse })
+        assertTrue(invitedGame.inviteeView(samViewer).teeTimes.single().players.none { it.canRecordResponse })
+    }
+
+    @Test
+    fun theResponseSheetConfirmsTheAnswerByTheInviteesName() {
+        val sheet = invitedGame.organizerView().teeTimes.single().players.last().responseSheet!!
+
+        assertEquals(LocalizedText(GMR.strings.game_details_response_recorded_yes, listOf("Sam")), sheet.recordedMessage(accepted = true))
+        assertEquals(LocalizedText(GMR.strings.game_details_response_recorded_no, listOf("Sam")), sheet.recordedMessage(accepted = false))
+    }
+
+    @Test
+    fun aSeatTheOrganizerFilledWithoutAnAccountIsStillTheViewersOwnRow() {
+        // Sam's Yes was recorded before Sam had an account: the seat has his number but no id.
+        val recorded = invitedGame.copy(
+            teeTimes = listOf(
+                GameTeeTime(
+                    time = LocalTime(9, 0),
+                    slots = 4,
+                    players = listOf(organizer, GamePlayer(playerId = null, name = "Sam", phone = samViewer.phone))
+                )
+            ),
+            invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED))
+        )
+
+        val samsRow = recorded.inviteeView(samViewer).teeTimes.single().players.last()
+
+        assertEquals(TeeTimePlayerStatus.CONFIRMED, samsRow.status)
+        assertEquals(LocalizedText(GMR.strings.game_details_viewer_name, listOf("Sam")), samsRow.viewerName)
     }
 }
