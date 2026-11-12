@@ -47,7 +47,7 @@ final class GameDetailsViewModel {
         for await result in gamesRepository.observeGame(gameId: gameId) {
             switch onEnum(of: result) {
             case .success(let success):
-                uiState = success.data.toDetailsUiState(viewer: viewer)
+                uiState = success.data.toDetailsUiState(viewer: viewer, respondingFor: nil)
             case .failure(let failure):
                 uiState = GameDetailsUiStateError(error: failure.error)
             }

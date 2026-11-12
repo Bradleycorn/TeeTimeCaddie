@@ -26,8 +26,11 @@ sealed interface GameDetailsUiState {
 /**
  * This game's details as [viewer] sees them: [GameDetailsUiState.Content], or, for a viewer who
  * neither organized the game nor was invited to it, the same error as a game that doesn't exist.
+ *
+ * @param respondingFor The number of the invitee whose response sheet the organizer has open, or
+ *   null while it's closed. See [toUiState].
  */
-fun Game.toDetailsUiState(viewer: Player): GameDetailsUiState =
-    this.toUiState(viewer)
+fun Game.toDetailsUiState(viewer: Player, respondingFor: String? = null): GameDetailsUiState =
+    this.toUiState(viewer, respondingFor)
         ?.let { GameDetailsUiState.Content(it) }
         ?: GameDetailsUiState.Error(GameException(GameErrors.NOT_FOUND))

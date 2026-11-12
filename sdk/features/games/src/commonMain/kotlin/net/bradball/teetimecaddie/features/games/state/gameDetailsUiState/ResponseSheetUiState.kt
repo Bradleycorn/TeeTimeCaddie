@@ -9,10 +9,11 @@ import net.bradball.teetimecaddie.core.models.previewGameTeeTime
 import net.bradball.teetimecaddie.features.games.GMR
 
 /**
- * The sheet the organizer opens from an invitee's row to record a Yes or No on their behalf.
+ * The sheet the organizer opens from an invitee's row to record a Yes or No on their behalf, as it
+ * stands while it's open. See [GameUiState.Organizer.responseSheet].
  *
- * Built from the game as it stands, so it keeps up while it's open: if the tee time fills, Yes
- * turns off on its own.
+ * Rebuilt from the game each time it changes, so it keeps up while it's open: if the tee time
+ * fills, Yes turns off on its own.
  *
  * @property inviteePhone The number the invitee was invited by, digits only. Pass it back to
  *   `GamesRepository.recordResponse`.

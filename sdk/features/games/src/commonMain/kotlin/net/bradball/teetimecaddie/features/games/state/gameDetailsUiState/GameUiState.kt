@@ -37,12 +37,15 @@ sealed interface GameUiState {
      *
      * @property declined Everyone who said no, in the order they were invited. Empty when nobody
      *   has, and the section is left out.
+     * @property responseSheet The sheet for recording an invitee's Yes or No, while it's open.
+     *   Null when it isn't.
      */
     data class Organizer(
         override val course: String,
         override val date: String,
         override val teeTimes: List<GameTeeTimeUiState>,
-        val declined: List<DeclinedInviteeUiState> = emptyList()
+        val declined: List<DeclinedInviteeUiState> = emptyList(),
+        val responseSheet: ResponseSheetUiState? = null
     ) : GameUiState {
         /** The Declined section's heading, with how many declined, e.g. "Declined · 2". */
         val declinedHeading: LocalizedText
@@ -73,10 +76,16 @@ sealed interface GameUiState {
  * Invitees belong to the game rather than to a tee time, so those who haven't answered are listed
  * under the first tee time — for now every game has exactly one. Someone who said yes holds a slot
  * and is listed with the slot holders; someone who said no is listed only in the organizer's
- * Declined section. Only the tee time's players count toward how full it is. In the organizer's
- * view, each invitee who hasn't answered carries the sheet for recording their answer.
+ * Declined section. Only the tee time's players count toward how full it is.
+ *
+ * In the organizer's view, each invitee who hasn't answered can be tapped to record their answer.
+ * [respondingFor] is the one whose response sheet is open, if any; the sheet is built from the game
+ * as it stands, and is left out once that invitee is no longer waiting for an answer.
+ *
+ * @param respondingFor The number of the invitee whose response sheet the organizer has open, or
+ *   null while it's closed. Formatting is ignored. Ignored outside the organizer's view.
  */
-fun Game.toUiState(viewer: Player): GameUiState? {
+fun Game.toUiState(viewer: Player, respondingFor: String? = null): GameUiState? {
     val viewerPhone = viewer.phone.toPhoneDigits()
     val isOrganizer = isOrganizer(viewer.id)
     val rsvp = rsvpFor(viewerPhone)
@@ -112,7 +121,7 @@ fun Game.toUiState(viewer: Player): GameUiState? {
                     tone = it.avatarTone,
                     status = TeeTimePlayerStatus.INVITED,
                     viewerName = viewerName.takeIf { _ -> it.phone == viewerPhone },
-                    responseSheet = if (isOrganizer) responseSheetFor(it, teeTime) else null
+                    inviteePhone = it.phone.takeIf { isOrganizer }
                 )
             }
         } else {
@@ -136,7 +145,11 @@ fun Game.toUiState(viewer: Player): GameUiState? {
             teeTimes = teeTimes,
             declined = invitees
                 .filter { it.status == InviteStatus.DECLINED }
-                .map { DeclinedInviteeUiState(initial = it.initial, name = it.name) }
+                .map { DeclinedInviteeUiState(initial = it.initial, name = it.name) },
+            responseSheet = respondingFor
+                ?.let { phone -> pending.firstOrNull { it.phone == phone.toPhoneDigits() } }
+                // Every game has exactly one tee time for now, and it is the one an invitee joins.
+                ?.let { invitee -> this.teeTimes.firstOrNull()?.let { responseSheetFor(invitee, it) } }
         )
     } else {
         GameUiState.Invitee(

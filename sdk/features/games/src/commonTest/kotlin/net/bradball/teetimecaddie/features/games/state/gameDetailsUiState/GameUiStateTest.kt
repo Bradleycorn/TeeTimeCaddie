@@ -63,11 +63,10 @@ class GameUiStateTest {
             listOf(
                 TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", tone = AvatarTone.SECONDARY, status = TeeTimePlayerStatus.ORGANIZER),
                 TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", tone = AvatarTone.forName("Dana Park"), status = TeeTimePlayerStatus.CONFIRMED),
-                TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", tone = AvatarTone.forName("matt Chen"), status = TeeTimePlayerStatus.INVITED),
-                TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", tone = AvatarTone.forName("Jeff Morrison"), status = TeeTimePlayerStatus.INVITED),
+                TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", tone = AvatarTone.forName("matt Chen"), status = TeeTimePlayerStatus.INVITED, inviteePhone = "4155550188"),
+                TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", tone = AvatarTone.forName("Jeff Morrison"), status = TeeTimePlayerStatus.INVITED, inviteePhone = "4155550188"),
             ),
-            // The organizer's response sheets on the invited rows are covered on their own below.
-            teeTime.players.map { it.copy(responseSheet = null) }
+            teeTime.players
         )
         // Two players and two invitees use all four rows; the count still says two are filled.
         assertEquals(0, teeTime.openSlots)
@@ -353,11 +352,29 @@ class GameUiStateTest {
 
     // MARK: Recording a response for an invitee
 
-    @Test
-    fun anInviteeWhoHasNotAnsweredCarriesTheOrganizersResponseSheet() {
-        val row = invitedGame.organizerView().teeTimes.single().players.last()
+    // Sam's number, as the organizer's app might hold it.
+    private val samFormatted = "(502) 555-3456"
 
-        assertTrue(row.canRecordResponse)
+    @Test
+    fun onlyInvitedRowsInTheOrganizersViewCanRecordAResponse() {
+        val organizerRows = invitedGame.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest)))
+        ).organizerView().teeTimes.single().players
+
+        assertEquals(listOf(null, null, samViewer.phone), organizerRows.map { it.inviteePhone })
+        assertEquals(listOf(false, false, true), organizerRows.map { it.canRecordResponse })
+        assertTrue(invitedGame.inviteeView(samViewer).teeTimes.single().players.none { it.canRecordResponse })
+    }
+
+    @Test
+    fun theResponseSheetIsClosedUntilAnInviteeIsChosen() {
+        assertEquals(null, invitedGame.organizerView().responseSheet)
+    }
+
+    @Test
+    fun theChosenInviteeGetsTheOnlyResponseSheet() {
+        val state = invitedGame.toUiState(bradViewer, respondingFor = samFormatted) as GameUiState.Organizer
+
         assertEquals(
             ResponseSheetUiState(
                 inviteePhone = samViewer.phone,
@@ -367,7 +384,7 @@ class GameUiStateTest {
                 canAccept = true,
                 inviteeName = "Sam"
             ),
-            row.responseSheet
+            state.responseSheet
         )
     }
 
@@ -377,25 +394,30 @@ class GameUiStateTest {
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 2, players = listOf(organizer, guest)))
         )
 
-        val sheet = full.organizerView().teeTimes.single().players.last().responseSheet
+        val sheet = (full.toUiState(bradViewer, respondingFor = samViewer.phone) as GameUiState.Organizer).responseSheet
 
         assertEquals(false, sheet?.canAccept)
         assertEquals(LocalizedText(GMR.strings.game_details_response_yes_full, listOf("9:00 AM")), sheet?.yesDetail)
     }
 
     @Test
-    fun onlyInvitedRowsInTheOrganizersViewCanRecordAResponse() {
-        val organizerRows = invitedGame.copy(
-            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest)))
-        ).organizerView().teeTimes.single().players
+    fun theResponseSheetClosesOnceTheInviteeIsNoLongerWaiting() {
+        val answered = invitedGame.copy(invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.DECLINED)))
 
-        assertEquals(listOf(false, false, true), organizerRows.map { it.canRecordResponse })
-        assertTrue(invitedGame.inviteeView(samViewer).teeTimes.single().players.none { it.canRecordResponse })
+        assertEquals(null, (answered.toUiState(bradViewer, respondingFor = samViewer.phone) as GameUiState.Organizer).responseSheet)
+        assertEquals(null, (invitedGame.toUiState(bradViewer, respondingFor = danaViewer.phone) as GameUiState.Organizer).responseSheet)
+    }
+
+    @Test
+    fun onlyTheOrganizerGetsAResponseSheet() {
+        val state = invitedGame.toUiState(samViewer, respondingFor = samViewer.phone)
+
+        assertTrue(state is GameUiState.Invitee)
     }
 
     @Test
     fun theResponseSheetConfirmsTheAnswerByTheInviteesName() {
-        val sheet = invitedGame.organizerView().teeTimes.single().players.last().responseSheet!!
+        val sheet = (invitedGame.toUiState(bradViewer, respondingFor = samViewer.phone) as GameUiState.Organizer).responseSheet!!
 
         assertEquals(LocalizedText(GMR.strings.game_details_response_recorded_yes, listOf("Sam")), sheet.recordedMessage(accepted = true))
         assertEquals(LocalizedText(GMR.strings.game_details_response_recorded_no, listOf("Sam")), sheet.recordedMessage(accepted = false))
