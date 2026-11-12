@@ -5,10 +5,13 @@ import kotlinx.datetime.LocalTime
 import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameInviteeDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GamePlayerDocument
+import net.bradbal.teetimecaddie.core.storage.documents.GameRosterDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameTeeTimeDocument
+import net.bradbal.teetimecaddie.core.storage.documents.InviteeAnswerDocument
 import net.bradball.teetimecaddie.core.models.Course
 import net.bradball.teetimecaddie.core.models.GameInvitee
 import net.bradball.teetimecaddie.core.models.InviteStatus
+import net.bradball.teetimecaddie.core.models.previewPlayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -86,6 +89,56 @@ class GameExtensionsTest {
             ),
             invitees.toInviteesDocument()
         )
+    }
+
+    // MARK: answer
+
+    private val danaPhone = "5025552345"
+    private val dana = previewPlayer.copy(id = "dana", name = "Dana Park", phone = danaPhone)
+    private val danaInvite = GameInviteeDocument("Dana", playerId = null, status = "PENDING", order = 0)
+
+    private fun invitingGame(slots: Int = 4, invitee: GameInviteeDocument = danaInvite) =
+        document(GameTeeTimeDocument(LocalTime(9, 0), slots, listOf(organizer)))
+            .copy(invitees = mapOf(danaPhone to invitee), invitedPhones = listOf(danaPhone))
+
+    @Test
+    fun answer_noWritesOnlyTheInvitation() {
+        assertEquals(
+            InviteAnswer.Write(
+                InviteeAnswerDocument(danaInvite.copy(status = "DECLINED", playerId = "dana"), seat = null)
+            ),
+            invitingGame().answer(danaPhone, dana, accept = false)
+        )
+    }
+
+    @Test
+    fun answer_yesWritesTheInvitationAndTheNextSeat() {
+        val seated = GameTeeTimeDocument(
+            LocalTime(9, 0), 4, listOf(organizer, GamePlayerDocument("dana", "Dana Park"))
+        )
+
+        assertEquals(
+            InviteAnswer.Write(
+                InviteeAnswerDocument(
+                    invitee = danaInvite.copy(status = "ACCEPTED", playerId = "dana"),
+                    seat = GameRosterDocument(teeTimes = listOf(seated), playerIds = listOf("brad", "dana"))
+                )
+            ),
+            invitingGame().answer(danaPhone, dana, accept = true)
+        )
+    }
+
+    @Test
+    fun answer_yesToAFullGameWritesNothing() {
+        assertEquals(InviteAnswer.Full, invitingGame(slots = 1).answer(danaPhone, dana, accept = true))
+    }
+
+    @Test
+    fun answer_writesNothingForAnAnsweredOrMissingInvitation() {
+        val declined = invitingGame(invitee = danaInvite.copy(status = "DECLINED", playerId = "dana"))
+
+        assertEquals(InviteAnswer.AlreadyAnswered, declined.answer(danaPhone, dana, accept = true))
+        assertEquals(InviteAnswer.NotInvited, invitingGame().answer("4155550188", dana, accept = true))
     }
 
     @Test

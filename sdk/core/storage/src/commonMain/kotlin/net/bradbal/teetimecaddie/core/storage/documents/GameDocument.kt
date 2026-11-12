@@ -16,9 +16,11 @@ import kotlinx.serialization.Transient
  * @property playerIds Everyone holding a slot, across all tee times. It exists for the
  *   `array-contains` query that finds a player's games, and the read rule checks it.
  * @property invitees Everyone invited, keyed by the phone number (digits only) they were invited
- *   by. [GameInviteeDocument.order] records the order the organizer added them in.
- * @property invitedPhones Exactly the keys of [invitees]. It exists for the `array-contains` query
- *   that finds the invitations waiting for a phone number, and is never changed after publish.
+ *   by. Not a field on the game: each invitee is their own document in the game's `invitees`
+ *   subcollection (see [GameInviteeDocument]). `GameStorage` reads them alongside the game and
+ *   writes them when the game is published.
+ * @property invitedPhones The phone number of every invitee. It exists for the `array-contains`
+ *   query that finds the invitations waiting for a phone number, and is never changed after publish.
  * @property createdAt Set by the server on write. Null when read back from a pending local write,
  *   before the server has assigned it.
  */
@@ -30,7 +32,8 @@ data class GameDocument(
     val date: LocalDate,
     val teeTimes: List<GameTeeTimeDocument>,
     val playerIds: List<String>,
-    val invitees: Map<String, GameInviteeDocument>,
+    @Transient
+    val invitees: Map<String, GameInviteeDocument> = emptyMap(),
     val invitedPhones: List<String>,
     val createdAt: BaseTimestamp? = Timestamp.ServerTimestamp
 ) {
