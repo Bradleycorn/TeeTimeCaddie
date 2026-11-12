@@ -113,8 +113,9 @@ class GameDetailsViewModel @AssistedInject constructor(
         respondingFor.value = null
     }
 
-    // Whether a recorded answer is on its way, so a second pick doesn't send another.
-    private var recording = false
+    // Whether the organizer's answer for an invitee is on its way, so a second pick doesn't send
+    // another.
+    private var recordingResponse = false
 
     /**
      * Records the organizer's Yes ([accept]) or No for the invitee whose response sheet is open, and
@@ -123,16 +124,16 @@ class GameDetailsViewModel @AssistedInject constructor(
      */
     fun onRecordResponse(accept: Boolean) {
         eventManager.logEvent(AnalyticsEvent.OrganizerResponseClick(accept))
-        val sheet = ((uiState.value as? GameDetailsUiState.Content)?.game as? GameUiState.Organizer)
+        val responseSheetUiState = ((uiState.value as? GameDetailsUiState.Content)?.game as? GameUiState.Organizer)
             ?.responseSheet ?: return
         respondingFor.value = null
         val organizer = (sessionState.value as? SessionState.SignedIn)?.player ?: return
-        if (recording) return
-        recording = true
+        if (recordingResponse) return
+        recordingResponse = true
 
         viewModelScope.launch {
-            when (val result = gamesRepository.recordResponse(gameId, organizer, sheet.inviteePhone, accept)) {
-                is TtcResult.Success -> sheet.recordedMessage(accept)
+            when (val result = gamesRepository.recordResponse(gameId, organizer, responseSheetUiState.inviteePhone, accept)) {
+                is TtcResult.Success -> responseSheetUiState.recordedMessage(accept)
                     .let { messenger.show(TtcMessage(it.resource, it.args)) }
                 is TtcResult.Failure -> {
                     val error = result.error
@@ -145,7 +146,7 @@ class GameDetailsViewModel @AssistedInject constructor(
                     }
                 }
             }
-            recording = false
+            recordingResponse = false
         }
     }
 }
