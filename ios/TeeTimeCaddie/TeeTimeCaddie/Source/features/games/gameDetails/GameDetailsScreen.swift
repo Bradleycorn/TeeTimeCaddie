@@ -224,7 +224,7 @@ fileprivate struct TeeTimeCard: View {
 }
 
 /// One person on the roster. In the organizer's view, an invitee who hasn't answered can be tapped,
-/// or their ⋮, to record their answer.
+/// or their "more" button, to record their answer.
 fileprivate struct PlayerRow: View {
     @EnvironmentObject private var theme: AppTheme
 
@@ -252,8 +252,8 @@ fileprivate struct PlayerRow: View {
 
     private func moreButton(inviteePhone: String) -> some View {
         Button(action: { onInviteeClick(inviteePhone) }) {
-            Image(SfSymbol.ellipsis)
-                .rotationEffect(.degrees(90))
+            // iOS's "more options" symbol, where Android shows Material's vertical ⋮.
+            Image(SfSymbol.ellipsisCircle)
                 .foregroundStyle(theme.colorScheme.onSurfaceVariant)
                 .frame(width: GameDetailsDefaults.moreButtonSize, height: GameDetailsDefaults.moreButtonSize)
                 .contentShape(Rectangle())

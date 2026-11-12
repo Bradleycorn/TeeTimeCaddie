@@ -100,8 +100,8 @@ final class GameDetailsViewModel {
         }
     }
 
-    /// The organizer tapped an invitee who hasn't answered, or their ⋮: opens the sheet for
-    /// recording their answer.
+    /// The organizer tapped an invitee who hasn't answered, or their "more" button: opens the sheet
+    /// for recording their answer.
     ///
     /// - Parameter inviteePhone: The row's `inviteePhone`.
     func onInviteeClick(inviteePhone: String) {

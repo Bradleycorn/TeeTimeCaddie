@@ -11,7 +11,7 @@ enum SfSymbol: String {
     case chevronLeft = "chevron.left"
     case chevronRight = "chevron.right"
     case clock = "clock"
-    case ellipsis = "ellipsis"
+    case ellipsisCircle = "ellipsis.circle"
     case envelopeBadgePersonCropFill = "envelope.badge.person.crop.fill"
     case exclamationmarkCircleFill = "exclamationmark.circle.fill"
     case eye = "eye"
