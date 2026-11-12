@@ -1,4 +1,5 @@
-// Firestore security rules tests for the `courses` and `games` collections.
+// Firestore security rules tests for the `courses` and `games` collections, and each game's
+// `invitees` subcollection.
 //
 // Run from firebase/:
 //   firebase emulators:exec --only firestore "npm --prefix rules-tests test"
@@ -86,18 +87,23 @@ function newGame(overrides = {}, teeTimeOverrides = {}, playerOverrides = {}) {
       ...teeTimeOverrides,
     }],
     playerIds: [BRAD],
-    invitees: {},
     invitedPhones: [],
     createdAt: serverTimestamp(),
     ...overrides,
   };
 }
 
-/** Publish the way the app does: an optional new course and the game, atomically. */
-function publish(db, game, { course, gameId = 'game-1' } = {}) {
+/**
+ * Publish the way the app does: an optional new course, the game and one document per invitee,
+ * atomically. [invitees] are the invitee documents to write, keyed by phone.
+ */
+function publish(db, game, { course, gameId = 'game-1', invitees = {} } = {}) {
   const batch = writeBatch(db);
   if (course) batch.set(doc(db, 'courses', course.nameKey), course);
   batch.set(doc(db, 'games', gameId), game);
+  for (const [phone, invitee] of Object.entries(invitees)) {
+    batch.set(doc(db, 'games', gameId, 'invitees', phone), invitee);
+  }
   return batch.commit();
 }
 
@@ -108,100 +114,108 @@ async function seedGame(gameId = 'game-1', overrides = {}) {
   });
 }
 
-// Invitees as the app holds them: a phone number and the entry stored under it.
+// Invitees as the app holds them: a phone number and the document stored under it.
 const MATT = { phone: '4155550188', name: 'Matt Chen', playerId: null, status: 'PENDING' };
 const JEFF = { phone: '4155550142', name: 'Jeff Morrison', playerId: SAM, status: 'PENDING' };
 const DANA_INVITE = { phone: DANA_PHONE, name: 'Dana', playerId: null, status: 'PENDING' };
 
-/** The stored invitees map for [invitees]: keyed by phone, each entry carrying its order. */
-function inviteesMap(invitees) {
+/** The invitee documents for [invitees], keyed by phone, each carrying its order. */
+function inviteeDocs(invitees) {
   return Object.fromEntries(
-    invitees.map(({ phone, ...entry }, order) => [phone, { ...entry, order }])
+    invitees.map(({ phone, ...invitee }, order) => [phone, { ...invitee, order }])
   );
 }
 
-/** A new game inviting [invitees], with invitedPhones kept in step. */
-function invitingGame(invitees, overrides = {}) {
-  return newGame({
-    invitees: inviteesMap(invitees),
-    invitedPhones: invitees.map((i) => i.phone),
-    ...overrides,
-  });
+/** Publish a game inviting [invitees], with invitedPhones kept in step. */
+function publishInviting(db, invitees, { overrides = {}, docs = inviteeDocs(invitees), ...options } = {}) {
+  const game = newGame({ invitedPhones: invitees.map((i) => i.phone), ...overrides });
+  return publish(db, game, { invitees: docs, ...options });
 }
 
 describe('publishing a game with invitees', () => {
   test('allows app-user and managed invitees', async () => {
-    await assertSucceeds(publish(signedIn(BRAD), invitingGame([MATT, JEFF])));
+    await assertSucceeds(publishInviting(signedIn(BRAD), [MATT, JEFF]));
   });
 
   test('allows more invitees than slots', async () => {
     const invitees = [0, 1, 2, 3, 4].map((n) => ({ ...MATT, phone: `415555010${n}` }));
-    await assertSucceeds(publish(signedIn(BRAD), invitingGame(invitees, {}), { gameId: 'many' }));
+    await assertSucceeds(publishInviting(signedIn(BRAD), invitees));
   });
 
-  test('denies a game without the invitee fields', async () => {
+  test('allows 50 invitees in one write', async () => {
+    const invitees = Array.from({ length: 50 }, (_, n) => ({ ...MATT, phone: `41555${String(n).padStart(5, '0')}` }));
+    await assertSucceeds(publishInviting(signedIn(BRAD), invitees));
+  });
+
+  test('denies a game without invitedPhones', async () => {
     const game = newGame();
-    delete game.invitees;
     delete game.invitedPhones;
     await assertFails(publish(signedIn(BRAD), game));
   });
 
-  test('denies invitedPhones that do not pair with the invitees', async () => {
-    const invitees = inviteesMap([MATT]);
-    await assertFails(publish(signedIn(BRAD), newGame({ invitees, invitedPhones: [] })));
-    await assertFails(
-      publish(signedIn(BRAD), newGame({ invitees, invitedPhones: ['4155550142'] }))
-    );
-    await assertFails(
-      publish(signedIn(BRAD), newGame({ invitees, invitedPhones: [MATT.phone, MATT.phone] }))
-    );
+  test('denies a game that still holds an invitees map', async () => {
+    const docs = inviteeDocs([MATT]);
+    const game = newGame({ invitedPhones: [MATT.phone], invitees: docs });
+    await assertFails(publish(signedIn(BRAD), game, { invitees: docs }));
   });
 
-  test('denies invitees stored as a list', async () => {
-    const game = newGame({ invitees: [MATT], invitedPhones: [MATT.phone] });
-    await assertFails(publish(signedIn(BRAD), game));
+  test('denies invitedPhones without their invitee documents', async () => {
+    await assertFails(publishInviting(signedIn(BRAD), [MATT], { docs: {} }));
+  });
+
+  test('denies an invitee document for a number not in invitedPhones', async () => {
+    const docs = inviteeDocs([MATT, JEFF]);
+    await assertFails(publishInviting(signedIn(BRAD), [MATT], { docs }));
+  });
+
+  test('denies a number invited twice', async () => {
+    await assertFails(publishInviting(signedIn(BRAD), [MATT, MATT], { docs: inviteeDocs([MATT]) }));
   });
 
   test('denies a formatted phone number', async () => {
-    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, phone: '(415) 555-0188' }])));
+    await assertFails(publishInviting(signedIn(BRAD), [{ ...MATT, phone: '(415) 555-0188' }]));
   });
 
   test('denies a formatted phone number after the first invitee', async () => {
-    await assertFails(
-      publish(signedIn(BRAD), invitingGame([MATT, { ...JEFF, phone: '415-555-0142' }]))
-    );
-  });
-
-  test('denies invitedPhones that name someone other than the invitees', async () => {
-    const game = invitingGame([MATT, JEFF], { invitedPhones: [MATT.phone, '4155550199'] });
-    await assertFails(publish(signedIn(BRAD), game));
+    await assertFails(publishInviting(signedIn(BRAD), [MATT, { ...JEFF, phone: '415-555-0142' }]));
   });
 
   test('denies an invitee without an order', async () => {
-    const game = invitingGame([MATT]);
-    delete game.invitees[MATT.phone].order;
-    await assertFails(publish(signedIn(BRAD), game));
+    const docs = inviteeDocs([MATT]);
+    delete docs[MATT.phone].order;
+    await assertFails(publishInviting(signedIn(BRAD), [MATT], { docs }));
   });
 
   test('denies an invitee who has already responded', async () => {
-    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, status: 'ACCEPTED' }])));
+    await assertFails(publishInviting(signedIn(BRAD), [{ ...MATT, status: 'ACCEPTED' }]));
+  });
+
+  test('denies an invalid invitee after the first', async () => {
+    await assertFails(publishInviting(signedIn(BRAD), [MATT, { ...JEFF, status: 'DECLINED' }]));
+    await assertFails(publishInviting(signedIn(BRAD), [MATT, { ...JEFF, name: '' }]));
   });
 
   test('denies an invitee with an extra field', async () => {
-    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, extra: 'nope' }])));
+    await assertFails(publishInviting(signedIn(BRAD), [{ ...MATT, extra: 'nope' }]));
   });
 
   test('denies a blank invitee name', async () => {
-    await assertFails(publish(signedIn(BRAD), invitingGame([{ ...MATT, name: '' }])));
+    await assertFails(publishInviting(signedIn(BRAD), [{ ...MATT, name: '' }]));
   });
 
   test('denies more than 50 invitees', async () => {
     const invitees = Array.from({ length: 51 }, (_, n) => ({ ...MATT, phone: `41555${String(n).padStart(5, '0')}` }));
-    await assertFails(publish(signedIn(BRAD), invitingGame(invitees)));
+    await assertFails(publishInviting(signedIn(BRAD), invitees));
   });
 
   test('denies putting invitees in playerIds', async () => {
-    await assertFails(publish(signedIn(BRAD), invitingGame([JEFF], { playerIds: [BRAD, SAM] })));
+    await assertFails(publishInviting(signedIn(BRAD), [JEFF], { overrides: { playerIds: [BRAD, SAM] } }));
+  });
+
+  test('denies adding an invitee to a published game', async () => {
+    await seedGame('game-1', { invitedPhones: [MATT.phone] });
+    const { phone, ...invitee } = { ...MATT, order: 0 };
+    await assertFails(setDoc(doc(signedIn(BRAD), 'games', 'game-1', 'invitees', phone), invitee));
   });
 });
 
@@ -349,30 +363,50 @@ describe('reading games', () => {
   });
 });
 
-/** Seed a published game inviting Dana and Matt, without going through the rules. */
-async function seedInvitingGame(teeTimeOverrides = {}, invitees = [DANA_INVITE, MATT]) {
+/**
+ * Seed a published game inviting Dana and Matt, without going through the rules. [invitedPhones]
+ * defaults to the invitees' numbers.
+ */
+async function seedInvitingGame(
+  teeTimeOverrides = {},
+  invitees = [DANA_INVITE, MATT],
+  invitedPhones = invitees.map((i) => i.phone),
+) {
   await env.withSecurityRulesDisabled(async (context) => {
-    const game = invitingGame(invitees);
+    const db = context.firestore();
+    const game = newGame({ invitedPhones });
     game.teeTimes[0] = { ...game.teeTimes[0], ...teeTimeOverrides };
-    await setDoc(doc(context.firestore(), 'games', 'game-1'), game);
+    await setDoc(doc(db, 'games', 'game-1'), game);
+    for (const [phone, invitee] of Object.entries(inviteeDocs(invitees))) {
+      await setDoc(doc(db, 'games', 'game-1', 'invitees', phone), invitee);
+    }
   });
 }
 
 const BRAD_SLOT = { playerId: BRAD, name: 'Brad Ball' };
 const DANA_SLOT = { playerId: DANA, name: 'Dana Park' };
-const DANA_ENTRY = { name: 'Dana', playerId: null, status: 'PENDING', order: 0 };
+const SEATED = {
+  teeTimes: [{ time: '09:00', slots: 4, players: [BRAD_SLOT, DANA_SLOT] }],
+  playerIds: [BRAD, DANA],
+};
 
-/** Dana's answer as the app writes it: her own entry, plus a seat for a Yes. */
-function answer(status, { entry = {}, seat = status === 'ACCEPTED', extra = {} } = {}) {
-  const update = {
-    [`invitees.${DANA_PHONE}`]: { ...DANA_ENTRY, status, playerId: DANA, ...entry },
-    ...extra,
-  };
-  if (seat) {
-    update.teeTimes = [{ time: '09:00', slots: 4, players: [BRAD_SLOT, DANA_SLOT] }];
-    update.playerIds = [BRAD, DANA];
-  }
-  return updateDoc(doc(signedIn(DANA), 'games', 'game-1'), update);
+const inviteeRef = (db, phone = DANA_PHONE) => doc(db, 'games', 'game-1', 'invitees', phone);
+
+/**
+ * An answer as the app writes it, signed in as [uid]: the invitee document under [phone], plus
+ * [game] changes to the game in the same write (a seat, for a Yes).
+ */
+function answer(status, {
+  uid = DANA,
+  phone = DANA_PHONE,
+  invitee = {},
+  game = status === 'ACCEPTED' ? SEATED : null,
+} = {}) {
+  const db = signedIn(uid);
+  const batch = writeBatch(db);
+  batch.update(inviteeRef(db, phone), { status, playerId: uid, ...invitee });
+  if (game) batch.update(doc(db, 'games', 'game-1'), game);
+  return batch.commit();
 }
 
 describe('reading games as an invitee', () => {
@@ -414,125 +448,141 @@ describe('reading games as an invitee', () => {
   });
 });
 
+describe('reading invitees', () => {
+  const invitees = (db) => collection(db, 'games', 'game-1', 'invitees');
+
+  test('allows a player in the game to read and list them', async () => {
+    await seedInvitingGame();
+    await assertSucceeds(getDoc(inviteeRef(signedIn(BRAD), MATT.phone)));
+    await assertSucceeds(getDocs(invitees(signedIn(BRAD))));
+  });
+
+  test('allows an invitee to read and list all of them', async () => {
+    await seedInvitingGame();
+    await assertSucceeds(getDoc(inviteeRef(signedIn(DANA), MATT.phone)));
+    await assertSucceeds(getDocs(invitees(signedIn(DANA))));
+  });
+
+  test('denies someone who cannot see the game', async () => {
+    await seedInvitingGame();
+    await assertFails(getDoc(inviteeRef(signedIn(SAM))));
+    await assertFails(getDocs(invitees(signedIn(SAM))));
+  });
+
+  test('denies a signed-out read', async () => {
+    await seedInvitingGame();
+    await assertFails(getDoc(inviteeRef(signedOut())));
+  });
+});
+
 describe('answering an invitation', () => {
   test('allows a Yes that takes the next seat', async () => {
     await seedInvitingGame();
     await assertSucceeds(answer('ACCEPTED'));
   });
 
-  test('allows a No that changes nothing else', async () => {
+  test('allows a No that changes only your invitation', async () => {
     await seedInvitingGame();
     await assertSucceeds(answer('DECLINED'));
   });
 
   test('denies a Yes when every slot is taken', async () => {
     await seedInvitingGame({ slots: 1 });
-    const update = {
-      [`invitees.${DANA_PHONE}`]: { ...DANA_ENTRY, status: 'ACCEPTED', playerId: DANA },
-      teeTimes: [{ time: '09:00', slots: 1, players: [BRAD_SLOT, DANA_SLOT] }],
-      playerIds: [BRAD, DANA],
-    };
-    await assertFails(updateDoc(doc(signedIn(DANA), 'games', 'game-1'), update));
+    const game = { ...SEATED, teeTimes: [{ ...SEATED.teeTimes[0], slots: 1 }] };
+    await assertFails(answer('ACCEPTED', { game }));
   });
 
   test('denies a Yes that does not take a seat', async () => {
     await seedInvitingGame();
-    await assertFails(answer('ACCEPTED', { seat: false }));
+    await assertFails(answer('ACCEPTED', { game: null }));
+  });
+
+  test('denies taking a seat without a Yes', async () => {
+    await seedInvitingGame();
+    await assertFails(updateDoc(doc(signedIn(DANA), 'games', 'game-1'), SEATED));
   });
 
   test('denies a No that takes a seat', async () => {
     await seedInvitingGame();
-    await assertFails(answer('DECLINED', { seat: true }));
+    await assertFails(answer('DECLINED', { game: SEATED }));
   });
 
   test('denies a seat under a name other than your profile', async () => {
     await seedInvitingGame();
-    const update = {
-      [`invitees.${DANA_PHONE}`]: { ...DANA_ENTRY, status: 'ACCEPTED', playerId: DANA },
+    const game = {
+      ...SEATED,
       teeTimes: [{ time: '09:00', slots: 4, players: [BRAD_SLOT, { ...DANA_SLOT, name: 'Tiger' }] }],
-      playerIds: [BRAD, DANA],
     };
-    await assertFails(updateDoc(doc(signedIn(DANA), 'games', 'game-1'), update));
+    await assertFails(answer('ACCEPTED', { game }));
   });
 
   test('denies a Yes that also removes another slot holder', async () => {
     await seedInvitingGame();
-    const update = {
-      [`invitees.${DANA_PHONE}`]: { ...DANA_ENTRY, status: 'ACCEPTED', playerId: DANA },
-      teeTimes: [{ time: '09:00', slots: 4, players: [DANA_SLOT] }],
-      playerIds: [DANA],
-    };
-    await assertFails(updateDoc(doc(signedIn(DANA), 'games', 'game-1'), update));
+    const game = { teeTimes: [{ time: '09:00', slots: 4, players: [DANA_SLOT] }], playerIds: [DANA] };
+    await assertFails(answer('ACCEPTED', { game }));
   });
 
   test('denies an answer that is not Yes or No', async () => {
     await seedInvitingGame();
-    await assertFails(answer('MAYBE', { seat: false }));
-    await assertFails(answer('MAYBE', { seat: true }));
+    await assertFails(answer('MAYBE', { game: null }));
+    await assertFails(answer('MAYBE', { game: SEATED }));
   });
 
   test('denies an answer that does not record your uid', async () => {
     await seedInvitingGame();
-    await assertFails(answer('DECLINED', { entry: { playerId: null } }));
-    await assertFails(answer('DECLINED', { entry: { playerId: SAM } }));
+    await assertFails(answer('DECLINED', { invitee: { playerId: null } }));
+    await assertFails(answer('DECLINED', { invitee: { playerId: SAM } }));
   });
 
-  test('denies changing anything else in your entry', async () => {
+  test('denies changing anything else in your invitation', async () => {
     await seedInvitingGame();
-    await assertFails(answer('DECLINED', { entry: { name: 'Dana Park' } }));
-    await assertFails(answer('DECLINED', { entry: { order: 5 } }));
+    await assertFails(answer('DECLINED', { invitee: { name: 'Dana Park' } }));
+    await assertFails(answer('DECLINED', { invitee: { order: 5 } }));
   });
 
-  test("denies answering for another invitee", async () => {
+  test('denies answering No for another invitee', async () => {
     await seedInvitingGame();
-    const update = {
-      [`invitees.${MATT.phone}`]: { name: 'Matt Chen', playerId: DANA, status: 'DECLINED', order: 1 },
-    };
-    await assertFails(updateDoc(doc(signedIn(DANA), 'games', 'game-1'), update));
+    await assertFails(answer('DECLINED', { phone: MATT.phone }));
   });
 
-  test("denies changing another invitee's entry alongside your own", async () => {
+  test("denies taking a seat on another invitee's invitation", async () => {
     await seedInvitingGame();
-    await assertFails(answer('DECLINED', {
-      extra: { [`invitees.${MATT.phone}.status`]: 'DECLINED' },
-    }));
+    await assertFails(answer('ACCEPTED', { phone: MATT.phone }));
   });
 
   test('denies an answer that also changes the game', async () => {
     await seedInvitingGame();
-    await assertFails(answer('DECLINED', { extra: { date: '2026-06-14' } }));
-    await assertFails(answer('DECLINED', { extra: { invitedPhones: [DANA_PHONE] } }));
+    await assertFails(answer('DECLINED', { game: { date: '2026-06-14' } }));
+    await assertFails(answer('DECLINED', { game: { invitedPhones: [DANA_PHONE] } }));
   });
 
   test('denies a Yes that also changes the game', async () => {
     await seedInvitingGame();
-    await assertFails(answer('ACCEPTED', { extra: { date: '2026-06-14' } }));
+    await assertFails(answer('ACCEPTED', { game: { ...SEATED, date: '2026-06-14' } }));
   });
 
   test('denies answering under a number that is not in invitedPhones', async () => {
-    // A game only the rules' own pairing check keeps from existing: an invitees key with no
-    // matching invitedPhones entry.
-    await env.withSecurityRulesDisabled(async (context) => {
-      const game = invitingGame([DANA_INVITE, MATT], { invitedPhones: [MATT.phone] });
-      await setDoc(doc(context.firestore(), 'games', 'game-1'), game);
-    });
+    // A game only the publish rules keep from existing: an invitee document whose number is not
+    // in invitedPhones.
+    await seedInvitingGame({}, [DANA_INVITE, MATT], [MATT.phone]);
     await assertFails(answer('DECLINED'));
   });
 
   test('denies changing an answer once given', async () => {
-    await seedInvitingGame({}, [{ ...DANA_INVITE, status: 'DECLINED' }, MATT]);
-    await assertFails(answer('ACCEPTED', { entry: { status: 'ACCEPTED' } }));
+    await seedInvitingGame({}, [{ ...DANA_INVITE, status: 'DECLINED', playerId: DANA }, MATT]);
+    await assertFails(answer('ACCEPTED'));
+    await assertFails(answer('DECLINED'));
   });
 
   test('denies someone who was not invited answering', async () => {
     await seedInvitingGame({}, [MATT]);
-    await assertFails(answer('DECLINED'));
+    const { status, ...invitee } = { ...DANA_INVITE, status: 'DECLINED', playerId: DANA, order: 1 };
+    await assertFails(setDoc(inviteeRef(signedIn(DANA)), { ...invitee, status }));
   });
 
   test('denies a signed-out answer', async () => {
     await seedInvitingGame();
-    const update = { [`invitees.${DANA_PHONE}`]: { ...DANA_ENTRY, status: 'DECLINED' } };
-    await assertFails(updateDoc(doc(signedOut(), 'games', 'game-1'), update));
+    await assertFails(updateDoc(inviteeRef(signedOut()), { status: 'DECLINED' }));
   });
 });
 
@@ -542,5 +592,12 @@ describe('changing games', () => {
     const db = signedIn(BRAD);
     await assertFails(updateDoc(doc(db, 'games', 'game-1'), { date: '2026-06-14' }));
     await assertFails(deleteDoc(doc(db, 'games', 'game-1')));
+  });
+
+  test('denies the organizer answering for or removing an invitee', async () => {
+    await seedInvitingGame();
+    const db = signedIn(BRAD);
+    await assertFails(updateDoc(inviteeRef(db), { status: 'DECLINED', playerId: BRAD }));
+    await assertFails(deleteDoc(inviteeRef(db)));
   });
 });
