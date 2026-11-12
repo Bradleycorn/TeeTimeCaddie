@@ -235,7 +235,7 @@ class GamesRepositoryImpl(
             }
         }.also {
             if (it is TtcResult.Success && answer is InviteAnswer.Write) {
-                eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept))
+                eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept, AnalyticsEvent.AnswerInvite.Source.PLAYER))
             }
         }
     }

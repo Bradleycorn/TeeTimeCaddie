@@ -481,7 +481,7 @@ class GamesRepositoryTest {
         )
         assertEquals(GameInvitee("Dana", dana.phone, dana.id, InviteStatus.ACCEPTED), game.inviteeFor(dana.phone))
         assertEquals(listOf(organizer.id, dana.id), storage.writtenGames.single().playerIds)
-        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AnswerInvite(accepted = true)), events)
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AnswerInvite(accepted = true, AnalyticsEvent.AnswerInvite.Source.PLAYER)), events)
     }
 
     @Test
@@ -494,7 +494,7 @@ class GamesRepositoryTest {
         assertEquals(InviteStatus.DECLINED, game.inviteeFor(dana.phone)?.status)
         assertEquals(dana.id, game.inviteeFor(dana.phone)?.playerId)
         assertEquals(listOf(organizer.id), storage.writtenGames.single().playerIds)
-        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AnswerInvite(accepted = false)), events)
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AnswerInvite(accepted = false, AnalyticsEvent.AnswerInvite.Source.PLAYER)), events)
     }
 
     @Test
