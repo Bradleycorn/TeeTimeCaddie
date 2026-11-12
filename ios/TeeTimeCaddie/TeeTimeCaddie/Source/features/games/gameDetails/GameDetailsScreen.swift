@@ -19,7 +19,10 @@ struct GameDetailsScreen: View {
         Screen(.GameDetails(viewName: self.viewName)) {
             GameDetailsContent(
                 uiState: viewModel.uiState,
-                onAnswer: { accept in Task { await viewModel.onAnswer(accept: accept) } }
+                onAnswer: { accept in Task { await viewModel.onAnswer(accept: accept) } },
+                onInviteeClick: { inviteePhone in viewModel.onInviteeClick(inviteePhone: inviteePhone) },
+                onRecordResponse: { accept in Task { await viewModel.onRecordResponse(accept: accept) } },
+                onResponseSheetDismiss: { viewModel.onResponseSheetDismiss() }
             )
         }
         .task { await viewModel.observeGame() }
@@ -33,10 +36,31 @@ fileprivate struct GameDetailsContent: View {
 
     private let uiState: any GameDetailsUiState
     private let onAnswer: (Bool) -> Void
+    private let onInviteeClick: (String) -> Void
+    private let onRecordResponse: (Bool) -> Void
+    private let onResponseSheetDismiss: () -> Void
 
-    init(uiState: any GameDetailsUiState, onAnswer: @escaping (Bool) -> Void) {
+    // The response sheet last shown, kept so the sheet still has its content while it slides away
+    // after the state has closed it.
+    @State private var shownResponseSheetUiState: ResponseSheetUiState?
+
+    init(
+        uiState: any GameDetailsUiState,
+        onAnswer: @escaping (Bool) -> Void,
+        onInviteeClick: @escaping (String) -> Void = { _ in },
+        onRecordResponse: @escaping (Bool) -> Void = { _ in },
+        onResponseSheetDismiss: @escaping () -> Void = {}
+    ) {
         self.uiState = uiState
         self.onAnswer = onAnswer
+        self.onInviteeClick = onInviteeClick
+        self.onRecordResponse = onRecordResponse
+        self.onResponseSheetDismiss = onResponseSheetDismiss
+    }
+
+    /// The organizer's response sheet, while the state has one open.
+    private var responseSheetUiState: ResponseSheetUiState? {
+        ((uiState as? GameDetailsUiStateContent)?.game as? GameUiStateOrganizer)?.responseSheet
     }
 
     var body: some View {
@@ -51,23 +75,40 @@ fileprivate struct GameDetailsContent: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             case .content(let content):
-                GameDetailsBody(uiState: content.game, onAnswer: onAnswer)
+                GameDetailsBody(uiState: content.game, onAnswer: onAnswer, onInviteeClick: onInviteeClick)
             }
         }
         .background(theme.colorScheme.surface)
+        .ttcBottomSheet(
+            isPresented: Binding(
+                get: { responseSheetUiState != nil },
+                // Only the sheet being dragged down or tapped outside sets this; picking an answer
+                // closes it from the state.
+                set: { isPresented in if !isPresented { onResponseSheetDismiss() } }
+            )
+        ) {
+            if let sheet = responseSheetUiState ?? shownResponseSheetUiState {
+                ResponseSheet(uiState: sheet, onRecordResponse: onRecordResponse)
+            }
+        }
+        .onChange(of: responseSheetUiState) { _, sheet in
+            if let sheet { shownResponseSheetUiState = sheet }
+        }
     }
 }
 
 /// The game itself, in the organizer's view or an invitee's. Editing, adding tee times, inviting,
-/// managing, slot menus and the activity log are all later work, and are left out rather than
-/// shown inert.
+/// managing, menus on confirmed and declined rows, and the activity log are all later work, and
+/// are left out rather than shown inert.
 fileprivate struct GameDetailsBody: View {
     private let uiState: GameUiState
     private let onAnswer: (Bool) -> Void
+    private let onInviteeClick: (String) -> Void
 
-    init(uiState: GameUiState, onAnswer: @escaping (Bool) -> Void) {
+    init(uiState: GameUiState, onAnswer: @escaping (Bool) -> Void, onInviteeClick: @escaping (String) -> Void) {
         self.uiState = uiState
         self.onAnswer = onAnswer
+        self.onInviteeClick = onInviteeClick
     }
 
     var body: some View {
@@ -81,7 +122,7 @@ fileprivate struct GameDetailsBody: View {
                 }
 
                 ForEach(Array(uiState.teeTimes.enumerated()), id: \.offset) { _, teeTime in
-                    TeeTimeCard(uiState: teeTime)
+                    TeeTimeCard(uiState: teeTime, onInviteeClick: onInviteeClick)
                 }
 
                 if case .organizer(let organizer) = onEnum(of: uiState), !organizer.declined.isEmpty {
@@ -143,9 +184,11 @@ fileprivate struct TeeTimeCard: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let uiState: GameTeeTimeUiState
+    private let onInviteeClick: (String) -> Void
 
-    init(uiState: GameTeeTimeUiState) {
+    init(uiState: GameTeeTimeUiState, onInviteeClick: @escaping (String) -> Void) {
         self.uiState = uiState
+        self.onInviteeClick = onInviteeClick
     }
 
     private var lastRow: Int { uiState.players.count + Int(uiState.openSlots) - 1 }
@@ -170,7 +213,7 @@ fileprivate struct TeeTimeCard: View {
                 // The roster, then the empty slots that are left. Every row but the last carries a
                 // divider.
                 ForEach(Array(uiState.players.enumerated()), id: \.offset) { index, player in
-                    PlayerRow(uiState: player, showDivider: index < lastRow)
+                    PlayerRow(uiState: player, showDivider: index < lastRow, onInviteeClick: onInviteeClick)
                 }
                 ForEach(0..<Int(uiState.openSlots), id: \.self) { index in
                     EmptySlotRow(showDivider: uiState.players.count + index < lastRow)
@@ -180,19 +223,49 @@ fileprivate struct TeeTimeCard: View {
     }
 }
 
+/// One person on the roster. In the organizer's view, an invitee who hasn't answered can be tapped,
+/// or their ⋮, to record their answer.
 fileprivate struct PlayerRow: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let uiState: TeeTimePlayerRowUiState
     private let showDivider: Bool
+    private let onInviteeClick: (String) -> Void
 
-    init(uiState: TeeTimePlayerRowUiState, showDivider: Bool) {
+    init(uiState: TeeTimePlayerRowUiState, showDivider: Bool, onInviteeClick: @escaping (String) -> Void) {
         self.uiState = uiState
         self.showDivider = showDivider
+        self.onInviteeClick = onInviteeClick
     }
 
     var body: some View {
-        SlotRow(showDivider: showDivider) {
+        if let inviteePhone = uiState.inviteePhone {
+            Button(action: { onInviteeClick(inviteePhone) }) {
+                row(trailing: moreButton(inviteePhone: inviteePhone))
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        } else {
+            row(trailing: EmptyView())
+        }
+    }
+
+    private func moreButton(inviteePhone: String) -> some View {
+        Button(action: { onInviteeClick(inviteePhone) }) {
+            Image(SfSymbol.ellipsis)
+                .rotationEffect(.degrees(90))
+                .foregroundStyle(theme.colorScheme.onSurfaceVariant)
+                .frame(width: GameDetailsDefaults.moreButtonSize, height: GameDetailsDefaults.moreButtonSize)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(
+            LocalizedText(resource: GMR.strings().game_details_response_more, args: [uiState.name]).localized()
+        )
+    }
+
+    private func row<Trailing: View>(trailing: Trailing) -> some View {
+        SlotRow(showDivider: showDivider, trailing: trailing) {
             TtcAvatar(
                 uiState.initial,
                 color: uiState.tone.toColorRole(),
@@ -232,7 +305,7 @@ fileprivate struct EmptySlotRow: View {
     }
 
     var body: some View {
-        SlotRow(showDivider: showDivider) {
+        SlotRow(showDivider: showDivider, trailing: EmptyView()) {
             TtcAvatar(placeholder: .empty, size: GameDetailsDefaults.avatarSize)
         } text: {
             Text(GMR.strings().game_details_empty_slot.localized())
@@ -242,23 +315,27 @@ fileprivate struct EmptySlotRow: View {
     }
 }
 
-/// The layout every slot row shares: the avatar, then the text with an optional divider beneath it.
+/// The layout every slot row shares: the avatar, then the text and a `trailing` control (an
+/// `EmptyView` for none), with an optional divider beneath them.
 ///
 /// The row's vertical padding sits inside the text column rather than on the row, so the divider runs
 /// along the row's bottom edge and starts exactly where the text does, with no inset to keep in sync.
-fileprivate struct SlotRow<Avatar: View, Content: View>: View {
+fileprivate struct SlotRow<Avatar: View, Content: View, Trailing: View>: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let showDivider: Bool
     private let avatar: Avatar
     private let text: Content
+    private let trailing: Trailing
 
     init(
         showDivider: Bool,
+        trailing: Trailing,
         @ViewBuilder avatar: () -> Avatar,
         @ViewBuilder text: () -> Content
     ) {
         self.showDivider = showDivider
+        self.trailing = trailing
         self.avatar = avatar()
         self.text = text()
     }
@@ -267,10 +344,15 @@ fileprivate struct SlotRow<Avatar: View, Content: View>: View {
         HStack(spacing: GameDetailsDefaults.rowSpacing) {
             avatar
             VStack(spacing: 0) {
-                text
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, GameDetailsDefaults.verticalPadding)
-                    .padding(.trailing, GameDetailsDefaults.horizontalPadding)
+                HStack(spacing: 0) {
+                    text
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, GameDetailsDefaults.verticalPadding)
+                    trailing
+                }
+                .padding(.trailing, Trailing.self == EmptyView.self
+                    ? GameDetailsDefaults.horizontalPadding
+                    : GameDetailsDefaults.trailingEndPadding)
                 if showDivider {
                     // The system divider, tinted to the theme's outline rather than the system separator.
                     Divider().overlay(theme.colorScheme.outlineVariant)
@@ -338,6 +420,8 @@ fileprivate enum GameDetailsDefaults {
     static let rowSpacing: CGFloat = 12
     static let nameStatusSpacing: CGFloat = 1
     static let avatarSize: CGFloat = 36
+    static let moreButtonSize: CGFloat = 44
+    static let trailingEndPadding: CGFloat = 4
     static let declinedHeadingInset: CGFloat = 4
     static let declinedHeadingSpacing: CGFloat = 8
     static let declinedListPadding = EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)
