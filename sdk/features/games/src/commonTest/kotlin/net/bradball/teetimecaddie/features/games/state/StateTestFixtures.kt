@@ -12,8 +12,8 @@ import net.bradball.teetimecaddie.core.models.Player
 
 // Fixtures shared by the Games list and Game details UI-state tests.
 
-internal val organizer = GamePlayer(playerId = "brad", name = "brad Ball")
-internal val guest = GamePlayer(playerId = "dana", name = "Dana Park")
+internal val organizer = GamePlayer(playerId = "brad", name = "brad Ball", phone = "5025551234")
+internal val guest = GamePlayer(playerId = "dana", name = "Dana Park", phone = "5025552345")
 
 // The players as signed in, for the viewer-dependent state.
 internal val bradViewer = Player(id = "brad", name = "brad Ball", email = "brad@golf.app", phone = "5025551234")
@@ -23,7 +23,7 @@ internal val samViewer = Player(id = "sam", name = "Sam Ortiz", email = "sam@gol
 /** Brad's game at Pebble Beach, with Dana holding the second of four slots. */
 internal val game = Game(
     id = "game1",
-    organizerId = organizer.playerId,
+    organizerId = bradViewer.id,
     course = Course(id = "pebble beach", name = "Pebble Beach"),
     date = LocalDate(2026, 6, 13),
     teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest))),

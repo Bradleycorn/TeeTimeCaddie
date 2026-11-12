@@ -112,8 +112,8 @@ class GameUiStateTest {
 
     @Test
     fun confirmedPlayersAreInTheOrderTheySaidYesNotInviteOrder() {
-        val matt = GamePlayer("matt", "Matt Chen")
-        val jeff = GamePlayer("jeff", "Jeff Morrison")
+        val matt = GamePlayer("matt", "Matt Chen", "4155550188")
+        val jeff = GamePlayer("jeff", "Jeff Morrison", "4155550142")
         // Matt was invited first, but Jeff said yes first and took the earlier slot.
         val answered = game.copy(
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest, jeff, matt))),
@@ -141,8 +141,8 @@ class GameUiStateTest {
 
     @Test
     fun aNewYesMovesOnlyThatPersonsRow() {
-        val jeff = GamePlayer("jeff", "Jeff Morrison")
-        val matt = GamePlayer("matt", "Matt Chen")
+        val jeff = GamePlayer("jeff", "Jeff Morrison", "4155550142")
+        val matt = GamePlayer("matt", "Matt Chen", "4155550188")
         val before = invitedGame.copy(
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, jeff))),
             invitees = listOf(
@@ -260,7 +260,7 @@ class GameUiStateTest {
     @Test
     fun anAnsweredInvitationCollapses() {
         val accepted = invitedGame.copy(
-            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz")))),
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz", "5025553456")))),
             invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED, playerId = "sam"))
         )
         val declined = invitedGame.copy(
@@ -283,7 +283,7 @@ class GameUiStateTest {
     @Test
     fun aYesMovesTheInviteeIntoTheSlotsAsConfirmedAndCountsTowardFilled() {
         val accepted = invitedGame.copy(
-            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz")))),
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz", "5025553456")))),
             invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED, playerId = "sam"))
         )
 

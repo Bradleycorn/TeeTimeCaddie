@@ -102,6 +102,31 @@ interface GamesRepository {
      *   it. [GameErrors.RESPOND_FAILED] when the write fails.
      */
     suspend fun respondToInvite(gameId: String, player: Player, accept: Boolean): TtcResult<Game>
+
+    /**
+     * As the game's organizer, record a yes ([accept]) or no for an invitee who hasn't answered,
+     * whether or not they use the app.
+     *
+     * A yes takes the tee time's next free slot under the name they were invited by. The slot is
+     * linked to their account only when the account the game named for them at publish still owns
+     * [inviteePhone]; an invitee without the app holds a slot with no account. Like an invitee's own
+     * answer, it is read and written in one transaction, so the organizer and an invitee racing for
+     * the last slot can't both get it.
+     *
+     * @param organizer The signed-in player, who must have organized the game.
+     * @param inviteePhone The number the invitee was invited by. Formatting is ignored.
+     * @return The game as it stands after the answer. An invitation already answered, by the
+     *   invitee or from another device, isn't changed and returns the game as it is.
+     *   [GameErrors.GAME_FULL] for a yes once every slot is taken, which leaves the invitation
+     *   pending. [GameErrors.NOT_FOUND] when no game has [gameId], [organizer] didn't organize it,
+     *   or nobody was invited by [inviteePhone]. [GameErrors.RESPOND_FAILED] when the write fails.
+     */
+    suspend fun recordResponse(
+        gameId: String,
+        organizer: Player,
+        inviteePhone: String,
+        accept: Boolean
+    ): TtcResult<Game>
 }
 
 /** The most players a tee time can hold. */
@@ -150,7 +175,9 @@ class GamesRepositoryImpl(
         val teeTime = GameTeeTime(
             time = time,
             slots = slots,
-            players = listOf(GamePlayer(playerId = organizer.id, name = organizer.name))
+            players = listOf(
+                GamePlayer(playerId = organizer.id, name = organizer.name, phone = organizer.phone.toPhoneDigits())
+            )
         )
 
         return tryStorage("publish_game", GameErrors.PUBLISH_FAILED) {
@@ -236,6 +263,51 @@ class GamesRepositoryImpl(
         }.also {
             if (it is TtcResult.Success && answer is InviteAnswer.Write) {
                 eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept, AnalyticsEvent.AnswerInvite.Source.PLAYER))
+            }
+        }
+    }
+
+    override suspend fun recordResponse(
+        gameId: String,
+        organizer: Player,
+        inviteePhone: String,
+        accept: Boolean
+    ): TtcResult<Game> {
+        val phone = inviteePhone.toPhoneDigits()
+        // Who owns the number now decides whether a yes seats the invitee under their account. Read
+        // before the transaction, which cannot run queries. Only a yes needs it.
+        val numberOwnerId = if (accept) {
+            when (val owner = findPlayerByPhone(phone)) {
+                is TtcLookup.Success -> owner.data?.id
+                is TtcLookup.Failure -> return TtcResult.Failure(
+                    GameException(GameErrors.RESPOND_FAILED, cause = owner.error as? Exception)
+                )
+            }
+        } else {
+            null
+        }
+        // The transaction may run its change more than once; the last run's answer is the one
+        // that was written.
+        var answer: InviteAnswer? = null
+        var organized = true
+
+        return tryStorage("record_response", GameErrors.RESPOND_FAILED) {
+            val game = gameStorage.answerInvitation(gameId, phone) { document ->
+                organized = document.organizerId == organizer.id
+                if (!organized) return@answerInvitation null
+                document.recordAnswer(phone, numberOwnerId, accept)
+                    .also { answer = it }
+                    .let { (it as? InviteAnswer.Write)?.answer }
+            }
+            when {
+                game == null || !organized || answer == InviteAnswer.NotInvited ->
+                    TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+                answer == InviteAnswer.Full -> TtcResult.Failure(GameException(GameErrors.GAME_FULL))
+                else -> TtcResult.Success(game.toModel())
+            }
+        }.also {
+            if (it is TtcResult.Success && answer is InviteAnswer.Write) {
+                eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept, AnalyticsEvent.AnswerInvite.Source.ORGANIZER))
             }
         }
     }
