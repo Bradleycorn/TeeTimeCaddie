@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.android.feature.games.gameDetails
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -68,7 +70,14 @@ fun GameDetailsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Screen(AnalyticsScreen.GameDetails("GameDetailsScreen")) {
-        GameDetailsContent(uiState = uiState, onBack = onBack, onAnswer = viewModel::onAnswer)
+        GameDetailsContent(
+            uiState = uiState,
+            onBack = onBack,
+            onAnswer = viewModel::onAnswer,
+            onInviteeClick = viewModel::onInviteeClick,
+            onRecordResponse = viewModel::onRecordResponse,
+            onResponseSheetDismiss = viewModel::onResponseSheetDismiss,
+        )
     }
 }
 
@@ -78,6 +87,9 @@ private fun GameDetailsContent(
     onBack: () -> Unit,
     onAnswer: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    onInviteeClick: (String) -> Unit = {},
+    onRecordResponse: (Boolean) -> Unit = {},
+    onResponseSheetDismiss: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -104,24 +116,35 @@ private fun GameDetailsContent(
                 )
             }
 
-            is GameDetailsUiState.Content -> GameDetailsBody(
-                uiState = uiState.game,
-                onAnswer = onAnswer,
-                modifier = contentModifier,
-            )
+            is GameDetailsUiState.Content -> {
+                GameDetailsBody(
+                    uiState = uiState.game,
+                    onAnswer = onAnswer,
+                    onInviteeClick = onInviteeClick,
+                    modifier = contentModifier,
+                )
+                (uiState.game as? GameUiState.Organizer)?.responseSheet?.let { sheet ->
+                    ResponseSheet(
+                        uiState = sheet,
+                        onRecordResponse = onRecordResponse,
+                        onDismiss = onResponseSheetDismiss,
+                    )
+                }
+            }
         }
     }
 }
 
 /**
  * The game itself, in the organizer's view or an invitee's. Editing, adding tee times, inviting,
- * managing, slot menus and the activity log are all later work, and are left out rather than
- * shown inert.
+ * managing, menus on confirmed and declined rows, and the activity log are all later work, and are
+ * left out rather than shown inert.
  */
 @Composable
 private fun GameDetailsBody(
     uiState: GameUiState,
     onAnswer: (Boolean) -> Unit,
+    onInviteeClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -136,7 +159,7 @@ private fun GameDetailsBody(
         }
 
         uiState.teeTimes.forEach { teeTime ->
-            TeeTimeCard(uiState = teeTime)
+            TeeTimeCard(uiState = teeTime, onInviteeClick = onInviteeClick)
         }
 
         if (uiState is GameUiState.Organizer && uiState.declined.isNotEmpty()) {
@@ -183,7 +206,11 @@ private fun GameTitle(course: String, subtitle: String) {
 }
 
 @Composable
-private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifier) {
+private fun TeeTimeCard(
+    uiState: GameTeeTimeUiState,
+    onInviteeClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     TtcCard(modifier = modifier, contentPadding = TtcCardDefaults.NoContentPadding) {
         // The tonal header strip: when, and how full.
         Row(
@@ -215,7 +242,7 @@ private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifi
         // The roster, then the empty slots that are left. Every row but the last carries a divider.
         val lastRow = uiState.players.size + uiState.openSlots - 1
         uiState.players.forEachIndexed { i, player ->
-            PlayerRow(uiState = player, showDivider = i < lastRow)
+            PlayerRow(uiState = player, showDivider = i < lastRow, onInviteeClick = onInviteeClick)
         }
         repeat(uiState.openSlots) { i ->
             EmptySlotRow(showDivider = uiState.players.size + i < lastRow)
@@ -223,15 +250,38 @@ private fun TeeTimeCard(uiState: GameTeeTimeUiState, modifier: Modifier = Modifi
     }
 }
 
+/**
+ * One person on the roster. In the organizer's view, an invitee who hasn't answered can be tapped,
+ * or their ⋮, to record their answer.
+ */
 @Composable
 private fun PlayerRow(
     uiState: TeeTimePlayerRowUiState,
     showDivider: Boolean,
+    onInviteeClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val inviteePhone = uiState.inviteePhone
     SlotRow(
         showDivider = showDivider,
-        modifier = modifier,
+        modifier = if (inviteePhone != null) {
+            modifier.clickable { onInviteeClick(inviteePhone) }
+        } else {
+            modifier
+        },
+        trailing = inviteePhone?.let { phone ->
+            {
+                IconButton(onClick = { onInviteeClick(phone) }) {
+                    Icon(
+                        painter = TtcIcons.MORE_VERT.painter,
+                        contentDescription = stringResource(
+                            LocalizedText(GMR.strings.game_details_response_more, listOf(uiState.name))
+                        ),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
         avatar = {
             TtcAvatar(
                 initials = uiState.initial,
@@ -337,7 +387,8 @@ private fun EmptySlotRow(showDivider: Boolean, modifier: Modifier = Modifier) {
 }
 
 /**
- * The layout every slot row shares: the avatar, then the text with an optional divider beneath it.
+ * The layout every slot row shares: the avatar, then the text and an optional [trailing] control,
+ * with an optional divider beneath them.
  *
  * The row's vertical padding sits inside the text column rather than on the row, so the divider runs
  * along the row's bottom edge and starts exactly where the text does, with no inset to keep in sync.
@@ -347,6 +398,7 @@ private fun SlotRow(
     showDivider: Boolean,
     avatar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    trailing: (@Composable () -> Unit)? = null,
     text: @Composable ColumnScope.() -> Unit,
 ) {
     Row(
@@ -358,14 +410,21 @@ private fun SlotRow(
     ) {
         avatar()
         Column(modifier = Modifier.weight(1f)) {
-            Column(
-                modifier = Modifier.padding(
-                    top = GameDetailsDefaults.RowVerticalPadding,
-                    bottom = GameDetailsDefaults.RowVerticalPadding,
-                    end = GameDetailsDefaults.RowHorizontalPadding,
-                ),
-                content = text,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(
+                            top = GameDetailsDefaults.RowVerticalPadding,
+                            bottom = GameDetailsDefaults.RowVerticalPadding,
+                            end = if (trailing == null) GameDetailsDefaults.RowHorizontalPadding else 0.dp,
+                        ),
+                    content = text,
+                )
+                if (trailing != null) {
+                    Box(modifier = Modifier.padding(end = GameDetailsDefaults.TrailingEndPadding)) { trailing() }
+                }
+            }
             if (showDivider) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -383,6 +442,7 @@ private object GameDetailsDefaults {
     val RowHorizontalPadding = 16.dp
     val RowVerticalPadding = 12.dp
     val RowSpacing = 12.dp
+    val TrailingEndPadding = 4.dp
     val AvatarSize = 36.dp
     val DeclinedHeadingInset = 4.dp
     val DeclinedHeadingSpacing = 8.dp
