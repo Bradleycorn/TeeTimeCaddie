@@ -9,15 +9,20 @@ import net.bradball.teetimecaddie.core.extensions.today
 /**
  * A player holding one of a tee time's slots.
  *
- * Carries the player's name as well as their id, so a game can be shown without looking each
- * player up. The name is a copy taken when the player joined the game.
+ * Carries the player's name and number as well as their id, so a game can be shown without
+ * looking each player up. Both are copies taken when the player joined the game.
  *
- * @property playerId The player's Firebase Auth user id, the same as [Player.id].
- * @property name The player's name, e.g. "Brad Ball".
+ * @property playerId The player's Firebase Auth user id, the same as [Player.id]. Null for an
+ *   invitee with no account whose Yes the organizer recorded.
+ * @property name The player's name, e.g. "Brad Ball": their profile name, or the name the
+ *   organizer invited them by when the organizer recorded their Yes.
+ * @property phone The player's number, digits only: their profile's, or the one they were invited
+ *   by. Identifies a seat that has no [playerId].
  */
 data class GamePlayer(
-    val playerId: String,
-    val name: String
+    val playerId: String?,
+    val name: String,
+    val phone: String
 ) {
     /** The single uppercase letter shown in the player's avatar. */
     val initial: String
@@ -80,10 +85,11 @@ data class Game(
 
 val previewGamePlayer = GamePlayer(
     playerId = previewPlayer.id,
-    name = previewPlayer.name
+    name = previewPlayer.name,
+    phone = previewPlayer.phone
 )
 
-val previewGamePlayerList = previewPlayerList.map { GamePlayer(playerId = it.id, name = it.name) }
+val previewGamePlayerList = previewPlayerList.map { GamePlayer(playerId = it.id, name = it.name, phone = it.phone) }
 
 val previewGameTeeTime = GameTeeTime(
     time = LocalTime(9, 0),

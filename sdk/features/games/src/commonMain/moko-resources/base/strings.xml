@@ -88,6 +88,23 @@
     <string name="game_details_rsvp_accepted">You\'re in</string>
     <string name="game_details_rsvp_declined">You declined</string>
 
+    <!-- ==== Recording a response for an invitee (TTC-72) ==== -->
+    <!-- The ⋮ on an invitee's row in the organizer's view, for screen readers. "Record Dana's response" -->
+    <string name="game_details_response_more">Record %s\'s response</string>
+    <!-- The organizer's response sheet, with the name the person was invited by. "Dana's response" -->
+    <string name="game_details_response_title">%s\'s response</string>
+    <!-- Under the sheet's title: the invitee's name, then the tee time. "Record a reply on Dana's behalf for the 9:00 AM tee time." -->
+    <string name="game_details_response_prompt">Record a reply on %1$s\'s behalf for the %2$s tee time.</string>
+    <!-- Under Yes in the sheet, with the tee time. "Playing at 9:00 AM" -->
+    <string name="game_details_response_yes_detail">Playing at %s</string>
+    <!-- Replaces the line under Yes once Yes answers fill every slot. "9:00 AM is full" -->
+    <string name="game_details_response_yes_full">%s is full</string>
+    <!-- Under No in the sheet. -->
+    <string name="game_details_response_no_detail">Can\'t make it</string>
+    <!-- The confirmation once the organizer's answer is saved, with the invitee's name. "Dana marked as Yes" -->
+    <string name="game_details_response_recorded_yes">%s marked as Yes</string>
+    <string name="game_details_response_recorded_no">%s marked as No</string>
+
     <!-- ==== Errors ==== -->
     <string name="game_error_title">We couldn\'t publish your game</string>
     <string name="game_error_no_course_message">Enter the course you\'re playing.</string>

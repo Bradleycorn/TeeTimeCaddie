@@ -30,9 +30,13 @@ rules_version = '2';
 //   - teeTimes: list (required, exactly 1 for now) of maps:
 //       - time: string (required, ISO "HH:MM" with optional seconds)
 //       - slots: int (required, 1-4)
-//       - players: list (required, size <= slots) of maps:
-//           - playerId: string (required, a uid)
-//           - name: string (required, 1-100) - copy of that player's profile name
+//       - players: list (required, size <= slots) of maps, one per seat:
+//           - playerId: string or null (required) - the seat holder's uid; null for an invitee
+//               with no account whose Yes the organizer recorded
+//           - name: string (required, 1-100) - the player's profile name, or the name the
+//               organizer invited them by when the organizer recorded their Yes
+//           - phone: string (required, digits only) - the seat holder's number: their profile's,
+//               or the one they were invited by. Identifies a seat that has no playerId.
 //   - playerIds: list of strings (required) - everyone holding a slot; drives reads
 //   - invitedPhones: list of strings (required, may be empty, <= 50, no repeats) - the phone
 //       number each invitee was invited by (digits only, 10-15), for the array-contains query that
@@ -50,7 +54,8 @@ rules_version = '2';
 //   - status: string (required) - "PENDING", then "ACCEPTED" or "DECLINED" once they answer
 //   - order: int (required) - the position the organizer added them in
 // Created only in the write that publishes the game. A Yes changes this document and takes a
-// seat in the game in the same atomic write; a No changes only this document.
+// seat in the game in the same atomic write; a No changes only this document. The answer is the
+// invitee's own, or one the game's organizer recorded for them.
 //
 // ===============================================================
 
@@ -104,15 +109,10 @@ service cloud.firestore {
         && data.name.lower().replace('/', '-') == data.nameKey;
     }
 
-    // The organizer, and only the organizer, in a new tee time's first slot. The name must match
-    // their profile, so a game cannot show anyone under a name they did not choose.
+    // The organizer, and only the organizer, in a new tee time's first slot. The name and phone
+    // must match their profile, so a game cannot show anyone under a name they did not choose.
     function isOrganizerSlot(player) {
-      return player is map
-        && player.keys().hasOnly(['playerId', 'name'])
-        && player.keys().hasAll(['playerId', 'name'])
-        && player.playerId == request.auth.uid
-        && isStringOfLength(player.name, 1, 100)
-        && player.name == get(playerPath(request.auth.uid)).data.name;
+      return player == mySeat();
     }
 
     function isValidNewTeeTime(teeTime) {
@@ -182,6 +182,23 @@ service cloud.firestore {
       return myProfile().phone in data.invitedPhones;
     }
 
+    // The seat the signed-in player holds: their uid, profile name and profile number.
+    function mySeat() {
+      return {
+        'playerId': request.auth.uid,
+        'name': myProfile().name,
+        'phone': myProfile().phone
+      };
+    }
+
+    // Whether the account [playerId] currently has [phone] on its profile. The playerId an
+    // organizer wrote on an invitation at publish is only a claim; this is what proves it.
+    function ownsNumber(playerId, phone) {
+      return playerId != null
+        && exists(playerPath(playerId))
+        && get(playerPath(playerId)).data.phone == phone;
+    }
+
     // An invitee document as the organizer writes it when publishing: a pending invitation for
     // one of the game's numbers. The playerId is the organizer's claim and grants nothing:
     // invitations are found and answered by phone number.
@@ -237,22 +254,70 @@ service cloud.firestore {
         && isTakingASeat(before, after);
     }
 
-    // A Yes: the player is appended to the tee time's slot holders, under their profile name, and
-    // to playerIds, and nothing else about the game changes. Refused once every slot is taken.
+    // A Yes: the player is appended to the tee time's slot holders, under their profile name and
+    // number, and to playerIds, and nothing else about the game changes. Refused once every slot
+    // is taken.
     function isTakingASeat(before, after) {
+      return !(request.auth.uid in before.playerIds)
+        && isSeating(before, after, mySeat(), [request.auth.uid]);
+    }
+
+    // [seat] is appended to the tee time's slot holders and [newPlayerIds] to playerIds, and
+    // nothing else about the game changes. Refused once every slot is taken.
+    function isSeating(before, after, seat, newPlayerIds) {
       let teeTime = before.teeTimes[0];
       return after.diff(before).affectedKeys().hasOnly(['teeTimes', 'playerIds'])
-        && !(request.auth.uid in before.playerIds)
         && teeTime.players.size() < teeTime.slots
-        && after.playerIds == before.playerIds.concat([request.auth.uid])
+        && after.playerIds == before.playerIds.concat(newPlayerIds)
         && after.teeTimes == [{
           'time': teeTime.time,
           'slots': teeTime.slots,
-          'players': teeTime.players.concat([{
-            'playerId': request.auth.uid,
-            'name': myProfile().name
-          }])
+          'players': teeTime.players.concat([seat])
         }];
+    }
+
+    // The organizer's answer for one of their invitees who hasn't answered: only the status
+    // changes, from PENDING to ACCEPTED or DECLINED. The invitee's playerId stays the organizer's
+    // claim from publish. A Yes comes with that invitee's seat in the same write (the game's own
+    // rule checks the seat, isRecordingASeat); a No leaves the game alone.
+    function isRecordedAnswer(gameId, phone, before, after) {
+      let game = get(gamePath(gameId)).data;
+      let gameAfter = getAfter(gamePath(gameId)).data;
+      let seats = game.teeTimes[0].players;
+      let seatsAfter = gameAfter.teeTimes[0].players;
+      return game.organizerId == request.auth.uid
+        && phone in game.invitedPhones
+        && before.status == 'PENDING'
+        && after.diff(before).affectedKeys().hasOnly(['status'])
+        && (
+          (after.status == 'DECLINED' && gameAfter == game)
+          || (after.status == 'ACCEPTED'
+            && seatsAfter.size() == seats.size() + 1
+            && seatsAfter[seats.size()].phone == phone)
+        );
+    }
+
+    // A Yes the organizer recorded, seen from the game: the new seat names the invitee by the
+    // number they were invited by, and their invitation goes from PENDING to ACCEPTED in this same
+    // write. The seat carries the invitee's name as invited and, only when the account the
+    // organizer named at publish really owns that number, that account's id, which also joins
+    // playerIds. Otherwise the seat has no playerId.
+    function isRecordingASeat(gameId, before, after) {
+      let teeTime = before.teeTimes[0];
+      let phone = after.teeTimes[0].players[teeTime.players.size()].phone;
+      let invitee = get(inviteePath(gameId, phone)).data;
+      let playerId = invitee.playerId;
+      let verified = ownsNumber(playerId, phone) && !(playerId in before.playerIds);
+      return before.organizerId == request.auth.uid
+        && phone in before.invitedPhones
+        && invitee.status == 'PENDING'
+        && getAfter(inviteePath(gameId, phone)).data.status == 'ACCEPTED'
+        && isSeating(
+          before,
+          after,
+          {'playerId': verified ? playerId : null, 'name': invitee.name, 'phone': phone},
+          verified ? [playerId] : []
+        );
     }
 
     // ===============================================================
@@ -313,10 +378,11 @@ service cloud.firestore {
 
       allow create: if isSignedIn() && isValidNewGame(gameId, request.resource.data);
 
-      // The only change allowed so far is an invitee's Yes taking a seat. Organizers can't edit
-      // or cancel a game yet.
+      // The only change allowed so far is a Yes taking a seat: an invitee's own, or one the
+      // organizer recorded for them. Organizers can't edit or cancel a game yet.
       allow update: if isSignedIn()
-        && isAcceptingASeat(gameId, resource.data, request.resource.data);
+        && (isAcceptingASeat(gameId, resource.data, request.resource.data)
+          || isRecordingASeat(gameId, resource.data, request.resource.data));
 
       allow delete: if false;
 
@@ -328,8 +394,10 @@ service cloud.firestore {
 
         allow create: if isSignedIn() && isPublishingInvitee(gameId, phone);
 
+        // The invitee's own answer, or the organizer's answer for them.
         allow update: if isSignedIn()
-          && isValidAnswer(gameId, phone, resource.data, request.resource.data);
+          && (isValidAnswer(gameId, phone, resource.data, request.resource.data)
+            || isRecordedAnswer(gameId, phone, resource.data, request.resource.data));
 
         allow delete: if false;
       }

@@ -63,8 +63,8 @@ class GameUiStateTest {
             listOf(
                 TeeTimePlayerRowUiState(initial = "B", name = "brad Ball", tone = AvatarTone.SECONDARY, status = TeeTimePlayerStatus.ORGANIZER),
                 TeeTimePlayerRowUiState(initial = "D", name = "Dana Park", tone = AvatarTone.forName("Dana Park"), status = TeeTimePlayerStatus.CONFIRMED),
-                TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", tone = AvatarTone.forName("matt Chen"), status = TeeTimePlayerStatus.INVITED),
-                TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", tone = AvatarTone.forName("Jeff Morrison"), status = TeeTimePlayerStatus.INVITED),
+                TeeTimePlayerRowUiState(initial = "M", name = "matt Chen", tone = AvatarTone.forName("matt Chen"), status = TeeTimePlayerStatus.INVITED, inviteePhone = "4155550188"),
+                TeeTimePlayerRowUiState(initial = "J", name = "Jeff Morrison", tone = AvatarTone.forName("Jeff Morrison"), status = TeeTimePlayerStatus.INVITED, inviteePhone = "4155550188"),
             ),
             teeTime.players
         )
@@ -112,8 +112,8 @@ class GameUiStateTest {
 
     @Test
     fun confirmedPlayersAreInTheOrderTheySaidYesNotInviteOrder() {
-        val matt = GamePlayer("matt", "Matt Chen")
-        val jeff = GamePlayer("jeff", "Jeff Morrison")
+        val matt = GamePlayer("matt", "Matt Chen", "4155550188")
+        val jeff = GamePlayer("jeff", "Jeff Morrison", "4155550142")
         // Matt was invited first, but Jeff said yes first and took the earlier slot.
         val answered = game.copy(
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest, jeff, matt))),
@@ -141,8 +141,8 @@ class GameUiStateTest {
 
     @Test
     fun aNewYesMovesOnlyThatPersonsRow() {
-        val jeff = GamePlayer("jeff", "Jeff Morrison")
-        val matt = GamePlayer("matt", "Matt Chen")
+        val jeff = GamePlayer("jeff", "Jeff Morrison", "4155550142")
+        val matt = GamePlayer("matt", "Matt Chen", "4155550188")
         val before = invitedGame.copy(
             teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, jeff))),
             invitees = listOf(
@@ -260,7 +260,7 @@ class GameUiStateTest {
     @Test
     fun anAnsweredInvitationCollapses() {
         val accepted = invitedGame.copy(
-            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz")))),
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz", "5025553456")))),
             invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED, playerId = "sam"))
         )
         val declined = invitedGame.copy(
@@ -283,7 +283,7 @@ class GameUiStateTest {
     @Test
     fun aYesMovesTheInviteeIntoTheSlotsAsConfirmedAndCountsTowardFilled() {
         val accepted = invitedGame.copy(
-            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz")))),
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz", "5025553456")))),
             invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED, playerId = "sam"))
         )
 
@@ -348,5 +348,98 @@ class GameUiStateTest {
 
         assertEquals(null, (state.rsvp as RsvpUiState.Pending).title)
         assertEquals(null, state.organizedBy)
+    }
+
+    // MARK: Recording a response for an invitee
+
+    // Sam's number, as the organizer's app might hold it.
+    private val samFormatted = "(502) 555-3456"
+
+    @Test
+    fun onlyInvitedRowsInTheOrganizersViewCanRecordAResponse() {
+        val organizerRows = invitedGame.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, guest)))
+        ).organizerView().teeTimes.single().players
+
+        assertEquals(listOf(null, null, samViewer.phone), organizerRows.map { it.inviteePhone })
+        assertEquals(listOf(false, false, true), organizerRows.map { it.canRecordResponse })
+        assertTrue(invitedGame.inviteeView(samViewer).teeTimes.single().players.none { it.canRecordResponse })
+    }
+
+    @Test
+    fun theResponseSheetIsClosedUntilAnInviteeIsChosen() {
+        assertEquals(null, invitedGame.organizerView().responseSheet)
+    }
+
+    @Test
+    fun theChosenInviteeGetsTheOnlyResponseSheet() {
+        val state = invitedGame.toUiState(bradViewer, respondingFor = samFormatted) as GameUiState.Organizer
+
+        assertEquals(
+            ResponseSheetUiState(
+                inviteePhone = samViewer.phone,
+                title = LocalizedText(GMR.strings.game_details_response_title, listOf("Sam")),
+                prompt = LocalizedText(GMR.strings.game_details_response_prompt, listOf("Sam", "9:00 AM")),
+                yesDetail = LocalizedText(GMR.strings.game_details_response_yes_detail, listOf("9:00 AM")),
+                canAccept = true,
+                inviteeName = "Sam"
+            ),
+            state.responseSheet
+        )
+    }
+
+    @Test
+    fun theResponseSheetTurnsYesOffOnceYesAnswersFillEverySlot() {
+        val full = invitedGame.copy(
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 2, players = listOf(organizer, guest)))
+        )
+
+        val sheet = (full.toUiState(bradViewer, respondingFor = samViewer.phone) as GameUiState.Organizer).responseSheet
+
+        assertEquals(false, sheet?.canAccept)
+        assertEquals(LocalizedText(GMR.strings.game_details_response_yes_full, listOf("9:00 AM")), sheet?.yesDetail)
+    }
+
+    @Test
+    fun theResponseSheetClosesOnceTheInviteeIsNoLongerWaiting() {
+        val answered = invitedGame.copy(invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.DECLINED)))
+
+        assertEquals(null, (answered.toUiState(bradViewer, respondingFor = samViewer.phone) as GameUiState.Organizer).responseSheet)
+        assertEquals(null, (invitedGame.toUiState(bradViewer, respondingFor = danaViewer.phone) as GameUiState.Organizer).responseSheet)
+    }
+
+    @Test
+    fun onlyTheOrganizerGetsAResponseSheet() {
+        val state = invitedGame.toUiState(samViewer, respondingFor = samViewer.phone)
+
+        assertTrue(state is GameUiState.Invitee)
+    }
+
+    @Test
+    fun theResponseSheetConfirmsTheAnswerByTheInviteesName() {
+        val sheet = (invitedGame.toUiState(bradViewer, respondingFor = samViewer.phone) as GameUiState.Organizer).responseSheet!!
+
+        assertEquals(LocalizedText(GMR.strings.game_details_response_recorded_yes, listOf("Sam")), sheet.recordedMessage(accepted = true))
+        assertEquals(LocalizedText(GMR.strings.game_details_response_recorded_no, listOf("Sam")), sheet.recordedMessage(accepted = false))
+    }
+
+    @Test
+    fun aSeatTheOrganizerFilledWithoutAnAccountIsStillTheViewersOwnRow() {
+        // Sam's Yes was recorded before Sam had an account: the seat has his number but no id.
+        val recorded = invitedGame.copy(
+            teeTimes = listOf(
+                GameTeeTime(
+                    time = LocalTime(9, 0),
+                    slots = 4,
+                    players = listOf(organizer, GamePlayer(playerId = null, name = "Sam", phone = samViewer.phone))
+                )
+            ),
+            invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED))
+        )
+
+        val samsRow = recorded.inviteeView(samViewer).teeTimes.single().players.last()
+
+        assertEquals(TeeTimePlayerStatus.CONFIRMED, samsRow.status)
+        assertEquals(LocalizedText(GMR.strings.game_details_viewer_name, listOf("Sam")), samsRow.viewerName)
     }
 }

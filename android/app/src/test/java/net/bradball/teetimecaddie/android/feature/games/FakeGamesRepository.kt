@@ -73,7 +73,7 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
             course = Course(id = name.lowercase(), name = name),
             date = date,
             teeTimes = listOf(
-                GameTeeTime(time, slots, listOf(GamePlayer(organizer.id, organizer.name)))
+                GameTeeTime(time, slots, listOf(GamePlayer(organizer.id, organizer.name, organizer.phone)))
             ),
             invitees = invitees.map {
                 GameInvitee(it.name, it.phone, playerId = null, status = InviteStatus.PENDING)
@@ -105,6 +105,25 @@ class FakeGamesRepository(vararg games: Game) : GamesRepository {
     override suspend fun respondToInvite(gameId: String, player: Player, accept: Boolean): TtcResult<Game> {
         respondRequests += gameId to accept
         respondFailure?.let { return TtcResult.Failure(GameException(it)) }
+        return games.value.firstOrNull { it.id == gameId }
+            ?.let { TtcResult.Success(it) }
+            ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
+    }
+
+    /** Each answer the organizer recorded, in order: the game's id, the invitee's number and whether it was a yes. */
+    val recordRequests = mutableListOf<Triple<String, String, Boolean>>()
+
+    /** When set, [recordResponse] fails with this instead of recording. */
+    var recordFailure: GameErrors? = null
+
+    override suspend fun recordResponse(
+        gameId: String,
+        organizer: Player,
+        inviteePhone: String,
+        accept: Boolean,
+    ): TtcResult<Game> {
+        recordRequests += Triple(gameId, inviteePhone, accept)
+        recordFailure?.let { return TtcResult.Failure(GameException(it)) }
         return games.value.firstOrNull { it.id == gameId }
             ?.let { TtcResult.Success(it) }
             ?: TtcResult.Failure(GameException(GameErrors.NOT_FOUND))

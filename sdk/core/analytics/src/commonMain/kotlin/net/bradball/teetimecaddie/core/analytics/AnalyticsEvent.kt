@@ -86,9 +86,21 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** An organizer published a new Game. [slots] is how many players its tee time holds. */
     @Serializable
     data class PublishGame(val slots: Int): AnalyticsEvent("publish_game", EventType.OPERATION)
-    /** An invitee answered a Game's invitation: yes ([accepted]) or no. */
+    /**
+     * An answer to a Game's invitation was saved: yes ([accepted]) or no. [source] says who gave it:
+     * the invitee, or the organizer on their behalf.
+     */
     @Serializable
-    data class AnswerInvite(val accepted: Boolean): AnalyticsEvent("answer_invite", EventType.OPERATION)
+    data class AnswerInvite(val accepted: Boolean, val source: Source): AnalyticsEvent("answer_invite", EventType.OPERATION) {
+        /** Who answered the invitation. */
+        @Serializable
+        enum class Source {
+            /** The invitee answered their own invitation. */
+            @SerialName("player") PLAYER,
+            /** The organizer recorded the answer on the invitee's behalf. */
+            @SerialName("organizer") ORGANIZER
+        }
+    }
     /**
      * Yes or No was tapped on a Game's invitation. Logged for every tap, whether or not the answer
      * is then saved; [AnswerInvite] records the ones that were.
@@ -109,6 +121,32 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
             @SerialName("game_details") GAME_DETAILS
         }
     }
+    /**
+     * On Game details, the organizer tapped an invitee who hasn't answered, or that invitee's ⋮,
+     * opening the sheet that records a response on their behalf.
+     */
+    @Serializable
+    object InviteeRowClick: AnalyticsEvent("invitee_row_click", EventType.CLICK)
+    /**
+     * Yes or No was tapped in the organizer's response sheet. Logged for every tap, whether or not
+     * the answer is then saved; [AnswerInvite] with [AnswerInvite.Source.ORGANIZER] records the ones
+     * that were.
+     */
+    @Serializable
+    data class OrganizerResponseClick(val response: Response): AnalyticsEvent("organizer_response_click", EventType.CLICK) {
+        /** For callers that have the answer as a Boolean: [accepted] is Yes, otherwise No. */
+        constructor(accepted: Boolean) : this(if (accepted) Response.YES else Response.NO)
+
+        /** The option tapped in the sheet. */
+        @Serializable
+        enum class Response {
+            @SerialName("yes") YES,
+            @SerialName("no") NO
+        }
+    }
+    /** The organizer's response sheet closed without Yes or No being picked. */
+    @Serializable
+    object OrganizerResponseSheetDismiss: AnalyticsEvent("organizer_response_sheet_dismiss", EventType.CLICK)
     /** A Game was tapped on the Games tab, opening its details. */
     @Serializable
     object GameListItemClick: AnalyticsEvent("game_list_item_click", EventType.CLICK)

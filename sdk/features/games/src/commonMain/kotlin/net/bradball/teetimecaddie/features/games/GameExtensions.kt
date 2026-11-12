@@ -46,9 +46,11 @@ internal fun cleanCourseName(name: String): String = name.trim().replace(whitesp
 
 internal fun CourseDocument.toModel(): Course = Course(id = nameKey, name = name)
 
-internal fun GamePlayerDocument.toModel(): GamePlayer = GamePlayer(playerId = playerId, name = name)
+internal fun GamePlayerDocument.toModel(): GamePlayer =
+    GamePlayer(playerId = playerId, name = name, phone = phone)
 
-internal fun GamePlayer.toDocument(): GamePlayerDocument = GamePlayerDocument(playerId = playerId, name = name)
+internal fun GamePlayer.toDocument(): GamePlayerDocument =
+    GamePlayerDocument(playerId = playerId, name = name, phone = phone)
 
 internal fun GameTeeTimeDocument.toModel(): GameTeeTime = GameTeeTime(
     time = time,
@@ -109,6 +111,9 @@ internal sealed interface InviteAnswer {
 
     /** Nobody was invited by that number. Nothing is written. */
     data object NotInvited : InviteAnswer
+
+    /** Someone other than the game's organizer tried to answer for an invitee. Nothing is written. */
+    data object NotOrganizer : InviteAnswer
 }
 
 /**
@@ -116,29 +121,73 @@ internal sealed interface InviteAnswer {
  *
  * Mirrors the invitee and game update rules in firebase/firestore.rules: only the invitee's own
  * document changes, taking their answer and their player id, and a yes also takes the tee time's
- * next free slot under their profile name.
+ * next free slot under their profile name and number.
  *
- * @param phone Digits only, as [GameDocument.invitees] is keyed.
+ * @param phone Digits only, as [GameDocument.invitees] is keyed. The player's own number.
  */
 internal fun GameDocument.answer(phone: String, player: Player, accept: Boolean): InviteAnswer {
     val invitee = invitees[phone] ?: return InviteAnswer.NotInvited
     if (invitee.status != InviteStatus.PENDING.name) return InviteAnswer.AlreadyAnswered
 
-    val status = if (accept) InviteStatus.ACCEPTED else InviteStatus.DECLINED
-    val answered = invitee.copy(status = status.name, playerId = player.id)
+    val answered = invitee.copy(status = statusFor(accept).name, playerId = player.id)
+    return answerWith(answered, accept, GamePlayerDocument(player.id, player.name, phone))
+}
+
+/**
+ * Record [organizerId]'s answer for the invitation [phone] received to this game.
+ *
+ * Mirrors the organizer's paths in the invitee and game update rules in firebase/firestore.rules:
+ * only the game's organizer may answer for an invitee, only the invitee's status changes, keeping
+ * the player id the organizer named at publish, and a yes also takes the tee time's next free slot
+ * under the name they were invited by. The seat carries that player id, and adds it to
+ * [GameDocument.playerIds], only when [numberOwnerId] shows the account really owns [phone] and it
+ * doesn't hold a slot already; otherwise the seat has none.
+ *
+ * @param organizerId The player answering, who must have organized the game.
+ * @param phone Digits only, as [GameDocument.invitees] is keyed.
+ * @param numberOwnerId The id of the player whose profile has [phone] now, or null if nobody's does.
+ */
+internal fun GameDocument.recordAnswer(
+    organizerId: String,
+    phone: String,
+    numberOwnerId: String?,
+    accept: Boolean
+): InviteAnswer {
+    if (organizerId != this.organizerId) return InviteAnswer.NotOrganizer
+    val invitee = invitees[phone] ?: return InviteAnswer.NotInvited
+    if (invitee.status != InviteStatus.PENDING.name) return InviteAnswer.AlreadyAnswered
+
+    val seatPlayerId = invitee.playerId
+        ?.takeIf { it == numberOwnerId && it !in playerIds }
+    val answered = invitee.copy(status = statusFor(accept).name)
+    return answerWith(answered, accept, GamePlayerDocument(seatPlayerId, invitee.name, phone))
+}
+
+private fun statusFor(accept: Boolean): InviteStatus =
+    if (accept) InviteStatus.ACCEPTED else InviteStatus.DECLINED
+
+/**
+ * Write [answered] and, for a yes, give [seat] the tee time's next free slot, adding its player
+ * id, if it has one, to [GameDocument.playerIds].
+ */
+private fun GameDocument.answerWith(
+    answered: GameInviteeDocument,
+    accept: Boolean,
+    seat: GamePlayerDocument
+): InviteAnswer {
     if (!accept) return InviteAnswer.Write(InviteeAnswerDocument(answered, seat = null))
 
     // Every game has exactly one tee time for now, and it is the one an invitee joins.
     val teeTime = teeTimes.firstOrNull() ?: return InviteAnswer.Full
     if (teeTime.players.size >= teeTime.slots) return InviteAnswer.Full
-    val seated = teeTime.copy(players = teeTime.players + GamePlayerDocument(player.id, player.name))
+    val seated = teeTime.copy(players = teeTime.players + seat)
 
     return InviteAnswer.Write(
         InviteeAnswerDocument(
             invitee = answered,
             seat = GameRosterDocument(
                 teeTimes = listOf(seated) + teeTimes.drop(1),
-                playerIds = playerIds + player.id
+                playerIds = playerIds + listOfNotNull(seat.playerId)
             )
         )
     )

@@ -29,6 +29,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -56,7 +57,7 @@ class GameDetailsViewModelTest {
     private val invitation = previewGame.copy(
         id = "invitation",
         organizerId = "sam",
-        teeTimes = listOf(previewGame.teeTimes.single().copy(players = listOf(GamePlayer("sam", "Sam Pruitt")))),
+        teeTimes = listOf(previewGame.teeTimes.single().copy(players = listOf(GamePlayer("sam", "Sam Pruitt", "5025559001")))),
         invitees = listOf(GameInvitee("Brad", previewPlayer.phone, playerId = null, status = InviteStatus.PENDING)),
     )
 
@@ -226,5 +227,104 @@ class GameDetailsViewModelTest {
 
         session.value = SessionState.SignedIn(previewPlayer.copy(phone = "5025550000"))
         assertEquals(listOf("invitation", "invitation"), repository.observedGameIds)
+    }
+
+    // MARK: the organizer recording a response
+
+    // The signed-in player's own game, with Matt invited and not yet answering.
+    private val mattPhone = "4155550188"
+    private val organized = previewGame.copy(
+        id = "organized",
+        invitees = listOf(GameInvitee("Matt Chen", mattPhone, playerId = null, status = InviteStatus.PENDING)),
+    )
+
+    private fun GameDetailsViewModel.organizerState() =
+        (uiState.value as GameDetailsUiState.Content).game as GameUiState.Organizer
+
+    @Test
+    fun tappingAnInviteeOpensTheirResponseSheetAndIsLogged() = runTest {
+        val viewModel = viewModel(organized.id, FakeGamesRepository(organized))
+        loaded(viewModel)
+        assertNull(viewModel.organizerState().responseSheet)
+
+        viewModel.onInviteeClick(mattPhone)
+
+        assertEquals(mattPhone, viewModel.organizerState().responseSheet?.inviteePhone)
+        assertEquals(listOf(AnalyticsEvent.InviteeRowClick), analytics.events.filterIsInstance<AnalyticsEvent.InviteeRowClick>())
+    }
+
+    @Test
+    fun theSheetClosesOnItsOwnOnceTheInviteeHasAnswered() = runTest {
+        val repository = FakeGamesRepository(organized)
+        val viewModel = viewModel(organized.id, repository)
+        loaded(viewModel)
+        viewModel.onInviteeClick(mattPhone)
+
+        repository.setGames(organized.copy(invitees = organized.invitees.map { it.copy(status = InviteStatus.DECLINED) }))
+
+        assertNull(viewModel.organizerState().responseSheet)
+    }
+
+    @Test
+    fun recordingAnAnswerClosesTheSheetSendsItAndConfirmsIt() = runTest {
+        val repository = FakeGamesRepository(organized)
+        val viewModel = viewModel(organized.id, repository)
+        loaded(viewModel)
+        val messages = messages()
+        viewModel.onInviteeClick(mattPhone)
+
+        viewModel.onRecordResponse(accept = true)
+
+        assertNull(viewModel.organizerState().responseSheet)
+        assertEquals(listOf(Triple("organized", mattPhone, true)), repository.recordRequests)
+        assertEquals(listOf(TtcMessage(GMR.strings.game_details_response_recorded_yes, listOf("Matt Chen"))), messages)
+        assertEquals(
+            listOf(AnalyticsEvent.OrganizerResponseClick(AnalyticsEvent.OrganizerResponseClick.Response.YES)),
+            analytics.events.filterIsInstance<AnalyticsEvent.OrganizerResponseClick>()
+        )
+    }
+
+    @Test
+    fun aRecordedYesThatLosesTheLastSlotSaysTheGameJustFilledUp() = runTest {
+        val repository = FakeGamesRepository(organized).apply { recordFailure = GameErrors.GAME_FULL }
+        val viewModel = viewModel(organized.id, repository)
+        loaded(viewModel)
+        val messages = messages()
+        viewModel.onInviteeClick(mattPhone)
+
+        viewModel.onRecordResponse(accept = true)
+
+        assertEquals(listOf(TtcMessage(GameErrors.GAME_FULL.title)), messages)
+    }
+
+    @Test
+    fun dismissingTheSheetClosesItAndIsLoggedOnlyWhenNothingWasPicked() = runTest {
+        val viewModel = viewModel(organized.id, FakeGamesRepository(organized))
+        loaded(viewModel)
+
+        viewModel.onInviteeClick(mattPhone)
+        viewModel.onResponseSheetDismiss()
+        assertNull(viewModel.organizerState().responseSheet)
+
+        // Picking an answer closes the sheet too; the dismiss that follows its exit isn't another.
+        viewModel.onInviteeClick(mattPhone)
+        viewModel.onRecordResponse(accept = false)
+        viewModel.onResponseSheetDismiss()
+
+        assertEquals(
+            listOf(AnalyticsEvent.OrganizerResponseSheetDismiss),
+            analytics.events.filterIsInstance<AnalyticsEvent.OrganizerResponseSheetDismiss>()
+        )
+    }
+
+    @Test
+    fun noAnswerIsSentWhileNoSheetIsOpen() = runTest {
+        val repository = FakeGamesRepository(organized)
+        val viewModel = viewModel(organized.id, repository)
+        loaded(viewModel)
+
+        viewModel.onRecordResponse(accept = true)
+
+        assertTrue(repository.recordRequests.isEmpty())
     }
 }

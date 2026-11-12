@@ -34,6 +34,7 @@ const BRAD = 'brad-uid';
 const DANA = 'dana-uid';
 const SAM = 'sam-uid';
 const DANA_PHONE = '5025552345';
+const BRAD_PHONE = '5025551234';
 
 let env;
 
@@ -53,7 +54,7 @@ beforeEach(async () => {
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
     await setDoc(doc(db, 'players', BRAD), {
-      name: 'Brad Ball', email: 'brad@golf.app', phone: '5025551234',
+      name: 'Brad Ball', email: 'brad@golf.app', phone: BRAD_PHONE,
     });
     await setDoc(doc(db, 'players', DANA), {
       name: 'Dana Park', email: 'dana@golf.app', phone: DANA_PHONE,
@@ -83,7 +84,7 @@ function newGame(overrides = {}, teeTimeOverrides = {}, playerOverrides = {}) {
     teeTimes: [{
       time: '09:00',
       slots: 4,
-      players: [{ playerId: BRAD, name: 'Brad Ball', ...playerOverrides }],
+      players: [{ playerId: BRAD, name: 'Brad Ball', phone: BRAD_PHONE, ...playerOverrides }],
       ...teeTimeOverrides,
     }],
     playerIds: [BRAD],
@@ -276,6 +277,13 @@ describe('publishing a game', () => {
     await assertFails(publish(signedIn(BRAD), newGame({}, {}, { playerId: DANA, name: 'Dana Park' })));
   });
 
+  test("denies an organizer seat without their profile's number", async () => {
+    await assertFails(publish(signedIn(BRAD), newGame({}, {}, { phone: DANA_PHONE })));
+    const noPhone = newGame();
+    delete noPhone.teeTimes[0].players[0].phone;
+    await assertFails(publish(signedIn(BRAD), noPhone));
+  });
+
   test('denies adding other players to playerIds', async () => {
     await assertFails(publish(signedIn(BRAD), newGame({ playerIds: [BRAD, DANA] })));
   });
@@ -383,8 +391,8 @@ async function seedInvitingGame(
   });
 }
 
-const BRAD_SLOT = { playerId: BRAD, name: 'Brad Ball' };
-const DANA_SLOT = { playerId: DANA, name: 'Dana Park' };
+const BRAD_SLOT = { playerId: BRAD, name: 'Brad Ball', phone: BRAD_PHONE };
+const DANA_SLOT = { playerId: DANA, name: 'Dana Park', phone: DANA_PHONE };
 const SEATED = {
   teeTimes: [{ time: '09:00', slots: 4, players: [BRAD_SLOT, DANA_SLOT] }],
   playerIds: [BRAD, DANA],
@@ -516,6 +524,15 @@ describe('answering an invitation', () => {
     await assertFails(answer('ACCEPTED', { game }));
   });
 
+  test("denies a seat under a number other than your profile's", async () => {
+    await seedInvitingGame();
+    const game = {
+      ...SEATED,
+      teeTimes: [{ time: '09:00', slots: 4, players: [BRAD_SLOT, { ...DANA_SLOT, phone: MATT.phone }] }],
+    };
+    await assertFails(answer('ACCEPTED', { game }));
+  });
+
   test('denies a Yes that also removes another slot holder', async () => {
     await seedInvitingGame();
     const game = { teeTimes: [{ time: '09:00', slots: 4, players: [DANA_SLOT] }], playerIds: [DANA] };
@@ -594,10 +611,137 @@ describe('changing games', () => {
     await assertFails(deleteDoc(doc(db, 'games', 'game-1')));
   });
 
-  test('denies the organizer answering for or removing an invitee', async () => {
+  test('denies the organizer removing an invitee', async () => {
     await seedInvitingGame();
-    const db = signedIn(BRAD);
-    await assertFails(updateDoc(inviteeRef(db), { status: 'DECLINED', playerId: BRAD }));
-    await assertFails(deleteDoc(inviteeRef(db)));
+    await assertFails(deleteDoc(inviteeRef(signedIn(BRAD))));
+  });
+});
+
+/** The seat the organizer records for an invitee: their invited name and number. */
+function recordedSeat(invitee, playerId = null) {
+  return { playerId, name: invitee.name, phone: invitee.phone };
+}
+
+/** The game with [seat] appended to Brad's tee time and [playerIds] holding its slot holders. */
+function seatedWith(seat, { slots = 4, playerIds = [BRAD] } = {}) {
+  return { teeTimes: [{ time: '09:00', slots, players: [BRAD_SLOT, seat] }], playerIds };
+}
+
+/**
+ * An answer the organizer records, as the app writes it: the status on the invitee document
+ * under [phone], plus [game] changes to the game in the same write (a seat, for a Yes).
+ */
+function record(status, { uid = BRAD, phone = MATT.phone, invitee = {}, game = null } = {}) {
+  const db = signedIn(uid);
+  const batch = writeBatch(db);
+  batch.update(inviteeRef(db, phone), { status, ...invitee });
+  if (game) batch.update(doc(db, 'games', 'game-1'), game);
+  return batch.commit();
+}
+
+describe('the organizer recording an answer', () => {
+  // Dana's invitation names her own account, which owns her number. Jeff's names Sam's account,
+  // which doesn't own Jeff's number. Matt was invited with no account at all.
+  const DANA_CLAIMED = { ...DANA_INVITE, playerId: DANA };
+  const seedAll = (teeTimeOverrides = {}) =>
+    seedInvitingGame(teeTimeOverrides, [DANA_CLAIMED, MATT, JEFF]);
+
+  test('allows a No that changes only the invitation', async () => {
+    await seedAll();
+    await assertSucceeds(record('DECLINED'));
+  });
+
+  test('allows a Yes for an invitee with no account, seated without a playerId', async () => {
+    await seedAll();
+    await assertSucceeds(record('ACCEPTED', { game: seatedWith(recordedSeat(MATT)) }));
+  });
+
+  test('allows a Yes for an app user, seated under their account', async () => {
+    await seedAll();
+    const game = seatedWith(recordedSeat(DANA_CLAIMED, DANA), { playerIds: [BRAD, DANA] });
+    await assertSucceeds(record('ACCEPTED', { phone: DANA_PHONE, game }));
+  });
+
+  test('seats a claimed account only when it owns the number', async () => {
+    await seedAll();
+    const asSam = seatedWith(recordedSeat(JEFF, SAM), { playerIds: [BRAD, SAM] });
+    await assertFails(record('ACCEPTED', { phone: JEFF.phone, game: asSam }));
+    await assertSucceeds(record('ACCEPTED', { phone: JEFF.phone, game: seatedWith(recordedSeat(JEFF)) }));
+  });
+
+  test("denies seating an app user without their account", async () => {
+    await seedAll();
+    await assertFails(record('ACCEPTED', { phone: DANA_PHONE, game: seatedWith(recordedSeat(DANA_CLAIMED)) }));
+    const notInPlayerIds = seatedWith(recordedSeat(DANA_CLAIMED, DANA));
+    await assertFails(record('ACCEPTED', { phone: DANA_PHONE, game: notInPlayerIds }));
+  });
+
+  test('denies a Yes when every slot is taken', async () => {
+    await seedAll({ slots: 1 });
+    await assertFails(record('ACCEPTED', { game: seatedWith(recordedSeat(MATT), { slots: 1 }) }));
+  });
+
+  test('denies a Yes that does not take a seat', async () => {
+    await seedAll();
+    await assertFails(record('ACCEPTED'));
+  });
+
+  test('denies taking a seat without a Yes', async () => {
+    await seedAll();
+    await assertFails(updateDoc(doc(signedIn(BRAD), 'games', 'game-1'), seatedWith(recordedSeat(MATT))));
+  });
+
+  test('denies a No that takes a seat', async () => {
+    await seedAll();
+    await assertFails(record('DECLINED', { game: seatedWith(recordedSeat(MATT)) }));
+  });
+
+  test("denies a seat for someone other than the invitee answered for", async () => {
+    await seedAll();
+    await assertFails(record('ACCEPTED', { game: seatedWith(recordedSeat(JEFF)) }));
+  });
+
+  test('denies a seat under a name other than the one invited', async () => {
+    await seedAll();
+    const game = seatedWith({ ...recordedSeat(MATT), name: 'Tiger' });
+    await assertFails(record('ACCEPTED', { game }));
+  });
+
+  test('denies a Yes that also changes the game', async () => {
+    await seedAll();
+    await assertFails(record('ACCEPTED', { game: { ...seatedWith(recordedSeat(MATT)), date: '2026-06-14' } }));
+  });
+
+  test('denies a No that also changes the game', async () => {
+    await seedAll();
+    await assertFails(record('DECLINED', { game: { date: '2026-06-14' } }));
+  });
+
+  test("denies changing anything but the invitation's status", async () => {
+    await seedAll();
+    await assertFails(record('DECLINED', { invitee: { playerId: BRAD } }));
+    await assertFails(record('DECLINED', { invitee: { name: 'Matthew Chen' } }));
+  });
+
+  test('denies an answer that is not Yes or No', async () => {
+    await seedAll();
+    await assertFails(record('MAYBE'));
+  });
+
+  test('denies changing an answer once given', async () => {
+    await seedInvitingGame({}, [{ ...MATT, status: 'DECLINED' }]);
+    await assertFails(record('ACCEPTED', { game: seatedWith(recordedSeat(MATT)) }));
+    await assertFails(record('DECLINED'));
+  });
+
+  test('denies recording for a number that is not in invitedPhones', async () => {
+    await seedInvitingGame({}, [DANA_INVITE, MATT], [DANA_PHONE]);
+    await assertFails(record('DECLINED'));
+  });
+
+  test('denies anyone but the organizer recording an answer', async () => {
+    await seedAll();
+    await assertFails(record('DECLINED', { uid: SAM }));
+    await assertFails(record('ACCEPTED', { uid: DANA, game: seatedWith(recordedSeat(MATT)) }));
   });
 });

@@ -44,7 +44,7 @@ enum TestData {
                 GameTeeTime(
                     time: time,
                     slots: slots,
-                    players: [GamePlayer(playerId: organizer.id, name: organizer.name)]
+                    players: [GamePlayer(playerId: organizer.id, name: organizer.name, phone: organizer.phone)]
                 )
             ],
             invitees: []
@@ -129,6 +129,28 @@ final class FakeGamesRepository: GamesRepository {
         respondRequests.append((gameId, accept))
         if let respondFailure {
             return failure(respondFailure)
+        }
+        if let game = games.first(where: { $0.id == gameId }) {
+            return TtcResultSuccess(data: game)
+        }
+        return failure(.notFound)
+    }
+
+    /// Each answer the organizer recorded, in order: the game's id, the invitee's number and whether it was a yes.
+    private(set) var recordRequests: [(gameId: String, inviteePhone: String, accept: Bool)] = []
+
+    /// When set, ``__recordResponse`` fails with this instead of recording.
+    var recordFailure: GameErrors?
+
+    func __recordResponse(
+        gameId: String,
+        organizer: Player,
+        inviteePhone: String,
+        accept: Bool
+    ) async throws -> TtcResult<Game> {
+        recordRequests.append((gameId, inviteePhone, accept))
+        if let recordFailure {
+            return failure(recordFailure)
         }
         if let game = games.first(where: { $0.id == gameId }) {
             return TtcResultSuccess(data: game)
