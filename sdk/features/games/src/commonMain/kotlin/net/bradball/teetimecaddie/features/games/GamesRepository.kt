@@ -222,10 +222,10 @@ class GamesRepositoryImpl(
         var answer: InviteAnswer? = null
 
         return tryStorage("answer_invite", GameErrors.RESPOND_FAILED) {
-            val game = gameStorage.updateRoster(gameId) { document ->
+            val game = gameStorage.answerInvitation(gameId, phone) { document ->
                 document.answer(phone, player, accept)
                     .also { answer = it }
-                    .let { (it as? InviteAnswer.Write)?.roster }
+                    .let { (it as? InviteAnswer.Write)?.answer }
             }
             when {
                 game == null || answer == InviteAnswer.NotInvited ->
