@@ -50,7 +50,7 @@ class GamesListViewModelTest {
     private val invitation = previewGame.copy(
         id = "invitation",
         organizerId = "sam",
-        teeTimes = listOf(previewGame.teeTimes.single().copy(players = listOf(GamePlayer("sam", "Sam Pruitt")))),
+        teeTimes = listOf(previewGame.teeTimes.single().copy(players = listOf(GamePlayer("sam", "Sam Pruitt", "5025559001")))),
         invitees = listOf(GameInvitee("Brad", previewPlayer.phone, playerId = null, status = InviteStatus.PENDING)),
     )
 

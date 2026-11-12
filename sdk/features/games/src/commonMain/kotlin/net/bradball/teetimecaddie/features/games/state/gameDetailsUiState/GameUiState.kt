@@ -180,7 +180,7 @@ val previewAcceptedGameUiState = previewGame
     .copy(
         teeTimes = listOf(
             previewGame.teeTimes.single().let {
-                it.copy(players = it.players + GamePlayer(previewInviteeViewer.id, previewInviteeViewer.name))
+                it.copy(players = it.players + GamePlayer(previewInviteeViewer.id, previewInviteeViewer.name, previewInviteeViewer.phone))
             }
         ),
         invitees = listOf(previewInvitation.copy(playerId = previewInviteeViewer.id, status = InviteStatus.ACCEPTED))

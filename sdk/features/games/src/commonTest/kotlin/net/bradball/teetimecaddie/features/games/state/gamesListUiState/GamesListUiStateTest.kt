@@ -55,8 +55,8 @@ class GamesListUiStateTest {
 
     // MARK: Row status, count and avatar stack
 
-    private val matt = GamePlayer("matt", "Matt Chen")
-    private val jeff = GamePlayer("jeff", "Jeff Morrison")
+    private val matt = GamePlayer("matt", "Matt Chen", "4155550188")
+    private val jeff = GamePlayer("jeff", "Jeff Morrison", "4155550142")
 
     private fun Game.row(viewer: Player = bradViewer) =
         (listOf(this).toGamesListUiState(viewer) as GamesListUiState.Content).games.single()
@@ -195,7 +195,7 @@ class GamesListUiStateTest {
     @Test
     fun aYesListsTheGameWithTheOtherGames() {
         val accepted = invitedGame.copy(
-            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz")))),
+            teeTimes = listOf(GameTeeTime(time = LocalTime(9, 0), slots = 4, players = listOf(organizer, GamePlayer("sam", "Sam Ortiz", "5025553456")))),
             invitees = listOf(invitee("Sam", phone = samViewer.phone, status = InviteStatus.ACCEPTED, playerId = "sam"))
         )
 

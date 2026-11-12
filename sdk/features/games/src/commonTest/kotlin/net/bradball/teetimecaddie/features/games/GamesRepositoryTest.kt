@@ -329,7 +329,7 @@ class GamesRepositoryTest {
             GameTeeTimeDocument(
                 teeTime,
                 slots,
-                (listOf(organizer) + players).map { GamePlayerDocument(it.id, it.name) }
+                (listOf(organizer) + players).map { GamePlayerDocument(it.id, it.name, it.phone) }
             )
         ),
         playerIds = listOf(organizer.id) + players.map { it.id },
@@ -476,7 +476,7 @@ class GamesRepositoryTest {
         val game = repository(storage).respondToInvite("game-1", dana, accept = true).game()
 
         assertEquals(
-            listOf(GamePlayer(organizer.id, organizer.name), GamePlayer(dana.id, dana.name)),
+            listOf(GamePlayer(organizer.id, organizer.name, organizer.phone), GamePlayer(dana.id, dana.name, dana.phone)),
             game.teeTimes.single().players
         )
         assertEquals(GameInvitee("Dana", dana.phone, dana.id, InviteStatus.ACCEPTED), game.inviteeFor(dana.phone))
@@ -568,6 +568,137 @@ class GamesRepositoryTest {
         }
 
         val result = repository(storage).respondToInvite("game-1", dana, accept = true)
+
+        assertEquals(GameErrors.RESPOND_FAILED, result.error())
+    }
+
+    // MARK: the organizer's answers
+
+    /** [storedGame], with each pending invitation naming the account [claimedIds] gives it at publish. */
+    private fun storedGameClaiming(vararg claimedIds: Pair<Player, String>, slots: Int = 4) =
+        storedGame(slots = slots, invitees = claimedIds.associate { (player, _) -> player to InviteStatus.PENDING })
+            .let { game ->
+                val claims = claimedIds.associate { (player, id) -> player.phone to id }
+                game.copy(invitees = game.invitees.mapValues { (phone, invitee) -> invitee.copy(playerId = claims[phone]) })
+                    .also { it.id = game.id }
+            }
+
+    @Test
+    fun recordResponse_yesSeatsAnAppUserUnderTheirAccount() = runTest {
+        playersByPhone[dana.phone] = dana
+        val storage = FakeGameStorage().apply { seed(storedGameClaiming(dana to dana.id)) }
+
+        val game = repository(storage).recordResponse("game-1", organizer, dana.phone, accept = true).game()
+
+        assertEquals(GamePlayer(dana.id, "Dana", dana.phone), game.teeTimes.single().players.last())
+        assertEquals(InviteStatus.ACCEPTED, game.inviteeFor(dana.phone)?.status)
+        assertEquals(dana.id, game.inviteeFor(dana.phone)?.playerId)
+        assertEquals(listOf(organizer.id, dana.id), storage.writtenGames.single().playerIds)
+        assertEquals(
+            listOf<AnalyticsEvent>(AnalyticsEvent.AnswerInvite(true, AnalyticsEvent.AnswerInvite.Source.ORGANIZER)),
+            events
+        )
+    }
+
+    @Test
+    fun recordResponse_yesSeatsSomeoneWithoutTheAppByNameAndNumber() = runTest {
+        val storage = FakeGameStorage().apply { seed(storedGame()) }
+
+        val game = repository(storage).recordResponse("game-1", organizer, "(502) 555-2345", accept = true).game()
+
+        assertEquals(GamePlayer(null, "Dana", dana.phone), game.teeTimes.single().players.last())
+        assertEquals(2, game.teeTimes.single().filled)
+        assertEquals(InviteStatus.ACCEPTED, game.inviteeFor(dana.phone)?.status)
+        assertEquals(listOf(organizer.id), storage.writtenGames.single().playerIds)
+    }
+
+    @Test
+    fun recordResponse_yesLeavesOutAClaimedAccountThatNoLongerOwnsTheNumber() = runTest {
+        playersByPhone[dana.phone] = sam
+        val storage = FakeGameStorage().apply { seed(storedGameClaiming(dana to dana.id)) }
+
+        val game = repository(storage).recordResponse("game-1", organizer, dana.phone, accept = true).game()
+
+        assertEquals(null, game.teeTimes.single().players.last().playerId)
+        assertEquals(listOf(organizer.id), storage.writtenGames.single().playerIds)
+    }
+
+    @Test
+    fun recordResponse_noRecordsTheAnswerWithoutLookingUpTheNumber() = runTest {
+        val storage = FakeGameStorage().apply { seed(storedGame()) }
+
+        val game = repository(storage).recordResponse("game-1", organizer, dana.phone, accept = false).game()
+
+        assertEquals(InviteStatus.DECLINED, game.inviteeFor(dana.phone)?.status)
+        assertEquals(null, game.inviteeFor(dana.phone)?.playerId)
+        assertEquals(1, game.teeTimes.single().filled)
+        assertTrue(lookedUpPhones.isEmpty())
+        assertEquals(
+            listOf<AnalyticsEvent>(AnalyticsEvent.AnswerInvite(false, AnalyticsEvent.AnswerInvite.Source.ORGANIZER)),
+            events
+        )
+    }
+
+    @Test
+    fun recordResponse_yesToAFullGameFailsAndLeavesTheInvitationPending() = runTest {
+        val storage = FakeGameStorage().apply { seed(storedGame(slots = 1)) }
+
+        val result = repository(storage).recordResponse("game-1", organizer, dana.phone, accept = true)
+
+        assertEquals(GameErrors.GAME_FULL, result.error())
+        assertEquals(InviteStatus.PENDING.name, storage.writtenGames.single().invitees[dana.phone]?.status)
+        assertTrue(events.isEmpty())
+    }
+
+    @Test
+    fun recordResponse_leavesAnAnsweredInvitationAsItIs() = runTest {
+        val storage = FakeGameStorage().apply { seed(storedGame(invitees = mapOf(dana to InviteStatus.DECLINED))) }
+
+        val game = repository(storage).recordResponse("game-1", organizer, dana.phone, accept = true).game()
+
+        assertEquals(InviteStatus.DECLINED, game.inviteeFor(dana.phone)?.status)
+        assertEquals(1, game.teeTimes.single().filled)
+        assertTrue(events.isEmpty())
+    }
+
+    @Test
+    fun recordResponse_reportsSomeoneWhoIsNotTheOrganizerAsNotFound() = runTest {
+        val storage = FakeGameStorage().apply { seed(storedGame(invitees = mapOf(dana to InviteStatus.PENDING, sam to InviteStatus.PENDING))) }
+
+        val result = repository(storage).recordResponse("game-1", sam, dana.phone, accept = false)
+
+        assertEquals(GameErrors.NOT_FOUND, result.error())
+        assertEquals(InviteStatus.PENDING.name, storage.writtenGames.single().invitees[dana.phone]?.status)
+    }
+
+    @Test
+    fun recordResponse_reportsANumberThatWasNotInvitedAsNotFound() = runTest {
+        val storage = FakeGameStorage().apply { seed(storedGame()) }
+
+        val result = repository(storage).recordResponse("game-1", organizer, sam.phone, accept = false)
+
+        assertEquals(GameErrors.NOT_FOUND, result.error())
+    }
+
+    @Test
+    fun recordResponse_reportsALookupFailureWithoutWriting() = runTest {
+        lookupFailure = GameException(GameErrors.UNKNOWN)
+        val storage = FakeGameStorage().apply { seed(storedGame()) }
+
+        val result = repository(storage).recordResponse("game-1", organizer, dana.phone, accept = true)
+
+        assertEquals(GameErrors.RESPOND_FAILED, result.error())
+        assertEquals(InviteStatus.PENDING.name, storage.writtenGames.single().invitees[dana.phone]?.status)
+    }
+
+    @Test
+    fun recordResponse_reportsAWriteFailure() = runTest {
+        val storage = FakeGameStorage().apply {
+            seed(storedGame())
+            failure = IllegalStateException("offline")
+        }
+
+        val result = repository(storage).recordResponse("game-1", organizer, dana.phone, accept = false)
 
         assertEquals(GameErrors.RESPOND_FAILED, result.error())
     }
