@@ -12,7 +12,18 @@ import TeeTimeCaddieKit
 @Observable
 final class GameDetailsViewModel {
 
-    private(set) var uiState: any GameDetailsUiState = GameDetailsUiStateLoading.shared
+    /// The game as the signed-in player sees it, with the organizer's response sheet while it's
+    /// open. Derived from the game as last read and which invitee's sheet is open, so it changes
+    /// whenever either does.
+    var uiState: any GameDetailsUiState {
+        guard let latestResult, let viewer else { return GameDetailsUiStateLoading.shared }
+        switch onEnum(of: latestResult) {
+        case .success(let success):
+            return success.data.toDetailsUiState(viewer: viewer, respondingFor: respondingFor)
+        case .failure(let failure):
+            return GameDetailsUiStateError(error: failure.error)
+        }
+    }
 
     private let gameId: String
     private let gamesRepository: GamesRepository
@@ -23,16 +34,13 @@ final class GameDetailsViewModel {
     // Whether an answer is on its way, so a second tap doesn't send another.
     private var answering = false
 
-    // The game as last read, and who it was read for, so the state can be rebuilt when the
-    // response sheet opens or closes without waiting for the game to change.
-    private var latestGame: Game?
+    // The game as last read, and who it was read for.
+    private var latestResult: TtcResult<Game>?
     private var viewer: Player?
 
     // The number of the invitee whose response sheet the organizer has open, or nil while it's
     // closed. Ephemeral: it lives as long as this screen.
-    private var respondingFor: String? {
-        didSet { refreshUiState() }
-    }
+    private var respondingFor: String?
 
     // Whether the organizer's answer for an invitee is on its way, so a second pick doesn't send
     // another.
@@ -69,19 +77,7 @@ final class GameDetailsViewModel {
     /// can't build a Kotlin `Flow` in Swift, call it directly.
     func receive(_ result: TtcResult<Game>, viewer: Player) {
         self.viewer = viewer
-        switch onEnum(of: result) {
-        case .success(let success):
-            latestGame = success.data
-            refreshUiState()
-        case .failure(let failure):
-            latestGame = nil
-            uiState = GameDetailsUiStateError(error: failure.error)
-        }
-    }
-
-    private func refreshUiState() {
-        guard let latestGame, let viewer else { return }
-        uiState = latestGame.toDetailsUiState(viewer: viewer, respondingFor: respondingFor)
+        latestResult = result
     }
 
     /// Answers the signed-in player's invitation, staying on this screen. The RSVP card collapses

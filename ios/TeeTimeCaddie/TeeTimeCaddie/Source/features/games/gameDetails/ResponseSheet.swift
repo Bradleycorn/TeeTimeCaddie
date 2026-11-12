@@ -48,6 +48,11 @@ struct ResponseSheet: View {
     }
 }
 
+/// A response sheet is for one invitee, so presenting one for another invitee is a new sheet.
+extension ResponseSheetUiState: @retroactive Identifiable {
+    public var id: String { inviteePhone }
+}
+
 /// One answer in the sheet: its symbol, the answer, and a line saying what it means.
 fileprivate struct ResponseOption: View {
     @EnvironmentObject private var theme: AppTheme

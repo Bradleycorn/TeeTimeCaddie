@@ -40,10 +40,6 @@ fileprivate struct GameDetailsContent: View {
     private let onRecordResponse: (Bool) -> Void
     private let onResponseSheetDismiss: () -> Void
 
-    // The response sheet last shown, kept so the sheet still has its content while it slides away
-    // after the state has closed it.
-    @State private var shownResponseSheetUiState: ResponseSheetUiState?
-
     init(
         uiState: any GameDetailsUiState,
         onAnswer: @escaping (Bool) -> Void,
@@ -80,19 +76,14 @@ fileprivate struct GameDetailsContent: View {
         }
         .background(theme.colorScheme.surface)
         .ttcBottomSheet(
-            isPresented: Binding(
-                get: { responseSheetUiState != nil },
+            item: Binding(
+                get: { responseSheetUiState },
                 // Only the sheet being dragged down or tapped outside sets this; picking an answer
                 // closes it from the state.
-                set: { isPresented in if !isPresented { onResponseSheetDismiss() } }
+                set: { sheet in if sheet == nil { onResponseSheetDismiss() } }
             )
-        ) {
-            if let sheet = responseSheetUiState ?? shownResponseSheetUiState {
-                ResponseSheet(uiState: sheet, onRecordResponse: onRecordResponse)
-            }
-        }
-        .onChange(of: responseSheetUiState) { _, sheet in
-            if let sheet { shownResponseSheetUiState = sheet }
+        ) { sheet in
+            ResponseSheet(uiState: sheet, onRecordResponse: onRecordResponse)
         }
     }
 }
