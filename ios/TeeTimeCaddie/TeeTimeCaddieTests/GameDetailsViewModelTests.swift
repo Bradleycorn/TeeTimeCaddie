@@ -11,7 +11,7 @@ import TeeTimeCaddieKit
 ///
 /// The live game isn't driven here: `observeGame` returns a Kotlin `Flow`, and SKIE gives Swift no
 /// public way to build one, so a Swift fake can't serve it. What the screen shows for a given game
-/// and viewer is `Game.toDetailsUiState(viewer:)`, which the SDK tests cover.
+/// and viewer is `Game.toDetailsUiState(viewer:respondingFor:)`, which the SDK tests cover.
 @MainActor
 final class GameDetailsViewModelTests: XCTestCase {
 
