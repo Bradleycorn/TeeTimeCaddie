@@ -7,11 +7,12 @@ import kotlinx.datetime.LocalDate
 import net.bradbal.teetimecaddie.core.storage.GameStorage
 import net.bradbal.teetimecaddie.core.storage.documents.CourseDocument
 import net.bradbal.teetimecaddie.core.storage.documents.GameDocument
-import net.bradbal.teetimecaddie.core.storage.documents.GameRosterDocument
+import net.bradbal.teetimecaddie.core.storage.documents.InviteeAnswerDocument
 
 /**
  * An in-memory [GameStorage] that behaves like the Firestore one: courses are keyed by their
- * normalised name, and a publish either writes everything or nothing.
+ * normalised name, a publish either writes everything or nothing, and every game comes back with
+ * its invitees.
  */
 class FakeGameStorage(vararg existingCourses: CourseDocument) : GameStorage {
 
@@ -70,18 +71,19 @@ class FakeGameStorage(vararg existingCourses: CourseDocument) : GameStorage {
             all.filter { phone in it.invitedPhones && it.date >= from }.sortedBy { it.date }
         }
 
-    override suspend fun updateRoster(
+    override suspend fun answerInvitation(
         id: String,
-        change: (GameDocument) -> GameRosterDocument?
+        phone: String,
+        answer: (GameDocument) -> InviteeAnswerDocument?
     ): GameDocument? {
         failure?.let { throw it }
         val game = games.value.firstOrNull { it.id == id } ?: return null
 
-        val roster = change(game) ?: return game
+        val write = answer(game) ?: return game
         val updated = game.copy(
-            teeTimes = roster.teeTimes,
-            playerIds = roster.playerIds,
-            invitees = roster.invitees
+            teeTimes = write.seat?.teeTimes ?: game.teeTimes,
+            playerIds = write.seat?.playerIds ?: game.playerIds,
+            invitees = game.invitees + (phone to write.invitee)
         ).also { it.id = id }
         games.value = games.value.map { if (it.id == id) updated else it }
         return updated
