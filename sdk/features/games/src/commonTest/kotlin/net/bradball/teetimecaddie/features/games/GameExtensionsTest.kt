@@ -155,7 +155,7 @@ class GameExtensionsTest {
     fun recordAnswer_noChangesOnlyTheStatus() {
         assertEquals(
             InviteAnswer.Write(InviteeAnswerDocument(claimedInvite.copy(status = "DECLINED"), seat = null)),
-            invitingGame(invitee = claimedInvite).recordAnswer(danaPhone, numberOwnerId = "dana", accept = false)
+            invitingGame(invitee = claimedInvite).recordAnswer("brad", danaPhone, numberOwnerId = "dana", accept = false)
         )
     }
 
@@ -168,7 +168,7 @@ class GameExtensionsTest {
                     seat = seatedWith(GamePlayerDocument("dana", "Dana", danaPhone), listOf("brad", "dana"))
                 )
             ),
-            invitingGame(invitee = claimedInvite).recordAnswer(danaPhone, numberOwnerId = "dana", accept = true)
+            invitingGame(invitee = claimedInvite).recordAnswer("brad", danaPhone, numberOwnerId = "dana", accept = true)
         )
     }
 
@@ -181,14 +181,14 @@ class GameExtensionsTest {
                     seat = seatedWith(GamePlayerDocument(null, "Dana", danaPhone), listOf("brad"))
                 )
             ),
-            invitingGame().recordAnswer(danaPhone, numberOwnerId = null, accept = true)
+            invitingGame().recordAnswer("brad", danaPhone, numberOwnerId = null, accept = true)
         )
     }
 
     @Test
     fun recordAnswer_yesLeavesOutAClaimedAccountThatNoLongerOwnsTheNumber() {
         val answer = invitingGame(invitee = claimedInvite)
-            .recordAnswer(danaPhone, numberOwnerId = "someone-else", accept = true)
+            .recordAnswer("brad", danaPhone, numberOwnerId = "someone-else", accept = true)
 
         assertEquals(
             seatedWith(GamePlayerDocument(null, "Dana", danaPhone), listOf("brad")),
@@ -198,15 +198,23 @@ class GameExtensionsTest {
 
     @Test
     fun recordAnswer_yesToAFullGameWritesNothing() {
-        assertEquals(InviteAnswer.Full, invitingGame(slots = 1).recordAnswer(danaPhone, null, accept = true))
+        assertEquals(InviteAnswer.Full, invitingGame(slots = 1).recordAnswer("brad", danaPhone, null, accept = true))
     }
 
     @Test
     fun recordAnswer_writesNothingForAnAnsweredOrMissingInvitation() {
         val declined = invitingGame(invitee = danaInvite.copy(status = "DECLINED", playerId = "dana"))
 
-        assertEquals(InviteAnswer.AlreadyAnswered, declined.recordAnswer(danaPhone, "dana", accept = true))
-        assertEquals(InviteAnswer.NotInvited, invitingGame().recordAnswer("4155550188", null, accept = false))
+        assertEquals(InviteAnswer.AlreadyAnswered, declined.recordAnswer("brad", danaPhone, "dana", accept = true))
+        assertEquals(InviteAnswer.NotInvited, invitingGame().recordAnswer("brad", "4155550188", null, accept = false))
+    }
+
+    @Test
+    fun recordAnswer_writesNothingForSomeoneWhoIsNotTheOrganizer() {
+        assertEquals(
+            InviteAnswer.NotOrganizer,
+            invitingGame().recordAnswer("dana", danaPhone, numberOwnerId = null, accept = false)
+        )
     }
 
     @Test

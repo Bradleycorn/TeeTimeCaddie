@@ -111,6 +111,9 @@ internal sealed interface InviteAnswer {
 
     /** Nobody was invited by that number. Nothing is written. */
     data object NotInvited : InviteAnswer
+
+    /** Someone other than the game's organizer tried to answer for an invitee. Nothing is written. */
+    data object NotOrganizer : InviteAnswer
 }
 
 /**
@@ -131,18 +134,26 @@ internal fun GameDocument.answer(phone: String, player: Player, accept: Boolean)
 }
 
 /**
- * Record the organizer's answer for the invitation [phone] received to this game.
+ * Record [organizerId]'s answer for the invitation [phone] received to this game.
  *
  * Mirrors the organizer's paths in the invitee and game update rules in firebase/firestore.rules:
- * only the invitee's status changes, keeping the player id the organizer named at publish, and a
- * yes also takes the tee time's next free slot under the name they were invited by. The seat
- * carries that player id, and adds it to [GameDocument.playerIds], only when [numberOwnerId] shows
- * the account really owns [phone] and it doesn't hold a slot already; otherwise the seat has none.
+ * only the game's organizer may answer for an invitee, only the invitee's status changes, keeping
+ * the player id the organizer named at publish, and a yes also takes the tee time's next free slot
+ * under the name they were invited by. The seat carries that player id, and adds it to
+ * [GameDocument.playerIds], only when [numberOwnerId] shows the account really owns [phone] and it
+ * doesn't hold a slot already; otherwise the seat has none.
  *
+ * @param organizerId The player answering, who must have organized the game.
  * @param phone Digits only, as [GameDocument.invitees] is keyed.
  * @param numberOwnerId The id of the player whose profile has [phone] now, or null if nobody's does.
  */
-internal fun GameDocument.recordAnswer(phone: String, numberOwnerId: String?, accept: Boolean): InviteAnswer {
+internal fun GameDocument.recordAnswer(
+    organizerId: String,
+    phone: String,
+    numberOwnerId: String?,
+    accept: Boolean
+): InviteAnswer {
+    if (organizerId != this.organizerId) return InviteAnswer.NotOrganizer
     val invitee = invitees[phone] ?: return InviteAnswer.NotInvited
     if (invitee.status != InviteStatus.PENDING.name) return InviteAnswer.AlreadyAnswered
 

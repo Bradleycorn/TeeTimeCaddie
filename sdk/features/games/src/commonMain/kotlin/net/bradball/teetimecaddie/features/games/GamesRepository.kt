@@ -244,26 +244,8 @@ class GamesRepositoryImpl(
         accept: Boolean
     ): TtcResult<Game> {
         val phone = player.phone.toPhoneDigits()
-        // The transaction may run its change more than once; the last run's answer is the one
-        // that was written.
-        var answer: InviteAnswer? = null
-
-        return tryStorage("answer_invite", GameErrors.RESPOND_FAILED) {
-            val game = gameStorage.answerInvitation(gameId, phone) { document ->
-                document.answer(phone, player, accept)
-                    .also { answer = it }
-                    .let { (it as? InviteAnswer.Write)?.answer }
-            }
-            when {
-                game == null || answer == InviteAnswer.NotInvited ->
-                    TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
-                answer == InviteAnswer.Full -> TtcResult.Failure(GameException(GameErrors.GAME_FULL))
-                else -> TtcResult.Success(game.toModel())
-            }
-        }.also {
-            if (it is TtcResult.Success && answer is InviteAnswer.Write) {
-                eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept, AnalyticsEvent.AnswerInvite.Source.PLAYER))
-            }
+        return saveAnswer(gameId, phone, accept, "answer_invite", AnalyticsEvent.AnswerInvite.Source.PLAYER) {
+            it.answer(phone, player, accept)
         }
     }
 
@@ -286,28 +268,53 @@ class GamesRepositoryImpl(
         } else {
             null
         }
+        return saveAnswer(gameId, phone, accept, "record_response", AnalyticsEvent.AnswerInvite.Source.ORGANIZER) {
+            it.recordAnswer(organizer.id, phone, numberOwnerId, accept)
+        }
+    }
+
+    /**
+     * Save an answer to the invitation [phone] received to a game, in one transaction, and log it.
+     *
+     * Shared by an invitee's own answer and the organizer's answer for them: they differ only in
+     * whose number answers and in [decide], which works out the answer from the game as read.
+     *
+     * @param action Names the storage call when a failure is logged.
+     * @param source Who answered, for the `answer_invite` event logged when an answer is written.
+     * @param decide Builds the answer from the game as read. It can run more than once, as the
+     *   transaction retries, so it must only compute.
+     * @return The game as it stands after the answer. [GameErrors.NOT_FOUND] for a missing game, an
+     *   uninvited number or someone who isn't the organizer answering for an invitee,
+     *   [GameErrors.GAME_FULL] for a yes once every slot is taken, and
+     *   [GameErrors.RESPOND_FAILED] when the write fails.
+     */
+    private suspend fun saveAnswer(
+        gameId: String,
+        phone: String,
+        accept: Boolean,
+        action: String,
+        source: AnalyticsEvent.AnswerInvite.Source,
+        decide: (GameDocument) -> InviteAnswer
+    ): TtcResult<Game> {
         // The transaction may run its change more than once; the last run's answer is the one
         // that was written.
         var answer: InviteAnswer? = null
-        var organized = true
 
-        return tryStorage("record_response", GameErrors.RESPOND_FAILED) {
+        return tryStorage(action, GameErrors.RESPOND_FAILED) {
             val game = gameStorage.answerInvitation(gameId, phone) { document ->
-                organized = document.organizerId == organizer.id
-                if (!organized) return@answerInvitation null
-                document.recordAnswer(phone, numberOwnerId, accept)
+                decide(document)
                     .also { answer = it }
                     .let { (it as? InviteAnswer.Write)?.answer }
             }
             when {
-                game == null || !organized || answer == InviteAnswer.NotInvited ->
+                game == null || answer == InviteAnswer.NotInvited || answer == InviteAnswer.NotOrganizer ->
                     TtcResult.Failure(GameException(GameErrors.NOT_FOUND))
                 answer == InviteAnswer.Full -> TtcResult.Failure(GameException(GameErrors.GAME_FULL))
                 else -> TtcResult.Success(game.toModel())
             }
         }.also {
             if (it is TtcResult.Success && answer is InviteAnswer.Write) {
-                eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept, AnalyticsEvent.AnswerInvite.Source.ORGANIZER))
+                eventManager.logEvent(AnalyticsEvent.AnswerInvite(accept, source))
             }
         }
     }
