@@ -1,13 +1,13 @@
 ---
 name: design-criteria
-description: Adds Design Criteria and Development Notes to a TeeTimeCaddie (TTC) Jira story by mining the Tee Time Caddie Claude Design project for behavior the story's functional acceptance criteria don't cover. Use when the user asks to add, fill in, or finish design criteria on a TTC issue; says a story's ACs are functional-only or that design criteria are still needed before it can be pulled; or asks to groom or prep a TTC story against the designs.
+description: Adds Design Criteria and Development Notes to a TeeTimeCaddie (TTC) Jira story by mining the Tee Time Caddie design artifact for behavior the story's functional acceptance criteria don't cover. Use when the user asks to add, fill in, or finish design criteria on a TTC issue; says a story's ACs are functional-only or that design criteria are still needed before it can be pulled; or asks to groom or prep a TTC story against the designs.
 ---
 
 # Adding Design Criteria to a TTC story
 
 Story preparation: edits two Jira fields.
 
-- `references/design-project.md` — project ids, file layout, screen-to-story map, fixtures
+- `references/design-project.md` — artifact links, how to read them, file layout, screen-to-story map, fixtures
 - `references/writing-the-fields.md` — ADF payload, field shape, verbatim ACs, verification script
 - `references/example-ttc-67.md` — accepted output, plus rejected drafts and why
 
@@ -20,7 +20,7 @@ Story preparation: edits two Jira fields.
 - [ ] 2. Read the parent epic and every sibling story — a screen is usually split across
          several, and what a sibling covers is out of scope here
 - [ ] 3. Read the designs — canvas composition, screen source, and prototype wiring.
-         DesignSync is main-session only; don't delegate this step to a subagent
+         Artifact tool, main session only; don't delegate this step to a subagent
 - [ ] 4. Inventory ui/common components (Explore agent) — for Development Notes only
 - [ ] 5. Draft all three edits into the plan file as final text, not an outline
 - [ ] 6. AskUserQuestion on scope gaps
