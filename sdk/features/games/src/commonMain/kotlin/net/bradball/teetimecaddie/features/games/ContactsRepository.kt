@@ -5,18 +5,25 @@ import kotlinx.coroutines.ensureActive
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
+import net.bradball.teetimecaddie.core.extensions.PHONE_NUMBER_LENGTH
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.models.InvitableContact
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.TtcResult
+import net.bradball.teetimecaddie.core.models.TypedInviteeCheck
+import net.bradball.teetimecaddie.core.models.TypedPhoneError
 
 /**
- * The device's contacts, as people the organizer can invite to a game.
+ * The people the organizer can invite to a game: the device's contacts, and anyone typed in by
+ * name and phone number.
  *
  * The contacts come from a [DeviceContactsReader] that each app supplies. Everything else — what
- * can be invited, how it is listed, and how the picker's choices become invitees — is decided here,
- * once for both apps.
+ * can be invited, how it is listed, how the picker's choices and typed people become invitees, and
+ * the Add players sheet's selection — is decided here, once for both apps.
+ *
+ * The selection is the people chosen in the Add players sheet who aren't on the game yet. Callers
+ * keep it and pass it in; [commitSelection] moves it onto the game's invitees.
  *
  * Someone is already invited when an invitee has their phone number, however either is written.
  * Names play no part: the same number under another name is still the same person. The
@@ -55,7 +62,91 @@ interface ContactsRepository {
      * @param invitees The invitees before the picker opened.
      * @return The new invitee list, or [GameErrors.CONTACTS_LOAD_FAILED] when the reader fails.
      */
+    // TODO(TTC-155): Remove once neither app calls it; both select picked contacts instead.
     suspend fun addPickedContacts(organizer: Player, invitees: List<NewInvitee>): TtcResult<List<NewInvitee>>
+
+    /**
+     * Add every contact the system picker returned to the Add players sheet's [selection].
+     *
+     * The contacts are read as in [invitableContacts] and added at the end of the selection,
+     * sorted by name among themselves. Anyone at a number already in [invitees] or [selection], or
+     * at the organizer's number, is silently left out, as is a second contact at a number that's
+     * already being added.
+     *
+     * Logs [AnalyticsEvent.AddInvitees] with how many contacts were picked and how many of them
+     * were added. A failed read logs nothing.
+     *
+     * @param organizer The signed-in player creating the game.
+     * @param invitees The game's invitees.
+     * @param selection The selection before the picker opened.
+     * @return The new selection, or [GameErrors.CONTACTS_LOAD_FAILED] when the reader fails.
+     */
+    suspend fun selectPickedContacts(
+        organizer: Player,
+        invitees: List<NewInvitee>,
+        selection: List<NewInvitee>
+    ): TtcResult<List<NewInvitee>>
+
+    /**
+     * Check a name and phone number typed in to invite someone, without adding them.
+     *
+     * The name must not be blank. The number must have exactly 10 digits, however it's written,
+     * and must not be in [invitees] or [selection], or be the organizer's own.
+     *
+     * @param organizer The signed-in player creating the game.
+     * @param invitees The game's invitees.
+     * @param selection The Add players sheet's selection.
+     * @param name The name as typed.
+     * @param phone The number as typed.
+     * @return What's wrong with each field, if anything.
+     */
+    fun checkTypedInvitee(
+        organizer: Player,
+        invitees: List<NewInvitee>,
+        selection: List<NewInvitee>,
+        name: String,
+        phone: String
+    ): TypedInviteeCheck
+
+    /**
+     * Add someone to the end of the Add players sheet's [selection] by a typed name and number.
+     *
+     * They're added only if [checkTypedInvitee] finds nothing wrong. The name is trimmed, with runs
+     * of spaces inside it made one, and the number is kept as its 10 digits. Logs
+     * [AnalyticsEvent.AddTypedInvitee] when someone is added.
+     *
+     * @param organizer The signed-in player creating the game.
+     * @param invitees The game's invitees.
+     * @param selection The selection so far.
+     * @param name The name as typed.
+     * @param phone The number as typed.
+     * @return [TypedInviteeResult.Selected] with the person and the new selection, or
+     *   [TypedInviteeResult.Rejected] with what's wrong.
+     */
+    fun selectTypedInvitee(
+        organizer: Player,
+        invitees: List<NewInvitee>,
+        selection: List<NewInvitee>,
+        name: String,
+        phone: String
+    ): TypedInviteeResult
+
+    /**
+     * The [selection] without [invitee], and anyone else at their number.
+     */
+    fun deselect(selection: List<NewInvitee>, invitee: NewInvitee): List<NewInvitee>
+
+    /**
+     * The game's invitees once the Add players sheet's [selection] is added to them.
+     *
+     * The selection follows [invitees] in the order it was chosen. Anyone at a number already
+     * invited is left out, so the list never holds a number twice.
+     *
+     * @param invitees The game's invitees.
+     * @param selection The sheet's selection.
+     * @return The new invitee list.
+     */
+    fun commitSelection(invitees: List<NewInvitee>, selection: List<NewInvitee>): List<NewInvitee>
 
     /**
      * The [contacts] whose name contains [query], ignoring case. A blank query matches everyone.
@@ -116,6 +207,72 @@ class ContactsRepositoryImpl(
         return TtcResult.Success(updated)
     }
 
+    override suspend fun selectPickedContacts(
+        organizer: Player,
+        invitees: List<NewInvitee>,
+        selection: List<NewInvitee>
+    ): TtcResult<List<NewInvitee>> {
+        val picked = when (val result = readContacts()) {
+            is TtcResult.Success -> result.data
+            is TtcResult.Failure -> return result
+        }
+        val taken = takenPhones(organizer, invitees + selection)
+        val added = picked.toInvitableContacts()
+            // add() is false for a number already taken, so each number joins once.
+            .filter { contact -> taken.add(contact.phone.toPhoneDigits()) }
+            .map { it.toNewInvitee() }
+        eventManager.logEvent(AnalyticsEvent.AddInvitees(pickedCount = picked.size, addedCount = added.size))
+        return TtcResult.Success(selection + added)
+    }
+
+    override fun checkTypedInvitee(
+        organizer: Player,
+        invitees: List<NewInvitee>,
+        selection: List<NewInvitee>,
+        name: String,
+        phone: String
+    ): TypedInviteeCheck {
+        val digits = phone.toPhoneDigits()
+        val phoneError = when {
+            digits.isEmpty() -> TypedPhoneError.MISSING
+            digits.length != PHONE_NUMBER_LENGTH -> TypedPhoneError.INCOMPLETE
+            digits in takenPhones(organizer, invitees + selection) -> TypedPhoneError.DUPLICATE
+            else -> null
+        }
+        return TypedInviteeCheck(isNameBlank = name.isBlank(), phoneError = phoneError)
+    }
+
+    override fun selectTypedInvitee(
+        organizer: Player,
+        invitees: List<NewInvitee>,
+        selection: List<NewInvitee>,
+        name: String,
+        phone: String
+    ): TypedInviteeResult {
+        val check = checkTypedInvitee(organizer, invitees, selection, name, phone)
+        if (!check.isValid) return TypedInviteeResult.Rejected(check)
+        val invitee = NewInvitee(name = cleanInviteeName(name), phone = phone.toPhoneDigits())
+        eventManager.logEvent(AnalyticsEvent.AddTypedInvitee)
+        return TypedInviteeResult.Selected(invitee = invitee, selection = selection + invitee)
+    }
+
+    override fun deselect(selection: List<NewInvitee>, invitee: NewInvitee): List<NewInvitee> {
+        val digits = invitee.phone.toPhoneDigits()
+        return selection.filterNot { it.phone.toPhoneDigits() == digits }
+    }
+
+    override fun commitSelection(
+        invitees: List<NewInvitee>,
+        selection: List<NewInvitee>
+    ): List<NewInvitee> {
+        val taken = invitees.map { it.phone.toPhoneDigits() }.toMutableSet()
+        return invitees + selection.filter { taken.add(it.phone.toPhoneDigits()) }
+    }
+
+    /** The digits of every number in [invitees], plus the [organizer]'s. */
+    private fun takenPhones(organizer: Player, invitees: List<NewInvitee>): MutableSet<String> =
+        (invitees.map { it.phone } + organizer.phone).map { it.toPhoneDigits() }.toMutableSet()
+
     private suspend fun readContacts(): TtcResult<List<DeviceContact>> {
         val contacts = try {
             reader.readContacts()
@@ -157,7 +314,7 @@ class ContactsRepositoryImpl(
             matches.isEmpty() || matches.any { it.id in checked }
         }
         val contactsById = contacts.associateBy { it.id }
-        val taken = (kept.map { it.phone } + organizer.phone).map { it.toPhoneDigits() }.toMutableSet()
+        val taken = takenPhones(organizer, kept)
         val added = checkedIds.distinct()
             .mapNotNull { contactsById[it] }
             // add() is false for a number already taken, so each number joins once.
