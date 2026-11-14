@@ -62,15 +62,15 @@ final class NewGameViewModel {
     }
 
     /// The system picker closed. `picked` reads the contacts it returned, or is nil when nothing was
-    /// picked. Picked contacts join the end of the list, sorted by name among themselves; anyone
-    /// already invited at that number isn't added twice. The picker can't show who's already
-    /// invited, so it only ever adds; the ✕ on a row removes.
+    /// picked. Picked contacts join the end of the list, sorted by name among themselves; a number
+    /// that's already invited, or is the organizer's own, is skipped without a word. The picker
+    /// can't show who's already invited, so it only ever adds; the ✕ on a row removes.
     func onContactPickerDismissed(_ picked: (any DeviceContactsReader)?) async {
         eventManager.logEvent(event: AnalyticsEvent.ContactPickerDismiss(selection: picked == nil ? .none : .some))
-        guard let picked else { return }
+        guard let picked, let organizer = currentPlayer() else { return }
         let repository = contactsRepositoryFactory(picked)
         do {
-            let result = try await repository.addPickedContacts(invitees: uiState.invitees)
+            let result = try await repository.addPickedContacts(organizer: organizer, invitees: uiState.invitees)
             switch onEnum(of: result) {
             case .success(let success):
                 if let invitees = success.data as? [NewInvitee] {
