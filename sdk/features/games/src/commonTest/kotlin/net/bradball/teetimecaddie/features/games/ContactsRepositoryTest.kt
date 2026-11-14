@@ -7,6 +7,7 @@ import net.bradball.teetimecaddie.core.analytics.EventPlugin
 import net.bradball.teetimecaddie.core.models.InvitableContact
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
+import net.bradball.teetimecaddie.core.models.previewPlayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -121,6 +122,9 @@ class ContactsRepositoryTest {
     private val dana = InvitableContact("c3|4155550117", "Dana Park", "4155550117", "home")
     private val contacts = listOf(dana, jeff, jeffWork, matt)
 
+    /** The signed-in player creating the game, at a number none of the contacts above have. */
+    private val organizer = previewPlayer.copy(name = "Pat Organizer", phone = "5025551234")
+
     @Test
     fun searchMatchesAnyPartOfTheNameIgnoringCase() {
         assertEquals(listOf(jeff, jeffWork), repository.search(contacts, "MORR"))
@@ -136,20 +140,20 @@ class ContactsRepositoryTest {
     // MARK: picking
 
     @Test
-    fun invitedContactsAreThoseWithTheSameNameAndNumber() {
+    fun invitedContactsAreThoseWithTheSameNumberWhateverTheName() {
         val invitees = listOf(
             NewInvitee("Jeff Morrison", "(415) 555-0142"),
-            NewInvitee("Someone Else", "4155550188")
+            NewInvitee("Someone Else", "+1 415-555-0188")
         )
 
-        assertEquals(setOf(jeff.id), repository.invitedContactIds(contacts, invitees))
+        assertEquals(setOf(jeff.id, matt.id), repository.invitedContactIds(contacts, invitees))
     }
 
     @Test
     fun pickingKeepsCheckedInviteesInPlaceAndAppendsNewOnesInTheOrderChecked() {
         val invitees = listOf(matt.toNewInvitee(), jeff.toNewInvitee())
 
-        val picked = repository.pickInvitees(invitees, contacts, listOf(matt.id, jeff.id, dana.id, jeffWork.id))
+        val picked = repository.pickInvitees(organizer, invitees, contacts, listOf(matt.id, jeff.id, dana.id, jeffWork.id))
 
         assertEquals(
             listOf(matt.toNewInvitee(), jeff.toNewInvitee(), dana.toNewInvitee(), jeffWork.toNewInvitee()),
@@ -161,8 +165,8 @@ class ContactsRepositoryTest {
     fun uncheckingAContactRemovesItsInvitee() {
         val invitees = listOf(matt.toNewInvitee(), jeff.toNewInvitee())
 
-        assertEquals(listOf(jeff.toNewInvitee()), repository.pickInvitees(invitees, contacts, listOf(jeff.id)))
-        assertEquals(emptyList(), repository.pickInvitees(invitees, contacts, emptyList()))
+        assertEquals(listOf(jeff.toNewInvitee()), repository.pickInvitees(organizer, invitees, contacts, listOf(jeff.id)))
+        assertEquals(emptyList(), repository.pickInvitees(organizer, invitees, contacts, emptyList()))
     }
 
     @Test
@@ -171,7 +175,7 @@ class ContactsRepositoryTest {
 
         assertEquals(
             listOf(typedIn, dana.toNewInvitee()),
-            repository.pickInvitees(listOf(typedIn), contacts, listOf(dana.id))
+            repository.pickInvitees(organizer, listOf(typedIn), contacts, listOf(dana.id))
         )
     }
 
@@ -179,7 +183,38 @@ class ContactsRepositoryTest {
     fun anInviteeWrittenDifferentlyIsStillMatchedAndNotAddedTwice() {
         val invitee = NewInvitee("Jeff Morrison", "+1 415 555 0142")
 
-        assertEquals(listOf(invitee), repository.pickInvitees(listOf(invitee), contacts, listOf(jeff.id)))
+        assertEquals(listOf(invitee), repository.pickInvitees(organizer, listOf(invitee), contacts, listOf(jeff.id)))
+    }
+
+    @Test
+    fun aContactAtANumberAlreadyInvitedUnderAnotherNameIsNotAdded() {
+        val invitee = NewInvitee("Matty", "(415) 555-0188")
+        val mattAtHome = InvitableContact("c9|4155550188", "Matthew Chen", "415.555.0188", "home")
+
+        assertEquals(
+            listOf(invitee),
+            repository.pickInvitees(organizer, listOf(invitee), contacts + mattAtHome, listOf(matt.id, mattAtHome.id))
+        )
+    }
+
+    @Test
+    fun aContactAtTheOrganizersNumberIsNotAdded() {
+        val me = InvitableContact("c9|5025551234", "Me", "+1 (502) 555-1234", "mobile")
+
+        assertEquals(
+            listOf(dana.toNewInvitee()),
+            repository.pickInvitees(organizer, emptyList(), contacts + me, listOf(me.id, dana.id))
+        )
+    }
+
+    @Test
+    fun twoCheckedContactsAtTheSameNumberAddOnlyTheFirst() {
+        val sam = InvitableContact("c9|4155550117", "Sam Park", "(415) 555-0117", "home")
+
+        assertEquals(
+            listOf(sam.toNewInvitee()),
+            repository.pickInvitees(organizer, emptyList(), contacts + sam, listOf(sam.id, dana.id))
+        )
     }
 
     // MARK: adding picked contacts
@@ -193,12 +228,28 @@ class ContactsRepositoryTest {
         )
         val invitees = listOf(NewInvitee("Matt Chen", "4155550188"))
 
-        val result = assertIs<TtcResult.Success<List<NewInvitee>>>(repository.addPickedContacts(invitees))
+        val result = assertIs<TtcResult.Success<List<NewInvitee>>>(repository.addPickedContacts(organizer, invitees))
 
         assertEquals(
             listOf(NewInvitee("Matt Chen", "4155550188"), dana.toNewInvitee(), jeff.toNewInvitee()),
             result.data
         )
+    }
+
+    @Test
+    fun pickedDuplicatesAndTheOrganizerAreSkippedSilently() = runTest {
+        deviceContacts = listOf(
+            contact("c1", "Matthew Chen", "415.555.0188" to "home"),
+            contact("c2", "Pat (me)", "502-555-1234" to "mobile"),
+            contact("c3", "Dana Park", "4155550117" to "home"),
+            contact("c4", "Sam Park", "(415) 555-0117" to "home")
+        )
+        val invitees = listOf(NewInvitee("Matt Chen", "4155550188"))
+
+        val result = assertIs<TtcResult.Success<List<NewInvitee>>>(repository.addPickedContacts(organizer, invitees))
+
+        assertEquals(listOf(NewInvitee("Matt Chen", "4155550188"), dana.toNewInvitee()), result.data)
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddInvitees(pickedCount = 4, addedCount = 1)), events)
     }
 
     @Test
@@ -209,7 +260,7 @@ class ContactsRepositoryTest {
             contact("c3", "Pizza Place", "611" to null)
         )
 
-        repository.addPickedContacts(listOf(matt.toNewInvitee()))
+        repository.addPickedContacts(organizer, listOf(matt.toNewInvitee()))
 
         assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddInvitees(pickedCount = 3, addedCount = 1)), events)
     }
@@ -218,7 +269,7 @@ class ContactsRepositoryTest {
     fun aFailedReadOfPickedContactsIsReportedAndLogsNothing() = runTest {
         readFailure = IllegalStateException("grant expired")
 
-        val result = assertIs<TtcResult.Failure>(repository.addPickedContacts(emptyList()))
+        val result = assertIs<TtcResult.Failure>(repository.addPickedContacts(organizer, emptyList()))
 
         assertEquals(GameErrors.CONTACTS_LOAD_FAILED, assertIs<GameException>(result.error).error)
         assertEquals(emptyList(), events)
