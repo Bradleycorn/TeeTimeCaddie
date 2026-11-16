@@ -24,6 +24,9 @@ import net.bradball.teetimecaddie.features.games.DeviceContact
 import net.bradball.teetimecaddie.features.games.DeviceContactsReader
 import net.bradball.teetimecaddie.features.games.DevicePhone
 import net.bradball.teetimecaddie.features.games.GMR
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertNotNull
+import net.bradball.teetimecaddie.features.games.state.addPlayersUiState.AddPlayersUiState
 import net.bradball.teetimecaddie.features.games.GameErrors
 import net.bradball.teetimecaddie.features.games.state.NewGameUiState
 import net.bradball.teetimecaddie.session.SessionState
@@ -62,10 +65,20 @@ class NewGameViewModelTest {
         })
     }
 
-    /** Pick each of [invitees] from the system picker, one pick at a time, in that order. */
-    private fun invite(vararg invitees: NewInvitee) {
-        invitees.forEach { pick(DeviceContact(it.name, it.name, listOf(DevicePhone(it.phone, "mobile")))) }
+    /** Choose [person] in the open sheet by picking them from the system picker. */
+    private fun pick(person: NewInvitee) {
+        pick(DeviceContact(person.name, person.name, listOf(DevicePhone(person.phone, "mobile"))))
     }
+
+    /** Open the sheet, pick each of [invitees] one pick at a time, in that order, and add them. */
+    private fun invite(vararg invitees: NewInvitee) {
+        viewModel.onAddPlayersClick()
+        invitees.forEach { pick(it) }
+        viewModel.onAddChosenPlayers()
+    }
+
+    private val sheet: AddPlayersUiState
+        get() = checkNotNull(viewModel.uiState.value.addPlayers)
 
     private fun fillIn(course: String = "Pebble Beach") {
         viewModel.onCourseChange(course)
@@ -101,50 +114,78 @@ class NewGameViewModelTest {
 
     private val matt = NewInvitee(name = "Matt Chen", phone = "(415) 555-0188")
     private val jeff = NewInvitee(name = "Jeff Morrison", phone = "(415) 555-0142")
+    private val dana = NewInvitee(name = "Dana Park", phone = "415.555.0117")
 
     @Test
-    fun addFromContactsOpensTheSystemPicker() = runTest {
-        val events = events()
+    fun addPlayersOpensTheSheetWithNothingSelected() {
+        invite(matt)
 
-        viewModel.onAddFromContactsClick()
+        viewModel.onAddPlayersClick()
+
+        assertEquals(AddPlayersUiState.open(previewPlayer.phone, listOf(matt)), sheet)
+    }
+
+    @Test
+    fun chooseFromContactsOpensTheSystemPicker() = runTest {
+        val events = events()
+        viewModel.onAddPlayersClick()
+
+        viewModel.onChooseFromContactsClick()
 
         assertEquals(listOf<NewGameEvent>(NewGameEvent.PickContacts), events)
     }
 
     @Test
-    fun pickedContactsJoinTheEndOfTheListInTheOrderPicked() {
-        invite(matt)
-        invite(jeff, NewInvitee("Dana Park", "415.555.0117"))
+    fun pickedContactsAreSelectedNotInvitedUntilAdded() {
+        viewModel.onAddPlayersClick()
+        pick(matt)
+        pick(jeff)
 
-        assertEquals(listOf(matt, jeff, NewInvitee("Dana Park", "415.555.0117")), viewModel.uiState.value.invitees)
+        assertEquals(listOf(matt, jeff), sheet.chosen)
+        assertTrue(viewModel.uiState.value.invitees.isEmpty())
+
+        viewModel.onAddChosenPlayers()
+
+        assertEquals(listOf(matt, jeff), viewModel.uiState.value.invitees)
+        assertNull(viewModel.uiState.value.addPlayers)
     }
 
     @Test
-    fun peoplePickedTogetherJoinSortedByName() {
+    fun addedPlayersJoinTheEndOfTheList() {
         invite(matt)
+        invite(jeff, dana)
+
+        assertEquals(listOf(matt, jeff, dana), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun peoplePickedTogetherAreSelectedSortedByName() {
+        viewModel.onAddPlayersClick()
 
         pick(
             DeviceContact("c2", "Jeff Morrison", listOf(DevicePhone("(415) 555-0142", "Mobile"))),
             DeviceContact("c3", "Dana Park", listOf(DevicePhone("415.555.0117", "Home"))),
         )
 
-        assertEquals(
-            listOf(matt, NewInvitee("Dana Park", "415.555.0117"), jeff),
-            viewModel.uiState.value.invitees
-        )
+        assertEquals(listOf(dana, jeff), sheet.chosen)
     }
 
     @Test
-    fun pickingSomeoneAlreadyInvitedDoesNotAddThemTwice() {
+    fun pickingSomeoneAlreadyInvitedOrSelectedSkipsThem() {
         invite(matt)
+        viewModel.onAddPlayersClick()
+        pick(jeff)
 
-        invite(NewInvitee("Matt Chen", "+1 415 555 0188"), jeff)
+        pick(NewInvitee("Matthew Chen", "+1 415 555 0188"))
+        pick(NewInvitee("Jeff M", "4155550142"))
 
-        assertEquals(listOf(matt, jeff), viewModel.uiState.value.invitees)
+        assertEquals(listOf(jeff), sheet.chosen)
     }
 
     @Test
-    fun aPickedContactIsInvitedOnceAtItsMobileNumber() {
+    fun aPickedContactIsSelectedAtItsMobileNumber() {
+        viewModel.onAddPlayersClick()
+
         pick(
             DeviceContact(
                 "c1",
@@ -153,39 +194,107 @@ class NewGameViewModelTest {
             )
         )
 
-        assertEquals(listOf(NewInvitee("Jeff Morrison", "(415) 555-0142")), viewModel.uiState.value.invitees)
+        assertEquals(listOf(jeff), sheet.chosen)
     }
 
     @Test
     fun pickedNumbersAGameCantBePublishedWithAreLeftOut() {
+        viewModel.onAddPlayersClick()
+
         pick(
             DeviceContact("c1", "Pizza Place", listOf(DevicePhone("611", "Other"))),
             DeviceContact("c2", "  ", listOf(DevicePhone("4155550101", "Mobile"))),
         )
 
-        assertTrue(viewModel.uiState.value.invitees.isEmpty())
+        assertTrue(sheet.chosen.isEmpty())
     }
 
     @Test
-    fun aFailedReadSaysSoAndLeavesTheList() = runTest {
+    fun aFailedReadSaysSoAndLeavesTheSelection() = runTest {
         val messages = messages()
-        invite(matt)
+        viewModel.onAddPlayersClick()
+        pick(matt)
 
         viewModel.onContactPickerDismissed(object : DeviceContactsReader {
             override suspend fun readContacts(): List<DeviceContact> = throw SecurityException("grant expired")
         })
 
-        assertEquals(listOf(matt), viewModel.uiState.value.invitees)
+        assertEquals(listOf(matt), sheet.chosen)
         assertEquals(listOf(TtcMessage(GameErrors.CONTACTS_LOAD_FAILED.message)), messages)
     }
 
     @Test
+    fun anEnteredPlayerIsSelectedAndTheFormClears() {
+        viewModel.onAddPlayersClick()
+        viewModel.onPlayerNameChange(" Sam  Tanaka ")
+        viewModel.onPlayerPhoneChange("(415) 555-0123")
+
+        viewModel.onAddEnteredPlayer()
+
+        assertEquals(listOf(NewInvitee("Sam Tanaka", "4155550123")), sheet.chosen)
+        assertEquals("", sheet.name)
+        assertEquals("", sheet.phone)
+        assertNotNull(sheet.chosenMessage)
+    }
+
+    @Test
+    fun anInvalidEntryShowsItsErrorsAndSelectsNobody() {
+        viewModel.onAddPlayersClick()
+
+        viewModel.onAddEnteredPlayer()
+
+        assertTrue(sheet.chosen.isEmpty())
+        assertEquals(GMR.strings.add_players_error_no_name, sheet.nameError)
+        assertEquals(GMR.strings.add_players_error_no_phone, sheet.phoneError)
+    }
+
+    @Test
+    fun theEnteredNumberKeepsOnlyItsFirstTenDigits() {
+        viewModel.onAddPlayersClick()
+
+        viewModel.onPlayerPhoneChange("(415) 555-01234")
+
+        assertEquals("4155550123", sheet.phone)
+    }
+
+    @Test
+    fun tappingAChipUnselectsThem() {
+        viewModel.onAddPlayersClick()
+        pick(matt)
+        pick(jeff)
+
+        viewModel.onUnchoosePlayer(matt)
+
+        assertEquals(listOf(jeff), sheet.chosen)
+    }
+
+    @Test
+    fun dismissingTheSheetDiscardsTheSelection() {
+        invite(matt)
+        viewModel.onAddPlayersClick()
+        pick(jeff)
+
+        viewModel.onAddPlayersDismissed()
+
+        assertNull(viewModel.uiState.value.addPlayers)
+        assertEquals(listOf(matt), viewModel.uiState.value.invitees)
+    }
+
+    @Test
+    fun aPickWithTheSheetClosedChangesNothing() {
+        pick(matt)
+
+        assertNull(viewModel.uiState.value.addPlayers)
+        assertTrue(viewModel.uiState.value.invitees.isEmpty())
+    }
+
+    @Test
     fun removingAnInviteeKeepsTheRestInOrder() {
-        invite(matt, jeff, NewInvitee("Dana Park", "4155550117"))
+        invite(matt, jeff, dana)
 
         viewModel.onRemoveInvitee(jeff)
 
-        assertEquals(listOf(matt, NewInvitee("Dana Park", "4155550117")), viewModel.uiState.value.invitees)
+        assertEquals(listOf(matt, dana), viewModel.uiState.value.invitees)
     }
 
     @Test
@@ -355,8 +464,8 @@ class NewGameViewModelTest {
     }
 
     @Test
-    fun addFromContactsIsLogged() {
-        viewModel.onAddFromContactsClick()
+    fun addPlayersIsLogged() {
+        viewModel.onAddPlayersClick()
 
         assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddFromContactsClick), analytics.events)
     }
@@ -364,6 +473,7 @@ class NewGameViewModelTest {
     @Test
     fun aPickLogsTheDismissWithASelectionAndHowManyWereAdded() {
         invite(matt)
+        viewModel.onAddPlayersClick()
         analytics.events.clear()
 
         pick(
