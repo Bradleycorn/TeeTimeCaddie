@@ -44,7 +44,7 @@ internal fun courseKey(name: String): String =
 /** The course name as it will be stored: trimmed, with runs of spaces collapsed. */
 internal fun cleanCourseName(name: String): String = name.trim().replace(whitespace, " ")
 
-/** A typed invitee's name as it will be added: trimmed, with runs of spaces collapsed. */
+/** A manually entered invitee's name as it will be added: trimmed, with runs of spaces collapsed. */
 internal fun cleanInviteeName(name: String): String = name.trim().replace(whitespace, " ")
 
 internal fun CourseDocument.toModel(): Course = Course(id = nameKey, name = name)

@@ -6,16 +6,16 @@ import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.analytics.EventPlugin
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
-import net.bradball.teetimecaddie.core.models.TypedInviteeCheck
-import net.bradball.teetimecaddie.core.models.TypedPhoneError
+import net.bradball.teetimecaddie.core.models.ManualInviteeCheck
+import net.bradball.teetimecaddie.core.models.InviteePhoneError
 import net.bradball.teetimecaddie.core.models.previewPlayer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-/** The Add players sheet's selection: typed people, picked contacts, removing and committing. */
-class ContactsSelectionTest {
+/** Selections: people entered manually, picked contacts, removing and committing. */
+class ManualInviteeSelectionTest {
 
     private var deviceContacts: List<DeviceContact> = emptyList()
     private var readFailure: Exception? = null
@@ -48,20 +48,20 @@ class ContactsSelectionTest {
         phone: String,
         invitees: List<NewInvitee> = emptyList(),
         selection: List<NewInvitee> = emptyList()
-    ): TypedInviteeCheck = repository.checkTypedInvitee(organizer, invitees, selection, name, phone)
+    ): ManualInviteeCheck = checkManualInvitee(organizer, invitees, selection, name, phone)
 
     private fun select(
         name: String,
         phone: String,
         invitees: List<NewInvitee> = emptyList(),
         selection: List<NewInvitee> = emptyList()
-    ): TypedInviteeResult = repository.selectTypedInvitee(organizer, invitees, selection, name, phone)
+    ): ManualInviteeResult = repository.selectManualInvitee(organizer, invitees, selection, name, phone)
 
-    // MARK: checking a typed person
+    // MARK: checking someone entered manually
 
     @Test
     fun aNameAndACompleteNewNumberAreValid() {
-        assertEquals(TypedInviteeCheck(isNameBlank = false, phoneError = null), check("Sam Tanaka", "(415) 555-0123"))
+        assertEquals(ManualInviteeCheck(isNameBlank = false, phoneError = null), check("Sam Tanaka", "(415) 555-0123"))
     }
 
     @Test
@@ -72,58 +72,58 @@ class ContactsSelectionTest {
 
     @Test
     fun aMissingNumberIsReportedAsMissing() {
-        assertEquals(TypedPhoneError.MISSING, check("Sam", "").phoneError)
+        assertEquals(InviteePhoneError.MISSING, check("Sam", "").phoneError)
     }
 
     @Test
     fun aNumberShortOfTenDigitsIsIncomplete() {
-        assertEquals(TypedPhoneError.INCOMPLETE, check("Sam", "(415) 555-012").phoneError)
+        assertEquals(InviteePhoneError.INCOMPLETE, check("Sam", "(415) 555-012").phoneError)
     }
 
     @Test
     fun bothFieldsAreCheckedTogether() {
-        assertEquals(TypedInviteeCheck(isNameBlank = true, phoneError = TypedPhoneError.MISSING), check(" ", ""))
+        assertEquals(ManualInviteeCheck(isNameBlank = true, phoneError = InviteePhoneError.MISSING), check(" ", ""))
     }
 
     @Test
     fun aNumberAlreadyInvitedIsADuplicateWhateverTheName() {
-        assertEquals(TypedPhoneError.DUPLICATE, check("Matthew", "4155550188", invitees = listOf(matt)).phoneError)
+        assertEquals(InviteePhoneError.DUPLICATE, check("Matthew", "4155550188", invitees = listOf(matt)).phoneError)
     }
 
     @Test
     fun aNumberAlreadySelectedIsADuplicate() {
-        assertEquals(TypedPhoneError.DUPLICATE, check("Dana P", "(415) 555-0117", selection = listOf(dana)).phoneError)
+        assertEquals(InviteePhoneError.DUPLICATE, check("Dana P", "(415) 555-0117", selection = listOf(dana)).phoneError)
     }
 
     @Test
     fun theOrganizersOwnNumberIsADuplicate() {
-        assertEquals(TypedPhoneError.DUPLICATE, check("Me", "(502) 555-1234").phoneError)
+        assertEquals(InviteePhoneError.DUPLICATE, check("Me", "(502) 555-1234").phoneError)
     }
 
     @Test
     fun anIncompleteNumberIsNotYetADuplicate() {
-        assertEquals(TypedPhoneError.INCOMPLETE, check("Matt", "415555018", invitees = listOf(matt)).phoneError)
+        assertEquals(InviteePhoneError.INCOMPLETE, check("Matt", "415555018", invitees = listOf(matt)).phoneError)
     }
 
-    // MARK: selecting a typed person
+    // MARK: selecting someone entered manually
 
     @Test
     fun aValidPersonJoinsTheEndOfTheSelectionWithATidiedName() {
-        val result = assertIs<TypedInviteeResult.Selected>(
+        val result = assertIs<ManualInviteeResult.Selected>(
             select("  Sam   Tanaka ", "(415) 555-0123", selection = listOf(dana))
         )
 
         val sam = NewInvitee("Sam Tanaka", "4155550123")
         assertEquals(sam, result.invitee)
         assertEquals(listOf(dana, sam), result.selection)
-        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddTypedInvitee), events)
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddManualInvitee), events)
     }
 
     @Test
     fun anInvalidPersonIsRejectedWithTheCheckAndNothingLogged() {
-        val result = assertIs<TypedInviteeResult.Rejected>(select("", "4155550188", invitees = listOf(matt)))
+        val result = assertIs<ManualInviteeResult.Rejected>(select("", "4155550188", invitees = listOf(matt)))
 
-        assertEquals(TypedInviteeCheck(isNameBlank = true, phoneError = TypedPhoneError.DUPLICATE), result.check)
+        assertEquals(ManualInviteeCheck(isNameBlank = true, phoneError = InviteePhoneError.DUPLICATE), result.check)
         assertTrue(events.isEmpty())
     }
 

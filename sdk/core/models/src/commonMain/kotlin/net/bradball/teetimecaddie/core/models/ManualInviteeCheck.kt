@@ -1,23 +1,23 @@
 package net.bradball.teetimecaddie.core.models
 
 /**
- * What's wrong, if anything, with a name and phone number typed in to invite someone.
+ * What's wrong, if anything, with a name and phone number entered manually to invite someone.
  *
  * @property isNameBlank True when the name is empty or only spaces.
  * @property phoneError What's wrong with the number, or null when it can be added.
  */
-data class TypedInviteeCheck(
+data class ManualInviteeCheck(
     val isNameBlank: Boolean,
-    val phoneError: TypedPhoneError?
+    val phoneError: InviteePhoneError?
 ) {
     /** True when the person can be added: a name, and a complete number nobody else has. */
     val isValid: Boolean
         get() = !isNameBlank && phoneError == null
 }
 
-/** Why a typed phone number can't be added. */
-enum class TypedPhoneError {
-    /** Nothing was typed. */
+/** Why a manually entered phone number can't be added. */
+enum class InviteePhoneError {
+    /** No number was entered. */
     MISSING,
 
     /** Fewer or more than 10 digits. */
@@ -28,4 +28,4 @@ enum class TypedPhoneError {
 }
 
 /** A name and number that can be added. */
-val previewTypedInviteeCheck = TypedInviteeCheck(isNameBlank = false, phoneError = null)
+val previewManualInviteeCheck = ManualInviteeCheck(isNameBlank = false, phoneError = null)

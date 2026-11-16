@@ -223,21 +223,21 @@ class GamesRepositoryTest {
     }
 
     @Test
-    fun publishGame_matchesATypedInviteeToAnAccountByPhoneLikeAContact() = runTest {
+    fun publishGame_matchesAManualInviteeToAnAccountByPhoneLikeAContact() = runTest {
         val sam = previewPlayer.copy(id = "sam-uid", name = "Samuel Tanaka", phone = "4155550123")
         playersByPhone[sam.phone] = sam
         val contacts = ContactsRepositoryImpl(eventManager, object : DeviceContactsReader {
             override suspend fun readContacts(): List<DeviceContact> = emptyList()
         })
-        val typed = assertIs<TypedInviteeResult.Selected>(
-            contacts.selectTypedInvitee(organizer, emptyList(), emptyList(), "Sam Tanaka", "(415) 555-0123")
+        val entered = assertIs<ManualInviteeResult.Selected>(
+            contacts.selectManualInvitee(organizer, emptyList(), emptyList(), "Sam Tanaka", "(415) 555-0123")
         )
 
         val game = repository(FakeGameStorage())
-            .publish(invitees = contacts.commitSelection(emptyList(), typed.selection))
+            .publish(invitees = contacts.commitSelection(emptyList(), entered.selection))
             .game()
 
-        // Invited under the name typed, and matched to the account by number.
+        // Invited under the name entered, and matched to the account by number.
         assertEquals(
             listOf(GameInvitee("Sam Tanaka", "4155550123", "sam-uid", InviteStatus.PENDING)),
             game.invitees

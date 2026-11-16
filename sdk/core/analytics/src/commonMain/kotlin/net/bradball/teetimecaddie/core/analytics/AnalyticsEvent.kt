@@ -192,8 +192,8 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
         }
     }
     /**
-     * Contacts from the system picker were added to a new game's invitees, or to the Add players
-     * sheet's selection. [pickedCount] is how many contacts were picked; [addedCount] is how many
+     * Contacts the organizer picked were added to a new game's invitees, or to the people chosen to
+     * invite to it. [pickedCount] is how many contacts were picked; [addedCount] is how many
      * were added, leaving out anyone already invited or selected, the organizer, and contacts
      * without a number a game can be published with.
      */
@@ -202,9 +202,9 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
         @SerialName("picked_count") val pickedCount: Int,
         @SerialName("added_count") val addedCount: Int
     ): AnalyticsEvent("add_invitees", EventType.OPERATION)
-    /** Someone was added to the Add players sheet's selection by a typed name and phone number. */
+    /** Someone entered manually by name and phone number was chosen to invite to a new game. */
     @Serializable
-    object AddTypedInvitee: AnalyticsEvent("add_typed_invitee", EventType.OPERATION)
+    object AddManualInvitee: AnalyticsEvent("add_manual_invitee", EventType.OPERATION)
     /** A button on the "Publish with no invitees?" alert was tapped. */
     @Serializable
     data class NoInvites(val response: Response): AnalyticsEvent("no_invites", EventType.CLICK) {
