@@ -5,7 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import net.bradball.teetimecaddie.TeeTimeCaddieSdk
-import net.bradball.teetimecaddie.android.feature.games.contacts.ContactsRepositoryFactory
+import net.bradball.teetimecaddie.features.games.ContactsRepository
 import net.bradball.teetimecaddie.features.games.GamesRepository
 import javax.inject.Singleton
 
@@ -20,6 +20,8 @@ class GamesModule {
     }
 
     @Provides
-    fun provideContactsRepositoryFactory(): ContactsRepositoryFactory =
-        ContactsRepositoryFactory(TeeTimeCaddieSdk.getInstance()::contactsRepository)
+    @Singleton
+    fun provideContactsRepository(): ContactsRepository {
+        return TeeTimeCaddieSdk.getInstance().contactsRepository
+    }
 }

@@ -26,9 +26,7 @@ final class NewGameViewModelTests: XCTestCase {
         analytics = RecordingEventManager()
         viewModel = NewGameViewModel(
             gamesRepository: repository,
-            contactsRepositoryFactory: { [eventManager = analytics.eventManager] in
-                ContactsRepositoryImpl(eventManager: eventManager, reader: $0)
-            },
+            contactsRepository: ContactsRepositoryImpl(eventManager: analytics.eventManager),
             currentPlayer: { TestData.organizer },
             toastPresenter: toastPresenter,
             eventManager: analytics.eventManager

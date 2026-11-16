@@ -15,21 +15,20 @@ final class NewGameViewModel {
     private(set) var uiState: NewGameUiState = NewGameUiState.companion.defaultValue
 
     private let gamesRepository: GamesRepository
-    private let contactsRepositoryFactory: (any DeviceContactsReader) -> any ContactsRepository
+    private let contactsRepository: ContactsRepository
     private let currentPlayer: () -> Player?
     private let toastPresenter: TtcToastPresenter
     private let eventManager: EventManager
 
     init(
         gamesRepository: GamesRepository = GamesModule.shared.gamesRepository(),
-        contactsRepositoryFactory: @escaping (any DeviceContactsReader) -> any ContactsRepository =
-            GamesModule.shared.contactsRepositoryFactory(),
+        contactsRepository: ContactsRepository = GamesModule.shared.contactsRepository(),
         currentPlayer: @escaping () -> Player? = GamesModule.shared.currentPlayer(),
         toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter(),
         eventManager: EventManager = AppModule.shared.eventManager()
     ) {
         self.gamesRepository = gamesRepository
-        self.contactsRepositoryFactory = contactsRepositoryFactory
+        self.contactsRepository = contactsRepository
         self.currentPlayer = currentPlayer
         self.toastPresenter = toastPresenter
         self.eventManager = eventManager
@@ -68,9 +67,8 @@ final class NewGameViewModel {
     func onContactPickerDismissed(_ picked: (any DeviceContactsReader)?) async {
         eventManager.logEvent(event: AnalyticsEvent.ContactPickerDismiss(selection: picked == nil ? .none : .some))
         guard let picked, let organizer = currentPlayer() else { return }
-        let repository = contactsRepositoryFactory(picked)
         do {
-            let result = try await repository.addPickedContacts(organizer: organizer, invitees: uiState.invitees)
+            let result = try await contactsRepository.addPickedContacts(organizer: organizer, invitees: uiState.invitees, picked: picked)
             switch onEnum(of: result) {
             case .success(let success):
                 if let invitees = success.data as? [NewInvitee] {
