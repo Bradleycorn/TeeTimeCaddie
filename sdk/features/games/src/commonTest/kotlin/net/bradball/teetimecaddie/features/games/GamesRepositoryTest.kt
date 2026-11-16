@@ -227,9 +227,7 @@ class GamesRepositoryTest {
     fun publishGame_matchesAManualInviteeToAnAccountByPhoneLikeAContact() = runTest {
         val sam = previewPlayer.copy(id = "sam-uid", name = "Samuel Tanaka", phone = "4155550123")
         playersByPhone[sam.phone] = sam
-        val contacts = ContactsRepositoryImpl(eventManager, object : DeviceContactsReader {
-            override suspend fun readContacts(): List<DeviceContact> = emptyList()
-        })
+        val contacts = ContactsRepositoryImpl(eventManager)
         val entered = assertIs<ManualInviteeResult.Chosen>(
             contacts.chooseEnteredPerson(InviteList(organizer.phone), "Sam Tanaka", "(415) 555-0123")
         )

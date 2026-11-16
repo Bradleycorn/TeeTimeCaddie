@@ -28,13 +28,12 @@ class ContactsRepositoryTest {
         })
     }
 
-    private val repository = ContactsRepositoryImpl(
-        eventManager,
-        object : DeviceContactsReader {
-            override suspend fun readContacts(): List<DeviceContact> =
-                readFailure?.let { throw it } ?: deviceContacts
-        }
-    )
+    private val repository = ContactsRepositoryImpl(eventManager)
+
+    private val picked = object : DeviceContactsReader {
+        override suspend fun readContacts(): List<DeviceContact> =
+            readFailure?.let { throw it } ?: deviceContacts
+    }
 
     private val organizer = previewPlayer.copy(name = "Pat Organizer", phone = "5025551234")
     private val empty = InviteList(organizerPhone = organizer.phone)
@@ -47,7 +46,7 @@ class ContactsRepositoryTest {
     /** The people chosen when [contacts] are picked onto [list]. */
     private suspend fun choose(vararg contacts: DeviceContact, list: InviteList = empty): List<NewInvitee> {
         deviceContacts = contacts.toList()
-        return assertIs<TtcResult.Success<InviteList>>(repository.choosePickedContacts(list)).data.chosen
+        return assertIs<TtcResult.Success<InviteList>>(repository.choosePickedContacts(list, picked)).data.chosen
     }
 
     // MARK: choosing picked contacts
@@ -122,7 +121,7 @@ class ContactsRepositoryTest {
     fun aFailedReadIsReportedAndLogsNothing() = runTest {
         readFailure = IllegalStateException("grant expired")
 
-        val result = assertIs<TtcResult.Failure>(repository.choosePickedContacts(empty))
+        val result = assertIs<TtcResult.Failure>(repository.choosePickedContacts(empty, picked))
 
         assertEquals(GameErrors.CONTACTS_LOAD_FAILED, assertIs<GameException>(result.error).error)
         assertTrue(events.none { it is AnalyticsEvent.AddInvitees })
@@ -162,7 +161,7 @@ class ContactsRepositoryTest {
             contact("c3", "Dana Park", "4155550117" to "home")
         )
 
-        val result = assertIs<TtcResult.Success<List<NewInvitee>>>(repository.addPickedContacts(organizer, listOf(matt)))
+        val result = assertIs<TtcResult.Success<List<NewInvitee>>>(repository.addPickedContacts(organizer, listOf(matt), picked))
 
         assertEquals(listOf(matt, dana), result.data)
         assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddInvitees(pickedCount = 3, addedCount = 1)), events)

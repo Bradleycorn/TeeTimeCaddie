@@ -46,11 +46,11 @@ class NewGameViewModelTest {
     private val messenger = TtcMessenger()
     private val analytics = RecordingEventManager()
 
-    // The real SDK repository, over whatever reader the system picker's result is wrapped in.
+    // The real SDK repository; each test's picker result is a fake reader.
     private val viewModel = NewGameViewModel(
         session,
         repository,
-        { reader -> ContactsRepositoryImpl(analytics.eventManager, reader) },
+        ContactsRepositoryImpl(analytics.eventManager),
         messenger,
         analytics.eventManager,
     )

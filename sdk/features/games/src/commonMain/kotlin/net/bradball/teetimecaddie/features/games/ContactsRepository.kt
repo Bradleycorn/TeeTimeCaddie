@@ -20,13 +20,13 @@ import net.bradball.teetimecaddie.core.models.TtcResult
 interface ContactsRepository {
 
     /**
-     * [list] with the picked contacts added to its chosen people, sorted by name, as in
+     * [list] with the [picked] contacts added to its chosen people, sorted by name, as in
      * [InviteList.choose]. Each contact joins at one number, its first mobile number or else its
      * first number. Contacts without a name or a number a game can be published with are left out.
      *
      * @return The new list, or [GameErrors.CONTACTS_LOAD_FAILED] when the contacts can't be read.
      */
-    suspend fun choosePickedContacts(list: InviteList): TtcResult<InviteList>
+    suspend fun choosePickedContacts(list: InviteList, picked: DeviceContactsReader): TtcResult<InviteList>
 
     /**
      * [list] with the person entered added to its chosen people, or what's wrong with the entry.
@@ -38,33 +38,39 @@ interface ContactsRepository {
     fun chooseEnteredPerson(list: InviteList, name: String, phone: String): ManualInviteeResult
 
     /**
-     * The picked contacts added straight to [invitees]. Prefer [choosePickedContacts].
+     * The [picked] contacts added straight to [invitees]. Prefer [choosePickedContacts].
      *
      * @return The new invitees, or [GameErrors.CONTACTS_LOAD_FAILED] when the contacts can't be read.
      */
     // TODO(TTC-155): Remove once neither app calls it.
-    suspend fun addPickedContacts(organizer: Player, invitees: List<NewInvitee>): TtcResult<List<NewInvitee>>
+    suspend fun addPickedContacts(
+        organizer: Player,
+        invitees: List<NewInvitee>,
+        picked: DeviceContactsReader
+    ): TtcResult<List<NewInvitee>>
 }
 
 /**
- * The [ContactsRepository] the apps use, reading contacts from [reader]. It also logs:
+ * The [ContactsRepository] the apps use. It also logs:
  * - [AnalyticsEvent.AddInvitees] each time picked contacts are chosen, with how many were picked
  *   and how many were chosen. A failed read logs nothing.
  * - [AnalyticsEvent.AddManualInvitee] each time someone entered is chosen.
  */
 class ContactsRepositoryImpl(
-    private val eventManager: EventManager,
-    private val reader: DeviceContactsReader
+    private val eventManager: EventManager
 ) : ContactsRepository {
 
-    override suspend fun choosePickedContacts(list: InviteList): TtcResult<InviteList> {
-        val picked = when (val result = readContacts()) {
+    override suspend fun choosePickedContacts(
+        list: InviteList,
+        picked: DeviceContactsReader
+    ): TtcResult<InviteList> {
+        val contacts = when (val result = readContacts(picked)) {
             is TtcResult.Success -> result.data
             is TtcResult.Failure -> return result
         }
-        val updated = list.choose(picked.toNewInvitees())
+        val updated = list.choose(contacts.toNewInvitees())
         eventManager.logEvent(
-            AnalyticsEvent.AddInvitees(pickedCount = picked.size, addedCount = updated.chosen.size - list.chosen.size)
+            AnalyticsEvent.AddInvitees(pickedCount = contacts.size, addedCount = updated.chosen.size - list.chosen.size)
         )
         return TtcResult.Success(updated)
     }
@@ -79,14 +85,15 @@ class ContactsRepositoryImpl(
 
     override suspend fun addPickedContacts(
         organizer: Player,
-        invitees: List<NewInvitee>
+        invitees: List<NewInvitee>,
+        picked: DeviceContactsReader
     ): TtcResult<List<NewInvitee>> =
-        when (val result = choosePickedContacts(InviteList(organizer.phone, invited = invitees))) {
+        when (val result = choosePickedContacts(InviteList(organizer.phone, invited = invitees), picked)) {
             is TtcResult.Success -> TtcResult.Success(result.data.inviteChosen().invited)
             is TtcResult.Failure -> result
         }
 
-    private suspend fun readContacts(): TtcResult<List<DeviceContact>> {
+    private suspend fun readContacts(reader: DeviceContactsReader): TtcResult<List<DeviceContact>> {
         val contacts = try {
             reader.readContacts()
         } catch (ex: Exception) {
