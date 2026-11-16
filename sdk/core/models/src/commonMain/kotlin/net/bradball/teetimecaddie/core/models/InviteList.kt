@@ -30,6 +30,12 @@ data class InviteList(
         return copy(chosen = chosen.filterNot { it.phone.toPhoneDigits() == digits })
     }
 
+    /** [person] taken out of [invited]. */
+    fun uninvite(person: NewInvitee): InviteList {
+        val digits = person.phone.toPhoneDigits()
+        return copy(invited = invited.filterNot { it.phone.toPhoneDigits() == digits })
+    }
+
     /** Everyone [chosen] moved to the end of [invited]. */
     fun inviteChosen(): InviteList = copy(invited = invited + chosen, chosen = emptyList())
 

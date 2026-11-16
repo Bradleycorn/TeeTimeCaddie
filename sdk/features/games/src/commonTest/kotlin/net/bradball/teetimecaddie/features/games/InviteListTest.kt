@@ -52,6 +52,12 @@ class InviteListTest {
     }
 
     @Test
+    fun uninviteRemovesThePersonByNumber() {
+        assertEquals(emptyList(), list.uninvite(matt.copy(phone = "+1 415 555 0188")).invited)
+        assertEquals(listOf(dana), list.uninvite(matt).chosen)
+    }
+
+    @Test
     fun inviteChosenMovesChosenToTheEndOfInvitedInOrder() {
         val invited = list.choose(listOf(jeff)).inviteChosen()
 
