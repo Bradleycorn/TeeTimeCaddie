@@ -54,10 +54,6 @@ interface ContactsRepository {
      * sorted by name among themselves, silently leaving out anyone already invited, the organizer,
      * and a second contact at a number that's already being added.
      *
-     * Logs [AnalyticsEvent.AddInvitees] with how many contacts were picked, which is known only
-     * once they're read (Android's picker returns just a URI), and how many of them were added. A
-     * failed read logs nothing.
-     *
      * @param organizer The signed-in player creating the game.
      * @param invitees The invitees before the picker opened.
      * @return The new invitee list, or [GameErrors.CONTACTS_LOAD_FAILED] when the reader fails.
@@ -71,9 +67,6 @@ interface ContactsRepository {
      * The contacts are read as in [invitableContacts] and added sorted by name among themselves. Anyone at a number already in [invitees] or [selection], or
      * at the organizer's number, is silently left out, as is a second contact at a number that's
      * already being added.
-     *
-     * Logs [AnalyticsEvent.AddInvitees] with how many contacts were picked and how many of them
-     * were added. A failed read logs nothing.
      *
      * @param organizer The signed-in player creating the game.
      * @param invitees The game's invitees.
@@ -92,7 +85,6 @@ interface ContactsRepository {
      * They're added only when the name isn't blank and the number has exactly 10 digits, however
      * it's written, and isn't in [invitees] or [selection] or the organizer's own. The name is
      * trimmed, with runs of spaces inside it made one, and the number is kept as its 10 digits.
-     * Logs [AnalyticsEvent.AddManualInvitee] when someone is added.
      *
      * @param organizer The signed-in player creating the game.
      * @param invitees The game's invitees.
@@ -159,6 +151,12 @@ interface ContactsRepository {
     ): List<NewInvitee>
 }
 
+/**
+ * The [ContactsRepository] the apps use. Besides what the interface describes, it logs:
+ * - [AnalyticsEvent.AddInvitees] each time picked contacts are added, with how many were picked
+ *   and how many were added. A failed read logs nothing.
+ * - [AnalyticsEvent.AddManualInvitee] each time someone entered manually is selected.
+ */
 class ContactsRepositoryImpl(
     private val eventManager: EventManager,
     private val reader: DeviceContactsReader
