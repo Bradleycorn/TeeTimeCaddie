@@ -83,7 +83,8 @@ class NewGameViewModel @Inject constructor(
         eventManager.logEvent(AnalyticsEvent.TimeInputToggle)
     }
 
-    /** "Add from contacts" was tapped: the system contact picker opens. No permission is needed. */
+    /** "Add players" was tapped: the system contact picker opens. No permission is needed. */
+    // TODO(TTC-154): Open the Add players sheet instead.
     fun onAddFromContactsClick() {
         eventManager.logEvent(AnalyticsEvent.AddFromContactsClick)
         viewModelScope.launch { _events.send(NewGameEvent.PickContacts) }

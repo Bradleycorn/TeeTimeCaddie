@@ -9,6 +9,7 @@ import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.previewNewInviteeList
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
+import net.bradball.teetimecaddie.features.games.state.addPlayersUiState.AddPlayersUiState
 
 /**
  * State of the New game form.
@@ -18,6 +19,7 @@ import net.bradball.teetimecaddie.features.games.MAX_TEE_TIME_SLOTS
  *
  * @property invitees The people picked so far, in the order they were added. Never affects
  *   [canSubmit], and may outnumber [slots].
+ * @property addPlayers The Add players sheet, while it's open.
  */
 data class NewGameUiState(
     val course: String = "",
@@ -26,6 +28,7 @@ data class NewGameUiState(
     val slots: Int = MAX_TEE_TIME_SLOTS,
     val invitees: List<NewInvitee> = emptyList(),
     val isSubmitting: Boolean = false,
+    val addPlayers: AddPlayersUiState? = null,
 ) {
     /** A course of only spaces doesn't count. Slots never block publishing; they start at 4. */
     val canSubmit: Boolean
@@ -39,13 +42,9 @@ data class NewGameUiState(
     val timeText: String?
         get() = time?.formattedTime
 
-    /** "Add from contacts", or "Add more from contacts" once anyone has been added. */
-    val addFromContactsLabel: StringResource
-        get() = if (invitees.isEmpty()) {
-            GMR.strings.new_game_add_from_contacts
-        } else {
-            GMR.strings.new_game_add_more_from_contacts
-        }
+    /** "Add players", or "Add more players" once anyone has been added. */
+    val addPlayersLabel: StringResource
+        get() = if (invitees.isEmpty()) GMR.strings.new_game_add_players else GMR.strings.new_game_add_more_players
 
     companion object {
         /** An empty form, for callers that can't use the constructor's default arguments (Swift). */

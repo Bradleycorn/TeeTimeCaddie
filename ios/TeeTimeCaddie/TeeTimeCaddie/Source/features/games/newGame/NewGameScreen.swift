@@ -164,7 +164,7 @@ fileprivate struct NewGameContent: View {
                 }
 
                 TtcOutlinedButton(
-                    uiState.addFromContactsLabel.localized(),
+                    uiState.addPlayersLabel.localized(),
                     color: .primary,
                     icon: .symbol(.personBadgePlus),
                     fullWidth: true,
