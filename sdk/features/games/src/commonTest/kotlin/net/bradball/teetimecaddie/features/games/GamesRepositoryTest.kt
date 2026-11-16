@@ -23,6 +23,7 @@ import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameInvitee
+import net.bradball.teetimecaddie.core.models.InviteList
 import net.bradball.teetimecaddie.core.models.InviteStatus
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.Player
@@ -229,12 +230,12 @@ class GamesRepositoryTest {
         val contacts = ContactsRepositoryImpl(eventManager, object : DeviceContactsReader {
             override suspend fun readContacts(): List<DeviceContact> = emptyList()
         })
-        val entered = assertIs<ManualInviteeResult.Selected>(
-            contacts.selectManualInvitee(organizer, emptyList(), emptyList(), "Sam Tanaka", "(415) 555-0123")
+        val entered = assertIs<ManualInviteeResult.Chosen>(
+            contacts.chooseEnteredPerson(InviteList(organizer.phone), "Sam Tanaka", "(415) 555-0123")
         )
 
         val game = repository(FakeGameStorage())
-            .publish(invitees = contacts.commitSelection(emptyList(), entered.selection))
+            .publish(invitees = entered.list.inviteChosen().invited)
             .game()
 
         // Invited under the name entered, and matched to the account by number.

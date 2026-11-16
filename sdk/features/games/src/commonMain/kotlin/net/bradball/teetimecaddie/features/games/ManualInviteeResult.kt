@@ -1,19 +1,20 @@
 package net.bradball.teetimecaddie.features.games
 
-import net.bradball.teetimecaddie.core.models.NewInvitee
+import net.bradball.teetimecaddie.core.models.InviteList
 import net.bradball.teetimecaddie.core.models.ManualInviteeCheck
+import net.bradball.teetimecaddie.core.models.NewInvitee
 
-/** The outcome of selecting someone entered manually by name and number. */
+/** The outcome of choosing someone entered by name and phone number. */
 sealed interface ManualInviteeResult {
 
     /**
-     * The person was added to the selection.
+     * The person was chosen.
      *
-     * @property invitee The person as added, with their name tidied.
-     * @property selection The selection with them at the end.
+     * @property person The person as chosen, with their name tidied.
+     * @property list The invite list with them at the end of its chosen people.
      */
-    data class Selected(val invitee: NewInvitee, val selection: List<NewInvitee>) : ManualInviteeResult
+    data class Chosen(val person: NewInvitee, val list: InviteList) : ManualInviteeResult
 
-    /** Nobody was added, because of what [check] reports. */
+    /** Nobody was chosen, because of what [check] reports. */
     data class Rejected(val check: ManualInviteeCheck) : ManualInviteeResult
 }
