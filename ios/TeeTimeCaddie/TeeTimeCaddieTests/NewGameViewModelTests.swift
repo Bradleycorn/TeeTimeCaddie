@@ -141,13 +141,13 @@ final class NewGameViewModelTests: XCTestCase {
     }
 
     func testAddFromContactsLabelReadsAddMoreOnceAnyoneIsAdded() async {
-        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_from_contacts)
+        XCTAssertEqual(viewModel.uiState.addPlayersLabel, GMR.strings().new_game_add_players)
 
         await invite(matt)
-        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_more_from_contacts)
+        XCTAssertEqual(viewModel.uiState.addPlayersLabel, GMR.strings().new_game_add_more_players)
 
         viewModel.onRemoveInvitee(viewModel.uiState.invitees[0])
-        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_from_contacts)
+        XCTAssertEqual(viewModel.uiState.addPlayersLabel, GMR.strings().new_game_add_players)
     }
 
     func testInviteesNeverAffectWhetherPublishIsEnabled() async {

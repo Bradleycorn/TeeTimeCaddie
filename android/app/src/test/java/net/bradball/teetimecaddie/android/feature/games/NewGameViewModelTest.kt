@@ -189,14 +189,14 @@ class NewGameViewModelTest {
     }
 
     @Test
-    fun addFromContactsLabel_readsAddMoreOnceAnyoneIsAdded() {
-        assertEquals(GMR.strings.new_game_add_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+    fun addPlayersLabel_readsAddMoreOnceAnyoneIsAdded() {
+        assertEquals(GMR.strings.new_game_add_players, viewModel.uiState.value.addPlayersLabel)
 
         invite(matt)
-        assertEquals(GMR.strings.new_game_add_more_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+        assertEquals(GMR.strings.new_game_add_more_players, viewModel.uiState.value.addPlayersLabel)
 
         viewModel.onRemoveInvitee(matt)
-        assertEquals(GMR.strings.new_game_add_from_contacts, viewModel.uiState.value.addFromContactsLabel)
+        assertEquals(GMR.strings.new_game_add_players, viewModel.uiState.value.addPlayersLabel)
     }
 
     @Test
