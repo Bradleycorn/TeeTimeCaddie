@@ -5,6 +5,7 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     kotlin("plugin.serialization") version libs.versions.kotlin
+    alias(libs.plugins.kover)
 }
 
 kotlin {
@@ -47,5 +48,12 @@ android {
     compileSdk = 36
     defaultConfig {
         minSdk = 24
+    }
+}
+
+// Feeds the "coverage" variant that the root project merges into one report.
+kover {
+    currentProject {
+        createVariant("coverage") { add("debug") }
     }
 }

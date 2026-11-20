@@ -5,6 +5,7 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     alias(libs.plugins.mokoresources)
+    alias(libs.plugins.kover)
 }
 
 kotlin {
@@ -61,4 +62,11 @@ multiplatformResources {
     resourcesPackage.set("net.bradball.teetimecaddie.features.auth")
     resourcesClassName.set("AR")
     iosBaseLocalizationRegion = "en"
+}
+
+// Feeds the "coverage" variant that the root project merges into one report.
+kover {
+    currentProject {
+        createVariant("coverage") { add("debug") }
+    }
 }
