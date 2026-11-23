@@ -1,7 +1,5 @@
 package net.bradball.teetimecaddie.android.ui.common.chips
 
-import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
-
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,10 +42,6 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  * @param size The [TtcChipSize]. Defaults to [TtcChipSize.Medium].
  * @param variant The [TtcChipVariant] surface treatment. Defaults to [TtcChipVariant.Filled].
  * @param icon Optional leading [TtcIcons] icon.
- * @param leadingContent Optional content before the label in place of [icon], such as a small
- *   avatar. Its start padding is trimmed so it sits close to the chip's edge.
- * @param trailingIcon Optional [TtcIcons] icon after the label, such as the ✕ on a removable chip.
- *   It is decorative; describe the chip's action on [modifier] for screen readers.
  * @param onClick When non-null, makes the chip tappable and is invoked on tap.
  */
 @Composable
@@ -58,8 +52,6 @@ fun TtcChip(
     size: TtcChipSize = TtcChipSize.Medium,
     variant: TtcChipVariant = TtcChipVariant.Filled,
     icon: TtcIcons? = null,
-    leadingContent: (@Composable () -> Unit)? = null,
-    trailingIcon: TtcIcons? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val (content, decoration) = when (variant) {
@@ -78,13 +70,10 @@ fun TtcChip(
             .clip(TtcChipDefaults.Shape)
             .then(decoration)
             .then(clickable)
-            .padding(TtcChipDefaults.contentPadding(size, hasLeadingContent = leadingContent != null)),
+            .padding(TtcChipDefaults.contentPadding(size)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (leadingContent != null) {
-            leadingContent()
-            Spacer(Modifier.width(TtcChipDefaults.IconSpacing))
-        } else if (icon != null) {
+        if (icon != null) {
             Icon(
                 painter = icon.painter,
                 contentDescription = null,
@@ -94,15 +83,6 @@ fun TtcChip(
             Spacer(Modifier.width(TtcChipDefaults.IconSpacing))
         }
         Text(text, color = content, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        if (trailingIcon != null) {
-            Spacer(Modifier.width(TtcChipDefaults.IconSpacing))
-            Icon(
-                painter = trailingIcon.painter,
-                contentDescription = null,
-                tint = content,
-                modifier = Modifier.size(TtcChipDefaults.TrailingIconSize),
-            )
-        }
     }
 }
 
@@ -141,14 +121,6 @@ private fun TtcChipPreview() {
                     TtcChip(text = "Declined", color = TtcColorRole.Error, variant = TtcChipVariant.Outlined)
                 }
                 TtcChip(text = "Tappable", color = TtcColorRole.Primary, onClick = {})
-                TtcChip(
-                    text = "Sam",
-                    leadingContent = {
-                        TtcAvatar(initials = "S", color = TtcColorRole.Tertiary, size = TtcChipDefaults.AvatarSize)
-                    },
-                    trailingIcon = TtcIcons.CLOSE,
-                    onClick = {},
-                )
             }
         }
     }

@@ -32,22 +32,12 @@ internal object TtcChipDefaults {
     /** Gap between a leading icon and the label. */
     val IconSpacing = 6.dp
 
-    /** Size of the trailing icon, such as a removable chip's ✕. */
-    val TrailingIconSize = 16.dp
-
-    /** Size of an avatar passed as a chip's leading content. */
-    val AvatarSize = 20.dp
-
     private val MediumContentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
     private val SmallContentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
 
-    // Leading content such as an avatar sits close to the chip's edge, as an input chip's does.
-    private val MediumLeadingContentPadding = PaddingValues(start = 4.dp, top = 4.dp, end = 8.dp, bottom = 4.dp)
-    private val SmallLeadingContentPadding = PaddingValues(start = 4.dp, top = 2.dp, end = 6.dp, bottom = 2.dp)
-
-    fun contentPadding(size: TtcChipSize, hasLeadingContent: Boolean = false): PaddingValues = when (size) {
-        TtcChipSize.Medium -> if (hasLeadingContent) MediumLeadingContentPadding else MediumContentPadding
-        TtcChipSize.Small -> if (hasLeadingContent) SmallLeadingContentPadding else SmallContentPadding
+    fun contentPadding(size: TtcChipSize): PaddingValues = when (size) {
+        TtcChipSize.Medium -> MediumContentPadding
+        TtcChipSize.Small -> SmallContentPadding
     }
 
     /**

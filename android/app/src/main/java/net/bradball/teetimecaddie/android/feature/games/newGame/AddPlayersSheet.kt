@@ -34,8 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,11 +42,10 @@ import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.theme.toColorRole
-import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcButton
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcOutlinedButton
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
-import net.bradball.teetimecaddie.android.ui.common.chips.TtcChip
+import net.bradball.teetimecaddie.android.ui.common.chips.TtcInputChip
 import net.bradball.teetimecaddie.android.ui.common.forms.TtcTextField
 import net.bradball.teetimecaddie.android.ui.common.forms.TtcTextFieldDefaults
 import net.bradball.teetimecaddie.android.ui.common.forms.filters.PhoneVisualTransformation
@@ -289,19 +286,12 @@ private fun Tray(
                     horizontalArrangement = Arrangement.spacedBy(AddPlayersSheetDefaults.ChipSpacing),
                 ) {
                     uiState.chosen.forEach { person ->
-                        val remove = stringResource(GMR.strings.add_players_remove_chip.resourceId, person.name)
-                        TtcChip(
+                        TtcInputChip(
                             text = person.firstName,
-                            leadingContent = {
-                                TtcAvatar(
-                                    initials = person.initial,
-                                    color = person.avatarTone.toColorRole(),
-                                    size = AddPlayersSheetDefaults.ChipAvatarSize,
-                                )
-                            },
-                            trailingIcon = TtcIcons.CLOSE,
-                            onClick = { onUnchoose(person) },
-                            modifier = Modifier.semantics { contentDescription = remove },
+                            avatarInitials = person.initial,
+                            avatarColor = person.avatarTone.toColorRole(),
+                            onRemove = { onUnchoose(person) },
+                            removeLabel = stringResource(GMR.strings.add_players_remove_chip.resourceId, person.name),
                         )
                     }
                 }
@@ -332,7 +322,6 @@ private object AddPlayersSheetDefaults {
     val TrayPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 20.dp)
     val TraySpacing = 12.dp
     val ChipSpacing = 8.dp
-    val ChipAvatarSize = 20.dp
 }
 
 // `ModalBottomSheet` draws in its own window, which previews never rasterize (see `TtcBottomSheet`),
