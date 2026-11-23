@@ -110,22 +110,22 @@ class NewGameViewModel @Inject constructor(
         val selection = if (picked == null) Selection.NONE else Selection.SOME
         eventManager.logEvent(AnalyticsEvent.ContactPickerDismiss(selection))
         if (picked == null) return
-        val sheet = _uiState.value.addPlayers ?: return
+        val addPlayersState = _uiState.value.addPlayers ?: return
         viewModelScope.launch {
-            when (val result = contactsRepository.choosePickedContacts(sheet.list, picked)) {
-                is TtcResult.Success -> updateSheet { it.afterContactsPicked(result.data) }
+            when (val result = contactsRepository.choosePickedContacts(addPlayersState.list, picked)) {
+                is TtcResult.Success -> updateAddPlayersState { it.afterContactsPicked(result.data) }
                 is TtcResult.Failure -> messenger.show(result.error)
             }
         }
     }
 
     fun onPlayerNameChange(name: String) {
-        updateSheet { it.withName(name) }
+        updateAddPlayersState { it.withName(name) }
     }
 
     /** Digits only, capped at a full number, as the create-account phone field does. */
     fun onPlayerPhoneChange(phone: String) {
-        updateSheet { it.withPhone(phone.toPhoneDigits().take(PHONE_NUMBER_LENGTH)) }
+        updateAddPlayersState { it.withPhone(phone.toPhoneDigits().take(PHONE_NUMBER_LENGTH)) }
     }
 
     /**
@@ -133,21 +133,21 @@ class NewGameViewModel @Inject constructor(
      * otherwise the fields show what's wrong.
      */
     fun onAddEnteredPlayer() {
-        val sheet = _uiState.value.addPlayers ?: return
-        val result = contactsRepository.chooseEnteredPerson(sheet.list, sheet.name, sheet.phone)
-        updateSheet { it.afterEntry(result) }
+        val addPlayersState = _uiState.value.addPlayers ?: return
+        val result = contactsRepository.chooseEnteredPerson(addPlayersState.list, addPlayersState.name, addPlayersState.phone)
+        updateAddPlayersState { it.afterEntry(result) }
     }
 
     /** A selected person's chip was tapped: they're taken out of the selection. */
     fun onUnchoosePlayer(person: NewInvitee) {
-        updateSheet { it.unchoose(person) }
+        updateAddPlayersState { it.unchoose(person) }
     }
 
     /** "Add N players" was tapped: everyone selected joins the invitees, and the sheet closes. */
     fun onAddChosenPlayers() {
         _uiState.update { state ->
-            val sheet = state.addPlayers ?: return@update state
-            state.copy(invitees = sheet.list.inviteChosen().invited, addPlayers = null)
+            val addPlayersState = state.addPlayers ?: return@update state
+            state.copy(invitees = addPlayersState.list.inviteChosen().invited, addPlayers = null)
         }
     }
 
@@ -156,7 +156,8 @@ class NewGameViewModel @Inject constructor(
         _uiState.update { it.copy(addPlayers = null) }
     }
 
-    private fun updateSheet(change: (AddPlayersUiState) -> AddPlayersUiState) {
+    /** Apply [change] to the Add players state, if the sheet is open. */
+    private fun updateAddPlayersState(change: (AddPlayersUiState) -> AddPlayersUiState) {
         _uiState.update { state -> state.addPlayers?.let { state.copy(addPlayers = change(it)) } ?: state }
     }
 

@@ -115,9 +115,9 @@ fun NewGameScreen(
             onTimeInputToggle = viewModel::onTimeInputToggle,
         )
 
-        uiState.addPlayers?.let { sheet ->
+        uiState.addPlayers?.let { addPlayersState ->
             AddPlayersSheet(
-                uiState = sheet,
+                uiState = addPlayersState,
                 onChooseFromContacts = viewModel::onChooseFromContactsClick,
                 onNameChange = viewModel::onPlayerNameChange,
                 onPhoneChange = viewModel::onPlayerPhoneChange,

@@ -77,7 +77,7 @@ class NewGameViewModelTest {
         viewModel.onAddChosenPlayers()
     }
 
-    private val sheet: AddPlayersUiState
+    private val addPlayersState: AddPlayersUiState
         get() = checkNotNull(viewModel.uiState.value.addPlayers)
 
     private fun fillIn(course: String = "Pebble Beach") {
@@ -122,7 +122,7 @@ class NewGameViewModelTest {
 
         viewModel.onAddPlayersClick()
 
-        assertEquals(AddPlayersUiState.open(previewPlayer.phone, listOf(matt)), sheet)
+        assertEquals(AddPlayersUiState.open(previewPlayer.phone, listOf(matt)), addPlayersState)
     }
 
     @Test
@@ -141,7 +141,7 @@ class NewGameViewModelTest {
         pick(matt)
         pick(jeff)
 
-        assertEquals(listOf(matt, jeff), sheet.chosen)
+        assertEquals(listOf(matt, jeff), addPlayersState.chosen)
         assertTrue(viewModel.uiState.value.invitees.isEmpty())
 
         viewModel.onAddChosenPlayers()
@@ -167,7 +167,7 @@ class NewGameViewModelTest {
             DeviceContact("c3", "Dana Park", listOf(DevicePhone("415.555.0117", "Home"))),
         )
 
-        assertEquals(listOf(dana, jeff), sheet.chosen)
+        assertEquals(listOf(dana, jeff), addPlayersState.chosen)
     }
 
     @Test
@@ -179,7 +179,7 @@ class NewGameViewModelTest {
         pick(NewInvitee("Matthew Chen", "+1 415 555 0188"))
         pick(NewInvitee("Jeff M", "4155550142"))
 
-        assertEquals(listOf(jeff), sheet.chosen)
+        assertEquals(listOf(jeff), addPlayersState.chosen)
     }
 
     @Test
@@ -194,7 +194,7 @@ class NewGameViewModelTest {
             )
         )
 
-        assertEquals(listOf(jeff), sheet.chosen)
+        assertEquals(listOf(jeff), addPlayersState.chosen)
     }
 
     @Test
@@ -206,7 +206,7 @@ class NewGameViewModelTest {
             DeviceContact("c2", "  ", listOf(DevicePhone("4155550101", "Mobile"))),
         )
 
-        assertTrue(sheet.chosen.isEmpty())
+        assertTrue(addPlayersState.chosen.isEmpty())
     }
 
     @Test
@@ -219,7 +219,7 @@ class NewGameViewModelTest {
             override suspend fun readContacts(): List<DeviceContact> = throw SecurityException("grant expired")
         })
 
-        assertEquals(listOf(matt), sheet.chosen)
+        assertEquals(listOf(matt), addPlayersState.chosen)
         assertEquals(listOf(TtcMessage(GameErrors.CONTACTS_LOAD_FAILED.message)), messages)
     }
 
@@ -231,10 +231,10 @@ class NewGameViewModelTest {
 
         viewModel.onAddEnteredPlayer()
 
-        assertEquals(listOf(NewInvitee("Sam Tanaka", "4155550123")), sheet.chosen)
-        assertEquals("", sheet.name)
-        assertEquals("", sheet.phone)
-        assertNotNull(sheet.chosenMessage)
+        assertEquals(listOf(NewInvitee("Sam Tanaka", "4155550123")), addPlayersState.chosen)
+        assertEquals("", addPlayersState.name)
+        assertEquals("", addPlayersState.phone)
+        assertNotNull(addPlayersState.chosenMessage)
     }
 
     @Test
@@ -243,9 +243,9 @@ class NewGameViewModelTest {
 
         viewModel.onAddEnteredPlayer()
 
-        assertTrue(sheet.chosen.isEmpty())
-        assertEquals(GMR.strings.add_players_error_no_name, sheet.nameError)
-        assertEquals(GMR.strings.add_players_error_no_phone, sheet.phoneError)
+        assertTrue(addPlayersState.chosen.isEmpty())
+        assertEquals(GMR.strings.add_players_error_no_name, addPlayersState.nameError)
+        assertEquals(GMR.strings.add_players_error_no_phone, addPlayersState.phoneError)
     }
 
     @Test
@@ -254,7 +254,7 @@ class NewGameViewModelTest {
 
         viewModel.onPlayerPhoneChange("(415) 555-01234")
 
-        assertEquals("4155550123", sheet.phone)
+        assertEquals("4155550123", addPlayersState.phone)
     }
 
     @Test
@@ -265,7 +265,7 @@ class NewGameViewModelTest {
 
         viewModel.onUnchoosePlayer(matt)
 
-        assertEquals(listOf(jeff), sheet.chosen)
+        assertEquals(listOf(jeff), addPlayersState.chosen)
     }
 
     @Test
