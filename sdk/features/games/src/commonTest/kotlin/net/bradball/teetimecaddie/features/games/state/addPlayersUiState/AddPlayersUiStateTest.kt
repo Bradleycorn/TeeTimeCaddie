@@ -124,7 +124,8 @@ class AddPlayersUiStateTest {
 
     @Test
     fun theContactsSummaryCountsOnlyPickedContacts() {
-        val state = opened.withChosen(sam).afterContactsPicked(opened.list.choose(listOf(sam, dana, jeff)))
+        val before = opened.withChosen(sam)
+        val state = before.afterContactsPicked(before.list, before.list.choose(listOf(dana, jeff)))
 
         assertEquals(
             LocalizedText(GMR.strings.add_players_contacts_summary, listOf("2", "Dana, Jeff")),
@@ -135,7 +136,7 @@ class AddPlayersUiStateTest {
     @Test
     fun theContactsSummaryNamesThreeThenCountsTheRest() {
         val five = listOf(dana, jeff, alex, sam, NewInvitee("Priya Shah", "4155550199"))
-        val state = opened.afterContactsPicked(opened.list.choose(five))
+        val state = opened.afterContactsPicked(opened.list, opened.list.choose(five))
 
         assertEquals(
             LocalizedText(GMR.strings.add_players_contacts_summary_more, listOf("5", "Dana, Jeff, Alex", "2")),
@@ -145,10 +146,45 @@ class AddPlayersUiStateTest {
 
     @Test
     fun unchoosingAPickedContactDropsThemFromTheSummaryAndTheTray() {
-        val state = opened.afterContactsPicked(opened.list.choose(listOf(dana, jeff))).unchoose(dana)
+        val state = opened.afterContactsPicked(opened.list, opened.list.choose(listOf(dana, jeff))).unchoose(dana)
 
         assertEquals(listOf(jeff), state.chosen)
         assertEquals(LocalizedText(GMR.strings.add_players_contacts_summary, listOf("1", "Jeff")), state.contactsSummary)
         assertNull(state.unchoose(jeff).contactsSummary)
+    }
+
+    @Test
+    fun someoneEnteredWhileContactsAreReadIsKept() {
+        val read = opened.list.choose(listOf(dana, jeff))
+        val entered = opened.afterEntry(ManualInviteeResult.Chosen(sam, opened.list.choose(listOf(sam))))
+
+        val state = entered.afterContactsPicked(opened.list, read)
+
+        assertEquals(listOf(sam, dana, jeff), state.chosen)
+        assertEquals(
+            LocalizedText(GMR.strings.add_players_contacts_summary, listOf("2", "Dana, Jeff")),
+            state.contactsSummary
+        )
+    }
+
+    @Test
+    fun someoneUnchosenWhileContactsAreReadStaysUnchosen() {
+        val before = opened.withChosen(sam)
+        val read = before.list.choose(listOf(dana))
+
+        val state = before.unchoose(sam).afterContactsPicked(before.list, read)
+
+        assertEquals(listOf(dana), state.chosen)
+    }
+
+    @Test
+    fun aPickedContactAlreadyEnteredDuringTheReadIsNotCountedAsFromContacts() {
+        val read = opened.list.choose(listOf(dana))
+        val entered = opened.afterEntry(ManualInviteeResult.Chosen(dana, opened.list.choose(listOf(dana))))
+
+        val state = entered.afterContactsPicked(opened.list, read)
+
+        assertEquals(listOf(dana), state.chosen)
+        assertNull(state.contactsSummary)
     }
 }

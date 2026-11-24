@@ -113,7 +113,7 @@ class NewGameViewModel @Inject constructor(
         val addPlayersState = _uiState.value.addPlayers ?: return
         viewModelScope.launch {
             when (val result = contactsRepository.choosePickedContacts(addPlayersState.list, picked)) {
-                is TtcResult.Success -> updateAddPlayersState { it.afterContactsPicked(result.data) }
+                is TtcResult.Success -> updateAddPlayersState { it.afterContactsPicked(from = addPlayersState.list, updated = result.data) }
                 is TtcResult.Failure -> messenger.show(result.error)
             }
         }

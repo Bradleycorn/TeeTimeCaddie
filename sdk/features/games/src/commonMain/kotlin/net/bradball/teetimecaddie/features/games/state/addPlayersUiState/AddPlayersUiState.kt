@@ -104,11 +104,19 @@ data class AddPlayersUiState(
         is ManualInviteeResult.Rejected -> copy(hasTriedToAdd = true, lastChosenName = null)
     }
 
-    /** Contacts were picked: [updated] came back from [ContactsRepository.choosePickedContacts]. */
-    fun afterContactsPicked(updated: InviteList): AddPlayersUiState {
-        val before = list.chosen.map { it.phone.toPhoneDigits() }.toSet()
-        val picked = updated.chosen.map { it.phone.toPhoneDigits() }.filterNot { it in before }
-        return copy(list = updated, fromContacts = fromContacts + picked)
+    /**
+     * Contacts were picked: [ContactsRepository.choosePickedContacts] was given [from] and returned
+     * [updated].
+     *
+     * Only the people [updated] adds to [from] join this state's list. Anyone entered or unchosen
+     * while the contacts were being read stays that way.
+     */
+    fun afterContactsPicked(from: InviteList, updated: InviteList): AddPlayersUiState {
+        val before = from.chosen.map { it.phone.toPhoneDigits() }.toSet()
+        val picked = updated.chosen.filterNot { it.phone.toPhoneDigits() in before }
+        val chosenList = list.choose(picked)
+        val added = chosenList.chosen.drop(list.chosen.size).map { it.phone.toPhoneDigits() }
+        return copy(list = chosenList, fromContacts = fromContacts + added)
     }
 
     /** A chip's ✕ was tapped: [person] is no longer selected. */

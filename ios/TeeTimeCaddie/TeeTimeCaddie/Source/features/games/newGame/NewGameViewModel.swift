@@ -79,7 +79,7 @@ final class NewGameViewModel {
             let result = try await contactsRepository.choosePickedContacts(list: addPlayersState.list, picked: picked)
             switch onEnum(of: result) {
             case .success(let success):
-                updateAddPlayersState { $0.afterContactsPicked(updated: success.data) }
+                updateAddPlayersState { $0.afterContactsPicked(from: addPlayersState.list, updated: success.data) }
             case .failure(let failure):
                 show(failure.error)
             }
