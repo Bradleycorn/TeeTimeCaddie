@@ -16,42 +16,19 @@ enum TtcChipSize {
 }
 
 /// The surface treatment a ``TtcChip`` renders with: `.filled` (a container fill) or `.outlined`
-/// (transparent with a 1pt border). Orthogonal to ``TtcChipColorToken`` and ``TtcChipSize``.
+/// (transparent with a 1pt border). Orthogonal to ``TtcColorRole`` and ``TtcChipSize``.
 enum TtcChipVariant {
     case filled
     case outlined
 }
 
-/// The color a ``TtcChip`` renders in. The tinted tokens carry meaning; the surface tokens name a
-/// `surfaceContainer*` rung, for chips that only need to stand off what's behind them.
-///
-/// The Android twin is `TtcChipColorToken` in `ui/common/chips/TtcChipStyle.kt`.
-enum TtcChipColorToken {
-    /// Green, the organizer.
-    case primary
-    /// Gold, pending.
-    case secondary
-    /// Sky, confirmed.
-    case tertiary
-    /// Declined or can't play.
-    case error
-    /// `surfaceContainer`.
-    case surface
-    /// `surfaceContainerHigh`, the default: one rung above a card.
-    case high
-    /// `surfaceContainerHighest`.
-    case highest
-    /// `surfaceContainerLow`.
-    case low
-    /// `surfaceContainerLowest`.
-    case lowest
-}
-
-/// Color resolution for ``TtcChip``, derived from the Fairway Morning "Chips & status" spec. (The
+/// Role resolution for ``TtcChip``, derived from the Fairway Morning "Chips & status" spec. (The
 /// Android twin is `TtcChipDefaults`.)
 ///
-/// Every filled tinted token uses its role's *container* tone, never the solid one — a chip is a
-/// low-emphasis label, so unlike ``TtcButtonStyle`` even `.primary` and `.error` stay soft.
+/// Every filled role uses its *container* tone, never the solid one — a chip is a low-emphasis
+/// label, so unlike ``TtcButtonStyle`` even `.primary` and `.error` stay soft. `.neutral` sits at
+/// `surfaceContainerHigh`, one rung below the button's `surfaceContainerHighest`, because a chip is
+/// usually rendered on top of a card.
 enum TtcChipStyle {
 
     /// The chip's clip/border/hit shape — Fairway Morning `radius-sm`, the theme's `small` (8pt). A
@@ -65,34 +42,29 @@ enum TtcChipStyle {
     /// The Android twin is `TtcChipDefaults.Shape`.
     static func shape(_ shapes: Shapes) -> AnyShape { shapes.small }
 
-    /// Filled container background + content/foreground colors for `color`. Tinted tokens use their
-    /// role's *container* tone; surface tokens use their `surfaceContainer*` rung with `onSurface`
-    /// content.
-    static func filledColors(_ color: TtcChipColorToken, _ scheme: ThemeColors) -> (background: Color, foreground: Color) {
-        switch color {
+    /// Filled container background + content/foreground colors for `role`.
+    static func filledColors(_ role: TtcColorRole, _ scheme: ThemeColors) -> (background: Color, foreground: Color) {
+        switch role {
         case .primary:   (scheme.primaryContainer, scheme.onPrimaryContainer)
         case .secondary: (scheme.secondaryContainer, scheme.onSecondaryContainer)
         case .tertiary:  (scheme.tertiaryContainer, scheme.onTertiaryContainer)
         case .error:     (scheme.errorContainer, scheme.onErrorContainer)
-        case .surface:   (scheme.surfaceContainer, scheme.onSurface)
-        case .high:      (scheme.surfaceContainerHigh, scheme.onSurface)
-        case .highest:   (scheme.surfaceContainerHighest, scheme.onSurface)
-        case .low:       (scheme.surfaceContainerLow, scheme.onSurface)
-        case .lowest:    (scheme.surfaceContainerLowest, scheme.onSurface)
+        case .neutral:   (scheme.surfaceContainerHigh, scheme.onSurfaceVariant)
+        case .subtle:    (scheme.surfaceContainer, scheme.onSurfaceVariant)
         }
     }
 
-    /// Outlined text/content + border colors for `color` (transparent container). Tinted tokens use
-    /// their role color for both text and border; every surface token is the design's "suggestion"
-    /// chip (`onSurfaceVariant` text, `outlineVariant` border).
-    static func outlinedColors(_ color: TtcChipColorToken, _ scheme: ThemeColors) -> (foreground: Color, border: Color) {
-        switch color {
+    /// Outlined text/content + border colors for `role` (transparent container). `.neutral` is the
+    /// design's "suggestion" chip (`onSurfaceVariant` text, `outlineVariant` border); tinted roles
+    /// use their role color for both text and border.
+    static func outlinedColors(_ role: TtcColorRole, _ scheme: ThemeColors) -> (foreground: Color, border: Color) {
+        switch role {
         case .primary:   (scheme.primary, scheme.primary)
         case .secondary: (scheme.secondary, scheme.secondary)
         case .tertiary:  (scheme.tertiary, scheme.tertiary)
         case .error:     (scheme.error, scheme.error)
-        // An outlined chip has no fill to step, so every surface token looks the same.
-        case .surface, .high, .highest, .low, .lowest: (scheme.onSurfaceVariant, scheme.outlineVariant)
+        // An outlined chip has no fill to step down, so `.subtle` renders as `.neutral`.
+        case .neutral, .subtle: (scheme.onSurfaceVariant, scheme.outlineVariant)
         }
     }
 }
