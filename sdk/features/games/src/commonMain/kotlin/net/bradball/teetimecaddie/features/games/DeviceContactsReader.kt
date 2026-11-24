@@ -3,8 +3,8 @@ package net.bradball.teetimecaddie.features.games
 /**
  * Reads the contacts stored on the device.
  *
- * Each app implements this over its platform's contacts API and hands it to
- * `TeeTimeCaddieSdk.contactsRepository`. Return the contacts as the device stores them:
+ * Each app implements this over its platform's contacts API and passes it to
+ * [ContactsRepository.choosePickedContacts]. Return the contacts as the device stores them:
  * [ContactsRepository] does all the filtering, choosing and sorting, so the two apps behave the
  * same. Checking and asking for contacts access stays with the app, which calls this only once
  * access is granted.

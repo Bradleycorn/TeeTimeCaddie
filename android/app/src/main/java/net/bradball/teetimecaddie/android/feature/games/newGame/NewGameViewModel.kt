@@ -13,13 +13,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import net.bradball.teetimecaddie.android.feature.games.contacts.ContactsRepositoryFactory
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent.ContactPickerDismiss.Selection
 import net.bradball.teetimecaddie.core.analytics.EventManager
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
+import net.bradball.teetimecaddie.features.games.ContactsRepository
 import net.bradball.teetimecaddie.features.games.DeviceContactsReader
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
@@ -45,7 +45,7 @@ sealed interface NewGameEvent {
 class NewGameViewModel @Inject constructor(
     private val sessionState: StateFlow<@JvmSuppressWildcards SessionState>,
     private val gamesRepository: GamesRepository,
-    private val contactsRepositoryFactory: ContactsRepositoryFactory,
+    private val contactsRepository: ContactsRepository,
     private val messenger: TtcMessenger,
     private val eventManager: EventManager,
 ) : ViewModel() {
@@ -101,8 +101,7 @@ class NewGameViewModel @Inject constructor(
         if (picked == null) return
         val organizer = (sessionState.value as? SessionState.SignedIn)?.player ?: return
         viewModelScope.launch {
-            val repository = contactsRepositoryFactory.create(picked)
-            when (val result = repository.addPickedContacts(organizer, _uiState.value.invitees)) {
+            when (val result = contactsRepository.addPickedContacts(organizer, _uiState.value.invitees, picked)) {
                 is TtcResult.Success -> _uiState.update { it.copy(invitees = result.data) }
                 is TtcResult.Failure -> messenger.show(result.error)
             }

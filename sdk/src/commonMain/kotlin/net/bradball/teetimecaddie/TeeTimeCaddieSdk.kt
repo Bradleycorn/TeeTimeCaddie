@@ -13,7 +13,6 @@ import net.bradball.teetimecaddie.features.auth.AuthRepository
 import net.bradball.teetimecaddie.features.auth.AuthRepositoryImpl
 import net.bradball.teetimecaddie.features.games.ContactsRepository
 import net.bradball.teetimecaddie.features.games.ContactsRepositoryImpl
-import net.bradball.teetimecaddie.features.games.DeviceContactsReader
 import net.bradball.teetimecaddie.features.games.GamesRepository
 import net.bradball.teetimecaddie.features.games.GamesRepositoryImpl
 import net.bradball.teetimecaddie.features.players.PlayerRepository
@@ -51,15 +50,9 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
         )
     }
 
-    /**
-     * A [ContactsRepository] over the app's own [reader].
-     *
-     * A function rather than a lazy val like the others, because the reader is platform code that
-     * only the app can build. The repository keeps no state, so building more than one is
-     * harmless; each app's DI provides a single one all the same.
-     */
-    fun contactsRepository(reader: DeviceContactsReader): ContactsRepository =
-        ContactsRepositoryImpl(eventManager, reader)
+    val contactsRepository: ContactsRepository by lazy {
+        ContactsRepositoryImpl(eventManager)
+    }
 
 
     val sessionManager: SessionManager by lazy {
