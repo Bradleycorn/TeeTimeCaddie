@@ -34,6 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,10 +47,13 @@ import androidx.compose.ui.unit.dp
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
 import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.theme.toColorRole
+import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatar
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcButton
 import net.bradball.teetimecaddie.android.ui.common.buttons.TtcOutlinedButton
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
-import net.bradball.teetimecaddie.android.ui.common.chips.TtcInputChip
+import net.bradball.teetimecaddie.android.ui.common.chips.TtcChip
+import net.bradball.teetimecaddie.android.ui.common.chips.TtcChipColorToken
+import net.bradball.teetimecaddie.android.ui.common.chips.TtcChipSize
 import net.bradball.teetimecaddie.android.ui.common.forms.TtcTextField
 import net.bradball.teetimecaddie.android.ui.common.forms.TtcTextFieldDefaults
 import net.bradball.teetimecaddie.android.ui.common.forms.filters.PhoneVisualTransformation
@@ -286,12 +294,12 @@ private fun Tray(
                     horizontalArrangement = Arrangement.spacedBy(AddPlayersSheetDefaults.ChipSpacing),
                 ) {
                     uiState.chosen.forEach { person ->
-                        TtcInputChip(
-                            text = person.firstName,
-                            avatarInitials = person.initial,
+                        ChosenPlayerChip(
+                            name = person.firstName,
+                            initials = person.initial,
                             avatarColor = person.avatarTone.toColorRole(),
-                            onRemove = { onUnchoose(person) },
                             removeLabel = stringResource(GMR.strings.add_players_remove_chip.resourceId, person.name),
+                            onClick = { onUnchoose(person) },
                         )
                     }
                 }
@@ -303,6 +311,51 @@ private fun Tray(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
+    }
+}
+
+/**
+ * A chosen person in the tray: their avatar, first name and a ✕. Tapping anywhere on it unchooses
+ * them, and a screen reader hears it as one button, [removeLabel].
+ */
+@Composable
+private fun ChosenPlayerChip(
+    name: String,
+    initials: String,
+    avatarColor: TtcColorRole,
+    removeLabel: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    TtcChip(
+        // Clearing the chip's semantics also clears the click action TtcChip adds, so restore it.
+        modifier = modifier.clearAndSetSemantics {
+            contentDescription = removeLabel
+            role = Role.Button
+            onClick {
+                onClick()
+                true
+            }
+        },
+        color = TtcChipColorToken.Highest,
+        size = TtcChipSize.Small,
+        onClick = onClick,
+    ) { contentColor ->
+        TtcAvatar(initials = initials, color = avatarColor, size = AddPlayersSheetDefaults.ChipAvatarSize)
+        Text(
+            text = name,
+            color = contentColor,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Icon(
+            painter = TtcIcons.CLOSE.painter,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(AddPlayersSheetDefaults.ChipRemoveIconSize),
+        )
     }
 }
 
@@ -322,6 +375,8 @@ private object AddPlayersSheetDefaults {
     val TrayPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 20.dp)
     val TraySpacing = 12.dp
     val ChipSpacing = 8.dp
+    val ChipAvatarSize = 24.dp
+    val ChipRemoveIconSize = 16.dp
 }
 
 // `ModalBottomSheet` draws in its own window, which previews never rasterize (see `TtcBottomSheet`),

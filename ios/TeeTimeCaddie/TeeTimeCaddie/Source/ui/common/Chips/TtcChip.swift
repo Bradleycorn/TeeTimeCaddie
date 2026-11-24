@@ -3,9 +3,10 @@ import ThemeUI
 
 /// A chip from the Fairway Morning design system.
 ///
-/// Renders a compact, `radius-sm`-rounded chip whose *color carries meaning*: `.primary` (green, the
-/// organizer), `.secondary` (gold, pending), `.tertiary` (sky, confirmed), `.error` (declined /
-/// can't play) and the default `.neutral` (ambient). `.filled` (the default) is the
+/// Renders a compact, `radius-sm`-rounded chip whose ``TtcChipColorToken`` *carries meaning*:
+/// `.primary` (green, the organizer), `.secondary` (gold, pending), `.tertiary` (sky, confirmed),
+/// `.error` (declined / can't play), and the surface tokens for ambient chips, with `.high` the
+/// default. `.filled` (the default) is the
 /// container-filled status/identity badge (e.g. "Confirmed", "Organizer", "3/4 filled"); `.outlined`
 /// is the transparent, bordered "suggestion" treatment. It is a static badge by default; pass
 /// [onClick] to make it tappable.
@@ -13,7 +14,7 @@ struct TtcChip: View {
     @EnvironmentObject private var theme: AppTheme
 
     private let text: String
-    private let color: TtcColorRole
+    private let color: TtcChipColorToken
     private let size: TtcChipSize
     private let variant: TtcChipVariant
     private let icon: ImageSource?
@@ -21,7 +22,7 @@ struct TtcChip: View {
 
     init(
         _ text: String,
-        color: TtcColorRole = .neutral,
+        color: TtcChipColorToken = .high,
         size: TtcChipSize = .medium,
         variant: TtcChipVariant = .filled,
         icon: ImageSource? = nil,
@@ -78,7 +79,8 @@ struct TtcChip: View {
                 TtcChip("Tertiary", color: .tertiary, icon: .symbol(.calendar))
                 TtcChip("Declined", color: .error, icon: .symbol(.calendar))
                 TtcChip("Neutral", icon: .symbol(.calendar))
-                TtcChip("Subtle", color: .subtle, icon: .symbol(.calendar))
+                TtcChip("Surface", color: .surface, icon: .symbol(.calendar))
+                TtcChip("Highest", color: .highest, icon: .symbol(.calendar))
             }
             VStack(alignment: .leading, spacing: 8) {
                 TtcChip("Primary Small", color: .primary, size: .small, icon: .symbol(.calendar))

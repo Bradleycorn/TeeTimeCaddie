@@ -16,10 +16,12 @@ import net.bradball.teetimecaddie.core.models.AvatarTone
  * is a property of the component, not of the role:
  *
  * - A filled `TtcButton` paints [Primary] in the **solid** `primary` (it's the screen's CTA), while
- *   a `TtcChip` and a `TtcCard` paint it in the softer `primaryContainer`.
+ *   a `TtcCard` paints it in the softer `primaryContainer`.
  * - [Neutral] lands on a different rung of the surface ramp per component — `surfaceContainer` for
- *   a card, `surfaceContainerHigh` for a chip, `surfaceContainerHighest` for a button — because a
- *   chip sits on a card sits on the screen canvas. [Subtle] is always the rung below that.
+ *   a card, `surfaceContainerHighest` for a button. [Subtle] is always the rung below that.
+ *
+ * `TtcChip` doesn't use these roles. It takes a `TtcChipColorToken`, which names its surface rung
+ * directly.
  *
  * Each component's `Ttc*Defaults` object owns that mapping and documents its own choices. Consult
  * those, not this enum, for what a role looks like in a given component.
