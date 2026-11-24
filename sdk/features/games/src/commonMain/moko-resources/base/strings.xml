@@ -45,7 +45,7 @@
     <!-- The Invitees section's button, before anyone is invited and after. -->
     <string name="new_game_add_players">Add players</string>
     <string name="new_game_add_more_players">Add more players</string>
-    <!-- Content description for an invitee row's remove button. "Remove Matt Chen" -->
+    <!-- Content description for an invitee row's remove button, and on iOS the label of a selected person's chip in Add players. "Remove Matt Chen" -->
     <string name="new_game_remove_invitee">Remove %1$s</string>
     <string name="new_game_publish_button">Publish game</string>
     <!-- Spoken label for the Android ✕ that leaves New game. -->
@@ -76,7 +76,7 @@
     <string name="add_players_select_button">Select players</string>
     <string name="add_players_add_one_button">Add 1 player</string>
     <string name="add_players_add_many_button">Add %s players</string>
-    <!-- What tapping a selected person's chip does: the click label on Android, the VoiceOver hint on iOS. -->
+    <!-- What tapping a selected person's chip does: its click label on Android. -->
     <string name="add_players_remove_chip">Remove</string>
 
     <!--

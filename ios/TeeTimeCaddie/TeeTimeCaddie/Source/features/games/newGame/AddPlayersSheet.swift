@@ -291,7 +291,7 @@ fileprivate struct Tray: View {
 }
 
 /// A chosen person in the tray: their avatar, first name and a ✕. Tapping anywhere on it unchooses
-/// them. VoiceOver reads it as a button named for the person, with the hint "Remove".
+/// them. VoiceOver reads it as one button, "Remove Sam Tanaka", as it does an invitee row's ✕.
 fileprivate struct ChosenPlayerChip: View {
     @EnvironmentObject private var theme: AppTheme
 
@@ -302,8 +302,7 @@ fileprivate struct ChosenPlayerChip: View {
         TtcChip(
             color: .highest,
             size: .small,
-            onClick: onClick,
-            accessibilityHint: GMR.strings().add_players_remove_chip.localized()
+            onClick: onClick
         ) { _ in
             TtcAvatar(person.initial, color: person.avatarTone.toColorRole(), size: AddPlayersSheetStyle.chipAvatarSize)
                 .accessibilityHidden(true)
@@ -315,6 +314,7 @@ fileprivate struct ChosenPlayerChip: View {
                 .foregroundStyle(theme.colorScheme.onSurfaceVariant)
                 .accessibilityHidden(true)
         }
+        .accessibilityLabel(GMR.strings().new_game_remove_invitee.localized(person.name))
     }
 }
 

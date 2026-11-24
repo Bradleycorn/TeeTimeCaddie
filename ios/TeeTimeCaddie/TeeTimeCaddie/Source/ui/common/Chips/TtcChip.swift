@@ -10,7 +10,7 @@ import ThemeUI
 /// is the transparent, bordered "suggestion" treatment. It is a static badge by default; pass
 /// `onClick` to make it a button.
 ///
-/// For a plain label with an optional icon, use ``init(_:color:size:variant:icon:onClick:accessibilityHint:)``.
+/// For a plain label with an optional icon, use ``init(_:color:size:variant:icon:onClick:)``.
 /// The Android twin is `TtcChip` in `ui/common/chips/TtcChip.kt`.
 struct TtcChip<Content: View>: View {
     @EnvironmentObject private var theme: AppTheme
@@ -19,13 +19,10 @@ struct TtcChip<Content: View>: View {
     private let size: TtcChipSize
     private let variant: TtcChipVariant
     private let onClick: (() -> Void)?
-    private let accessibilityHint: String?
     private let content: (Color) -> Content
 
     /// - Parameters:
     ///   - onClick: When non-nil, makes the chip a button and is called on tap.
-    ///   - accessibilityHint: What tapping the chip does, read by VoiceOver after the chip's label.
-    ///     The Android twin is `onClickLabel`.
     ///   - content: The chip's content. It receives the foreground color for `color` and
     ///     `variant`, to tint text and icons with.
     init(
@@ -33,14 +30,12 @@ struct TtcChip<Content: View>: View {
         size: TtcChipSize = .medium,
         variant: TtcChipVariant = .filled,
         onClick: (() -> Void)? = nil,
-        accessibilityHint: String? = nil,
         @ViewBuilder content: @escaping (_ foreground: Color) -> Content
     ) {
         self.color = color
         self.size = size
         self.variant = variant
         self.onClick = onClick
-        self.accessibilityHint = accessibilityHint
         self.content = content
     }
 
@@ -72,7 +67,6 @@ struct TtcChip<Content: View>: View {
         if let onClick {
             Button(action: onClick) { label }
                 .buttonStyle(TtcChipButtonStyle(shape: shape))
-                .accessibilityHint(accessibilityHint ?? "")
         } else {
             label
         }
@@ -86,17 +80,15 @@ extension TtcChip where Content == TtcChipText {
     ///
     /// - Parameters:
     ///   - onClick: When non-nil, makes the chip a button and is called on tap.
-    ///   - accessibilityHint: What tapping the chip does, read by VoiceOver after `text`.
     init(
         _ text: String,
         color: TtcChipColorToken = .high,
         size: TtcChipSize = .medium,
         variant: TtcChipVariant = .filled,
         icon: ImageSource? = nil,
-        onClick: (() -> Void)? = nil,
-        accessibilityHint: String? = nil
+        onClick: (() -> Void)? = nil
     ) {
-        self.init(color: color, size: size, variant: variant, onClick: onClick, accessibilityHint: accessibilityHint) { _ in
+        self.init(color: color, size: size, variant: variant, onClick: onClick) { _ in
             TtcChipText(text: text, icon: icon)
         }
     }
