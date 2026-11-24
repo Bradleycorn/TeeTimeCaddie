@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
  * @param size The [TtcChipSize]. Defaults to [TtcChipSize.Medium].
  * @param variant The [TtcChipVariant] surface treatment. Defaults to [TtcChipVariant.Filled].
  * @param onClick When non-null, makes the chip tappable and is invoked on tap.
+ * @param onClickLabel semantic / accessibility label for the [onClick] action.
  * @param content The chip's content. It receives the content color for [color] and [variant], to
  * tint text and icons with.
  */
@@ -53,6 +55,7 @@ fun TtcChip(
     size: TtcChipSize = TtcChipSize.Medium,
     variant: TtcChipVariant = TtcChipVariant.Filled,
     onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null,
     content: @Composable RowScope.(contentColor: Color) -> Unit
 ) {
     val (contentColor, decoration) = when (variant) {
@@ -65,7 +68,8 @@ fun TtcChip(
             outlinedContentColor to Modifier.border(1.dp, border, TtcChipDefaults.Shape)
         }
     }
-    val clickable = if (onClick != null) Modifier.clickable { onClick() } else Modifier
+    val clickable = onClick?.let { Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick) } ?: Modifier
+
     Row(
         modifier = modifier
             .clip(TtcChipDefaults.Shape)
@@ -90,6 +94,7 @@ fun TtcChip(
  * @param variant The [TtcChipVariant] surface treatment. Defaults to [TtcChipVariant.Filled].
  * @param icon Optional leading [TtcIcons] icon.
  * @param onClick When non-null, makes the chip tappable and is invoked on tap.
+ * @param onClickLabel semantic / accessibility label for the [onClick] action.
  */
 @Composable
 fun TtcChip(
@@ -100,8 +105,9 @@ fun TtcChip(
     variant: TtcChipVariant = TtcChipVariant.Filled,
     icon: TtcIcons? = null,
     onClick: (() -> Unit)? = null,
+    onClickLabel: String? = null
 ) {
-    TtcChip(modifier = modifier, color = color, size = size, variant = variant, onClick = onClick) { contentColor ->
+    TtcChip(modifier = modifier, color = color, size = size, variant = variant, onClick = onClick, onClickLabel = onClickLabel) { contentColor ->
         if (icon != null) {
             Icon(
                 painter = icon.painter,

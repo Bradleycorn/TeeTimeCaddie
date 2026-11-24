@@ -76,8 +76,8 @@
     <string name="add_players_select_button">Select players</string>
     <string name="add_players_add_one_button">Add 1 player</string>
     <string name="add_players_add_many_button">Add %s players</string>
-    <!-- Content description for a selected person's chip ✕. "Remove Sam" -->
-    <string name="add_players_remove_chip">Remove %s</string>
+    <!-- Spoken Action for a selected person's chip. -->
+    <string name="add_players_remove_chip">Remove</string>
 
     <!--
       Asked before publishing a game with nobody invited. The copy is proposed in the story, not

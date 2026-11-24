@@ -34,11 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -298,7 +294,6 @@ private fun Tray(
                             name = person.firstName,
                             initials = person.initial,
                             avatarColor = person.avatarTone.toColorRole(),
-                            removeLabel = stringResource(GMR.strings.add_players_remove_chip.resourceId, person.name),
                             onClick = { onUnchoose(person) },
                         )
                     }
@@ -316,32 +311,24 @@ private fun Tray(
 
 /**
  * A chosen person in the tray: their avatar, first name and a ✕. Tapping anywhere on it unchooses
- * them, and a screen reader hears it as one button, [removeLabel].
+ * them.
  */
 @Composable
 private fun ChosenPlayerChip(
     name: String,
     initials: String,
     avatarColor: TtcColorRole,
-    removeLabel: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     TtcChip(
-        // Clearing the chip's semantics also clears the click action TtcChip adds, so restore it.
-        modifier = modifier.clearAndSetSemantics {
-            contentDescription = removeLabel
-            role = Role.Button
-            onClick {
-                onClick()
-                true
-            }
-        },
+        modifier = modifier,
         color = TtcChipColorToken.Highest,
         size = TtcChipSize.Small,
         onClick = onClick,
+        onClickLabel = stringResource(GMR.strings.add_players_remove_chip.resourceId)
     ) { contentColor ->
-        TtcAvatar(initials = initials, color = avatarColor, size = AddPlayersSheetDefaults.ChipAvatarSize)
+        TtcAvatar(initials = initials, color = avatarColor, size = AddPlayersSheetDefaults.ChipAvatarSize, modifier = Modifier.clearAndSetSemantics{})
         Text(
             text = name,
             color = contentColor,
