@@ -67,11 +67,11 @@ class NewGameUiStateTest {
     }
 
     @Test
-    fun addFromContactsReadsAddMoreOnceAnyoneIsAdded() {
-        assertEquals(GMR.strings.new_game_add_from_contacts, NewGameUiState().addFromContactsLabel)
+    fun addPlayersReadsAddMoreOnceAnyoneIsAdded() {
+        assertEquals(GMR.strings.new_game_add_players, NewGameUiState().addPlayersLabel)
         assertEquals(
-            GMR.strings.new_game_add_more_from_contacts,
-            NewGameUiState(invitees = listOf(previewNewInvitee)).addFromContactsLabel
+            GMR.strings.new_game_add_more_players,
+            NewGameUiState(invitees = listOf(previewNewInvitee)).addPlayersLabel
         )
     }
 }

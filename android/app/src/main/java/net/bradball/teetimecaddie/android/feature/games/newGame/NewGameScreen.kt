@@ -231,7 +231,7 @@ private fun NewGameContent(
             }
 
             TtcOutlinedButton(
-                text = stringResource(uiState.addFromContactsLabel.resourceId),
+                text = stringResource(uiState.addPlayersLabel.resourceId),
                 onClick = onAddFromContactsClick,
                 color = TtcColorRole.Primary,
                 icon = TtcIcons.PERSON_ADD,

@@ -51,7 +51,8 @@ final class NewGameViewModel {
         uiState = uiState.withSlots(slots: Int32(slots))
     }
 
-    /// "Add from contacts" was tapped: the system contact picker opens. No permission is needed.
+    /// "Add players" was tapped: the system contact picker opens. No permission is needed.
+    // TODO(TTC-155): Open the Add players sheet instead.
     ///
     /// - Parameter pickContacts: Opens the picker, which reports how it closed to
     ///   ``onContactPickerDismissed(_:)``.

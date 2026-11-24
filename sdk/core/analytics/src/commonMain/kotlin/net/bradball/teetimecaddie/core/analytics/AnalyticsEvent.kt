@@ -173,7 +173,7 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** The New game screen's back / Cancel button was tapped, leaving without publishing. */
     @Serializable
     object NewGameCancel: AnalyticsEvent("new_game_cancel", EventType.CLICK)
-    /** The New game screen's "Add from contacts" (or "Add more from contacts") button was tapped. */
+    /** The New game screen's "Add players" (or "Add more players") button was tapped. */
     @Serializable
     object AddFromContactsClick: AnalyticsEvent("add_from_contacts_click", EventType.CLICK)
     /** An invitee's ✕ was tapped on the New game screen, removing them. */
