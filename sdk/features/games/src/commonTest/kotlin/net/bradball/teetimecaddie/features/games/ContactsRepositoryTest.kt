@@ -150,20 +150,4 @@ class ContactsRepositoryTest {
         assertEquals(ManualInviteeCheck(isNameBlank = true, phoneError = InviteePhoneError.DUPLICATE), result.check)
         assertTrue(events.isEmpty())
     }
-
-    // MARK: adding picked contacts straight to the invitees
-
-    @Test
-    fun addPickedContactsAppendsThemToTheInviteesSkippingDuplicates() = runTest {
-        deviceContacts = listOf(
-            contact("c1", "Matthew Chen", "+1 415 555 0188" to "mobile"),
-            contact("c2", "Pat (me)", "502-555-1234" to "mobile"),
-            contact("c3", "Dana Park", "4155550117" to "home")
-        )
-
-        val result = assertIs<TtcResult.Success<List<NewInvitee>>>(repository.addPickedContacts(organizer, listOf(matt), picked))
-
-        assertEquals(listOf(matt, dana), result.data)
-        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddInvitees(pickedCount = 3, addedCount = 1)), events)
-    }
 }

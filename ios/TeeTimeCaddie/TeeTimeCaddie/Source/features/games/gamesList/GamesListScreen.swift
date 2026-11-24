@@ -186,8 +186,8 @@ fileprivate struct GameStatusChip: View {
     let status: GameFillStatus
 
     var body: some View {
-        let (color, symbol): (TtcColorRole, SfSymbol) = switch status {
-        case .open: (.neutral, .personBadgePlus)
+        let (color, symbol): (TtcChipColorToken, SfSymbol) = switch status {
+        case .open: (.high, .personBadgePlus)
         case .pending: (.secondary, .hourglass)
         case .full: (.tertiary, .checkmarkCircle)
         }
