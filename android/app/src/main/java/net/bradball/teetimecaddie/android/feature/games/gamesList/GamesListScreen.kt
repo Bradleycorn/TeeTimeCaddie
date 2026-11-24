@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.bradball.teetimecaddie.android.theme.MyApplicationTheme
-import net.bradball.teetimecaddie.android.theme.TtcColorRole
 import net.bradball.teetimecaddie.android.theme.toColorRole
 import net.bradball.teetimecaddie.android.ui.common.ContentLoadingIndicator
 import net.bradball.teetimecaddie.android.ui.common.Screen
@@ -43,6 +42,7 @@ import net.bradball.teetimecaddie.android.ui.common.buttons.TtcButton
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCardDefaults
 import net.bradball.teetimecaddie.android.ui.common.chips.TtcChip
+import net.bradball.teetimecaddie.android.ui.common.chips.TtcChipColorToken
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
 import net.bradball.teetimecaddie.android.ui.common.preview.ScreenPreviews
@@ -263,9 +263,9 @@ private fun GameRow(uiState: GameRowUiState, onClick: () -> Unit, modifier: Modi
 @Composable
 private fun GameStatusChip(status: GameFillStatus, modifier: Modifier = Modifier) {
     val (color, icon) = when (status) {
-        GameFillStatus.OPEN -> TtcColorRole.Neutral to TtcIcons.PERSON_ADD
-        GameFillStatus.PENDING -> TtcColorRole.Secondary to TtcIcons.HOURGLASS_EMPTY
-        GameFillStatus.FULL -> TtcColorRole.Tertiary to TtcIcons.CHECK_CIRCLE
+        GameFillStatus.OPEN -> TtcChipColorToken.High to TtcIcons.PERSON_ADD
+        GameFillStatus.PENDING -> TtcChipColorToken.Secondary to TtcIcons.HOURGLASS_EMPTY
+        GameFillStatus.FULL -> TtcChipColorToken.Tertiary to TtcIcons.CHECK_CIRCLE
     }
     TtcChip(text = stringResource(status.label), modifier = modifier, color = color, icon = icon)
 }

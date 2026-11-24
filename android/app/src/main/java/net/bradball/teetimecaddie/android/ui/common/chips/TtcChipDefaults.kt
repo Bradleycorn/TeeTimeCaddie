@@ -7,16 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import net.bradball.teetimecaddie.android.theme.TtcColorRole
 
 /**
  * Shared color, padding and sizing values for [TtcChip], derived from the Fairway Morning
  * "Chips & status" spec. Colors always resolve to semantic Material 3 roles.
  *
- * Every filled role uses its *container* tone, never the solid one — a chip is a low-emphasis
- * label, so unlike `TtcButtonDefaults` even [TtcColorRole.Primary] and [TtcColorRole.Error] stay
- * soft. [TtcColorRole.Neutral] sits at `surfaceContainerHigh`, one rung below the button's
- * `surfaceContainerHighest`, because a chip is usually rendered on top of a card.
+ * Every filled tinted token uses its role's *container* tone, never the solid one — a chip is a
+ * low-emphasis label, so unlike `TtcButtonDefaults` even [TtcChipColorToken.Primary] and
+ * [TtcChipColorToken.Error] stay soft.
  */
 internal object TtcChipDefaults {
 
@@ -29,8 +27,8 @@ internal object TtcChipDefaults {
     /** Leading icon size. Constant across sizes per the design. */
     val IconSize = 14.dp
 
-    /** Gap between a leading icon and the label. */
-    val IconSpacing = 6.dp
+    /** Gap between elements in the chip. */
+    val Spacing = 6.dp
 
     private val MediumContentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
     private val SmallContentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
@@ -41,39 +39,45 @@ internal object TtcChipDefaults {
     }
 
     /**
-     * Filled ([TtcChip]) container + content colors for [color]. Filled chips use the role's
-     * *container* tone; [TtcColorRole.Neutral] uses `surfaceContainerHigh` / `onSurfaceVariant`, and
-     * [TtcColorRole.Subtle] the rung below it, `surfaceContainer`.
+     * Filled ([TtcChipVariant.Filled]) container + content colors for [color]. Tinted tokens use
+     * their role's *container* tone; surface tokens use their `surfaceContainer*` rung with
+     * `onSurface` content.
      */
     @Composable
-    fun filledColors(color: TtcColorRole): Pair<Color, Color> {
+    fun filledColors(color: TtcChipColorToken): Pair<Color, Color> {
         val scheme = MaterialTheme.colorScheme
         return when (color) {
-            TtcColorRole.Primary -> scheme.primaryContainer to scheme.onPrimaryContainer
-            TtcColorRole.Secondary -> scheme.secondaryContainer to scheme.onSecondaryContainer
-            TtcColorRole.Tertiary -> scheme.tertiaryContainer to scheme.onTertiaryContainer
-            TtcColorRole.Error -> scheme.errorContainer to scheme.onErrorContainer
-            TtcColorRole.Neutral -> scheme.surfaceContainerHigh to scheme.onSurfaceVariant
-            TtcColorRole.Subtle -> scheme.surfaceContainer to scheme.onSurfaceVariant
+            TtcChipColorToken.Primary -> scheme.primaryContainer to scheme.onPrimaryContainer
+            TtcChipColorToken.Secondary -> scheme.secondaryContainer to scheme.onSecondaryContainer
+            TtcChipColorToken.Tertiary -> scheme.tertiaryContainer to scheme.onTertiaryContainer
+            TtcChipColorToken.Error -> scheme.errorContainer to scheme.onErrorContainer
+            TtcChipColorToken.Surface -> scheme.surfaceContainer to scheme.onSurface
+            TtcChipColorToken.High -> scheme.surfaceContainerHigh to scheme.onSurface
+            TtcChipColorToken.Highest -> scheme.surfaceContainerHighest to scheme.onSurface
+            TtcChipColorToken.Low -> scheme.surfaceContainerLow to scheme.onSurface
+            TtcChipColorToken.Lowest -> scheme.surfaceContainerLowest to scheme.onSurface
         }
     }
 
     /**
-     * Outlined ([TtcChipVariant.Outlined]) content + border colors for [color] (transparent container).
-     * [TtcColorRole.Neutral] is the design's "suggestion" chip: `onSurfaceVariant` text with an
-     * `outlineVariant` border; tinted roles use their role color for both text and border.
+     * Outlined ([TtcChipVariant.Outlined]) content + border colors for [color] (transparent
+     * container). Tinted tokens use their role color for both text and border; every surface token
+     * is the design's "suggestion" chip: `onSurfaceVariant` text with an `outlineVariant` border.
      */
     @Composable
-    fun outlinedColors(color: TtcColorRole): Pair<Color, Color> {
+    fun outlinedColors(color: TtcChipColorToken): Pair<Color, Color> {
         val scheme = MaterialTheme.colorScheme
         return when (color) {
-            TtcColorRole.Primary -> scheme.primary to scheme.primary
-            TtcColorRole.Secondary -> scheme.secondary to scheme.secondary
-            TtcColorRole.Tertiary -> scheme.tertiary to scheme.tertiary
-            TtcColorRole.Error -> scheme.error to scheme.error
-            // An outlined chip has no fill to step down, so Subtle renders as Neutral.
-            TtcColorRole.Neutral,
-            TtcColorRole.Subtle -> scheme.onSurfaceVariant to scheme.outlineVariant
+            TtcChipColorToken.Primary -> scheme.primary to scheme.primary
+            TtcChipColorToken.Secondary -> scheme.secondary to scheme.secondary
+            TtcChipColorToken.Tertiary -> scheme.tertiary to scheme.tertiary
+            TtcChipColorToken.Error -> scheme.error to scheme.error
+            // An outlined chip has no fill to step, so every surface token looks the same.
+            TtcChipColorToken.Surface,
+            TtcChipColorToken.High,
+            TtcChipColorToken.Highest,
+            TtcChipColorToken.Low,
+            TtcChipColorToken.Lowest -> scheme.onSurfaceVariant to scheme.outlineVariant
         }
     }
 }
