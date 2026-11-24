@@ -14,6 +14,8 @@ import TeeTimeCaddieKit
 /// dragging it down or tapping outside discards the selection, and only `onAddChosen` changes the
 /// game. The Android twin is `AddPlayersSheet`.
 struct AddPlayersSheet: View {
+    @EnvironmentObject private var theme: AppTheme
+
     private let uiState: AddPlayersUiState
     private let onChooseFromContacts: () -> Void
     private let onNameChange: (String) -> Void
@@ -41,6 +43,16 @@ struct AddPlayersSheet: View {
     }
 
     var body: some View {
+        // SwiftUI shows the form's keyboard toolbar only inside a navigation container. The stack
+        // adds nothing else: its bar is hidden and its background is the sheet's.
+        NavigationStack {
+            sheet
+                .toolbar(.hidden, for: .navigationBar)
+                .containerBackground(theme.colorScheme.surfaceContainerLow, for: .navigation)
+        }
+    }
+
+    private var sheet: some View {
         TtcBottomSheet(title: GMR.strings().add_players_title.localized(), contentPadding: EdgeInsets()) {
             // No ✕ (design criterion 11). This keeps the header the height it has with one.
             Color.clear.frame(width: 0, height: TtcBottomSheetStyle.closeButtonSize)
@@ -209,6 +221,17 @@ fileprivate struct EntryForm: View {
                     dense: true,
                     action: onAdd
                 )
+            }
+        }
+        // The phone pad has no return key, so a bar above the keyboard offers a way to close it.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button(GR.strings().done.localized(), action: {
+                    nameFocused = false
+                    phoneFocused = false
+                })
+                .fontWeight(.semibold)
             }
         }
         // After each successful Add the form clears; put the cursor back in Name for the next person.
