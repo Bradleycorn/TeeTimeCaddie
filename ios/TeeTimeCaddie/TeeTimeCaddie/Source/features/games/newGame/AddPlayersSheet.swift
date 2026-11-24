@@ -232,6 +232,7 @@ fileprivate struct EntryForm: View {
                     phoneFocused = false
                 })
                 .fontWeight(.semibold)
+                .tint(theme.colorScheme.primary)
             }
         }
         // After each successful Add the form clears; put the cursor back in Name for the next person.
