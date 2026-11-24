@@ -91,17 +91,18 @@ class NewGameViewModel @Inject constructor(
 
     /**
      * The system picker closed. [picked] reads the contacts it returned, or is null when nothing was
-     * picked. Picked contacts join the end of the list, sorted by name among themselves; anyone
-     * already invited at that number isn't added twice. The picker can't show who's already
-     * invited, so it only ever adds; the ✕ on a row removes.
+     * picked. Picked contacts join the end of the list, sorted by name among themselves; a number
+     * that's already invited, or is the organizer's own, is skipped without a word. The picker
+     * can't show who's already invited, so it only ever adds; the ✕ on a row removes.
      */
     fun onContactPickerDismissed(picked: DeviceContactsReader?) {
         val selection = if (picked == null) Selection.NONE else Selection.SOME
         eventManager.logEvent(AnalyticsEvent.ContactPickerDismiss(selection))
         if (picked == null) return
+        val organizer = (sessionState.value as? SessionState.SignedIn)?.player ?: return
         viewModelScope.launch {
             val repository = contactsRepositoryFactory.create(picked)
-            when (val result = repository.addPickedContacts(_uiState.value.invitees)) {
+            when (val result = repository.addPickedContacts(organizer, _uiState.value.invitees)) {
                 is TtcResult.Success -> _uiState.update { it.copy(invitees = result.data) }
                 is TtcResult.Failure -> messenger.show(result.error)
             }

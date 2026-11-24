@@ -8,6 +8,7 @@ import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.models.InvitableContact
 import net.bradball.teetimecaddie.core.models.NewInvitee
+import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
@@ -16,6 +17,10 @@ import net.bradball.teetimecaddie.core.models.TtcResult
  * The contacts come from a [DeviceContactsReader] that each app supplies. Everything else — what
  * can be invited, how it is listed, and how the picker's choices become invitees — is decided here,
  * once for both apps.
+ *
+ * Someone is already invited when an invitee has their phone number, however either is written.
+ * Names play no part: the same number under another name is still the same person. The
+ * organizer's own number counts as invited too, since they are already playing.
  *
  * **Nothing here throws.** Failures come back as [TtcResult.Failure] carrying a [GameException].
  */
@@ -39,15 +44,18 @@ interface ContactsRepository {
      * Add every contact the system picker returned to [invitees], once the organizer taps Done.
      *
      * The contacts are read as in [invitableContacts], then added as in [pickInvitees]: at the end,
-     * sorted by name among themselves, leaving out anyone already invited.
+     * sorted by name among themselves, silently leaving out anyone already invited, the organizer,
+     * and a second contact at a number that's already being added.
      *
      * Logs [AnalyticsEvent.AddInvitees] with how many contacts were picked, which is known only
      * once they're read (Android's picker returns just a URI), and how many of them were added. A
      * failed read logs nothing.
      *
+     * @param organizer The signed-in player creating the game.
+     * @param invitees The invitees before the picker opened.
      * @return The new invitee list, or [GameErrors.CONTACTS_LOAD_FAILED] when the reader fails.
      */
-    suspend fun addPickedContacts(invitees: List<NewInvitee>): TtcResult<List<NewInvitee>>
+    suspend fun addPickedContacts(organizer: Player, invitees: List<NewInvitee>): TtcResult<List<NewInvitee>>
 
     /**
      * The [contacts] whose name contains [query], ignoring case. A blank query matches everyone.
@@ -57,7 +65,7 @@ interface ContactsRepository {
     /**
      * The ids of the [contacts] already in [invitees], which the picker opens with checked.
      *
-     * A contact matches an invitee with the same name and number, however the number is written.
+     * A contact matches an invitee with the same number, whatever either's name.
      */
     fun invitedContactIds(contacts: List<InvitableContact>, invitees: List<NewInvitee>): Set<String>
 
@@ -65,13 +73,16 @@ interface ContactsRepository {
      * The invitee list after the picker closes with Done.
      *
      * Invitees whose contact was unchecked are removed. The rest keep their place, including any
-     * that aren't among [contacts]. Contacts newly checked follow, in the order they were checked.
+     * that aren't among [contacts]. Contacts newly checked follow, in the order they were checked,
+     * except one at the [organizer]'s number or at a number already on the list, which is skipped.
      *
+     * @param organizer The signed-in player creating the game.
      * @param invitees The invitees before the picker opened.
      * @param contacts The contacts the picker listed.
      * @param checkedIds Every checked contact's id, in the order they were checked.
      */
     fun pickInvitees(
+        organizer: Player,
         invitees: List<NewInvitee>,
         contacts: List<InvitableContact>,
         checkedIds: List<String>
@@ -89,13 +100,16 @@ class ContactsRepositoryImpl(
             is TtcResult.Failure -> result
         }
 
-    override suspend fun addPickedContacts(invitees: List<NewInvitee>): TtcResult<List<NewInvitee>> {
+    override suspend fun addPickedContacts(
+        organizer: Player,
+        invitees: List<NewInvitee>
+    ): TtcResult<List<NewInvitee>> {
         val picked = when (val result = readContacts()) {
             is TtcResult.Success -> result.data
             is TtcResult.Failure -> return result
         }
         val contacts = picked.toInvitableContacts()
-        val updated = pickInvitees(invitees, contacts, contacts.map { it.id })
+        val updated = pickInvitees(organizer, invitees, contacts, contacts.map { it.id })
         eventManager.logEvent(
             AnalyticsEvent.AddInvitees(pickedCount = picked.size, addedCount = updated.size - invitees.size)
         )
@@ -132,6 +146,7 @@ class ContactsRepositoryImpl(
             .toSet()
 
     override fun pickInvitees(
+        organizer: Player,
         invitees: List<NewInvitee>,
         contacts: List<InvitableContact>,
         checkedIds: List<String>
@@ -142,17 +157,19 @@ class ContactsRepositoryImpl(
             matches.isEmpty() || matches.any { it.id in checked }
         }
         val contactsById = contacts.associateBy { it.id }
+        val taken = (kept.map { it.phone } + organizer.phone).map { it.toPhoneDigits() }.toMutableSet()
         val added = checkedIds.distinct()
             .mapNotNull { contactsById[it] }
-            .filter { contact -> kept.none { contact.matches(it) } }
+            // add() is false for a number already taken, so each number joins once.
+            .filter { contact -> taken.add(contact.phone.toPhoneDigits()) }
             .map { it.toNewInvitee() }
         return kept + added
     }
 }
 
-/** True when [invitee] is this contact at this number. */
+/** True when [invitee] has this contact's number, however either is written. */
 private fun InvitableContact.matches(invitee: NewInvitee): Boolean =
-    invitee.name.trim() == name && invitee.phone.toPhoneDigits() == phone.toPhoneDigits()
+    invitee.phone.toPhoneDigits() == phone.toPhoneDigits()
 
 /** The contacts as people to invite: see [ContactsRepository.invitableContacts]. */
 internal fun List<DeviceContact>.toInvitableContacts(): List<InvitableContact> =
