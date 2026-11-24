@@ -14,8 +14,6 @@ import TeeTimeCaddieKit
 /// dragging it down or tapping outside discards the selection, and only `onAddChosen` changes the
 /// game. The Android twin is `AddPlayersSheet`.
 struct AddPlayersSheet: View {
-    @EnvironmentObject private var theme: AppTheme
-
     private let uiState: AddPlayersUiState
     private let onChooseFromContacts: () -> Void
     private let onNameChange: (String) -> Void
@@ -43,16 +41,6 @@ struct AddPlayersSheet: View {
     }
 
     var body: some View {
-        // SwiftUI shows the form's keyboard toolbar only inside a navigation container. The stack
-        // adds nothing else: its bar is hidden and its background is the sheet's.
-        NavigationStack {
-            sheet
-                .toolbar(.hidden, for: .navigationBar)
-                .containerBackground(theme.colorScheme.surfaceContainerLow, for: .navigation)
-        }
-    }
-
-    private var sheet: some View {
         TtcBottomSheet(title: GMR.strings().add_players_title.localized(), contentPadding: EdgeInsets()) {
             // No ✕ (design criterion 11). This keeps the header the height it has with one.
             Color.clear.frame(width: 0, height: TtcBottomSheetStyle.closeButtonSize)
@@ -74,6 +62,8 @@ struct AddPlayersSheet: View {
 
 fileprivate struct AddPlayersSheetBody: View {
     @EnvironmentObject private var theme: AppTheme
+    @FocusState private var nameFocused: Bool
+    @FocusState private var phoneFocused: Bool
 
     let uiState: AddPlayersUiState
     let onChooseFromContacts: () -> Void
@@ -95,6 +85,8 @@ fileprivate struct AddPlayersSheetBody: View {
                         .padding(.bottom, AddPlayersSheetStyle.fieldSpacing)
                     EntryForm(
                         uiState: uiState,
+                        nameFocused: $nameFocused,
+                        phoneFocused: $phoneFocused,
                         onNameChange: onNameChange,
                         onPhoneChange: onPhoneChange,
                         onAdd: onAddEntered
@@ -106,6 +98,35 @@ fileprivate struct AddPlayersSheetBody: View {
 
             Tray(uiState: uiState, onUnchoose: onUnchoose, onAddChosen: onAddChosen)
         }
+        // The phone pad has no return key, so while a field is focused a bar sits on the keyboard
+        // with a way to close it. SwiftUI's own keyboard toolbar doesn't come back after the
+        // keyboard has been closed once, so the sheet draws this one itself.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if nameFocused || phoneFocused {
+                KeyboardDoneBar(onDone: {
+                    nameFocused = false
+                    phoneFocused = false
+                })
+            }
+        }
+    }
+}
+
+/// A bar on top of the keyboard, ending in Done.
+fileprivate struct KeyboardDoneBar: View {
+    @EnvironmentObject private var theme: AppTheme
+
+    let onDone: () -> Void
+
+    var body: some View {
+        HStack {
+            Spacer()
+            Button(GR.strings().done.localized(), action: onDone)
+                .fontWeight(.semibold)
+                .tint(theme.colorScheme.primary)
+        }
+        .padding(AddPlayersSheetStyle.keyboardBarPadding)
+        .background(.bar)
     }
 }
 
@@ -151,13 +172,13 @@ fileprivate struct ContactsRow: View {
 /// Name and Phone number, then the "selected" message and Add.
 fileprivate struct EntryForm: View {
     @EnvironmentObject private var theme: AppTheme
-    @FocusState private var nameFocused: Bool
-    @FocusState private var phoneFocused: Bool
 
     /// The phone field as shown, grouped. State holds only its digits; see ``PhoneNumber``.
     @State private var phoneText: String = ""
 
     let uiState: AddPlayersUiState
+    let nameFocused: FocusState<Bool>.Binding
+    let phoneFocused: FocusState<Bool>.Binding
     let onNameChange: (String) -> Void
     let onPhoneChange: (String) -> Void
     let onAdd: () -> Void
@@ -173,10 +194,10 @@ fileprivate struct EntryForm: View {
                 textContentType: .name,
                 autocapitalization: .words,
                 autocorrectionDisabled: true,
-                focused: $nameFocused
+                focused: nameFocused
             )
             .submitLabel(.next)
-            .onSubmit { phoneFocused = true }
+            .onSubmit { phoneFocused.wrappedValue = true }
 
             TtcTextField(
                 GMR.strings().add_players_field_phone.localized(),
@@ -186,7 +207,7 @@ fileprivate struct EntryForm: View {
                 error: uiState.phoneError?.localized(),
                 keyboardType: .phonePad,
                 textContentType: .telephoneNumber,
-                focused: $phoneFocused
+                focused: phoneFocused
             )
             .onChange(of: phoneText) { _, typed in
                 // Reshape what was typed, then report only the digits upward.
@@ -223,21 +244,9 @@ fileprivate struct EntryForm: View {
                 )
             }
         }
-        // The phone pad has no return key, so a bar above the keyboard offers a way to close it.
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button(GR.strings().done.localized(), action: {
-                    nameFocused = false
-                    phoneFocused = false
-                })
-                .fontWeight(.semibold)
-                .tint(theme.colorScheme.primary)
-            }
-        }
         // After each successful Add the form clears; put the cursor back in Name for the next person.
         .onChange(of: uiState.chosenMessage?.localized()) { _, message in
-            if message != nil { nameFocused = true }
+            if message != nil { nameFocused.wrappedValue = true }
         }
         .onAppear {
             if phoneText.isEmpty && !uiState.phone.isEmpty {
@@ -325,6 +334,7 @@ fileprivate enum AddPlayersSheetStyle {
     static let chipSpacing: CGFloat = 8
     static let chipAvatarSize: CGFloat = 24
     static let chipRemoveIconSize: CGFloat = 12
+    static let keyboardBarPadding = EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 20)
 }
 
 // MARK: - Previews
