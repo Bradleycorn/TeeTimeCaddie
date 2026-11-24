@@ -65,6 +65,12 @@ enum TtcChipStyle {
     /// The Android twin is `TtcChipDefaults.Shape`.
     static func shape(_ shapes: Shapes) -> AnyShape { shapes.small }
 
+    /// The space between the items in a chip's row. The Android twin is `TtcChipDefaults.Spacing`.
+    static let spacing: CGFloat = 6
+
+    /// A text chip's leading icon size. The Android twin is `TtcChipDefaults.IconSize`.
+    static let iconSize: CGFloat = 14
+
     /// Filled container background + content/foreground colors for `color`. Tinted tokens use their
     /// role's *container* tone; surface tokens use their `surfaceContainer*` rung with `onSurface`
     /// content.
@@ -97,15 +103,13 @@ enum TtcChipStyle {
     }
 }
 
-/// The shared chip "chrome" for the Fairway Morning chips: a leading-icon + label row on an
+/// The shared chip "chrome" for the Fairway Morning chips: `content` in a row on a
 /// `radius-sm`-rounded fill, with an optional 1pt border (used by the `.outlined` ``TtcChip`` variant).
 ///
-/// The 14pt icon and `caption`-weight label inherit the chip's [foreground] color. Colors, border and
-/// [shape] are resolved by the caller from the theme and passed in (like `TtcButtonLabel`), so the
-/// same chrome serves both the filled and outlined chips, interactive or static.
-struct TtcChipLabel: View {
-    let text: String
-    let icon: ImageSource?
+/// The content inherits the chip's `foreground` color. Colors, border and `shape` are resolved by
+/// the caller from the theme and passed in (like `TtcButtonLabel`), so the same chrome serves both
+/// the filled and outlined chips, interactive or static.
+struct TtcChipLabel<Content: View>: View {
     let size: TtcChipSize
     let background: Color
     let foreground: Color
@@ -113,15 +117,11 @@ struct TtcChipLabel: View {
     let border: Color?
     /// The chip's clip/border shape — the theme's `small`, resolved by ``TtcChip``.
     let shape: AnyShape
+    @ViewBuilder let content: Content
 
     var body: some View {
-        HStack(spacing: 6) {
-            if let icon {
-                Image(icon)
-                    .font(.system(size: 14))
-            }
-            Text(text)
-                .font(.caption.weight(.medium))
+        HStack(spacing: TtcChipStyle.spacing) {
+            content
         }
         .padding(size.padding)
         .background(background)

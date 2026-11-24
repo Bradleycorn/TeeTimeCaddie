@@ -15,6 +15,12 @@ struct NewGameScreen: View {
     @State private var showContactPicker = false
     @State private var showNoInviteeConfirm = false
 
+    // The sheet follows the ViewModel's `addPlayers` state, but closes before that state goes, so it
+    // keeps its content while it slides away. `addingPlayers` is set when Add N players is tapped,
+    // so closing the sheet adds rather than discards.
+    @State private var showAddPlayers = false
+    @State private var addingPlayers = false
+
     init(onPublished: @escaping () -> Void) {
         self.onPublished = onPublished
     }
@@ -27,9 +33,7 @@ struct NewGameScreen: View {
                 onDateSelected: viewModel.onDateSelected,
                 onTimeSelected: viewModel.onTimeSelected,
                 onSlotsChange: viewModel.onSlotsChange,
-                onAddFromContactsClick: {
-                    viewModel.onAddFromContactsClick(pickContacts: { showContactPicker = true })
-                },
+                onAddPlayersClick: viewModel.onAddPlayersClick,
                 onRemoveInvitee: viewModel.onRemoveInvitee,
                 onPublishClick: {
                     Task {
@@ -45,13 +49,44 @@ struct NewGameScreen: View {
                     Task { await viewModel.onPublishAnyway(onPublished: onPublished) }
                 }
             )
-            .contactPicker(
-                isPresented: $showContactPicker,
-                onDismiss: { picked in
-                    let reader = picked.isEmpty ? nil : PickedContactsReader(picked)
-                    Task { await viewModel.onContactPickerDismissed(reader) }
+            .onChange(of: viewModel.uiState.addPlayers != nil) { _, open in
+                if open {
+                    addingPlayers = false
+                    showAddPlayers = true
                 }
-            )
+            }
+            .ttcBottomSheet(isPresented: $showAddPlayers, size: .large, onDismiss: {
+                if addingPlayers {
+                    viewModel.onAddChosenPlayers()
+                } else {
+                    viewModel.onAddPlayersDismissed()
+                }
+            }) {
+                if let addPlayersState = viewModel.uiState.addPlayers {
+                    AddPlayersSheet(
+                        uiState: addPlayersState,
+                        onChooseFromContacts: {
+                            viewModel.onChooseFromContactsClick(pickContacts: { showContactPicker = true })
+                        },
+                        onNameChange: viewModel.onPlayerNameChange,
+                        onPhoneChange: viewModel.onPlayerPhoneChange,
+                        onAddEntered: viewModel.onAddEnteredPlayer,
+                        onUnchoose: viewModel.onUnchoosePlayer,
+                        onAddChosen: {
+                            addingPlayers = true
+                            showAddPlayers = false
+                        }
+                    )
+                    // Presented from inside the sheet, so the picker opens over it.
+                    .contactPicker(
+                        isPresented: $showContactPicker,
+                        onDismiss: { picked in
+                            let reader = picked.isEmpty ? nil : PickedContactsReader(picked)
+                            Task { await viewModel.onContactPickerDismissed(reader) }
+                        }
+                    )
+                }
+            }
         }
     }
 }
@@ -74,7 +109,7 @@ fileprivate struct NewGameContent: View {
     private let onDateSelected: (Date) -> Void
     private let onTimeSelected: (Date) -> Void
     private let onSlotsChange: (Int) -> Void
-    private let onAddFromContactsClick: () -> Void
+    private let onAddPlayersClick: () -> Void
     private let onRemoveInvitee: (NewInvitee) -> Void
     private let onPublishClick: () -> Void
     @Binding private var showNoInviteeConfirm: Bool
@@ -87,7 +122,7 @@ fileprivate struct NewGameContent: View {
         onDateSelected: @escaping (Date) -> Void,
         onTimeSelected: @escaping (Date) -> Void,
         onSlotsChange: @escaping (Int) -> Void,
-        onAddFromContactsClick: @escaping () -> Void,
+        onAddPlayersClick: @escaping () -> Void,
         onRemoveInvitee: @escaping (NewInvitee) -> Void,
         onPublishClick: @escaping () -> Void,
         showNoInviteeConfirm: Binding<Bool>,
@@ -99,7 +134,7 @@ fileprivate struct NewGameContent: View {
         self.onDateSelected = onDateSelected
         self.onTimeSelected = onTimeSelected
         self.onSlotsChange = onSlotsChange
-        self.onAddFromContactsClick = onAddFromContactsClick
+        self.onAddPlayersClick = onAddPlayersClick
         self.onRemoveInvitee = onRemoveInvitee
         self.onPublishClick = onPublishClick
         self._showNoInviteeConfirm = showNoInviteeConfirm
@@ -168,7 +203,7 @@ fileprivate struct NewGameContent: View {
                     color: .primary,
                     icon: .symbol(.personBadgePlus),
                     fullWidth: true,
-                    action: onAddFromContactsClick
+                    action: onAddPlayersClick
                 )
                 .disabled(uiState.isSubmitting)
             }
@@ -403,7 +438,7 @@ fileprivate struct NewGameContentPreviews: View {
             onDateSelected: { _ in },
             onTimeSelected: { _ in },
             onSlotsChange: { _ in },
-            onAddFromContactsClick: {},
+            onAddPlayersClick: {},
             onRemoveInvitee: { _ in },
             onPublishClick: {},
             showNoInviteeConfirm: .constant(false),

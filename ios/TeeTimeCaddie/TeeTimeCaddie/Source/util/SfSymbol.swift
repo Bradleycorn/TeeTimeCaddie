@@ -24,6 +24,7 @@ enum SfSymbol: String {
     case person = "person"
     case person2 = "person.2"
     case personBadgePlus = "person.badge.plus"
+    case personCropRectangleStack = "person.crop.rectangle.stack"
     case personFill = "person.fill"
     case personSlash = "person.slash"
     case phone = "iphone"

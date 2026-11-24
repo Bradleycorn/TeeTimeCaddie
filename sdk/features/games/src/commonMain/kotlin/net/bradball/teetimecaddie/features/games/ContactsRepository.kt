@@ -8,7 +8,6 @@ import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.models.InviteList
 import net.bradball.teetimecaddie.core.models.NewInvitee
-import net.bradball.teetimecaddie.core.models.Player
 import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
@@ -36,18 +35,6 @@ interface ContactsRepository {
      * kept as its 10 digits.
      */
     fun chooseEnteredPerson(list: InviteList, name: String, phone: String): ManualInviteeResult
-
-    /**
-     * The [picked] contacts added straight to [invitees]. Prefer [choosePickedContacts].
-     *
-     * @return The new invitees, or [GameErrors.CONTACTS_LOAD_FAILED] when the contacts can't be read.
-     */
-    // TODO(TTC-155): Remove once neither app calls it.
-    suspend fun addPickedContacts(
-        organizer: Player,
-        invitees: List<NewInvitee>,
-        picked: DeviceContactsReader
-    ): TtcResult<List<NewInvitee>>
 }
 
 /**
@@ -82,16 +69,6 @@ class ContactsRepositoryImpl(
         eventManager.logEvent(AnalyticsEvent.AddManualInvitee)
         return ManualInviteeResult.Chosen(person = person, list = list.choose(listOf(person)))
     }
-
-    override suspend fun addPickedContacts(
-        organizer: Player,
-        invitees: List<NewInvitee>,
-        picked: DeviceContactsReader
-    ): TtcResult<List<NewInvitee>> =
-        when (val result = choosePickedContacts(InviteList(organizer.phone, invited = invitees), picked)) {
-            is TtcResult.Success -> TtcResult.Success(result.data.inviteChosen().invited)
-            is TtcResult.Failure -> result
-        }
 
     private suspend fun readContacts(reader: DeviceContactsReader): TtcResult<List<DeviceContact>> {
         val contacts = try {
