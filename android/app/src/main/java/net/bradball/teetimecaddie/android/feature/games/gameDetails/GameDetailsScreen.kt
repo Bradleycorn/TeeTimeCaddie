@@ -40,6 +40,7 @@ import net.bradball.teetimecaddie.android.ui.common.avatars.TtcAvatarPlaceholder
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCard
 import net.bradball.teetimecaddie.android.ui.common.cards.TtcCardDefaults
 import net.bradball.teetimecaddie.android.ui.common.chips.TtcChip
+import net.bradball.teetimecaddie.android.ui.common.chips.TtcChipColorToken
 import net.bradball.teetimecaddie.android.ui.common.chips.TtcChipSize
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcEmptyState
 import net.bradball.teetimecaddie.android.ui.common.icons.TtcIcons
@@ -173,7 +174,7 @@ private fun GameDetailsBody(
 private fun OrganizerHeader(uiState: GameUiState.Organizer) {
     TtcChip(
         text = stringResource(GMR.strings.game_details_organizer_chip.resourceId),
-        color = TtcColorRole.Secondary,
+        color = TtcChipColorToken.Secondary,
         icon = TtcIcons.STAR_FILLED,
     )
     GameTitle(course = uiState.course, subtitle = uiState.date)

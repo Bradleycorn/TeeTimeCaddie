@@ -23,6 +23,7 @@ import net.bradball.teetimecaddie.core.extensions.today
 import net.bradball.teetimecaddie.core.models.Game
 import net.bradball.teetimecaddie.core.models.GamePlayer
 import net.bradball.teetimecaddie.core.models.GameInvitee
+import net.bradball.teetimecaddie.core.models.InviteList
 import net.bradball.teetimecaddie.core.models.InviteStatus
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.Player
@@ -220,6 +221,26 @@ class GamesRepositoryTest {
         // Invitees don't hold slots until they say yes.
         assertEquals(listOf(organizer.id), written.playerIds)
         assertEquals(1, game.teeTimes.single().filled)
+    }
+
+    @Test
+    fun publishGame_matchesAManualInviteeToAnAccountByPhoneLikeAContact() = runTest {
+        val sam = previewPlayer.copy(id = "sam-uid", name = "Samuel Tanaka", phone = "4155550123")
+        playersByPhone[sam.phone] = sam
+        val contacts = ContactsRepositoryImpl(eventManager)
+        val entered = assertIs<ManualInviteeResult.Chosen>(
+            contacts.chooseEnteredPerson(InviteList(organizer.phone), "Sam Tanaka", "(415) 555-0123")
+        )
+
+        val game = repository(FakeGameStorage())
+            .publish(invitees = entered.list.inviteChosen().invited)
+            .game()
+
+        // Invited under the name entered, and matched to the account by number.
+        assertEquals(
+            listOf(GameInvitee("Sam Tanaka", "4155550123", "sam-uid", InviteStatus.PENDING)),
+            game.invitees
+        )
     }
 
     @Test

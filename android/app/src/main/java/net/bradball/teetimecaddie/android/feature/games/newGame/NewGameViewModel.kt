@@ -13,17 +13,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import net.bradball.teetimecaddie.android.feature.games.contacts.ContactsRepositoryFactory
 import net.bradball.teetimecaddie.android.ui.common.feedback.TtcMessenger
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent
 import net.bradball.teetimecaddie.core.analytics.AnalyticsEvent.ContactPickerDismiss.Selection
 import net.bradball.teetimecaddie.core.analytics.EventManager
+import net.bradball.teetimecaddie.core.extensions.PHONE_NUMBER_LENGTH
+import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
+import net.bradball.teetimecaddie.features.games.ContactsRepository
 import net.bradball.teetimecaddie.features.games.DeviceContactsReader
 import net.bradball.teetimecaddie.features.games.GMR
 import net.bradball.teetimecaddie.features.games.GamesRepository
 import net.bradball.teetimecaddie.features.games.state.NewGameUiState
+import net.bradball.teetimecaddie.features.games.state.addPlayersUiState.AddPlayersUiState
 import net.bradball.teetimecaddie.session.SessionState
 import javax.inject.Inject
 
@@ -31,7 +34,10 @@ sealed interface NewGameEvent {
     /** The game is published; leave the form. */
     data object Published : NewGameEvent
 
-    /** Open the system contact picker, and report how it closed to `onContactPickerDismissed`. */
+    /**
+     * Open the system contact picker over the Add players sheet, and report how it closed to
+     * `onContactPickerDismissed`.
+     */
     data object PickContacts : NewGameEvent
 
     /**
@@ -45,7 +51,7 @@ sealed interface NewGameEvent {
 class NewGameViewModel @Inject constructor(
     private val sessionState: StateFlow<@JvmSuppressWildcards SessionState>,
     private val gamesRepository: GamesRepository,
-    private val contactsRepositoryFactory: ContactsRepositoryFactory,
+    private val contactsRepository: ContactsRepository,
     private val messenger: TtcMessenger,
     private val eventManager: EventManager,
 ) : ViewModel() {
@@ -83,29 +89,76 @@ class NewGameViewModel @Inject constructor(
         eventManager.logEvent(AnalyticsEvent.TimeInputToggle)
     }
 
-    /** "Add from contacts" was tapped: the system contact picker opens. No permission is needed. */
-    fun onAddFromContactsClick() {
+    /** "Add players" was tapped: the Add players sheet opens with nothing selected. */
+    fun onAddPlayersClick() {
         eventManager.logEvent(AnalyticsEvent.AddFromContactsClick)
+        val organizer = (sessionState.value as? SessionState.SignedIn)?.player ?: return
+        _uiState.update { it.copy(addPlayers = AddPlayersUiState.open(organizer.phone, it.invitees)) }
+    }
+
+    /** "Choose from contacts" was tapped in the sheet: the system picker opens. No permission is needed. */
+    fun onChooseFromContactsClick() {
         viewModelScope.launch { _events.send(NewGameEvent.PickContacts) }
     }
 
     /**
      * The system picker closed. [picked] reads the contacts it returned, or is null when nothing was
-     * picked. Picked contacts join the end of the list, sorted by name among themselves; anyone
-     * already invited at that number isn't added twice. The picker can't show who's already
-     * invited, so it only ever adds; the ✕ on a row removes.
+     * picked. Picked contacts join the sheet's selection; anyone already invited or selected, or at
+     * the organizer's number, is skipped without a word.
      */
     fun onContactPickerDismissed(picked: DeviceContactsReader?) {
         val selection = if (picked == null) Selection.NONE else Selection.SOME
         eventManager.logEvent(AnalyticsEvent.ContactPickerDismiss(selection))
         if (picked == null) return
+        val addPlayersState = _uiState.value.addPlayers ?: return
         viewModelScope.launch {
-            val repository = contactsRepositoryFactory.create(picked)
-            when (val result = repository.addPickedContacts(_uiState.value.invitees)) {
-                is TtcResult.Success -> _uiState.update { it.copy(invitees = result.data) }
+            when (val result = contactsRepository.choosePickedContacts(addPlayersState.list, picked)) {
+                is TtcResult.Success -> updateAddPlayersState { it.afterContactsPicked(from = addPlayersState.list, updated = result.data) }
                 is TtcResult.Failure -> messenger.show(result.error)
             }
         }
+    }
+
+    fun onPlayerNameChange(name: String) {
+        updateAddPlayersState { it.withName(name) }
+    }
+
+    /** Digits only, capped at a full number, as the create-account phone field does. */
+    fun onPlayerPhoneChange(phone: String) {
+        updateAddPlayersState { it.withPhone(phone.toPhoneDigits().take(PHONE_NUMBER_LENGTH)) }
+    }
+
+    /**
+     * The sheet's Add was tapped. A valid name and number join the selection and the form clears;
+     * otherwise the fields show what's wrong.
+     */
+    fun onAddEnteredPlayer() {
+        val addPlayersState = _uiState.value.addPlayers ?: return
+        val result = contactsRepository.chooseEnteredPerson(addPlayersState.list, addPlayersState.name, addPlayersState.phone)
+        updateAddPlayersState { it.afterEntry(result) }
+    }
+
+    /** A selected person's chip was tapped: they're taken out of the selection. */
+    fun onUnchoosePlayer(person: NewInvitee) {
+        updateAddPlayersState { it.unchoose(person) }
+    }
+
+    /** "Add N players" was tapped: everyone selected joins the invitees, and the sheet closes. */
+    fun onAddChosenPlayers() {
+        _uiState.update { state ->
+            val addPlayersState = state.addPlayers ?: return@update state
+            state.copy(invitees = addPlayersState.list.inviteChosen().invited, addPlayers = null)
+        }
+    }
+
+    /** The sheet was dragged down or the scrim tapped: the selection is discarded, without asking. */
+    fun onAddPlayersDismissed() {
+        _uiState.update { it.copy(addPlayers = null) }
+    }
+
+    /** Apply [change] to the Add players state, if the sheet is open. */
+    private fun updateAddPlayersState(change: (AddPlayersUiState) -> AddPlayersUiState) {
+        _uiState.update { state -> state.addPlayers?.let { state.copy(addPlayers = change(it)) } ?: state }
     }
 
     /** An invitee's ✕ was tapped. They're removed at once, without asking. */

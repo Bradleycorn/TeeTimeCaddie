@@ -10,6 +10,10 @@ data class NewInvitee(
     val name: String,
     val phone: String
 ) {
+    /** Just the first name: "Matt" from "Matt Chen". */
+    val firstName: String
+        get() = name.trim().substringBefore(' ')
+
     /** The single uppercase letter shown in the invitee's avatar. */
     val initial: String
         get() = avatarInitial(name)

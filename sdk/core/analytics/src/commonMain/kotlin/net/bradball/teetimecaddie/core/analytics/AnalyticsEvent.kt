@@ -173,7 +173,7 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** The New game screen's back / Cancel button was tapped, leaving without publishing. */
     @Serializable
     object NewGameCancel: AnalyticsEvent("new_game_cancel", EventType.CLICK)
-    /** The New game screen's "Add from contacts" (or "Add more from contacts") button was tapped. */
+    /** The New game screen's "Add players" (or "Add more players") button was tapped. */
     @Serializable
     object AddFromContactsClick: AnalyticsEvent("add_from_contacts_click", EventType.CLICK)
     /** An invitee's ✕ was tapped on the New game screen, removing them. */
@@ -192,15 +192,19 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
         }
     }
     /**
-     * Contacts from the system picker were added to a new game's invitees. [pickedCount] is how many
-     * contacts were picked; [addedCount] is how many became invitees, leaving out anyone already
-     * invited and contacts without a number a game can be published with.
+     * Contacts the organizer picked were added to a new game's invitees, or to the people chosen to
+     * invite to it. [pickedCount] is how many contacts were picked; [addedCount] is how many
+     * were added, leaving out anyone already invited or selected, the organizer, and contacts
+     * without a number a game can be published with.
      */
     @Serializable
     data class AddInvitees(
         @SerialName("picked_count") val pickedCount: Int,
         @SerialName("added_count") val addedCount: Int
     ): AnalyticsEvent("add_invitees", EventType.OPERATION)
+    /** Someone entered manually by name and phone number was chosen to invite to a new game. */
+    @Serializable
+    object AddManualInvitee: AnalyticsEvent("add_manual_invitee", EventType.OPERATION)
     /** A button on the "Publish with no invitees?" alert was tapped. */
     @Serializable
     data class NoInvites(val response: Response): AnalyticsEvent("no_invites", EventType.CLICK) {

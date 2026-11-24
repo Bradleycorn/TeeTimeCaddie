@@ -15,21 +15,20 @@ final class NewGameViewModel {
     private(set) var uiState: NewGameUiState = NewGameUiState.companion.defaultValue
 
     private let gamesRepository: GamesRepository
-    private let contactsRepositoryFactory: (any DeviceContactsReader) -> any ContactsRepository
+    private let contactsRepository: ContactsRepository
     private let currentPlayer: () -> Player?
     private let toastPresenter: TtcToastPresenter
     private let eventManager: EventManager
 
     init(
         gamesRepository: GamesRepository = GamesModule.shared.gamesRepository(),
-        contactsRepositoryFactory: @escaping (any DeviceContactsReader) -> any ContactsRepository =
-            GamesModule.shared.contactsRepositoryFactory(),
+        contactsRepository: ContactsRepository = GamesModule.shared.contactsRepository(),
         currentPlayer: @escaping () -> Player? = GamesModule.shared.currentPlayer(),
         toastPresenter: TtcToastPresenter = AppModule.shared.toastPresenter(),
         eventManager: EventManager = AppModule.shared.eventManager()
     ) {
         self.gamesRepository = gamesRepository
-        self.contactsRepositoryFactory = contactsRepositoryFactory
+        self.contactsRepository = contactsRepository
         self.currentPlayer = currentPlayer
         self.toastPresenter = toastPresenter
         self.eventManager = eventManager
@@ -52,36 +51,86 @@ final class NewGameViewModel {
         uiState = uiState.withSlots(slots: Int32(slots))
     }
 
-    /// "Add from contacts" was tapped: the system contact picker opens. No permission is needed.
-    ///
-    /// - Parameter pickContacts: Opens the picker, which reports how it closed to
-    ///   ``onContactPickerDismissed(_:)``.
-    func onAddFromContactsClick(pickContacts: () -> Void) {
+    /// "Add players" was tapped: the Add players sheet opens with nothing selected.
+    func onAddPlayersClick() {
         eventManager.logEvent(event: AnalyticsEvent.AddFromContactsClick.shared)
+        guard let organizer = currentPlayer() else { return }
+        uiState = uiState.withAddPlayers(
+            addPlayers: AddPlayersUiState.companion.open(organizerPhone: organizer.phone, invitees: uiState.invitees)
+        )
+    }
+
+    /// "Choose from contacts" was tapped in the sheet: the system picker opens. No permission is
+    /// needed.
+    ///
+    /// - Parameter pickContacts: Opens the picker over the sheet, which reports how it closed to
+    ///   ``onContactPickerDismissed(_:)``.
+    func onChooseFromContactsClick(pickContacts: () -> Void) {
         pickContacts()
     }
 
     /// The system picker closed. `picked` reads the contacts it returned, or is nil when nothing was
-    /// picked. Picked contacts join the end of the list, sorted by name among themselves; anyone
-    /// already invited at that number isn't added twice. The picker can't show who's already
-    /// invited, so it only ever adds; the ✕ on a row removes.
+    /// picked. Picked contacts join the sheet's selection; anyone already invited or selected, or at
+    /// the organizer's number, is skipped without a word.
     func onContactPickerDismissed(_ picked: (any DeviceContactsReader)?) async {
         eventManager.logEvent(event: AnalyticsEvent.ContactPickerDismiss(selection: picked == nil ? .none : .some))
-        guard let picked else { return }
-        let repository = contactsRepositoryFactory(picked)
+        guard let picked, let addPlayersState = uiState.addPlayers else { return }
         do {
-            let result = try await repository.addPickedContacts(invitees: uiState.invitees)
+            let result = try await contactsRepository.choosePickedContacts(list: addPlayersState.list, picked: picked)
             switch onEnum(of: result) {
             case .success(let success):
-                if let invitees = success.data as? [NewInvitee] {
-                    uiState = uiState.withInvitees(invitees: invitees)
-                }
+                updateAddPlayersState { $0.afterContactsPicked(from: addPlayersState.list, updated: success.data) }
             case .failure(let failure):
                 show(failure.error)
             }
         } catch {
             show(error.asTeeTimeCaddieException())
         }
+    }
+
+    func onPlayerNameChange(_ name: String) {
+        updateAddPlayersState { $0.withName(name: name) }
+    }
+
+    /// Digits only, capped at a full number, as the create-account phone field does.
+    func onPlayerPhoneChange(_ phone: String) {
+        updateAddPlayersState { $0.withPhone(phone: PhoneNumber.digits(phone)) }
+    }
+
+    /// The sheet's Add was tapped. A valid name and number join the selection and the form clears;
+    /// otherwise the fields show what's wrong.
+    func onAddEnteredPlayer() {
+        guard let addPlayersState = uiState.addPlayers else { return }
+        let result = contactsRepository.chooseEnteredPerson(
+            list: addPlayersState.list,
+            name: addPlayersState.name,
+            phone: addPlayersState.phone
+        )
+        updateAddPlayersState { $0.afterEntry(result: result) }
+    }
+
+    /// A selected person's chip was tapped: they're taken out of the selection.
+    func onUnchoosePlayer(_ person: NewInvitee) {
+        updateAddPlayersState { $0.unchoose(person: person) }
+    }
+
+    /// "Add N players" was tapped: everyone selected joins the invitees, and the sheet closes.
+    func onAddChosenPlayers() {
+        guard let addPlayersState = uiState.addPlayers else { return }
+        uiState = uiState
+            .withInvitees(invitees: addPlayersState.list.inviteChosen().invited)
+            .withAddPlayers(addPlayers: nil)
+    }
+
+    /// The sheet was dragged down or the scrim tapped: the selection is discarded, without asking.
+    func onAddPlayersDismissed() {
+        uiState = uiState.withAddPlayers(addPlayers: nil)
+    }
+
+    /// Apply `change` to the Add players state, if the sheet is open.
+    private func updateAddPlayersState(_ change: (AddPlayersUiState) -> AddPlayersUiState) {
+        guard let addPlayersState = uiState.addPlayers else { return }
+        uiState = uiState.withAddPlayers(addPlayers: change(addPlayersState))
     }
 
     /// An invitee's ✕ was tapped. They're removed at once, without asking.

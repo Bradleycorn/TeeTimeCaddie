@@ -98,7 +98,7 @@ fun NewGameScreen(
             onDateSelected = viewModel::onDateSelected,
             onTimeSelected = viewModel::onTimeSelected,
             onSlotsChange = viewModel::onSlotsChange,
-            onAddFromContactsClick = viewModel::onAddFromContactsClick,
+            onAddPlayersClick = viewModel::onAddPlayersClick,
             onRemoveInvitee = viewModel::onRemoveInvitee,
             onPublishClick = viewModel::onPublishClick,
             showNoInviteeConfirm = showNoInviteeConfirm,
@@ -114,6 +114,19 @@ fun NewGameScreen(
             onDateInputToggle = viewModel::onDateInputToggle,
             onTimeInputToggle = viewModel::onTimeInputToggle,
         )
+
+        uiState.addPlayers?.let { addPlayersState ->
+            AddPlayersSheet(
+                uiState = addPlayersState,
+                onChooseFromContacts = viewModel::onChooseFromContactsClick,
+                onNameChange = viewModel::onPlayerNameChange,
+                onPhoneChange = viewModel::onPlayerPhoneChange,
+                onAddEntered = viewModel::onAddEnteredPlayer,
+                onUnchoose = viewModel::onUnchoosePlayer,
+                onAddChosen = viewModel::onAddChosenPlayers,
+                onDismiss = viewModel::onAddPlayersDismissed,
+            )
+        }
     }
 }
 
@@ -126,7 +139,7 @@ private fun NewGameContent(
     onDateSelected: (LocalDate) -> Unit,
     onTimeSelected: (LocalTime) -> Unit,
     onSlotsChange: (Int) -> Unit,
-    onAddFromContactsClick: () -> Unit,
+    onAddPlayersClick: () -> Unit,
     onRemoveInvitee: (NewInvitee) -> Unit,
     onPublishClick: () -> Unit,
     showNoInviteeConfirm: Boolean,
@@ -231,8 +244,8 @@ private fun NewGameContent(
             }
 
             TtcOutlinedButton(
-                text = stringResource(uiState.addFromContactsLabel.resourceId),
-                onClick = onAddFromContactsClick,
+                text = stringResource(uiState.addPlayersLabel.resourceId),
+                onClick = onAddPlayersClick,
                 color = TtcColorRole.Primary,
                 icon = TtcIcons.PERSON_ADD,
                 enabled = !uiState.isSubmitting,
@@ -405,7 +418,7 @@ private fun NewGameEmptyPreview() {
             onDateSelected = {},
             onTimeSelected = {},
             onSlotsChange = {},
-            onAddFromContactsClick = {},
+            onAddPlayersClick = {},
             onRemoveInvitee = {},
             onPublishClick = {},
             showNoInviteeConfirm = false,
@@ -429,7 +442,7 @@ private fun NewGameFilledPreview() {
             onDateSelected = {},
             onTimeSelected = {},
             onSlotsChange = {},
-            onAddFromContactsClick = {},
+            onAddPlayersClick = {},
             onRemoveInvitee = {},
             onPublishClick = {},
             showNoInviteeConfirm = false,

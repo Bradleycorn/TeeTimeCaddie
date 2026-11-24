@@ -26,9 +26,7 @@ final class NewGameViewModelTests: XCTestCase {
         analytics = RecordingEventManager()
         viewModel = NewGameViewModel(
             gamesRepository: repository,
-            contactsRepositoryFactory: { [eventManager = analytics.eventManager] in
-                ContactsRepositoryImpl(eventManager: eventManager, reader: $0)
-            },
+            contactsRepository: ContactsRepositoryImpl(eventManager: analytics.eventManager),
             currentPlayer: { TestData.organizer },
             toastPresenter: toastPresenter,
             eventManager: analytics.eventManager
@@ -52,86 +50,181 @@ final class NewGameViewModelTests: XCTestCase {
         await viewModel.onContactPickerDismissed(FakeContactsReader(contacts: contacts))
     }
 
-    /// Pick each of `invitees` from the system picker, one pick at a time, in that order.
+    /// Choose `person` in the open sheet by picking them from the system picker.
+    private func pick(_ person: NewInvitee) async {
+        await pick(DeviceContact(
+            id: person.name,
+            name: person.name,
+            phones: [DevicePhone(number: person.phone, label: "mobile", isMobile: true)]
+        ))
+    }
+
+    /// Open the sheet, pick each of `invitees` one pick at a time, in that order, and add them.
     private func invite(_ invitees: NewInvitee...) async {
+        viewModel.onAddPlayersClick()
         for invitee in invitees {
-            await pick(DeviceContact(
-                id: invitee.name,
-                name: invitee.name,
-                phones: [DevicePhone(number: invitee.phone, label: "mobile", isMobile: true)]
-            ))
+            await pick(invitee)
         }
+        viewModel.onAddChosenPlayers()
+    }
+
+    private var addPlayersState: AddPlayersUiState? {
+        viewModel.uiState.addPlayers
     }
 
     private var inviteeNames: [String] {
         viewModel.uiState.invitees.map(\.name)
     }
 
-    func testAddFromContactsOpensTheSystemPicker() {
+    func testAddPlayersOpensTheSheetWithNothingSelected() async {
+        await invite(matt)
+
+        viewModel.onAddPlayersClick()
+
+        XCTAssertEqual(addPlayersState, AddPlayersUiState.companion.open(organizerPhone: TestData.organizer.phone, invitees: [matt]))
+    }
+
+    func testChooseFromContactsOpensTheSystemPicker() {
+        viewModel.onAddPlayersClick()
         var opened = false
 
-        viewModel.onAddFromContactsClick(pickContacts: { opened = true })
+        viewModel.onChooseFromContactsClick(pickContacts: { opened = true })
 
         XCTAssertTrue(opened)
     }
 
-    func testAPickedContactIsInvited() async {
-        await invite(jeff)
+    func testPickedContactsAreSelectedNotInvitedUntilAdded() async {
+        viewModel.onAddPlayersClick()
+        await pick(matt)
+        await pick(jeff)
 
-        XCTAssertEqual(viewModel.uiState.invitees, [jeff])
+        XCTAssertEqual(addPlayersState?.chosen, [matt, jeff])
+        XCTAssertTrue(viewModel.uiState.invitees.isEmpty)
+
+        viewModel.onAddChosenPlayers()
+
+        XCTAssertEqual(viewModel.uiState.invitees, [matt, jeff])
+        XCTAssertNil(viewModel.uiState.addPlayers)
     }
 
-    func testPickedContactsJoinTheEndOfTheListInTheOrderPicked() async {
+    func testAddedPlayersJoinTheEndOfTheList() async {
         await invite(matt)
         await invite(jeff, dana)
 
         XCTAssertEqual(inviteeNames, ["Matt Chen", "Jeff Morrison", "Dana Park"])
     }
 
-    func testPeoplePickedTogetherJoinSortedByName() async {
-        await invite(matt)
+    func testPeoplePickedTogetherAreSelectedSortedByName() async {
+        viewModel.onAddPlayersClick()
 
         await pick(
             DeviceContact(id: "c2", name: "Jeff Morrison", phones: [DevicePhone(number: "(415) 555-0142", label: "Mobile", isMobile: true)]),
             DeviceContact(id: "c3", name: "Dana Park", phones: [DevicePhone(number: "415.555.0117", label: "Home", isMobile: false)])
         )
 
-        XCTAssertEqual(inviteeNames, ["Matt Chen", "Dana Park", "Jeff Morrison"])
+        XCTAssertEqual(addPlayersState?.chosen, [dana, jeff])
     }
 
-    func testPickingSomeoneAlreadyInvitedDoesNotAddThemTwice() async {
+    func testPickingSomeoneAlreadyInvitedOrSelectedSkipsThem() async {
         await invite(matt)
+        viewModel.onAddPlayersClick()
+        await pick(jeff)
 
-        await invite(NewInvitee(name: "Matt Chen", phone: "+1 415 555 0188"), jeff)
+        await pick(NewInvitee(name: "Matthew Chen", phone: "+1 415 555 0188"))
+        await pick(NewInvitee(name: "Jeff M", phone: "4155550142"))
 
-        XCTAssertEqual(viewModel.uiState.invitees.map(\.formattedPhone), ["(415) 555-0188", "(415) 555-0142"])
+        XCTAssertEqual(addPlayersState?.chosen, [jeff])
     }
 
-    func testAPickedContactIsInvitedOnceAtItsMobileNumber() async {
+    func testAPickedContactIsSelectedAtItsMobileNumber() async {
+        viewModel.onAddPlayersClick()
+
         await pick(DeviceContact(id: "c1", name: "Jeff Morrison", phones: [
             DevicePhone(number: "502-555-0199", label: "Work", isMobile: false),
             DevicePhone(number: "(415) 555-0142", label: "Mobile", isMobile: true)
         ]))
 
-        XCTAssertEqual(viewModel.uiState.invitees, [NewInvitee(name: "Jeff Morrison", phone: "(415) 555-0142")])
+        XCTAssertEqual(addPlayersState?.chosen, [jeff])
     }
 
     func testPickedNumbersAGameCantBePublishedWithAreLeftOut() async {
+        viewModel.onAddPlayersClick()
+
         await pick(
             DeviceContact(id: "c1", name: "Pizza Place", phones: [DevicePhone(number: "611", label: "Other", isMobile: false)]),
             DeviceContact(id: "c2", name: "  ", phones: [DevicePhone(number: "4155550101", label: "Mobile", isMobile: true)])
         )
 
-        XCTAssertTrue(viewModel.uiState.invitees.isEmpty)
+        XCTAssertEqual(addPlayersState?.chosen, [])
     }
 
-    func testAFailedReadSaysSoAndLeavesTheList() async {
-        await invite(matt)
+    func testAFailedReadSaysSoAndLeavesTheSelection() async {
+        viewModel.onAddPlayersClick()
+        await pick(matt)
 
         await viewModel.onContactPickerDismissed(FakeContactsReader(error: FakeContactsReader.ReadError()))
 
-        XCTAssertEqual(inviteeNames, ["Matt Chen"])
+        XCTAssertEqual(addPlayersState?.chosen, [matt])
         XCTAssertEqual(toastPresenter.message, GameErrors.contactsLoadFailed.message.localized())
+    }
+
+    func testAnEnteredPlayerIsSelectedAndTheFormClears() {
+        viewModel.onAddPlayersClick()
+        viewModel.onPlayerNameChange(" Sam  Tanaka ")
+        viewModel.onPlayerPhoneChange("(415) 555-0123")
+
+        viewModel.onAddEnteredPlayer()
+
+        XCTAssertEqual(addPlayersState?.chosen, [NewInvitee(name: "Sam Tanaka", phone: "4155550123")])
+        XCTAssertEqual(addPlayersState?.name, "")
+        XCTAssertEqual(addPlayersState?.phone, "")
+        XCTAssertNotNil(addPlayersState?.chosenMessage)
+    }
+
+    func testAnInvalidEntryShowsItsErrorsAndSelectsNobody() {
+        viewModel.onAddPlayersClick()
+
+        viewModel.onAddEnteredPlayer()
+
+        XCTAssertEqual(addPlayersState?.chosen, [])
+        XCTAssertEqual(addPlayersState?.nameError, GMR.strings().add_players_error_no_name)
+        XCTAssertEqual(addPlayersState?.phoneError, GMR.strings().add_players_error_no_phone)
+    }
+
+    func testTheEnteredNumberKeepsOnlyItsFirstTenDigits() {
+        viewModel.onAddPlayersClick()
+
+        viewModel.onPlayerPhoneChange("(415) 555-01234")
+
+        XCTAssertEqual(addPlayersState?.phone, "4155550123")
+    }
+
+    func testTappingAChipUnselectsThem() async {
+        viewModel.onAddPlayersClick()
+        await pick(matt)
+        await pick(jeff)
+
+        viewModel.onUnchoosePlayer(matt)
+
+        XCTAssertEqual(addPlayersState?.chosen, [jeff])
+    }
+
+    func testDismissingTheSheetDiscardsTheSelection() async {
+        await invite(matt)
+        viewModel.onAddPlayersClick()
+        await pick(jeff)
+
+        viewModel.onAddPlayersDismissed()
+
+        XCTAssertNil(viewModel.uiState.addPlayers)
+        XCTAssertEqual(viewModel.uiState.invitees, [matt])
+    }
+
+    func testAPickWithTheSheetClosedChangesNothing() async {
+        await pick(matt)
+
+        XCTAssertNil(viewModel.uiState.addPlayers)
+        XCTAssertTrue(viewModel.uiState.invitees.isEmpty)
     }
 
     func testRemovingAnInviteeKeepsTheRestInOrder() async {
@@ -143,13 +236,13 @@ final class NewGameViewModelTests: XCTestCase {
     }
 
     func testAddFromContactsLabelReadsAddMoreOnceAnyoneIsAdded() async {
-        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_from_contacts)
+        XCTAssertEqual(viewModel.uiState.addPlayersLabel, GMR.strings().new_game_add_players)
 
         await invite(matt)
-        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_more_from_contacts)
+        XCTAssertEqual(viewModel.uiState.addPlayersLabel, GMR.strings().new_game_add_more_players)
 
         viewModel.onRemoveInvitee(viewModel.uiState.invitees[0])
-        XCTAssertEqual(viewModel.uiState.addFromContactsLabel, GMR.strings().new_game_add_from_contacts)
+        XCTAssertEqual(viewModel.uiState.addPlayersLabel, GMR.strings().new_game_add_players)
     }
 
     func testInviteesNeverAffectWhetherPublishIsEnabled() async {
@@ -285,14 +378,15 @@ final class NewGameViewModelTests: XCTestCase {
         XCTAssertEqual(analytics.events, [AnalyticsEvent.PlayerSlotsClick(playerCount: 3)])
     }
 
-    func testAddFromContactsIsLogged() {
-        viewModel.onAddFromContactsClick(pickContacts: {})
+    func testAddPlayersIsLogged() {
+        viewModel.onAddPlayersClick()
 
         XCTAssertEqual(analytics.events, [AnalyticsEvent.AddFromContactsClick.shared])
     }
 
     func testAPickLogsTheDismissWithASelectionAndHowManyWereAdded() async {
         await invite(matt)
+        viewModel.onAddPlayersClick()
 
         await pick(
             DeviceContact(id: "c1", name: "Matt Chen", phones: [DevicePhone(number: "4155550188", label: "Mobile", isMobile: true)]),

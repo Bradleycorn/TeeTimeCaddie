@@ -42,13 +42,42 @@
     <string name="new_game_section_players">How many players</string>
     <string name="new_game_player_slots_label">Player slots</string>
     <string name="new_game_section_invitees">Invitees</string>
-    <string name="new_game_add_from_contacts">Add from contacts</string>
-    <string name="new_game_add_more_from_contacts">Add more from contacts</string>
-    <!-- Content description for an invitee row's remove button. "Remove Matt Chen" -->
+    <!-- The Invitees section's button, before anyone is invited and after. -->
+    <string name="new_game_add_players">Add players</string>
+    <string name="new_game_add_more_players">Add more players</string>
+    <!-- Content description for an invitee row's remove button, and on iOS the label of a selected person's chip in Add players. "Remove Matt Chen" -->
     <string name="new_game_remove_invitee">Remove %1$s</string>
     <string name="new_game_publish_button">Publish game</string>
     <!-- Spoken label for the Android ✕ that leaves New game. -->
     <string name="new_game_close">Close</string>
+
+    <!-- ==== Add players sheet (TTC-73) ==== -->
+    <string name="add_players_title">Add players</string>
+    <string name="add_players_choose_from_contacts">Choose from contacts</string>
+    <!--
+      Under "Choose from contacts" once some are picked: how many, then up to three first names,
+      then how many more. "3 selected · Matt, Jeff, Alex", "5 selected · Matt, Jeff, Alex +2"
+    -->
+    <string name="add_players_contacts_summary">%1$s selected · %2$s</string>
+    <string name="add_players_contacts_summary_more">%1$s selected · %2$s +%3$s</string>
+    <string name="add_players_enter_prompt">Or enter a name and number.</string>
+    <string name="add_players_field_name">Name</string>
+    <string name="add_players_field_name_placeholder">e.g. Sam Tanaka</string>
+    <string name="add_players_field_phone">Phone number</string>
+    <string name="add_players_field_phone_placeholder">(415) 555-0123</string>
+    <string name="add_players_add_button">Add</string>
+    <string name="add_players_error_no_name">Enter a name</string>
+    <string name="add_players_error_no_phone">Enter a phone number</string>
+    <string name="add_players_error_invalid_phone">Enter a valid phone number</string>
+    <string name="add_players_error_duplicate_phone">This number is already on the list</string>
+    <!-- Below the form after someone is added, beside a check mark. "Sam Tanaka selected" -->
+    <string name="add_players_person_selected">%s selected</string>
+    <!-- The sheet's bottom button: nobody selected, one, and more. -->
+    <string name="add_players_select_button">Select players</string>
+    <string name="add_players_add_one_button">Add 1 player</string>
+    <string name="add_players_add_many_button">Add %s players</string>
+    <!-- What tapping a selected person's chip does: its click label on Android. -->
+    <string name="add_players_remove_chip">Remove</string>
 
     <!--
       Asked before publishing a game with nobody invited. The copy is proposed in the story, not
