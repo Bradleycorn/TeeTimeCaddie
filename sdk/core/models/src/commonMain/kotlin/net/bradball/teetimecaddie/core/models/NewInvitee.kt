@@ -1,7 +1,7 @@
 package net.bradball.teetimecaddie.core.models
 
 /**
- * Someone the organizer has picked to invite, before the game is published.
+ * Someone the organizer has chosen to invite, before the game is published.
  *
  * @property name The name to show them under.
  * @property phone The number to invite them by, in any format; it is normalized on publish.
@@ -18,7 +18,7 @@ data class NewInvitee(
     val initial: String
         get() = avatarInitial(name)
 
-    /** The color of the invitee's avatar, the same one they get on every screen. */
+    /** The color of the invitee's avatar, the same one they get wherever they appear. */
     val avatarTone: AvatarTone
         get() = AvatarTone.forName(name)
 

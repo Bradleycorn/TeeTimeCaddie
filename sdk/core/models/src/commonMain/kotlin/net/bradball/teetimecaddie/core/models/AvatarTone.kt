@@ -16,8 +16,8 @@ enum class AvatarTone {
         private val byHash = listOf(TERTIARY, PRIMARY, TERTIARY, PRIMARY, SECONDARY)
 
         /**
-         * The tone for a person named [name], the same every time, so someone keeps their color on
-         * every screen and on both platforms.
+         * The tone for a person named [name], the same every time, so someone keeps their color
+         * wherever they appear, on both platforms.
          *
          * A 31-based rolling hash of the name's characters, kept to 16 bits, picks a slot in
          * [byHash]. Spaces around the name don't change it.

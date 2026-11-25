@@ -11,28 +11,42 @@ import net.bradball.teetimecaddie.core.models.NewInvitee
 import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
- * Turns contacts the organizer picked, or a name and number they entered, into people chosen on an
- * [InviteList].
+ * Adds people to an [InviteList]'s chosen people, either from the device's contacts or from a name
+ * and phone number entered by hand.
  *
  * **Nothing here throws.** Failures come back as [TtcResult.Failure] carrying a [GameException].
  */
 interface ContactsRepository {
 
     /**
-     * [list] with the [picked] contacts added to its chosen people, sorted by name, as in
-     * [InviteList.choose]. Each contact joins at one number, its first mobile number or else its
-     * first number. Contacts without a name or a number a game can be published with are left out.
+     * Adds the contacts that [picked] reads to [list]'s chosen people.
      *
-     * @return The new list, or [GameErrors.CONTACTS_LOAD_FAILED] when the contacts can't be read.
+     * Each contact is added at one number: its first mobile number, or its first number when none
+     * is a mobile. Contacts without a name, or without a number a game can be published with, are
+     * skipped. The new people are sorted by name and added after those already chosen, skipping any
+     * number already in the list, as [InviteList.choose] does.
+     *
+     * @param list The invite list to add to.
+     * @param picked Reads the contacts to add — usually just the ones the person selected, not
+     *   every contact on the device.
+     * @return The updated list, or [GameErrors.CONTACTS_LOAD_FAILED] when the contacts can't be
+     *   read, leaving [list] as it was.
      */
     suspend fun choosePickedContacts(list: InviteList, picked: DeviceContactsReader): TtcResult<InviteList>
 
     /**
-     * [list] with the person entered added to its chosen people, or what's wrong with the entry.
+     * Adds a person entered by name and phone number to [list]'s chosen people, or reports why
+     * they can't be added.
      *
      * The name must not be blank, and the number must have exactly 10 digits and not already be in
-     * the list. The person's name is trimmed, with runs of spaces made one, and their number is
-     * kept as its 10 digits.
+     * the list. The name is trimmed, with runs of spaces made one, and the number is kept as its 10
+     * digits.
+     *
+     * @param list The invite list to add to.
+     * @param name The person's name, as entered.
+     * @param phone The person's phone number, in any format.
+     * @return [ManualInviteeResult.Chosen] with the person and the updated list, or
+     *   [ManualInviteeResult.Rejected] with what's wrong with the name or number.
      */
     fun chooseEnteredPerson(list: InviteList, name: String, phone: String): ManualInviteeResult
 }

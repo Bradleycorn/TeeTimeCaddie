@@ -28,17 +28,17 @@ import net.bradball.teetimecaddie.core.models.TtcLookup
 import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
- * Games: publishing them, reading them back, and answering invitations to them.
+ * Games: publishing them, reading them back, and recording answers to their invitations.
  *
- * Like `PlayerRepository`, this takes players as parameters and knows nothing about who is signed
- * in — that is `SessionManager`'s concern.
+ * Takes players as parameters and knows nothing about who is signed in — that is
+ * `SessionManager`'s concern.
  *
  * **Nothing here throws.** Failures come back as [TtcResult.Failure] carrying a [GameException].
  */
 interface GamesRepository {
 
     /**
-     * Publish a new game with a single tee time.
+     * Publishes a new game with a single tee time, and invites people to it.
      *
      * The course is matched by name, ignoring case and extra spaces: a name matching an existing
      * course reuses it, keeping that course's stored spelling, and any other name records a new
@@ -49,8 +49,10 @@ interface GamesRepository {
      * caller never says which is which. A number listed twice is invited once, under the first
      * name it came with, and the organizer's own number is skipped — they are already playing.
      *
-     * @param organizer The player publishing the game.
-     * @param courseName The course as typed. Leading and trailing spaces are ignored.
+     * @param organizer The player publishing the game, who becomes its organizer.
+     * @param courseName The course's name, as entered. Leading and trailing spaces are ignored.
+     * @param date The day the game is played.
+     * @param time The tee time's start time.
      * @param slots How many players the tee time holds, from 1 to 4.
      * @param invitees The people to invite, in the order they were added. May outnumber the slots.
      * @return The published game, carrying the stored course spelling. [GameErrors.NO_COURSE] for
@@ -68,33 +70,38 @@ interface GamesRepository {
     ): TtcResult<Game>
 
     /**
-     * Observe every game [player] is part of from today on: the ones they're playing in, and the
+     * Observes every game [player] is part of from today on: the ones they're playing in, and the
      * ones they've been invited to, whether or not they've answered yet.
      *
-     * Updates whenever one of those games changes, or the player is invited to another. At
+     * Emits again whenever one of those games changes, or the player is invited to another. At
      * midnight, "today" moves on, and the day's games drop out.
      *
-     * @param player The signed-in player.
+     * @param player The player whose games to list.
      * @return The player's games, earliest first, each listed once. If the games can't be read,
      *   nothing more is emitted.
      */
     fun observeGames(player: Player): Flow<List<Game>>
 
     /**
-     * Observe a single game, emitting again whenever it changes — when someone answers, say.
+     * Observes one game, emitting it again whenever it changes — when someone answers, say.
      *
-     * Emits [GameErrors.NOT_FOUND] while no game has [gameId]. A read failure emits
-     * [GameErrors.LOAD_FAILED] and ends the flow.
+     * @param gameId The id of the game to observe.
+     * @return The game. [GameErrors.NOT_FOUND] while no game has [gameId]. A read failure emits
+     *   [GameErrors.LOAD_FAILED] and ends the flow.
      */
     fun observeGame(gameId: String): Flow<TtcResult<Game>>
 
     /**
-     * Answer [player]'s invitation to a game: yes ([accept]) or no.
+     * Records [player]'s own answer to their invitation to a game: yes or no.
      *
      * The invitation is matched by [player]'s phone number. A yes takes the tee time's next free
      * slot. The answer is read and written in one transaction, so two invitees racing for the
-     * last slot can't both get it.
+     * last slot can't both get it. For an organizer answering on an invitee's behalf, use
+     * [recordResponse].
      *
+     * @param gameId The id of the game [player] was invited to.
+     * @param player The invited player answering for themselves.
+     * @param accept True for yes, false for no.
      * @return The game as it stands after the answer. An invitation already answered, perhaps
      *   from another device, isn't changed and returns the game as it is.
      *   [GameErrors.GAME_FULL] for a yes once every slot is taken, which leaves the invitation
@@ -104,17 +111,19 @@ interface GamesRepository {
     suspend fun respondToInvite(gameId: String, player: Player, accept: Boolean): TtcResult<Game>
 
     /**
-     * As the game's organizer, record a yes ([accept]) or no for an invitee who hasn't answered,
-     * whether or not they use the app.
+     * Records an answer, yes or no, on behalf of an invitee who hasn't answered, by the game's
+     * organizer. The invitee may or may not use the app.
      *
      * A yes takes the tee time's next free slot under the name they were invited by. The slot is
      * linked to their account only when the account the game named for them at publish still owns
      * [inviteePhone]; an invitee without the app holds a slot with no account. Like an invitee's own
-     * answer, it is read and written in one transaction, so the organizer and an invitee racing for
-     * the last slot can't both get it.
+     * answer ([respondToInvite]), it is read and written in one transaction, so the organizer and
+     * an invitee racing for the last slot can't both get it.
      *
-     * @param organizer The signed-in player, who must have organized the game.
+     * @param gameId The id of the game the invitee was invited to.
+     * @param organizer The player recording the answer, who must have organized the game.
      * @param inviteePhone The number the invitee was invited by. Formatting is ignored.
+     * @param accept True for yes, false for no.
      * @return The game as it stands after the answer. An invitation already answered, by the
      *   invitee or from another device, isn't changed and returns the game as it is.
      *   [GameErrors.GAME_FULL] for a yes once every slot is taken, which leaves the invitation
@@ -136,6 +145,10 @@ const val MAX_TEE_TIME_SLOTS = 4
 internal val STORED_PHONE_LENGTHS = 10..15
 
 /**
+ * The [GamesRepository] the apps use. It also logs:
+ * - [AnalyticsEvent.PublishGame] each time a game is published.
+ * - [AnalyticsEvent.AnswerInvite] each time an answer is written, by the invitee or the organizer.
+ *
  * @param dates Today's date, and each new one as midnight passes. [observeGames] lists games from
  *   the latest one on.
  * @param findPlayerByPhone Looks up the player who owns a phone number, as

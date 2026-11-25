@@ -7,11 +7,10 @@ import net.bradball.teetimecaddie.core.models.GR
  * The ways saving or reading a player profile can fail.
  *
  * Separate from `AuthErrors` on purpose: a phone number that is already registered is a profile
- * constraint, not an authentication failure, and the screens render the two differently.
+ * constraint, not an authentication failure, and callers handle the two differently.
  *
- * @property inlineMessage Set only for errors the design shows *on a field* as well as in a
- *   message block. [PHONE_IN_USE] is the one case that appears in both places at once, so putting
- *   it here stops each platform re-deriving that exception from the error name.
+ * @property inlineMessage A short message about a single input, set only for errors caused by
+ *   one: the phone number, for [INVALID_PHONE] and [PHONE_IN_USE]. Null for the rest.
  */
 enum class PlayerErrors(
     val title: StringResource,

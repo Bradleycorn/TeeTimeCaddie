@@ -19,54 +19,68 @@ import net.bradball.teetimecaddie.core.models.TtcResult
  * Player profiles: the name, phone number and avatar behind an account.
  *
  * Takes player ids as parameters and knows nothing about who is signed in — that is
- * `SessionManager`'s concern. Keeping it session-agnostic is what lets the invitation features
- * ([findPlayerByPhone]) use it without dragging authentication along.
+ * `SessionManager`'s concern.
  *
  * **Nothing here throws.** Failures come back as [TtcResult.Failure] carrying a [PlayerException].
  */
 interface PlayerRepository {
 
     /**
-     * Observe a player, re-emitting whenever their profile changes.
+     * Observes a player's profile, emitting it again whenever it changes.
      *
      * Emits null only when the server confirms no profile exists. While the profile can't be read
      * — offline, with nothing cached — it emits nothing rather than null, so a null is always safe
      * to act on as "this person has no profile yet".
      *
-     * A flow, so it reports values rather than results; a read failure simply means no emission.
+     * @param playerId The id of the player to observe.
      */
     fun playerFlow(playerId: String): Flow<Player?>
 
     /**
-     * Read a player once.
+     * Reads a player's profile once.
      *
-     * A [TtcLookup], because having no profile yet is a normal answer — and it stays distinct from
-     * a read that failed.
+     * @param playerId The id of the player to read.
+     * @return The player, or success with null when they have no profile yet.
+     *   [TtcLookup.Failure] when the read fails, kept distinct from finding no profile.
      */
     suspend fun getPlayer(playerId: String): TtcLookup<Player>
 
     /**
-     * Find the player who owns a phone number.
+     * Finds the player who owns a phone number.
      *
-     * Accepts any way of writing the number; it is normalized before the lookup. Finding nobody
-     * is a normal answer: it means the number belongs to someone without the app.
+     * @param phone The number to look up, in any format; it is normalized first.
+     * @return The player, or success with null when no player has the number — it belongs to
+     *   someone without the app. [TtcLookup.Failure] when the lookup fails.
      */
     suspend fun findPlayerByPhone(phone: String): TtcLookup<Player>
 
     /**
-     * Whether a phone number already belongs to someone.
+     * Checks whether a phone number already belongs to a player.
      *
-     * @param excludingPlayerId A player to ignore, so re-saving your own profile does not collide
-     *   with your own number.
+     * @param phone The number to check, in any format; it is normalized first.
+     * @param excludingPlayerId A player whose own number doesn't count, so re-saving a profile
+     *   doesn't collide with itself. Null to count every player.
+     * @return True when a player other than [excludingPlayerId] has the number, or a failure when
+     *   the lookup fails.
      */
     suspend fun isPhoneInUse(phone: String, excludingPlayerId: String? = null): TtcResult<Boolean>
 
     /**
-     * Create a player's profile, uploading their avatar first if they chose one.
+     * Creates a player's profile, uploading their avatar first when there is one.
      *
-     * @param photo JPEG bytes, already downscaled by the caller, or null.
-     * @return [PlayerErrors.PHONE_IN_USE] if the number belongs to someone else — reported
-     *   *without* touching the auth account, so a mistyped digit stays recoverable.
+     * The name is trimmed and the number stored as its digits. Nothing is written when the name,
+     * the number or the avatar upload fails.
+     *
+     * @param playerId The id of the account the profile belongs to.
+     * @param name The player's name. Must not be blank.
+     * @param email The account's email address.
+     * @param phone The player's phone number, in any format. Must be a complete 10-digit number no
+     *   other player has.
+     * @param photo The avatar as JPEG bytes, already downscaled, or null for none.
+     * @return The new player. [PlayerErrors.NO_NAME] for a blank name, [PlayerErrors.INVALID_PHONE]
+     *   for an incomplete number, [PlayerErrors.PHONE_IN_USE] when another player has the number,
+     *   [PlayerErrors.PHOTO_UPLOAD_FAILED] when the avatar can't be uploaded, and
+     *   [PlayerErrors.SAVE_FAILED] when the profile can't be written.
      */
     suspend fun createPlayer(
         playerId: String,
@@ -76,6 +90,18 @@ interface PlayerRepository {
         photo: ByteArray? = null
     ): TtcResult<Player>
 
+    /**
+     * Saves changes to an existing player's profile.
+     *
+     * The name is trimmed and the number stored as its digits. Nothing is written when the name or
+     * number is rejected.
+     *
+     * @param player The profile as it should be saved. Its name must not be blank, and its phone
+     *   number must be a complete 10-digit number no other player has.
+     * @return The player as saved. [PlayerErrors.NO_NAME] for a blank name,
+     *   [PlayerErrors.INVALID_PHONE] for an incomplete number, [PlayerErrors.PHONE_IN_USE] when
+     *   another player has the number, and [PlayerErrors.SAVE_FAILED] when the write fails.
+     */
     suspend fun updatePlayer(player: Player): TtcResult<Player>
 }
 
