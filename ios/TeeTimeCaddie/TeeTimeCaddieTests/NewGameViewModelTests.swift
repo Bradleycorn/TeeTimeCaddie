@@ -381,7 +381,7 @@ final class NewGameViewModelTests: XCTestCase {
     func testAddPlayersIsLogged() {
         viewModel.onAddPlayersClick()
 
-        XCTAssertEqual(analytics.events, [AnalyticsEvent.AddFromContactsClick.shared])
+        XCTAssertEqual(analytics.events, [AnalyticsEvent.AddPlayersClick.shared])
     }
 
     func testAPickLogsTheDismissWithASelectionAndHowManyWereAdded() async {

@@ -12,7 +12,7 @@ import net.bradball.teetimecaddie.core.models.TtcResult
 
 /**
  * Adds people to an [InviteList]'s chosen people, either from the device's contacts or from a name
- * and phone number entered by hand.
+ * and phone number entered by hand, and invites the people chosen.
  *
  * **Nothing here throws.** Failures come back as [TtcResult.Failure] carrying a [GameException].
  */
@@ -49,6 +49,15 @@ interface ContactsRepository {
      *   [ManualInviteeResult.Rejected] with what's wrong with the name or number.
      */
     fun chooseEnteredPerson(list: InviteList, name: String, phone: String): ManualInviteeResult
+
+    /**
+     * Invites everyone chosen in [list]: they move to the end of its invited people, in the order
+     * they were chosen, and nobody is left chosen.
+     *
+     * @param list The invite list whose chosen people to invite.
+     * @return The updated list.
+     */
+    fun inviteChosen(list: InviteList): InviteList
 }
 
 /**
@@ -56,6 +65,8 @@ interface ContactsRepository {
  * - [AnalyticsEvent.AddInvitees] each time picked contacts are chosen, with how many were picked
  *   and how many were chosen. A failed read logs nothing.
  * - [AnalyticsEvent.AddManualInvitee] each time someone entered is chosen.
+ * - [AnalyticsEvent.InvitePlayers] each time the chosen people are invited, with how many there
+ *   were.
  */
 class ContactsRepositoryImpl(
     private val eventManager: EventManager
@@ -82,6 +93,11 @@ class ContactsRepositoryImpl(
         val person = NewInvitee(name = cleanInviteeName(name), phone = phone.toPhoneDigits())
         eventManager.logEvent(AnalyticsEvent.AddManualInvitee)
         return ManualInviteeResult.Chosen(person = person, list = list.choose(listOf(person)))
+    }
+
+    override fun inviteChosen(list: InviteList): InviteList {
+        eventManager.logEvent(AnalyticsEvent.InvitePlayers(playerCount = list.chosen.size))
+        return list.inviteChosen()
     }
 
     private suspend fun readContacts(reader: DeviceContactsReader): TtcResult<List<DeviceContact>> {

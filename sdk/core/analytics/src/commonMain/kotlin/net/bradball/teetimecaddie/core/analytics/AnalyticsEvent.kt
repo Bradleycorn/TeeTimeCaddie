@@ -175,7 +175,33 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     object NewGameCancel: AnalyticsEvent("new_game_cancel", EventType.CLICK)
     /** The New game screen's "Add players" (or "Add more players") button was tapped. */
     @Serializable
-    object AddFromContactsClick: AnalyticsEvent("add_from_contacts_click", EventType.CLICK)
+    object AddPlayersClick: AnalyticsEvent("add_players_click", EventType.CLICK)
+    /** "Choose from contacts" was tapped on the Add players sheet. */
+    @Serializable
+    object ChooseFromContactsClick: AnalyticsEvent("choose_from_contacts_click", EventType.CLICK)
+    /**
+     * The Add players sheet's "Add" was tapped for a typed name and number. Logged for every tap,
+     * whether or not the entry is valid; [AddManualInvitee] records the ones that were chosen.
+     */
+    @Serializable
+    object AddEnteredPlayerClick: AnalyticsEvent("add_entered_player_click", EventType.CLICK)
+    /** A chosen player's chip was tapped in the Add players sheet's tray, removing them. */
+    @Serializable
+    object UnchoosePlayerClick: AnalyticsEvent("unchoose_player_click", EventType.CLICK)
+    /** The Add players sheet's "Add N players" button was tapped. */
+    @Serializable
+    object AddChosenPlayersClick: AnalyticsEvent("add_chosen_players_click", EventType.CLICK)
+    /**
+     * The Add players sheet was dragged closed or the scrim tapped, discarding the people chosen in
+     * it.
+     */
+    @Serializable
+    object AddPlayersSheetDismiss: AnalyticsEvent("add_players_sheet_dismiss", EventType.CLICK)
+    /** The people chosen to invite joined a new game's invitees. [playerCount] is how many joined. */
+    @Serializable
+    data class InvitePlayers(
+        @SerialName("player_count") val playerCount: Int
+    ): AnalyticsEvent("invite_players", EventType.OPERATION)
     /** An invitee's ✕ was tapped on the New game screen, removing them. */
     @Serializable
     object RemoveInviteeClick: AnalyticsEvent("remove_invitee_click", EventType.CLICK)

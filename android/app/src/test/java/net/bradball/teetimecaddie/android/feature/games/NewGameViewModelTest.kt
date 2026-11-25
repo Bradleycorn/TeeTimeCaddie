@@ -467,7 +467,7 @@ class NewGameViewModelTest {
     fun addPlayersIsLogged() {
         viewModel.onAddPlayersClick()
 
-        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddFromContactsClick), analytics.events)
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddPlayersClick), analytics.events)
     }
 
     @Test
