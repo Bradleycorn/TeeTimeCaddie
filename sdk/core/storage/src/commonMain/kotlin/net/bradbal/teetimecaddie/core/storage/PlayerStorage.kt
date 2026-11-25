@@ -4,6 +4,8 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.CollectionReference
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import net.bradbal.teetimecaddie.core.storage.documents.PlayerDocument
 
@@ -51,14 +53,26 @@ class PlayerStorage {
      *
      * This is what lets a newly uploaded avatar appear on the Profile tab without a refresh.
      *
+     * Emits null only once the **server** has confirmed there is no document. When Firestore can't
+     * reach the server it answers from its local cache, and a cache with nothing in it reports the
+     * document as missing — after a fresh install, or on any cold start without the on-disk cache.
+     * Passing that on would claim the player has no profile when it was simply never read, so
+     * nothing is emitted until the server answers.
+     *
+     * Metadata changes are included so that a server confirming a miss the cache already reported
+     * still reaches this flow: without them, Firestore treats that as no change and stays silent.
+     * The extra emissions are the same document again, and are dropped.
+     *
      * @param id The Firebase Auth user id for the player.
      */
     fun playerFlow(id: String): Flow<PlayerDocument?> {
         return playersCollection.document(id)
-            .snapshots(includeMetadataChanges = false)
+            .snapshots(includeMetadataChanges = true)
+            .filter { doc -> doc.exists || !doc.metadata.isFromCache }
             .map { doc ->
                 if (doc.exists) doc.data<PlayerDocument>().apply { this.id = doc.id } else null
             }
+            .distinctUntilChanged()
     }
 
     /**

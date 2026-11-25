@@ -18,6 +18,10 @@ sealed class SessionState {
      * exists — the flow itself never emits it again. Without it, a cold start
      * shows the credentials screen for a frame before the restored user arrives — which reads as a
      * flash of "signed out" to someone who never signed out.
+     *
+     * Usually a frame or two, but it lasts for as long as the restored user's profile can't be read
+     * — a cold start offline, with nothing cached. The session stays here rather than guessing
+     * [ProfileIncomplete], which would send someone with a profile to the sign-up profile step.
      */
     data object Loading : SessionState()
 
