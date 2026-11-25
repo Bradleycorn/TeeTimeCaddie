@@ -73,8 +73,9 @@ fun CreateAccountScreen(
         viewModel::onPhotoPicked,
     )
 
-    // Both ways out run the same cleanup. Nothing else may leave this screen: every other exit is a
-    // SessionState change, which replaces the whole tree.
+    // Both ways out run the same cleanup. Every other exit is a SessionState change: finishing
+    // sign-up replaces the whole tree, and a session that ends (including "Sign in instead" on a
+    // phone-in-use message) returns the auth flow to the credentials screen.
     val leave = {
         viewModel.abandonSignUp()
         onBack()

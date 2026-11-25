@@ -47,6 +47,18 @@ fun Navigator.navigateToCreateAccount(email: String) {
 }
 
 /**
+ * Returns the auth flow to the credentials screen, discarding anything above it.
+ *
+ * For when the session ends underneath the flow — a sign-up abandoned from the profile step, or a
+ * session that goes away while that step is on screen. Leaves a stack that is already just the
+ * credentials screen untouched, so whatever was typed there survives.
+ */
+fun Navigator.returnToLogin() {
+    if (backStack.singleOrNull() == LoginDestination) return
+    navigate(LoginDestination, clearBackStack = true)
+}
+
+/**
  * Registers the navigation entries for the Authentication feature.
  *
  * These entries are hosted by `AuthNavDisplay`, **not** by the tabbed `NavBarNavDisplay`. Auth is not
