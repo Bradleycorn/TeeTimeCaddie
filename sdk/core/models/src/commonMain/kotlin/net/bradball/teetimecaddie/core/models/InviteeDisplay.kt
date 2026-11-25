@@ -4,8 +4,8 @@ import net.bradball.teetimecaddie.core.extensions.PHONE_NUMBER_LENGTH
 import net.bradball.teetimecaddie.core.extensions.formattedPhoneNumber
 import net.bradball.teetimecaddie.core.extensions.toPhoneDigits
 
-// How a person being invited is shown, shared by the models that describe one, so a contact in the
-// picker and the invitee it becomes look the same.
+// How a person being invited is shown, shared by the models that describe one, so the same person
+// looks the same in each of them.
 
 /** The single uppercase letter shown in the avatar of someone named [name]. */
 internal fun avatarInitial(name: String): String = name.trim().take(1).uppercase()

@@ -65,10 +65,7 @@ enum class GameErrors(
         GMR.strings.game_error_respond_failed_recovery
     ),
 
-    /**
-     * The device's contacts couldn't be read. Shown with the general error copy; the story
-     * proposes none of its own.
-     */
+    /** The device's contacts couldn't be read. Uses the general error text. */
     CONTACTS_LOAD_FAILED(
         GR.strings.error_default_title,
         GR.strings.error_default_message,

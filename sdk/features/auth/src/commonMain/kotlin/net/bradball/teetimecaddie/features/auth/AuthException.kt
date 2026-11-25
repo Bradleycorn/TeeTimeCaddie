@@ -5,7 +5,7 @@ import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
 
 /**
- * An authentication failure, carrying the [AuthErrors] case the UI renders.
+ * An authentication failure, carrying the [AuthErrors] case that describes it.
  *
  * @property messageArgs Values to substitute into [displayMessage]'s `%s` placeholders — currently
  *   only the email address for [AuthErrors.EMAIL_IN_USE]. The SDK deliberately does not format the

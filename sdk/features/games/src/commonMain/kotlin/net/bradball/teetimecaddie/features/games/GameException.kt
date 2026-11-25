@@ -5,7 +5,7 @@ import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
 
 /**
- * A game failure, carrying the [GameErrors] case the UI renders.
+ * A game failure, carrying the [GameErrors] case that describes it.
  *
  * @property messageArgs Values for [displayMessage]'s `%s` placeholders. See `AuthException` for
  *   why the SDK hands these over unformatted rather than resolving them itself.

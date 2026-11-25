@@ -21,7 +21,7 @@ import net.bradball.teetimecaddie.core.models.GR
  *   case `AuthException.messageArgs` carries the value — the SDK hands these over unformatted so
  *   each platform can format natively. Currently only [EMAIL_IN_USE] uses one, for the address.
  * @property recovery The label for the action that gets the person out of this state, or null when
- *   there is nothing to offer beyond trying again. This is button text, not prose.
+ *   there is nothing to offer beyond trying again. A short action label, not a sentence.
  */
 enum class AuthErrors(
     val title: StringResource,
@@ -94,7 +94,7 @@ enum class AuthErrors(
         internal fun fromSignInErrorCode(code: String?): AuthErrors = when (code) {
             // Email enumeration protection collapses "no such user" and "wrong password" into one
             // code. The older, more specific codes still arrive from projects that have it off,
-            // and all three land on the same case — the UI must not be able to tell them apart.
+            // and all three land on the same case, so callers can never tell them apart.
             "ERROR_INVALID_LOGIN_CREDENTIALS", "ERROR_INVALID_CREDENTIAL", "17004" -> INVALID_CREDENTIALS
             "ERROR_USER_NOT_FOUND", "17011" -> INVALID_CREDENTIALS
             "ERROR_WRONG_PASSWORD", "17009" -> INVALID_CREDENTIALS
@@ -112,8 +112,8 @@ enum class AuthErrors(
          * The error an account-creation failure's code means.
          *
          * Note `EMAIL_EXISTS` survives email enumeration protection — Google documents sign-up as
-         * the one endpoint that still reports it. That is what lets the credentials screen reject
-         * an in-use address before the profile step rather than after it.
+         * the one endpoint that still reports it, so an in-use address is rejected when the
+         * account is created, before any profile exists.
          */
         internal fun fromCreateAccountErrorCode(code: String?): AuthErrors = when (code) {
             "ERROR_EMAIL_ALREADY_IN_USE", "17007" -> EMAIL_IN_USE
