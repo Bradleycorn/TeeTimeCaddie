@@ -2,6 +2,8 @@ package net.bradball.teetimecaddie.features.auth
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * The one place the two platforms' error vocabularies have to agree.
@@ -89,5 +91,20 @@ class AuthErrorsTest {
     fun createAccount_fallsBackToUnknownForAnythingUnrecognized() {
         assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromCreateAccountErrorCode(null))
         assertEquals(AuthErrors.UNKNOWN, AuthErrors.fromCreateAccountErrorCode("ERROR_SOMETHING_NEW"))
+    }
+
+    // A refresh that fails for any other reason must not sign a valid user out — offline above all
+    // (TTC-127). Both platforms' codes for a rejected account have to agree.
+    @Test
+    fun rejectsSession_onlyForAnAccountFirebaseNoLongerAccepts() {
+        listOf(
+            "ERROR_USER_DISABLED", "17005",
+            "ERROR_USER_NOT_FOUND", "17011",
+            "ERROR_USER_TOKEN_EXPIRED", "17021",
+            "ERROR_INVALID_USER_TOKEN", "17017",
+        ).forEach { assertTrue(AuthErrors.rejectsSession(it), "$it should reject the session") }
+
+        listOf(null, "ERROR_NETWORK_REQUEST_FAILED", "17020", "ERROR_TOO_MANY_REQUESTS", "17052", "ERROR_SOMETHING_NEW")
+            .forEach { assertFalse(AuthErrors.rejectsSession(it), "$it should keep the session") }
     }
 }

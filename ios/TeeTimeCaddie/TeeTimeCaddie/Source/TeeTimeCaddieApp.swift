@@ -118,7 +118,7 @@ fileprivate struct TeeTimeCaddieView: View {
         .task { await appState.observeSessionEvents() }
         .onChange(of: scenePhase) { _, newPhase in
             if (newPhase == .active) {
-                Task { await appState.refreshSession() }
+                appState.refreshSession()
             }
         }
         .animation(.default, value: appState.sessionState)

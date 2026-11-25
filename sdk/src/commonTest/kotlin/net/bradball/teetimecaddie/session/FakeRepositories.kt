@@ -63,7 +63,12 @@ class FakeAuthRepository(
         return deleteSucceeds
     }
 
-    override suspend fun refreshAuthentication() = Unit
+    var refreshCount = 0
+        private set
+
+    override suspend fun refreshAuthentication() {
+        refreshCount++
+    }
 
     override suspend fun updateDisplayName(name: String) {
         displayNameUpdates.add(name)

@@ -383,4 +383,50 @@ class SessionManagerTest {
 
         assertTrue(events.isEmpty())
     }
+
+    // ── refreshSession ──────────────────────────────────────────────────────────
+
+    // A forced refresh restarts Firestore's connection, so running it while the profile was still
+    // loading delayed the first snapshot. It waits for the session instead.
+    @Test
+    fun refreshSession_waitsForTheSessionToResolve() = runTest {
+        val auth = FakeAuthRepository(AuthUser(dana.id, dana.email))
+        val players = FakePlayerRepository(dana).apply { profileReachable.value = false }
+        val session = manager(auth, players)
+
+        session.refreshSession()
+        runCurrent()
+        assertEquals(0, auth.refreshCount)
+
+        players.profileReachable.value = true
+        runCurrent()
+        assertEquals(1, auth.refreshCount)
+    }
+
+    @Test
+    fun refreshSession_dropsACallMadeWhileOneIsPending() = runTest {
+        val auth = FakeAuthRepository(AuthUser(dana.id, dana.email))
+        val players = FakePlayerRepository(dana).apply { profileReachable.value = false }
+        val session = manager(auth, players)
+
+        session.refreshSession()
+        session.refreshSession()
+        players.profileReachable.value = true
+        runCurrent()
+
+        assertEquals(1, auth.refreshCount)
+    }
+
+    @Test
+    fun refreshSession_runsAgainOnceTheLastOneFinished() = runTest {
+        val auth = FakeAuthRepository(AuthUser(dana.id, dana.email))
+        val session = manager(auth, FakePlayerRepository(dana))
+
+        session.refreshSession()
+        runCurrent()
+        session.refreshSession()
+        runCurrent()
+
+        assertEquals(2, auth.refreshCount)
+    }
 }

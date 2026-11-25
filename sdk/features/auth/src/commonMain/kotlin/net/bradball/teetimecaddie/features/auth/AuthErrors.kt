@@ -123,5 +123,22 @@ enum class AuthErrors(
             "ERROR_NETWORK_REQUEST_FAILED", "17020" -> NETWORK
             else -> UNKNOWN
         }
+
+        /**
+         * Whether a failed token refresh means Firebase no longer accepts the account: it was
+         * disabled or deleted, or its tokens expired or were revoked.
+         *
+         * Only these warrant signing out. Anything else — no network, rate limiting, an error
+         * nobody anticipated — says nothing about the account, and signing out on it would end a
+         * perfectly good session because the person opened the app on a train.
+         */
+        internal fun rejectsSession(code: String?): Boolean = when (code) {
+            "ERROR_USER_DISABLED", "17005",
+            "ERROR_USER_NOT_FOUND", "17011",
+            "ERROR_USER_TOKEN_EXPIRED", "17021",
+            "ERROR_INVALID_USER_TOKEN", "17017" -> true
+
+            else -> false
+        }
     }
 }

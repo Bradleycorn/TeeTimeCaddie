@@ -61,7 +61,9 @@ class TeeTimeCaddieAppState {
     }
 
     /// Re-validate the session, e.g. when the app returns to the foreground.
-    func refreshSession() async {
-        try? await sessionManager.refreshSession()
+    ///
+    /// Returns at once: the SDK waits for the session to load, then refreshes in its own scope.
+    func refreshSession() {
+        sessionManager.refreshSession()
     }
 }
