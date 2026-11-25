@@ -18,7 +18,8 @@ import TeeTimeCaddieKit
 /// Android twin is `AuthNavDisplay`.
 struct AuthNavView: View {
 
-    /// The current session. Read once, to seed the stack.
+    /// The current session. Seeds the stack (see ``initialStack(for:)``); after that, only a change to
+    /// signed out acts on it, returning the flow to the credentials screen.
     private let sessionState: SessionState
 
     /// Created here rather than passed in, so the stack lives exactly as long as this view does —
@@ -49,6 +50,19 @@ struct AuthNavView: View {
                     }
                 }
         }
+        // The stack is seeded once and otherwise left alone, but a session that ends while the flow
+        // is showing must not leave the profile step behind: back to the credentials screen.
+        // `onChange` never fires for the value the view appeared with, which is what the stack was
+        // seeded from, and during sign-up the profile step is pushed before `.profileIncomplete`
+        // arrives, so only a *change* to signed out counts. The Android twin is `AuthNavDisplay`.
+        .onChange(of: isSignedOut) { wasSignedOut, isSignedOut in
+            if isSignedOut && !wasSignedOut { navigator.returnToLogin() }
+        }
+    }
+
+    private var isSignedOut: Bool {
+        if case .signedOut = onEnum(of: sessionState) { return true }
+        return false
     }
 
     /// What the stack starts with.
