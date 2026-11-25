@@ -93,6 +93,22 @@ class SessionManagerTest {
         assertEquals(SessionState.Loading, withUser.sessionState.value)
     }
 
+    // A profile that can't be read yet is not a missing profile. Guessing ProfileIncomplete here
+    // sent signed-in people to the sign-up profile step on an offline cold start (TTC-127).
+    @Test
+    fun sessionState_staysLoadingWhileTheProfileCannotBeRead() = runTest {
+        val players = FakePlayerRepository().apply { profileReachable.value = false }
+        val session = manager(auth = FakeAuthRepository(AuthUser("user-1", "new@golf.app")), players = players)
+
+        backgroundScope.launch { session.sessionState.collect {} }
+        runCurrent()
+        assertEquals(SessionState.Loading, session.sessionState.value)
+
+        players.profileReachable.value = true
+        runCurrent()
+        assertIs<SessionState.ProfileIncomplete>(session.sessionState.value)
+    }
+
     // The app root and the Profile screen both observe the session; they must share one Firestore
     // listener rather than each opening their own.
     @Test

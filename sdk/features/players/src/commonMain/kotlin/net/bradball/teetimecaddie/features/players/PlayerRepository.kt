@@ -27,7 +27,11 @@ import net.bradball.teetimecaddie.core.models.TtcResult
 interface PlayerRepository {
 
     /**
-     * Observe a player, re-emitting whenever their profile changes. Emits null if none exists.
+     * Observe a player, re-emitting whenever their profile changes.
+     *
+     * Emits null only when the server confirms no profile exists. While the profile can't be read
+     * — offline, with nothing cached — it emits nothing rather than null, so a null is always safe
+     * to act on as "this person has no profile yet".
      *
      * A flow, so it reports values rather than results; a read failure simply means no emission.
      */

@@ -107,7 +107,8 @@ fileprivate struct TeeTimeCaddieView: View {
                     AuthNavView(sessionState: appState.sessionState)
                         .transition(.move(edge: .trailing))
                 case .loading:
-                    // Seeded only when a session probably exists, so this is a frame or two.
+                    // Seeded only when a session probably exists. Usually a frame or two, but it
+                    // lasts while the restored user's profile can't be read (offline, nothing cached).
                     ContentLoadingIndicator()
                 }
             }
