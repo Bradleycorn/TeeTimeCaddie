@@ -15,8 +15,8 @@ import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
  * type covers every operation, including the ones whose failures span domains — completing a
  * sign-up can fail for an authentication reason *or* a profile reason. The interface already
  * exposes `title`, `displayMessage` and `recoverySuggestion`, which is everything a generic error
- * surface needs. A screen that must tell specific cases apart — "that email is already in use"
- * renders differently from a failed sign-in — casts once to the feature's exception type and
+ * surface needs. A caller that must tell specific cases apart — "that email is already in use"
+ * is handled differently from a failed sign-in — casts once to the feature's exception type and
  * switches on its `error` enum.
  *
  * Note the exception is only ever *carried*, never thrown.

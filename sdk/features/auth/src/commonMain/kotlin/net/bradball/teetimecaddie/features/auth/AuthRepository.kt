@@ -15,15 +15,10 @@ import net.bradball.teetimecaddie.core.models.TtcResult
 import kotlin.coroutines.coroutineContext
 
 /**
- * Credentials and sessions. Knows about Firebase Auth and nothing else.
+ * Firebase Auth accounts: creating them, signing in and out, and keeping the session current.
  *
- * Profile data — a person's name, phone number and avatar — belongs to the players feature. That
- * separation is not tidiness: matching an invitation to a phone number has nothing to do with
- * authentication, and a repository that owned both would drag auth into every feature that needs
- * to look up a player.
- *
- * Nothing here knows what a "session" is in the app's sense either. Joining a signed-in user to
- * their profile is `SessionManager`'s job.
+ * Profile data — a person's name, phone number and avatar — belongs to `PlayerRepository`, and
+ * joining a signed-in user to their profile is `SessionManager`'s job.
  *
  * **Nothing here throws.** Failures come back as [TtcResult.Failure] carrying an [AuthException],
  * because Kotlin exceptions cross into Swift badly. See [TtcResult].
@@ -33,53 +28,81 @@ interface AuthRepository {
     /** The signed-in user, or null. Reads Firebase's restored session synchronously. */
     val currentUser: AuthUser?
 
-    /** Emits on every sign-in and sign-out, starting with the current value. */
+    /** The signed-in user, emitted on every sign-in and sign-out, starting with the current value. */
     val authChanges: Flow<AuthUser?>
 
+    /**
+     * Signs in to an existing account with an email address and password.
+     *
+     * @param email The account's email address.
+     * @param password The account's password.
+     * @return The signed-in user. [AuthErrors.INVALID_EMAIL] for a malformed address, checked
+     *   before contacting Firebase. [AuthErrors.INVALID_CREDENTIALS] for an unknown address or a
+     *   wrong password, which can't be told apart. Otherwise [AuthErrors.ACCOUNT_DISABLED],
+     *   [AuthErrors.TOO_MANY_ATTEMPTS], [AuthErrors.NETWORK], [AuthErrors.SESSION_EXPIRED] or
+     *   [AuthErrors.UNKNOWN].
+     */
     suspend fun signIn(email: String, password: String): TtcResult<AuthUser>
 
     /**
-     * Create the Firebase Auth account.
+     * Creates a Firebase Auth account and signs the new user in.
      *
-     * This is step one of a two-step sign-up, and it runs from the *credentials* screen rather
-     * than after the profile step. That ordering is deliberate: `createUser` is the only call that
-     * authoritatively reports an address is taken, and the story requires that rejection to land
-     * before the person fills in their name and phone number.
+     * Creates only the account, not a player profile: afterwards there is a signed-in user with no
+     * profile until one is created with `PlayerRepository.createPlayer`. This is also the only call
+     * that reports an address already has an account.
      *
-     * Firebase signs the new user in as a side effect, so afterwards there is an authenticated
-     * user with no profile. `SessionManager` models that as a first-class state rather than
-     * hiding it.
+     * @param email The new account's email address.
+     * @param password The new account's password: at least 8 characters, including a digit.
+     * @return The new, signed-in user. [AuthErrors.INVALID_EMAIL] for a malformed address and
+     *   [AuthErrors.WEAK_PASSWORD] for a password that's too weak, both checked before an account
+     *   is created. [AuthErrors.EMAIL_IN_USE] when the address already has an account. Otherwise
+     *   [AuthErrors.TOO_MANY_ATTEMPTS], [AuthErrors.NETWORK] or [AuthErrors.UNKNOWN].
      */
     suspend fun createAccount(email: String, password: String): TtcResult<AuthUser>
 
+    /** Signs the current user out. Does nothing when nobody is signed in. */
     suspend fun signOut()
 
     /**
-     * Delete the signed-in account. Used to clean up a sign-up the person abandoned.
+     * Deletes the signed-in user's Firebase Auth account. Their player profile, if any, is left
+     * alone.
      *
-     * @return false if there was no account to delete, or Firebase refused — which it does for a
-     *   session old enough to need re-authentication. Callers treat that as non-fatal, so this
-     *   reports rather than fails.
+     * @return True when the account was deleted. False when nobody is signed in, or Firebase
+     *   refused — which it does for a session old enough to need re-authentication. Failing to
+     *   delete is reported rather than treated as an error.
      */
     suspend fun deleteCurrentUser(): Boolean
 
     /**
-     * Force a token refresh, signing out only if Firebase rejects the account — disabled, deleted,
-     * or its tokens expired or revoked.
+     * Refreshes the signed-in user's token, signing out only if Firebase rejects the account —
+     * disabled, deleted, or its tokens expired or revoked.
      *
      * Any other failure, a missing network above all, leaves the session alone: it says nothing
-     * about the account, and the next refresh will try again.
+     * about the account, and the next refresh will try again. Does nothing when nobody is signed
+     * in.
      */
     suspend fun refreshAuthentication()
 
     /**
-     * Keep the Firebase Auth record's display name in step with the player's profile.
+     * Sets the signed-in user's Firebase Auth display name, to keep it in step with their player
+     * profile.
      *
-     * Best-effort: the auth record's name is a convenience, not a source of truth.
+     * Best effort: a failure is logged and otherwise ignored, since the profile, not the auth
+     * record, is the source of truth for the name.
+     *
+     * @param name The player's name.
      */
     suspend fun updateDisplayName(name: String)
 }
 
+/**
+ * The [AuthRepository] the apps use. It also reports to analytics:
+ * - The user id, set on every successful sign-in and as soon as an account is created.
+ * - [AnalyticsEvent.Login] and [AnalyticsEvent.FailedLogin] for sign-in attempts.
+ * - [AnalyticsEvent.CreateAccountStarted] and [AnalyticsEvent.FailedRegistration] for account
+ *   creation. The `CreateAccount` event waits for the player profile, so it isn't logged here.
+ * - [AnalyticsEvent.SignOut] on sign-out.
+ */
 class AuthRepositoryImpl(
     private val eventManager: EventManager
 ) : AuthRepository {
@@ -107,8 +130,6 @@ class AuthRepositoryImpl(
             return TtcResult.Failure(authFailure(ex, AuthErrors::fromSignInErrorCode, "sign_in", email))
         }
 
-        // Both of these were missing before: sign-in recorded neither the user id nor the event,
-        // so every signed-in session was attributed to nobody.
         eventManager.setUserId(user.uid)
         eventManager.logEvent(AnalyticsEvent.Login)
 
@@ -219,7 +240,7 @@ class AuthRepositoryImpl(
     }
 }
 
-/** At least 8 characters with at least one digit — the rule the sign-up copy promises. */
+/** True when the password has at least 8 characters, including at least one digit. */
 private val String.isStrongEnough: Boolean
     get() = length >= 8 && any { it.isDigit() }
 

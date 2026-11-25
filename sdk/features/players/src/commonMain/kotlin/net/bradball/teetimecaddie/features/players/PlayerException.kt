@@ -5,7 +5,7 @@ import net.bradball.teetimecaddie.core.analytics.LoggableExceptionTypes
 import net.bradball.teetimecaddie.core.models.exceptions.TeeTimeCaddieException
 
 /**
- * A player-profile failure, carrying the [PlayerErrors] case the UI renders.
+ * A player-profile failure, carrying the [PlayerErrors] case that describes it.
  *
  * @property inlineMessage Non-null when this error should also appear on the offending field.
  * @property messageArgs Values for [displayMessage]'s `%s` placeholders. See `AuthException` for
