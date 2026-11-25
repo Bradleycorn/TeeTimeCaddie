@@ -53,7 +53,7 @@ fun Navigator.navigateToCreateAccount(email: String) {
  * session that goes away while that step is on screen. Leaves a stack that is already just the
  * credentials screen untouched, so whatever was typed there survives.
  */
-fun Navigator.returnToLogin() {
+fun Navigator.navigateToLogin() {
     if (backStack.singleOrNull() == LoginDestination) return
     navigate(LoginDestination, clearBackStack = true)
 }

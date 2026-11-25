@@ -13,19 +13,19 @@ class AuthNavigationTest {
 
     // The profile step left on screen after the session ended was TTC-127.
     @Test
-    fun returnToLogin_dropsTheProfileStep() {
+    fun navigateToLogin_dropsTheProfileStep() {
         val navigator = BasicNavigator(LoginDestination, CreateAccountDestination("new@golf.app"))
 
-        navigator.returnToLogin()
+        navigator.navigateToLogin()
 
         assertEquals(listOf(LoginDestination), navigator.backStack.toList())
     }
 
     @Test
-    fun returnToLogin_replacesAStackWithoutLoginAtTheBottom() {
+    fun navigateToLogin_replacesAStackWithoutLoginAtTheBottom() {
         val navigator = BasicNavigator(CreateAccountDestination("new@golf.app"))
 
-        navigator.returnToLogin()
+        navigator.navigateToLogin()
 
         assertEquals(listOf(LoginDestination), navigator.backStack.toList())
     }
@@ -33,10 +33,10 @@ class AuthNavigationTest {
     // Going back from the profile step pops to Login and then signs out; the reset that follows
     // must leave that entry alone, or the email typed on it would be lost.
     @Test
-    fun returnToLogin_leavesALoneLoginEntryUntouched() {
+    fun navigateToLogin_leavesALoneLoginEntryUntouched() {
         val navigator = RecordingNavigator(LoginDestination)
 
-        navigator.returnToLogin()
+        navigator.navigateToLogin()
 
         assertEquals(0, navigator.navigations)
         assertEquals(listOf(LoginDestination), navigator.backStack.toList())

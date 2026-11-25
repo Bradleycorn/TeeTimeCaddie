@@ -16,7 +16,7 @@ import net.bradball.teetimecaddie.android.feature.auth.navigation.CreateAccountD
 import net.bradball.teetimecaddie.android.feature.auth.navigation.LoginDestination
 import net.bradball.teetimecaddie.android.feature.auth.navigation.authEntries
 import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToCreateAccount
-import net.bradball.teetimecaddie.android.feature.auth.navigation.returnToLogin
+import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToLogin
 import net.bradball.teetimecaddie.android.ui.navigation.BasicNavigator
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
 import net.bradball.teetimecaddie.android.ui.navigation.rememberBasicNavigator
@@ -55,7 +55,7 @@ fun AuthNavDisplay(sessionState: SessionState, modifier: Modifier = Modifier) {
         snapshotFlow { currentSessionState is SessionState.SignedOut }
             .drop(1)
             .filter { signedOut -> signedOut }
-            .collect { navigator.returnToLogin() }
+            .collect { navigator.navigateToLogin() }
     }
 
     NavDisplay(
