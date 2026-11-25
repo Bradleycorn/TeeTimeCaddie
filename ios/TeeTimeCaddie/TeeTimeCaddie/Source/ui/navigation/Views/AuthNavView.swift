@@ -56,7 +56,7 @@ struct AuthNavView: View {
         // seeded from, and during sign-up the profile step is pushed before `.profileIncomplete`
         // arrives, so only a *change* to signed out counts. The Android twin is `AuthNavDisplay`.
         .onChange(of: isSignedOut) { wasSignedOut, isSignedOut in
-            if isSignedOut && !wasSignedOut { navigator.returnToLogin() }
+            if isSignedOut && !wasSignedOut { navigator.navigateToLogin() }
         }
     }
 
