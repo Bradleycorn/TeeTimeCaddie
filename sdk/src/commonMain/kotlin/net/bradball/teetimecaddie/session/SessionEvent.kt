@@ -3,25 +3,27 @@ package net.bradball.teetimecaddie.session
 import net.bradball.teetimecaddie.core.models.Player
 
 /**
- * A session transition the person caused, reported once, for one-off feedback such as "Welcome
- * back, Dana".
+ * A session change the user asked for, reported once by `SessionManager.sessionEvents`.
  *
- * Not the session itself — that is [SessionState], which apps route on. These exist because the
- * screen that causes a transition is destroyed by it (the root swaps the whole view tree), so it
- * cannot show the confirmation itself. The app root, which hosts the toast and survives the swap,
- * listens for these instead.
- *
- * Only transitions someone *asked for* are reported: a session restored on launch, a sign-up that
- * was abandoned, or an expired token emit nothing.
+ * An event reports a change, not the session itself; for that, observe [SessionState]. Restoring a
+ * session at launch, abandoning a sign-up, and an expired token report nothing.
  */
 sealed class SessionEvent {
 
-    /** An existing, fully provisioned account signed in. */
+    /**
+     * A sign-in to an account that has a player profile.
+     *
+     * @property player The signed-in user's player profile.
+     */
     data class SignedIn(val player: Player) : SessionEvent()
 
-    /** Sign-up finished: the profile was saved, and the person is now signed in. */
+    /**
+     * A completed sign-up: the player profile was saved and the user is signed in.
+     *
+     * @property player The new player profile.
+     */
     data class AccountCreated(val player: Player) : SessionEvent()
 
-    /** The person signed out. */
+    /** A sign-out the user requested. */
     data object SignedOut : SessionEvent()
 }
