@@ -3,6 +3,8 @@ package net.bradball.teetimecaddie.session
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import net.bradball.teetimecaddie.core.models.Player
@@ -61,7 +63,12 @@ class FakeAuthRepository(
         return deleteSucceeds
     }
 
-    override suspend fun refreshAuthentication() = Unit
+    var refreshCount = 0
+        private set
+
+    override suspend fun refreshAuthentication() {
+        refreshCount++
+    }
 
     override suspend fun updateDisplayName(name: String) {
         displayNameUpdates.add(name)
@@ -73,6 +80,12 @@ class FakePlayerRepository(
 ) : PlayerRepository {
 
     private val store = MutableStateFlow(players.associateBy { it.id })
+
+    /**
+     * When false, [playerFlow] emits nothing, as the real one does while the profile can't be read
+     * (offline, nothing cached). Setting it back to true delivers the current profile.
+     */
+    val profileReachable = MutableStateFlow(true)
 
     /** When set, every read fails with it — used to prove a failed read is not read as "absent". */
     var readFailure: TeeTimeCaddieException? = null
@@ -91,7 +104,10 @@ class FakePlayerRepository(
         private set
 
     override fun playerFlow(playerId: String): Flow<Player?> =
-        store.map { it[playerId] }.onStart { playerFlowSubscriptions++ }
+        combine(store, profileReachable) { players, reachable -> reachable to players[playerId] }
+            .filter { (reachable, _) -> reachable }
+            .map { (_, player) -> player }
+            .onStart { playerFlowSubscriptions++ }
 
     override suspend fun getPlayer(playerId: String): TtcLookup<Player> =
         readFailure?.let { TtcLookup.Failure(it) } ?: TtcLookup.Success(store.value[playerId])

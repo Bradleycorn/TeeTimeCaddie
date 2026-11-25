@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.session
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -8,6 +9,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -259,8 +261,31 @@ class SessionManager internal constructor(
         }
     }
 
-    /** Re-validate the session, e.g. when the app returns to the foreground. */
-    suspend fun refreshSession() = authRepository.refreshAuthentication()
+    private var refreshJob: Job? = null
+
+    /**
+     * Re-validate the session, e.g. when the app starts or returns to the foreground.
+     *
+     * Signs out only if Firebase rejects the account (disabled, deleted, tokens expired or
+     * revoked). A refresh that fails for any other reason, such as no network, keeps the session.
+     *
+     * **Waits for [sessionState] to resolve first.** A forced refresh hands Firestore a new token,
+     * and Firestore restarts its connection to use it; doing that while the profile is still loading
+     * held up the first snapshot by several seconds. Offline, the wait lasts until the profile can
+     * be read, which is also the first moment a refresh could succeed.
+     *
+     * Not `suspend`, and launched on [externalScope], so the caller never waits on the network or
+     * on the session. Android runs this from an app-start initializer that holds the splash screen
+     * until it returns. A call made while an earlier refresh is still pending is dropped: it would
+     * check the same thing.
+     */
+    fun refreshSession() {
+        if (refreshJob?.isActive == true) return
+        refreshJob = externalScope.launch {
+            sessionState.first { it !is SessionState.Loading }
+            authRepository.refreshAuthentication()
+        }
+    }
 
     /**
      * Run session-changing work in [externalScope] and await its result.

@@ -1,6 +1,7 @@
 package net.bradball.teetimecaddie.features.auth
 
 import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.FirebaseNetworkException
 import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -62,7 +63,13 @@ interface AuthRepository {
      */
     suspend fun deleteCurrentUser(): Boolean
 
-    /** Force a token refresh, signing out if the session is no longer valid. */
+    /**
+     * Force a token refresh, signing out only if Firebase rejects the account — disabled, deleted,
+     * or its tokens expired or revoked.
+     *
+     * Any other failure, a missing network above all, leaves the session alone: it says nothing
+     * about the account, and the next refresh will try again.
+     */
     suspend fun refreshAuthentication()
 
     /**
@@ -165,7 +172,16 @@ class AuthRepositoryImpl(
             Firebase.auth.currentUser?.getIdToken(forceRefresh = true)
         } catch (ex: Exception) {
             currentCoroutineContext().ensureActive()
-            Firebase.auth.signOut()
+            when {
+                AuthErrors.rejectsSession(ex.firebaseAuthErrorCode()) -> Firebase.auth.signOut()
+
+                // Expected whenever the app opens offline; not worth reporting.
+                ex is FirebaseNetworkException -> Unit
+
+                else -> eventManager.logException(
+                    ex, LoggableExceptionTypes.AUTHENTICATION, hashMapOf("action" to "refresh_authentication")
+                )
+            }
         }
     }
 
