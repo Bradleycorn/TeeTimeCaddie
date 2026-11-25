@@ -28,7 +28,7 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
 
     // Held as lazy vals rather than built per call, so there is exactly one of each for the life
     // of the SDK. That matters most for `sessionManager`: it holds the one shared sessionState and
-    // the one sessionEvents stream, and a second instance would mean a second of each — an app shell
+    // the one sessionEvents stream, and a second instance would mean a second of each — a caller
     // observing the wrong one would simply never update, and every instance would open its own
     // listeners. Making it structural here means a misconfigured DI in either app cannot
     // reintroduce that.
@@ -67,8 +67,8 @@ class TeeTimeCaddieSdk private constructor(useLocalResources: Boolean, private v
      * cannot cancel the scope and silently disable the rest.
      *
      * It hosts [SessionManager]'s shared session flow, and is what makes every session-changing
-     * call immune to its caller being cancelled — the caller is usually a screen that the change
-     * itself destroys.
+     * call immune to its caller being cancelled, including callers whose scope is cancelled by the
+     * change itself.
      *
      * Not exposed: callers get the behaviour through the methods that need it, not a scope to
      * launch their own work in.

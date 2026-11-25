@@ -3,41 +3,39 @@ package net.bradball.teetimecaddie.session
 import net.bradball.teetimecaddie.core.models.Player
 
 /**
- * What the app knows about the person using it, right now.
+ * The current user's session: whether anyone is signed in, and whether they have a player profile.
  *
- * Both apps branch their whole UI on this, so it is the integration contract between the SDK and
- * the platform layers: **route on `SessionState`, never on "is there a Firebase user"**. Those two
- * are not the same thing, and [ProfileIncomplete] is exactly where they differ.
+ * Decide what the user can do from this, never from whether Firebase has a signed-in user. The two
+ * differ in [ProfileIncomplete].
  */
 sealed class SessionState {
 
     /**
-     * Firebase has not finished restoring a persisted session.
+     * A persisted session that Firebase has not finished restoring.
      *
-     * Only ever the initial value of `SessionManager.sessionState`, and only when a session probably
-     * exists — the flow itself never emits it again. Without it, a cold start
-     * shows the credentials screen for a frame before the restored user arrives — which reads as a
-     * flash of "signed out" to someone who never signed out.
-     *
-     * Usually a frame or two, but it lasts for as long as the restored user's profile can't be read
-     * — a cold start offline, with nothing cached. The session stays here rather than guessing
-     * [ProfileIncomplete], which would send someone with a profile to the sign-up profile step.
+     * Only ever the initial value of `SessionManager.sessionState`, when Firebase has a persisted
+     * user; the state never returns to it. It lasts until the restored user's profile has been
+     * read, so a profile that can't be read yet, offline with nothing cached, is never reported as
+     * missing.
      */
     data object Loading : SessionState()
 
-    /** No account. The app shows the credentials screen. */
+    /** No signed-in user. */
     data object SignedOut : SessionState()
 
     /**
-     * An authenticated user with no profile yet.
+     * A signed-in user with no player profile: their account was created, but sign-up was never
+     * completed.
      *
-     * This is the cost of rejecting an in-use email *before* the profile step: the Firebase
-     * account is created from the credentials screen, so between that and saving a profile there
-     * is a real, reachable state with a session and no player. Modelling it means someone who
-     * force-quits mid-sign-up resumes at the profile step instead of landing on an empty Games tab.
+     * @property userId The signed-in user's id.
+     * @property email The signed-in user's email address.
      */
     data class ProfileIncomplete(val userId: String, val email: String) : SessionState()
 
-    /** Fully provisioned. The app shows the Games tab, and the Profile tab renders [player]. */
+    /**
+     * A signed-in user with a player profile.
+     *
+     * @property player The signed-in user's player profile.
+     */
     data class SignedIn(val player: Player) : SessionState()
 }
