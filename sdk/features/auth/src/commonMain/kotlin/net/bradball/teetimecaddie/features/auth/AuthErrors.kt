@@ -136,7 +136,9 @@ enum class AuthErrors(
             "ERROR_USER_DISABLED", "17005",
             "ERROR_USER_NOT_FOUND", "17011",
             "ERROR_USER_TOKEN_EXPIRED", "17021",
-            "ERROR_INVALID_USER_TOKEN", "17017" -> true
+            "ERROR_INVALID_USER_TOKEN", "17017",
+            // iOS has no code for this server message; see authErrorCodeFromNSErrorDescription.
+            "INVALID_REFRESH_TOKEN" -> true
 
             else -> false
         }

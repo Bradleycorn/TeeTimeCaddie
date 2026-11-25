@@ -102,9 +102,10 @@ class AuthErrorsTest {
             "ERROR_USER_NOT_FOUND", "17011",
             "ERROR_USER_TOKEN_EXPIRED", "17021",
             "ERROR_INVALID_USER_TOKEN", "17017",
+            "INVALID_REFRESH_TOKEN",
         ).forEach { assertTrue(AuthErrors.rejectsSession(it), "$it should reject the session") }
 
-        listOf(null, "ERROR_NETWORK_REQUEST_FAILED", "17020", "ERROR_TOO_MANY_REQUESTS", "17052", "ERROR_SOMETHING_NEW")
+        listOf(null, "ERROR_NETWORK_REQUEST_FAILED", "17020", "ERROR_TOO_MANY_REQUESTS", "17052", "17999", "ERROR_SOMETHING_NEW")
             .forEach { assertFalse(AuthErrors.rejectsSession(it), "$it should keep the session") }
     }
 }
