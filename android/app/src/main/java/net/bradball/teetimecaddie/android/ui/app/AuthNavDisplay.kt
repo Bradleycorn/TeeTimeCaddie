@@ -1,15 +1,22 @@
 package net.bradball.teetimecaddie.android.ui.app
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import net.bradball.teetimecaddie.android.feature.auth.navigation.CreateAccountDestination
 import net.bradball.teetimecaddie.android.feature.auth.navigation.LoginDestination
 import net.bradball.teetimecaddie.android.feature.auth.navigation.authEntries
 import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToCreateAccount
+import net.bradball.teetimecaddie.android.feature.auth.navigation.navigateToLogin
 import net.bradball.teetimecaddie.android.ui.navigation.BasicNavigator
 import net.bradball.teetimecaddie.android.ui.navigation.TtcNavKey
 import net.bradball.teetimecaddie.android.ui.navigation.rememberBasicNavigator
@@ -27,7 +34,8 @@ import net.bradball.teetimecaddie.session.SessionState
  * profile step to the credentials screen **restores the typed email for free** — `LoginViewModel`
  * was alive underneath the whole time.
  *
- * @param sessionState The current session. Read once, to seed the stack; see [initialAuthStack].
+ * @param sessionState The current session. Seeds the stack (see [initialAuthStack]); after that,
+ *   only a change to signed out acts on it, returning the flow to the credentials screen.
  *
  * @see NavBarNavDisplay
  * @see BasicNavigator
@@ -36,6 +44,19 @@ import net.bradball.teetimecaddie.session.SessionState
 @Composable
 fun AuthNavDisplay(sessionState: SessionState, modifier: Modifier = Modifier) {
     val navigator = rememberBasicNavigator(*initialAuthStack(sessionState))
+
+    // The stack is seeded once and otherwise left alone, but a session that ends while the flow is
+    // showing must not leave the profile step behind: back to the credentials screen. Only a
+    // *change* to SignedOut counts. The value at composition is what the stack was seeded from, and
+    // during sign-up the profile step is pushed before ProfileIncomplete arrives, so a recreated
+    // activity in that window must not reset it.
+    val currentSessionState by rememberUpdatedState(sessionState)
+    LaunchedEffect(navigator) {
+        snapshotFlow { currentSessionState is SessionState.SignedOut }
+            .drop(1)
+            .filter { signedOut -> signedOut }
+            .collect { navigator.navigateToLogin() }
+    }
 
     NavDisplay(
         backStack = navigator.backStack,
@@ -59,7 +80,8 @@ fun AuthNavDisplay(sessionState: SessionState, modifier: Modifier = Modifier) {
  *
  * Only ever read at first composition — [rememberBasicNavigator] keeps the stack across later
  * session changes, which is what makes the credentials → profile step transition (`SignedOut`
- * becoming `ProfileIncomplete`) leave the stack alone instead of resetting it.
+ * becoming `ProfileIncomplete`) leave the stack alone instead of resetting it. The one change that
+ * does reset it is a session ending, handled in [AuthNavDisplay].
  *
  * A restored [SessionState.ProfileIncomplete] session — someone who force-quit mid-sign-up — starts
  * **two** deep rather than landing straight on the profile step with nothing underneath. Abandoning
