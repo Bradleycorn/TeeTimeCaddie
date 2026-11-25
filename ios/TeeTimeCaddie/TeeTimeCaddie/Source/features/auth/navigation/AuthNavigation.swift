@@ -53,4 +53,13 @@ extension Navigator {
     func navigateToCreateAccount(email: String) {
         navigate(to: AuthDestinations.createAccount(email: email))
     }
+
+    /// Returns the auth flow to the credentials screen, discarding anything above it.
+    ///
+    /// For when the session ends underneath the flow, such as a session that goes away while the
+    /// profile step is on screen. The credentials screen is the stack's root rather than an entry
+    /// in it, so this empties the stack, and leaves one that is already empty alone.
+    func navigateToLogin() {
+        if currentDestination != nil { clearbackstack() }
+    }
 }
