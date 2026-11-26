@@ -98,6 +98,7 @@ class NewGameViewModel @Inject constructor(
 
     /** "Choose from contacts" was tapped in the sheet: the system picker opens. No permission is needed. */
     fun onChooseFromContactsClick() {
+        eventManager.logEvent(AnalyticsEvent.ChooseFromContactsClick)
         viewModelScope.launch { _events.send(NewGameEvent.PickContacts) }
     }
 
@@ -133,6 +134,7 @@ class NewGameViewModel @Inject constructor(
      * otherwise the fields show what's wrong.
      */
     fun onAddEnteredPlayer() {
+        eventManager.logEvent(AnalyticsEvent.AddEnteredPlayerClick)
         val addPlayersState = _uiState.value.addPlayers ?: return
         val result = contactsRepository.chooseEnteredPerson(addPlayersState.list, addPlayersState.name, addPlayersState.phone)
         updateAddPlayersState { it.afterEntry(result) }
@@ -140,19 +142,21 @@ class NewGameViewModel @Inject constructor(
 
     /** A selected person's chip was tapped: they're taken out of the selection. */
     fun onUnchoosePlayer(person: NewInvitee) {
+        eventManager.logEvent(AnalyticsEvent.UnchoosePlayerClick)
         updateAddPlayersState { it.unchoose(person) }
     }
 
     /** "Add N players" was tapped: everyone selected joins the invitees, and the sheet closes. */
     fun onAddChosenPlayers() {
-        _uiState.update { state ->
-            val addPlayersState = state.addPlayers ?: return@update state
-            state.copy(invitees = addPlayersState.list.inviteChosen().invited, addPlayers = null)
-        }
+        val addPlayersState = _uiState.value.addPlayers ?: return
+        eventManager.logEvent(AnalyticsEvent.AddChosenPlayersClick(playerCount = addPlayersState.list.chosen.size))
+        val invited = contactsRepository.inviteChosen(addPlayersState.list).invited
+        _uiState.update { it.copy(invitees = invited, addPlayers = null) }
     }
 
     /** The sheet was dragged down or the scrim tapped: the selection is discarded, without asking. */
     fun onAddPlayersDismissed() {
+        eventManager.logEvent(AnalyticsEvent.AddPlayersSheetDismiss)
         _uiState.update { it.copy(addPlayers = null) }
     }
 
