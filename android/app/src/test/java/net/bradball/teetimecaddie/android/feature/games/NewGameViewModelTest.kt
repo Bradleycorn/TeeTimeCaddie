@@ -467,7 +467,7 @@ class NewGameViewModelTest {
     fun addPlayersIsLogged() {
         viewModel.onAddPlayersClick()
 
-        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddFromContactsClick), analytics.events)
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddPlayersClick), analytics.events)
     }
 
     @Test
@@ -509,6 +509,81 @@ class NewGameViewModelTest {
         viewModel.onRemoveInvitee(matt)
 
         assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.RemoveInviteeClick), analytics.events)
+    }
+
+    @Test
+    fun chooseFromContactsIsLogged() {
+        viewModel.onAddPlayersClick()
+        analytics.events.clear()
+
+        viewModel.onChooseFromContactsClick()
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.ChooseFromContactsClick), analytics.events)
+    }
+
+    @Test
+    fun addingAnEnteredPlayerLogsTheClickThenTheManualInvitee() {
+        viewModel.onAddPlayersClick()
+        viewModel.onPlayerNameChange("Sam Tanaka")
+        viewModel.onPlayerPhoneChange("4155550123")
+        analytics.events.clear()
+
+        viewModel.onAddEnteredPlayer()
+
+        assertEquals(
+            listOf(AnalyticsEvent.AddEnteredPlayerClick, AnalyticsEvent.AddManualInvitee),
+            analytics.events
+        )
+    }
+
+    @Test
+    fun anInvalidEntryStillLogsTheClick() {
+        viewModel.onAddPlayersClick()
+        analytics.events.clear()
+
+        viewModel.onAddEnteredPlayer()
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddEnteredPlayerClick), analytics.events)
+    }
+
+    @Test
+    fun unchoosingAPlayerIsLogged() {
+        viewModel.onAddPlayersClick()
+        pick(matt)
+        analytics.events.clear()
+
+        viewModel.onUnchoosePlayer(matt)
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.UnchoosePlayerClick), analytics.events)
+    }
+
+    @Test
+    fun addingTheChosenPlayersLogsTheClickThenTheInviteWithTheCount() {
+        viewModel.onAddPlayersClick()
+        pick(matt)
+        pick(jeff)
+        analytics.events.clear()
+
+        viewModel.onAddChosenPlayers()
+
+        assertEquals(
+            listOf(
+                AnalyticsEvent.AddChosenPlayersClick(playerCount = 2),
+                AnalyticsEvent.InvitePlayers(playerCount = 2),
+            ),
+            analytics.events
+        )
+    }
+
+    @Test
+    fun dismissingTheSheetLogsTheDismissAndNoInvite() {
+        viewModel.onAddPlayersClick()
+        pick(matt)
+        analytics.events.clear()
+
+        viewModel.onAddPlayersDismissed()
+
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.AddPlayersSheetDismiss), analytics.events)
     }
 
     @Test

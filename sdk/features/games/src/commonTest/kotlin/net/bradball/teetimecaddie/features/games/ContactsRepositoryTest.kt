@@ -150,4 +150,17 @@ class ContactsRepositoryTest {
         assertEquals(ManualInviteeCheck(isNameBlank = true, phoneError = InviteePhoneError.DUPLICATE), result.check)
         assertTrue(events.isEmpty())
     }
+
+    // MARK: inviting the chosen
+
+    @Test
+    fun invitingMovesTheChosenToTheEndOfTheInvitedAndLogsHowMany() {
+        val sam = NewInvitee("Sam Tanaka", "4155550123")
+
+        val result = repository.inviteChosen(empty.copy(invited = listOf(matt), chosen = listOf(dana, sam)))
+
+        assertEquals(listOf(matt, dana, sam), result.invited)
+        assertTrue(result.chosen.isEmpty())
+        assertEquals(listOf<AnalyticsEvent>(AnalyticsEvent.InvitePlayers(playerCount = 2)), events)
+    }
 }

@@ -381,7 +381,7 @@ final class NewGameViewModelTests: XCTestCase {
     func testAddPlayersIsLogged() {
         viewModel.onAddPlayersClick()
 
-        XCTAssertEqual(analytics.events, [AnalyticsEvent.AddFromContactsClick.shared])
+        XCTAssertEqual(analytics.events, [AnalyticsEvent.AddPlayersClick.shared])
     }
 
     func testAPickLogsTheDismissWithASelectionAndHowManyWereAdded() async {
@@ -407,6 +407,72 @@ final class NewGameViewModelTests: XCTestCase {
 
         XCTAssertEqual(Array(analytics.events.dropFirst(before)), [AnalyticsEvent.ContactPickerDismiss(selection: .none)])
         XCTAssertEqual(viewModel.uiState.invitees.map(\.name), ["Matt Chen"])
+    }
+
+    func testChooseFromContactsIsLogged() {
+        viewModel.onAddPlayersClick()
+        let before = analytics.events.count
+
+        viewModel.onChooseFromContactsClick(pickContacts: {})
+
+        XCTAssertEqual(Array(analytics.events.dropFirst(before)), [AnalyticsEvent.ChooseFromContactsClick.shared])
+    }
+
+    func testAValidEntryLogsTheClickAndTheManualInvitee() {
+        viewModel.onAddPlayersClick()
+        viewModel.onPlayerNameChange("Sam Tanaka")
+        viewModel.onPlayerPhoneChange("(415) 555-0123")
+        let before = analytics.events.count
+
+        viewModel.onAddEnteredPlayer()
+
+        XCTAssertEqual(Array(analytics.events.dropFirst(before)), [
+            AnalyticsEvent.AddEnteredPlayerClick.shared,
+            AnalyticsEvent.AddManualInvitee.shared,
+        ])
+    }
+
+    func testAnInvalidEntryStillLogsTheClick() {
+        viewModel.onAddPlayersClick()
+        let before = analytics.events.count
+
+        viewModel.onAddEnteredPlayer()
+
+        XCTAssertEqual(Array(analytics.events.dropFirst(before)), [AnalyticsEvent.AddEnteredPlayerClick.shared])
+    }
+
+    func testUnchoosingAPlayerIsLogged() async {
+        viewModel.onAddPlayersClick()
+        await pick(matt)
+        let before = analytics.events.count
+
+        viewModel.onUnchoosePlayer(matt)
+
+        XCTAssertEqual(Array(analytics.events.dropFirst(before)), [AnalyticsEvent.UnchoosePlayerClick.shared])
+    }
+
+    func testAddingTheChosenPlayersLogsTheClickThenTheInvite() async {
+        viewModel.onAddPlayersClick()
+        await pick(matt)
+        await pick(jeff)
+        let before = analytics.events.count
+
+        viewModel.onAddChosenPlayers()
+
+        XCTAssertEqual(Array(analytics.events.dropFirst(before)), [
+            AnalyticsEvent.AddChosenPlayersClick(playerCount: 2),
+            AnalyticsEvent.InvitePlayers(playerCount: 2),
+        ])
+    }
+
+    func testDismissingTheSheetLogsTheDismissAndInvitesNobody() async {
+        viewModel.onAddPlayersClick()
+        await pick(matt)
+        let before = analytics.events.count
+
+        viewModel.onAddPlayersDismissed()
+
+        XCTAssertEqual(Array(analytics.events.dropFirst(before)), [AnalyticsEvent.AddPlayersSheetDismiss.shared])
     }
 
     func testRemovingAnInviteeIsLogged() async {
