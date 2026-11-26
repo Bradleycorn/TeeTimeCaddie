@@ -12,7 +12,6 @@ class AddPlayersEventsTest {
             AnalyticsEvent.ChooseFromContactsClick to "choose_from_contacts_click",
             AnalyticsEvent.AddEnteredPlayerClick to "add_entered_player_click",
             AnalyticsEvent.UnchoosePlayerClick to "unchoose_player_click",
-            AnalyticsEvent.AddChosenPlayersClick to "add_chosen_players_click",
             AnalyticsEvent.AddPlayersSheetDismiss to "add_players_sheet_dismiss",
         )
 
@@ -21,6 +20,15 @@ class AddPlayersEventsTest {
             assertEquals(EventType.CLICK, event.type)
             assertTrue(event.parameters().isEmpty(), "$name has no parameters")
         }
+    }
+
+    @Test
+    fun addChosenPlayersClickIsAClickCarryingThePlayerCount() {
+        val event = AnalyticsEvent.AddChosenPlayersClick(playerCount = 2)
+
+        assertEquals("add_chosen_players_click", event.name)
+        assertEquals(EventType.CLICK, event.type)
+        assertEquals(mapOf<String, Any>("player_count" to 2), event.parameters())
     }
 
     @Test

@@ -188,9 +188,11 @@ sealed class AnalyticsEvent(val name: String, internal val type: EventType) {
     /** A chosen player's chip was tapped in the Add players sheet's tray, removing them. */
     @Serializable
     object UnchoosePlayerClick: AnalyticsEvent("unchoose_player_click", EventType.CLICK)
-    /** The Add players sheet's "Add N players" button was tapped. */
+    /** The Add players sheet's "Add N players" button was tapped. [playerCount] is the N. */
     @Serializable
-    object AddChosenPlayersClick: AnalyticsEvent("add_chosen_players_click", EventType.CLICK)
+    data class AddChosenPlayersClick(
+        @SerialName("player_count") val playerCount: Int
+    ): AnalyticsEvent("add_chosen_players_click", EventType.CLICK)
     /**
      * The Add players sheet was dragged closed or the scrim tapped, discarding the people chosen in
      * it.
