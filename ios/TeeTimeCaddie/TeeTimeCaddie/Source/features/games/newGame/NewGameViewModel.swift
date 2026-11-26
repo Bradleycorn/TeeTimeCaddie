@@ -53,7 +53,7 @@ final class NewGameViewModel {
 
     /// "Add players" was tapped: the Add players sheet opens with nothing selected.
     func onAddPlayersClick() {
-        eventManager.logEvent(event: AnalyticsEvent.AddFromContactsClick.shared)
+        eventManager.logEvent(event: AnalyticsEvent.AddPlayersClick.shared)
         guard let organizer = currentPlayer() else { return }
         uiState = uiState.withAddPlayers(
             addPlayers: AddPlayersUiState.companion.open(organizerPhone: organizer.phone, invitees: uiState.invitees)

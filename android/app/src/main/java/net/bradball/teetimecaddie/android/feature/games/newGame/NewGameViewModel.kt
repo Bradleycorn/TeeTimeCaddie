@@ -91,7 +91,7 @@ class NewGameViewModel @Inject constructor(
 
     /** "Add players" was tapped: the Add players sheet opens with nothing selected. */
     fun onAddPlayersClick() {
-        eventManager.logEvent(AnalyticsEvent.AddFromContactsClick)
+        eventManager.logEvent(AnalyticsEvent.AddPlayersClick)
         val organizer = (sessionState.value as? SessionState.SignedIn)?.player ?: return
         _uiState.update { it.copy(addPlayers = AddPlayersUiState.open(organizer.phone, it.invitees)) }
     }
