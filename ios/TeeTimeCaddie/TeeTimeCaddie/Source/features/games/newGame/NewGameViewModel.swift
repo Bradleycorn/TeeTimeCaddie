@@ -66,6 +66,7 @@ final class NewGameViewModel {
     /// - Parameter pickContacts: Opens the picker over the sheet, which reports how it closed to
     ///   ``onContactPickerDismissed(_:)``.
     func onChooseFromContactsClick(pickContacts: () -> Void) {
+        eventManager.logEvent(event: AnalyticsEvent.ChooseFromContactsClick.shared)
         pickContacts()
     }
 
@@ -100,6 +101,7 @@ final class NewGameViewModel {
     /// The sheet's Add was tapped. A valid name and number join the selection and the form clears;
     /// otherwise the fields show what's wrong.
     func onAddEnteredPlayer() {
+        eventManager.logEvent(event: AnalyticsEvent.AddEnteredPlayerClick.shared)
         guard let addPlayersState = uiState.addPlayers else { return }
         let result = contactsRepository.chooseEnteredPerson(
             list: addPlayersState.list,
@@ -111,19 +113,23 @@ final class NewGameViewModel {
 
     /// A selected person's chip was tapped: they're taken out of the selection.
     func onUnchoosePlayer(_ person: NewInvitee) {
+        eventManager.logEvent(event: AnalyticsEvent.UnchoosePlayerClick.shared)
         updateAddPlayersState { $0.unchoose(person: person) }
     }
 
     /// "Add N players" was tapped: everyone selected joins the invitees, and the sheet closes.
     func onAddChosenPlayers() {
         guard let addPlayersState = uiState.addPlayers else { return }
+        let list = addPlayersState.list
+        eventManager.logEvent(event: AnalyticsEvent.AddChosenPlayersClick(playerCount: Int32(list.chosen.count)))
         uiState = uiState
-            .withInvitees(invitees: addPlayersState.list.inviteChosen().invited)
+            .withInvitees(invitees: contactsRepository.inviteChosen(list: list).invited)
             .withAddPlayers(addPlayers: nil)
     }
 
     /// The sheet was dragged down or the scrim tapped: the selection is discarded, without asking.
     func onAddPlayersDismissed() {
+        eventManager.logEvent(event: AnalyticsEvent.AddPlayersSheetDismiss.shared)
         uiState = uiState.withAddPlayers(addPlayers: nil)
     }
 
